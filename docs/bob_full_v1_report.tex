@@ -1,0 +1,816 @@
+% Standalone LaTeX source. Intentionally not compiled for this delivery.
+% The inherited docs/report.tex is preserved unchanged.
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=25mm]{geometry}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{enumitem}
+\hypersetup{colorlinks=true,linkcolor=blue!45!black,urlcolor=blue!60!black,
+ pdftitle={bob: An FPGA Built Inside an FPGA}}
+\definecolor{codebg}{gray}{0.96}
+\lstset{basicstyle=\ttfamily\scriptsize,backgroundcolor=\color{codebg},
+ breaklines=true,showstringspaces=false,columns=fullflexible,keepspaces=true,
+ frame=single,tabsize=4}
+\setlength{\emergencystretch}{3em}
+\setlist{itemsep=3pt,topsep=5pt}
+\newcommand{\code}[1]{\texttt{\detokenize{#1}}}
+\newcommand{\src}[1]{\par\smallskip\noindent\textbf{Source: }\nolinkurl{/Users/sk/work/bob/bob_full_v1/#1}\par\smallskip}
+\title{\textbf{bob: An FPGA Built Inside an FPGA}\\[3mm]
+\large Architecture, RTL, Configuration Bits, Routing, Toolchain,\\
+Verification and Implementation Status on the PYNQ-Z2}
+\author{Technical project report\\\texttt{bob\_full\_v1}}
+\date{Source snapshot reviewed: September 2026}
+\begin{document}
+\maketitle
+\begin{abstract}
+Bob is a configurable FPGA architecture implemented as an RTL overlay in the
+programmable logic of a PYNQ-Z2 board. The host device is an AMD/Xilinx Zynq
+XC7Z020; the guest device is a smaller FPGA designed in Verilog and SystemVerilog.
+The active profile contains sixteen configurable logic blocks, two true-dual-port
+memories, two DSP-style arithmetic slices, twenty logical pads, and programmable
+routing generated from a VPR routing-resource graph. A 4216-bit scan chain
+configures the guest through a soft JTAG TAP driven by a Raspberry Pi Pico.
+
+This report follows the implementation from Boolean functions to configuration
+fields, and from application Verilog to simulation and hardware loading. It
+separates implemented behaviour, recorded results, and proposed improvements.
+It does not claim that a new build or hardware acceptance test was performed.
+\end{abstract}
+\tableofcontents
+\newpage
+
+\section{Scope and evidence}
+\label{sec:scope}
+This report describes the active sixteen-CLB M7 profile and M8 synthesis flow.
+The historical report is preserved at
+\nolinkurl{/Users/sk/work/bob/bob_full_v1/docs/report.tex}; its 2896-bit baseline
+chain is not the current 4216-bit chain. Some historical plan sections describe
+the frozen forty-eight-CLB profile. Current generated parameters and the device
+schema determine the numerical descriptions used here.
+
+\begin{description}
+\item[Implemented] Present in inspected source; not necessarily accepted on the
+current hardware build.
+\item[Recorded simulation result] Documented in the plan or existing logs; not
+rerun during report preparation.
+\item[Recorded hardware result] Present in the hardware-test history or copied
+Vivado reports, with milestone identity where available.
+\item[Proposed] An engineering recommendation, not a silently applied change.
+\end{description}
+The inspected local archive contains M0--M4 Vivado reports. The hardware log
+contains a passing M6 regression, including BRAM and DSP checks, but M5/M6
+utilisation reports have not been copied back. M7 attempts returning
+\code{0xFFFFFFFF} stop at identification, not at a functional fabric test.
+A user-reported M7 WNS near $-1102$ ns awaits inspection of its actual timing
+report; it is not independently verified local measurement in this document.
+\src{PLAN.md}
+\src{hw/src/generated/bob_params.vh}
+\src{docs/hwtest/results.log}
+
+\section{What is being built?}
+\label{sec:concept}
+An FPGA implements circuits using programmable truth tables, storage elements,
+arithmetic blocks, memories and selectable connections. Building bob means
+implementing those structures and their configuration tools, not manufacturing
+new silicon. This is a \emph{soft FPGA}, or FPGA overlay. Its architecture is
+inspired by established devices, but its configuration format is its own.
+
+\subsection{Host, guest and application}
+The physical \textbf{host} is an XC7Z020, part \code{xc7z020clg400-1}. Vivado maps
+bob's RTL onto host LUTs, registers, wires, RAM and DSP primitives. The
+\textbf{guest} is bob: its configuration remains changeable after the host is
+programmed. A \textbf{guest application} is a circuit mapped onto bob's resources.
+\begin{lstlisting}[caption={Two separate implementation flows}]
+HOST:  bob RTL -> Vivado synthesis/place/route -> AMD .bit
+       -> board USB-JTAG -> physical XC7Z020 programmable logic
+GUEST: application Verilog -> Yosys -> bob cells -> pack/place/route
+       -> bob configuration -> Pico/PMODA JTAG -> running application
+\end{lstlisting}
+The Zynq ARM processing system, Linux, AXI and PYNQ notebooks are not required by
+this flow. The board provides the programmable logic, clock, power and physical
+I/O; the Pico supplies an independent guest configuration interface.
+
+\subsection{Why two bitstreams and two JTAG interfaces?}
+The board's built-in programming interface loads the host AMD bitstream. The
+Pico talks to a second TAP implemented in bob's RTL on PMODA. These are separate
+chains, not a pass-through connection. A guest chain cannot configure the host,
+and an AMD bitstream cannot configure bob. A host rebuild changes the fabric
+itself; a guest reload changes the circuit running on an unchanged fabric.
+
+\subsection{What is original, reused and intentionally limited?}
+The baseline TAP, boundary cells and CLB behaviour were inherited from the
+hardware-tested predecessor. The project adds a central device schema, hardened
+configuration plane, user clock control, hard-block wrappers, generated routing
+and a synthesis-to-fabric flow. AMD UG470/473/474/479 guide configuration, RAM,
+logic and DSP semantics. OpenFPGA/VPR guide routing-resource generation.
+This does not establish complete compatibility with AMD device primitives,
+bitstreams, BSDL descriptions, or every IEEE compliance requirement.
+\src{REUSE.md}
+
+\section{Physical platform and board connections}
+Both Pico and PYNQ-Z2 use 3.3 V signal levels for this link. They require a common
+ground. With each board powered separately, their power rails should not be
+joined merely to make the JTAG connection. Verify the installed firmware's GPIO
+assignment before wiring; the project documents the following mapping.
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+Signal & Pico GPIO & PMODA pin & XC7Z020 package pin\\
+\midrule
+TCK & GP18 & 7 & U18\\
+TMS & GP19 & 1 & Y18\\
+TDI & GP16 & 2 & Y19\\
+TDO & GP17 & 3 & Y16\\
+Ground & GND & 5 or 11 & Ground\\
+\bottomrule
+\end{tabular}
+\end{center}
+TDI is driven by the probe into the target; TDO returns from target to probe.
+These names are not crossed like UART TX/RX. U18 is a clock-capable input used
+for TCK. The top instantiates separate BUFGs for TCK and the 125 MHz system clock
+on H16; simulation bypasses these vendor primitives using \code{SIMULATION}.
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+Board signal & Package pin & Logical pad & Edge\\
+\midrule
+SW0 & M20 & 6 & West\\
+SW1 & M19 & 8 & West\\
+BTN0 & D19 & 10 & West\\
+BTN1 & D20 & 12 & West\\
+BTN2 & L20 & 0 & South\\
+BTN3 & L19 & 1 & South\\
+LD0 & R14 & 7 & East\\
+LD1 & P14 & 9 & East\\
+LD2 & N16 & 11 & East\\
+LD3 & M14 & Not a guest pad & DONE indicator\\
+\bottomrule
+\end{tabular}
+\end{center}
+Unused physical mappings have zero input and no external output connection;
+their logical pads remain accessible through boundary scan. Raw switches and
+buttons are asynchronous inputs. False-path constraints on these ports do not
+synchronise or debounce them; sequential applications must respect that fact.
+\src{hw/src/top/bob_top.v}
+\src{hw/constr/pynq_z2.xdc}
+\src{docs/wiring.md}
+
+\section{Repository architecture and responsibility boundaries}
+\begin{longtable}{p{0.23\textwidth}p{0.70\textwidth}}
+\toprule
+Area & Responsibility\\\midrule\endhead
+\code{hw/} & Self-contained Windows/Vivado hand-off: ordered sources, configuration,
+RTL, generated fabric, testbenches, constraints and Tcl scripts.\\
+\code{tools/bob/} & Device description, VPR architecture and graph, generator,
+cycle model, chain packing, synthesis, equivalence simulation and placement.\\
+\code{host/} & DirtyJTAG USB transport, configuration operations, design API,
+routing, board loading and milestone tests.\\
+\code{sim/} & Vector generation, simulator drivers, lint and mutation testing.\\
+\code{tests/} & Python tests for schema, layout, models, synthesis, reports and
+Tcl build behaviour.\\
+\code{examples/} & Six small Verilog applications used by the M8 flow.\\
+\code{docs/} & Specifications, historical and current reports, wiring,
+architecture visualisations, checklists and hardware evidence.\\
+\code{release/} & Frozen hand-off bundles and restored historical tools.\\
+\bottomrule
+\end{longtable}
+All directory names in this table are under
+\nolinkurl{/Users/sk/work/bob/bob_full_v1/}.
+\code{sources.f} is shared by Vivado, simulation and lint, preventing divergent
+source lists. \code{device.py} owns architectural constants; generated JSON and
+Verilog headers carry those constants to software and RTL consumers. Generated
+files should not be fixed by hand: change the authority and regenerate instead.
+\src{hw/sources.f}
+\src{tools/bob/device.py}
+
+\section{The active device and its hierarchy}
+\label{sec:device}
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Property & Active M7 profile\\\midrule
+Device name & \code{bob6x4}\\
+VPR grid / interior & $8\times6$ / $6\times4$\\
+CLBs & 16, one basic logic element (BLE) each\\
+Memory & $2\times1024\times18$ bits\\
+DSP & 2 cascaded DSP48E1-style slices\\
+Logical pads / boundary cells & 20 / 40\\
+Routing & L4 unidirectional, $W=24$, Wilton $F_s=3$\\
+Programmable routing muxes & 1095\\
+Configuration & 4216 bits, CRC-32C checked\\
+IR width / IDCODE / USERCODE & 6 / \code{0xABEEF093} / \code{0x00000007}\\
+\bottomrule
+\end{tabular}
+\end{center}
+Coordinates increase eastward in $x$ and northward in $y$. Empty corners surround
+a ring of I/O tiles. The four CLB columns are $x=1,2,4,5$. BRAM occupies column
+$x=3$, and DSP occupies column $x=6$. Each hard block occupies two rows, rooted
+at $y=1$ or $y=3$. Those footprint heights describe guest geometry, not the host
+placement of inferred RAMB18 or DSP48E1 primitives.
+\begin{lstlisting}[caption={Logical core; upper hard-block rows are continuations}]
+       x=1  x=2  x=3    x=4  x=5  x=6
+ y=4   CLB  CLB  BRAM1  CLB  CLB  DSP1
+ y=3   CLB  CLB  BRAM1  CLB  CLB  DSP1
+ y=2   CLB  CLB  BRAM0  CLB  CLB  DSP0
+ y=1   CLB  CLB  BRAM0  CLB  CLB  DSP0
+ Carry flows upward inside each CLB column.
+ DSP0 PCOUT flows to DSP1 PCIN.
+\end{lstlisting}
+The frozen larger profile has a $10\times10$ VPR grid, an $8\times8$ interior,
+48 CLBs, 32 pads, height-four hard blocks, and 9400 configuration bits. Its
+IDCODE is \code{0x9BEEF093}. It is not interchangeable with the active profile.
+The documented reason for downsizing was excessive synthesis runtime, not a
+measured proof that the larger architecture could never fit.
+
+\subsection{Top-down RTL composition}
+\begin{lstlisting}[caption={Main hardware hierarchy}]
+bob_top                       board pins and two BUFG clock buffers
+  bob_fpga                    board-independent integration
+    jtag_tap6                 TAP state machine and instruction decode
+    cfg_ctrl                  CRC, count, status and startup sequencing
+    cfg_tile_sr               configuration shift and shadow registers
+    capture_chain             CLB-output observation
+    clock_ctrl                sysclk-domain user enable and synchronizers
+    bsc_cell x 40             boundary scan
+    bram_jtag                 USER4 command engine
+    dsp_jtag                  private DSP drive/readback register
+    bob_fabric                generated routing and block instances
+      bob_mux x 1095          configurable routing choices
+      clb x 16                LUT, carry and flip-flop
+      bram_block x 2          drive selection plus bram_core
+      dsp_block x 2           drive selection plus dsp_core
+\end{lstlisting}
+\src{hw/src/fabric/bob_fpga.v}
+\src{hw/src/generated/bob_fabric.v}
+
+\section{Configurable logic block: Boolean logic to one stored bit}
+\label{sec:clb}
+\subsection{A lookup table is programmable truth-table memory}
+For $K$ input bits, define the address
+\[
+a=\sum_{j=0}^{K-1}i_j2^j,\qquad O_6=\mathrm{INIT}[a].
+\]
+The input vector selects one of $2^K$ stored truth-table bits. With $K=6$, INIT
+has 64 bits. Bob generalises the implementation to other supported $K$ values;
+K=4 is also exercised in the verification flow. A LUT does not execute software:
+its input-dependent selection is combinational hardware.
+
+The secondary output is
+\[
+O_5=\mathrm{INIT}\left[\sum_{j=0}^{K-2}i_j2^j\right].
+\]
+For K=6 it uses the lower 32 INIT bits and ignores input 5. O5 and O6 share
+storage; they are not two arbitrary independent six-input functions. Fracturing
+must preserve that relationship when packing multiple uses into one CLB.
+
+For a two-input AND with $i_0=A$, $i_1=B$, the low four truth-table bits are
+$0,0,0,1$, hence hexadecimal 8. Replicating this nibble across all 64 bits gives
+\code{64'h8888888888888888}, making the result independent of the other inputs.
+For XOR the repeated nibble is 6. This address convention must agree in source
+mapping, bit generation, the Python model and RTL.
+
+\subsection{Carry arithmetic}
+With propagate $P=O_6$ and generate input $D_I$ selected from $i_0$ or O5,
+\[
+C_{out}=\begin{cases}C_{in},&P=1\\D_I,&P=0,\end{cases}
+\qquad S=P\oplus C_{in}.
+\]
+For addition set $P=A\oplus B$ and $D_I=A$. If the input bits differ, carry
+propagates; if equal, they determine the new carry. The LUT supplies propagate,
+the MUXCY-style expression supplies carry, and XORCY-style logic supplies sum.
+Dedicated northward carry connections avoid routing every carry bit through
+general-purpose channels. Crossing between columns requires explicit logic and
+routing; it is not an invisible wraparound direct.
+
+\subsection{Register priority and output selection}
+Each CLB contains one register $q$. At a system-clock edge its update priority is:
+\begin{enumerate}
+\item If GSR is asserted, load the configured reset/initial value.
+\item Otherwise, if either GWE or the user enable GCE is low, hold.
+\item Otherwise, if enabled routed SR is asserted, load the reset value.
+\item Otherwise, if effective CE is asserted, load the combinational datapath.
+\item Otherwise hold.
+\end{enumerate}
+The main output selects $q$ or the combinational datapath. Carry mode selects
+the sum; non-carry mode selects O6 or O5. Reset beats local CE, while GSR takes
+priority independently of the user enable. Reset values zero and one provide
+FDRE-like and FDSE-like behaviour respectively.
+\src{hw/src/clb/lutk.sv}
+\src{hw/src/clb/clb.sv}
+
+\section{The active device and its hierarchy}
+\label{sec:device}
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Property & Active M7 profile\\\midrule
+Device name & \code{bob6x4}\\
+VPR grid / interior & $8\times6$ / $6\times4$\\
+CLBs & 16, one basic logic element each\\
+Memory & $2\times1024\times18$ bits\\
+DSP & 2 cascaded DSP48E1-style slices\\
+Logical pads / boundary cells & 20 / 40\\
+Routing & L4 unidirectional, $W=24$, Wilton $F_s=3$\\
+Routing nodes / muxes / directs / undriven & 1564 / 1095 / 60 / 77\\
+Configuration & 4216 bits, CRC-32C checked\\
+IR width / IDCODE / USERCODE & 6 / \code{0xABEEF093} / \code{0x00000007}\\
+\bottomrule
+\end{tabular}
+\end{center}
+Coordinates increase eastward in $x$ and northward in $y$. Empty corners surround
+an I/O ring. CLB columns are $x=1,2,4,5$; BRAM occupies column $x=3$ and DSP
+column $x=6$, each hard block spanning two rows rooted at $y=1$ and $y=3$. These
+heights are guest geometry; they do not describe host placement of inferred
+RAMB18 or DSP48E1 primitives.
+\begin{lstlisting}[caption={Logical core; upper hard-block rows are continuations}]
+       x=1  x=2  x=3    x=4  x=5  x=6
+ y=4   CLB  CLB  BRAM1  CLB  CLB  DSP1
+ y=3   CLB  CLB  BRAM1  CLB  CLB  DSP1
+ y=2   CLB  CLB  BRAM0  CLB  CLB  DSP0
+ y=1   CLB  CLB  BRAM0  CLB  CLB  DSP0
+ Carry flows north inside each CLB column; DSP0 PCOUT feeds DSP1 PCIN.
+\end{lstlisting}
+The frozen larger profile has a $10\times10$ VPR grid, an $8\times8$ interior,
+48 CLBs, 32 pads, height-four hard blocks, a 9400-bit chain and IDCODE
+\code{0x9BEEF093}. It is not interchangeable with the active profile. The
+documented reason for downsizing was excessive Vivado synthesis runtime, not a
+proof that the larger fabric could never fit.
+
+\subsection{Top-down RTL composition}
+\begin{lstlisting}[caption={Main hardware hierarchy}]
+bob_top                       board pins and two BUFG clock buffers
+  bob_fpga                    board-independent integration
+    jtag_tap6                 TAP state machine and instruction decode
+    cfg_ctrl                  CRC, count, status, startup sequencing
+    cfg_tile_sr               configuration shift + shadow registers
+    capture_chain             CLB-output observation register
+    clock_ctrl                sysclk-domain user enable + synchronizers
+    bsc_cell x 40             boundary scan cells
+    bram_jtag / dsp_jtag      USER4 engine / private DSP register
+    bob_fabric                generated routing and block instances
+      bob_mux x 1095          configurable routing choices
+      clb x 16                LUT, carry, flip-flop
+      bram_block x 2          pin muxes plus bram_core
+      dsp_block x 2           pin muxes plus dsp_core
+\end{lstlisting}
+\src{hw/src/fabric/bob_fpga.v}
+\src{hw/src/generated/bob_fabric.v}
+
+\section{The configurable logic block, bit by bit}
+\label{sec:clb}
+\subsection{A lookup table is programmable truth-table memory}
+For $K$ input bits, with address $a=\sum_{j=0}^{K-1}i_j2^j$,
+\[ O_6=\mathrm{INIT}[a], \qquad
+   O_5=\mathrm{INIT}\Bigl[\textstyle\sum_{j=0}^{K-2}i_j2^j\Bigr]. \]
+The active profile uses $K=6$, so INIT is 64 bits; the flow also exercises $K=4$.
+A LUT executes no software: its inputs address stored truth-table bits
+combinationally. The secondary output O5 shares storage with O6 (for $K=6$, the
+low 32 INIT bits over $i_4..i_0$); it is not an independent function, and
+packing must preserve that relationship.
+For a two-input AND with $i_0=A$, $i_1=B$, the low four truth-table bits are
+$0,0,0,1$ (hexadecimal 8); repeating that nibble yields
+\code{64'h8888888888888888}, independent of the remaining inputs. XOR repeats 6.
+This address convention must agree across mapping, bit generation, the Python
+model and the RTL.
+
+\subsection{Carry arithmetic}
+With propagate $P=O_6$ and generate input $D_I$ selected from $i_0$ or O5,
+\[ C_{out}=\begin{cases} C_{in}, & P=1\\ D_I, & P=0\end{cases}
+   \qquad S=P\oplus C_{in}. \]
+For addition, the LUT computes $P=A\oplus B$ and $D_I=A$: equal input bits
+produce a defined carry, differing bits propagate it. Dedicated northward carry
+connections keep long chains off general routing; crossing to another column
+requires explicit routed logic, not an invisible wraparound.
+
+\subsection{Register priority and output selection}
+Each CLB has one register. At a user-enabled clock edge the priority is:
+GSR (load INIT value); otherwise hold if GWE or GCE is low; otherwise routed SR
+if enabled (load reset value, beating CE); otherwise load the datapath if CE is
+effective; otherwise hold. The main output selects register or combinational
+data; carry mode selects the sum, otherwise O6 or O5. Reset values 0 and 1 give
+FDRE-like and FDSE-like behaviour.
+\src{hw/src/clb/lutk.sv}
+\src{hw/src/clb/clb.sv}
+
+\section{Routing: from VPR graph to muxes and configuration bits}
+\label{sec:routing}
+Bob's interconnect is generated, not hand-drawn, following the OpenFPGA method:
+\begin{enumerate}
+\item \code{tools/bob/device.py} writes a VPR architecture derived from
+OpenFPGA's \code{k6_frac_N10_tileable_adder_chain_dpram8K_dsp36_fracff_40nm.xml}:
+a tileable layout with an I/O ring and empty corners, one L4 unidirectional
+segment, Wilton switch pattern with $F_s=3$, connection fractions
+$fc_{in}=0.15$, $fc_{out}=0.10$, and carry/clock pins excluded from general
+routing.
+\item \code{tools/bob/vpr_rrgraph.sh} runs VPR\,9 in the OpenFPGA Docker image,
+routes a trivial benchmark, and writes the graph with a stamp holding the
+architecture SHA-256, image digest and command.
+\item \code{device.py} then refuses to run if the stamp does not match the
+current architecture text and channel width, so RTL can never silently diverge
+from the graph it claims to implement.
+\end{enumerate}
+Every CHANX/CHANY/IPIN node with more than one driver becomes a \code{bob_mux}
+whose select comes from the chain:
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Mux output & Select encoding\\\midrule
+CHANX / CHANY & 0 = constant 0; $1..N$ = driving inputs in node-id order\\
+IPIN & 0 = constant 0; 1 = constant 1; $2..N{+}1$ = driving inputs\\
+\bottomrule
+\end{tabular}
+\end{center}
+An all-zero chain therefore yields a loop-free, dark fabric. An IPIN whose only
+driver is a single OPIN is not a mux at all but a wire; all 60 directs are of
+this kind (the CLB carry chain and the DSP cascade). Undriven nodes read zero.
+
+\subsection{Where the routing bits live}
+The chain order is: control tile, then grid tiles row-major from $(0,0)$, then
+padding to a byte boundary. A grid tile stores its block fields first, then its
+routing-mux selects by ascending rr-node id. Examples from
+\code{tools/bob/device.json}:
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+Tile & Chain bits & Width & Contents\\\midrule
+\code{ctrl} & 0--7 & 8 & \code{clk_mode}, \code{clk_div}, reserved\\
+\code{t_x1y1} (CLB) & 192--352 & 161 & 71 block bits + 90 routing bits\\
+\code{t_x3y1} (BRAM0) & 519--654 & 136 & 8 block bits + 128 pin selects\\
+\code{t_x6y1} (DSP0) & 984--1203 & 220 & 16 block bits + 204 selects\\
+\code{tail} & 4211--4215 & 5 & reserved, write 0\\
+\bottomrule
+\end{tabular}
+\end{center}
+The 71 CLB block bits are the 64-bit INIT plus seven flags (\code{ff_en},
+\code{ff_rstval}, \code{ff_ce_en}, \code{ff_sr_en}, \code{cy_en},
+\code{cy_di_sel}, \code{ff_d_sel}). Tile widths vary with the muxes each tile
+owns, which is why nominally identical CLB tiles differ slightly.
+A documented pitfall shaped the pin plan: VPR's \code{pinlocations
+pattern="spread"} places pins on the top and bottom faces \emph{inside} tall
+blocks, where \code{through_channel="false"} leaves no channel, producing
+unroutable pins. Hard-block pins are therefore placed round-robin on the left
+and right of every row, with clock, carry and cascade pins on the block ends.
+\src{tools/bob/device.py}
+\src{tools/bob/fabric_gen.py}
+
+\section{Routing: from VPR's graph to muxes and chain bits}
+\label{sec:routing}
+Bob's interconnect is generated, not hand-drawn, following the OpenFPGA method:
+\begin{enumerate}
+\item \code{tools/bob/device.py} writes a VPR architecture derived from
+OpenFPGA's \code{k6_frac_N10_tileable_adder_chain_dpram8K_dsp36_fracff_40nm.xml}:
+tileable layout, I/O ring with empty corners, one L4 unidirectional segment,
+Wilton switch pattern with $F_s=3$, connection fractions
+$fc_{\mathrm{in}}=0.15$ and $fc_{\mathrm{out}}=0.10$, and carry/clock pins
+excluded from general routing.
+\item \code{tools/bob/vpr_rrgraph.sh} runs VPR~9 in the OpenFPGA Docker image,
+routes a trivial benchmark, and writes the routing-resource graph together with
+a stamp holding the architecture SHA-256, image digest and command.
+\item Regeneration then fails if the stamp does not match the current
+architecture text or channel width, so RTL can never silently diverge from the
+graph it claims to implement.
+\end{enumerate}
+Every CHANX/CHANY/IPIN node with more than one driver becomes a \code{bob_mux}
+whose select comes from the configuration chain:
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Mux output & Select encoding\\\midrule
+CHANX / CHANY & 0 = constant 0; $1..N$ = driving inputs in node-id order\\
+IPIN & 0 = constant 0; 1 = constant 1; $2..N{+}1$ = driving inputs\\
+\bottomrule
+\end{tabular}
+\end{center}
+An all-zero chain is therefore a dark, loop-free fabric. An input pin whose only
+driver is a single output pin is not a mux at all but a wire; all 60 directs
+are of this kind (the carry chain and the DSP cascade). Undriven nodes read
+constant zero.
+
+\subsection{Where the routing bits live in the chain}
+The chain order is: control tile, grid tiles row-major from $(0,0)$, then
+padding to a byte boundary. A grid tile stores its block fields first, then its
+routing-mux selects by ascending rr-node id. Examples from
+\code{tools/bob/device.json}:
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+Tile & Chain bits & Width & Contents\\\midrule
+\code{ctrl} & 0--7 & 8 & \code{clk_mode}, \code{clk_div}, reserved\\
+\code{t_x1y1} (CLB) & 192--352 & 161 & 71 block bits + 90 routing bits\\
+\code{t_x3y1} (BRAM0) & 519--654 & 136 & 8 block bits + 128 pin selects\\
+\code{t_x6y1} (DSP0) & 984--1203 & 220 & 16 block bits + 204 selects\\
+\code{tail} & 4211--4215 & 5 & reserved, write 0\\
+\bottomrule
+\end{tabular}
+\end{center}
+The 71 CLB block bits are the 64-bit INIT plus seven flags: \code{ff_en},
+\code{ff_rstval}, \code{ff_ce_en}, \code{ff_sr_en}, \code{cy_en},
+\code{cy_di_sel}, \code{ff_d_sel}. Tile widths vary with the muxes each tile
+owns, which is why nominally identical CLB tiles differ slightly in width.
+A documented pitfall shaped the pin plan: VPR's \code{pinlocations
+pattern="spread"} places pins on the top and bottom faces \emph{inside} tall
+blocks, where \code{through_channel="false"} leaves no channel, producing
+unroutable pins. Hard-block pins are therefore placed round-robin on the left
+and right of every row, with clock, carry and cascade pins on the block ends.
+\src{tools/bob/device.py}
+\src{tools/bob/fabric_gen.py}
+
+\section{Hard blocks: block memory and multiply--accumulate}
+\label{sec:hard}
+\subsection{BRAM: UG473 behaviour on an inferred RAMB18}
+\code{bram_core.v} implements a $1024\times18$ true-dual-port memory following
+AMD UG473 semantics, trimmed to one width mode. Per-port configuration bits
+cover write mode (WRITE\_FIRST, READ\_FIRST, NO\_CHANGE), optional output
+register (DOA/DOB\_REG style), and per-port enable and reset. The memory array
+is written in Vivado's true-dual-port READ\_FIRST template so that synthesis
+infers a RAMB18 primitive rather than distributed LUT RAM. WRITE\_FIRST and
+NO\_CHANGE are derived from the READ\_FIRST template by registers placed after
+the RAM output; this is what makes the write mode a configuration bit rather
+than a synthesis attribute.
+GSR clears output latches and registers to zero but never the memory contents.
+Contents load through port~A from the USER4 engine while GWE is low, consistent
+with UG470's separation of configuration from block-memory contents.
+Eight configuration bits per block select write modes, output registers, and
+whether each port's pins come from the fabric or from the 64-bit USER4 drive
+word. Hard-block pin selects are routing bits: each pin is a node in the rr
+graph, so a BRAM or DSP pin can be driven from fabric tracks, constants, or the
+JTAG drive word.
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+USER4 command & Code & Behaviour\\\midrule
+LOAD\_PTR & 1 & address pointer $\leftarrow$ payload\\
+WRITE & 2 & write word at pointer, increment (GWE = 0 only)\\
+READ & 3 & read word at pointer, increment (GWE = 0 only)\\
+SET\_DRIVE & 4 & selected block's drive word $\leftarrow$ payload\\
+SELECT & 5 & target block index $\leftarrow$ payload\\
+\bottomrule
+\end{tabular}
+\end{center}
+\subsection{DSP: UG479 behaviour, trimmed}
+\code{dsp_core.v} implements one DSP48E1-style slice with static configuration
+instead of dynamic OPMODE/INMODE/ALUMODE pins. Inputs A (25), B (18), C (48) and
+D (25) are signed; a pre-adder computes $AD = D \pm A$; the multiplier computes
+$M = AD\times B$ over 43 bits. The output follows one of four modes:
+$P=M$; $P=M+C$; $P=P+M$ (accumulator, always fed back from the P register, so
+no combinational loop exists when PREG is zero); and cascade accumulation,
+$P=(\code{PCIN} >>> 17)+M$, using the 17-bit shift familiar from UG479.
+Register stages AREG, BREG, CREG, DREG, MREG and PREG are configuration bits;
+CE and reset are grouped in four pairs, with C sharing P's controls, and reset
+beating enable as UG479's synchronous resets do. GCE, GWE and GSR act on every
+register exactly as on the CLB. Written in UG479 inference style, the slice maps
+to a host DSP48E1 primitive; two slices exist, with slice~0's PCOUT feeding
+slice~1's PCIN through a direct.
+\src{hw/src/tiles/bram_core.v}
+\src{hw/src/tiles/dsp_core.v}
+
+\section{Configuration: the scan chain, CRC and startup, bit by bit}
+\label{sec:config}
+\subsection{JTAG instructions}
+The TAP implements a six-bit instruction register using AMD 7-series codes
+compiled from OpenOCD, openFPGALoader and the XC7Z020 BSDL. Capture-IR returns
+\code{\{DONE, INIT_B, COMMITTED, CRC_ERR, 0, 1\}}, so a plain IR scan reads
+configuration status; the two least significant bits are the IEEE 1149.1
+requirement. INTEST (\code{000111}) and the DSP instruction (\code{101000}) are
+private codes not found in AMD's numbering.
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Code & Instruction & Data register\\\midrule
+\code{000001} & SAMPLE & boundary ring, observe pins\\
+\code{100110} & EXTEST & boundary ring, drive pads\\
+\code{000111} & INTEST & boundary ring, drive fabric inputs\\
+\code{000010} & USER1 & 32-bit control (ce, sr, cin, step, autostep)\\
+\code{000011} & USER2 / CFG\_CTRL & 64-bit status and expected CRC\\
+\code{100010} & USER3 / CAPTURE & 16 CLB outputs, read-only\\
+\code{000100} & CFG\_OUT & chain, readback, never commits\\
+\code{000101} & CFG\_IN & chain, commits when CRC and length pass\\
+\code{001000} & USERCODE & 32-bit milestone code\\
+\code{001001} & IDCODE & 32-bit identification\\
+\code{001011} & JPROGRAM & clears configuration, re-asserts GSR/GTS\\
+\code{001100} & JSTART & steps startup in Run-Test/Idle\\
+\code{100011} & USER4 & BRAM contents, drive and SELECT\\
+\code{101000} & DSP & private DSP drive and P readback\\
+\code{111111} & BYPASS & one bit\\
+\bottomrule
+\end{tabular}
+\end{center}
+\subsection{Commit rules, CRC and the startup sequence}
+Every CFG\_IN scan computes a serial CRC-32C (Castagnoli polynomial
+\code{0x1EDC6F41}, reflected \code{0x82F63B78}, init and final XOR
+\code{0xFFFFFFFF}) over the shifted bits, LSB first, and counts them. At
+Update-DR the chain commits only if the count equals 4216 and the complement of
+the running CRC equals the expected value written beforehand through CFG\_CTRL
+behind the key byte \code{0xC5}. A rejected scan raises \code{CRC\_ERR} or
+\code{LEN\_ERR} and leaves the previous configuration intact. CFG\_OUT shifts
+the shadow chain out and never commits.
+The status word exposed through CFG\_CTRL is \code{\{version, done, gwe, gts,
+gsr, committed, len_err, crc_err, crc_ok, count[15:0], crc[31:0]\}}.
+Startup follows UG470's order: JPROGRAM re-asserts GSR and GTS and clears
+committed and DONE; each JSTART clock in Run-Test/Idle advances one phase,
+releasing GSR, then GTS, then GWE, then DONE. The chain is LSB-first: the first
+bit shifted in on TDI is chain bit 0, and the tail's reserved bits are last.
+The commit gate currently does not check GWE: a correct live reload commits
+while the fabric runs. That is deliberate for fast design swaps and is a known
+divergence from UG470's full-configuration model; it is also the reason a
+blanket false-path from configuration flops would describe an operating mode
+the RTL still permits.
+\begin{lstlisting}[caption={Host load sequence (host/cfgplane.py)}]
+1. IR JPROGRAM          clear chain, GSR/GTS asserted, DONE low
+2. CFG_CTRL write       (0xC5 << 56) | expected CRC-32C
+3. CFG_IN shift         4216 bits, bulk transfer allowed
+4. CFG_CTRL read        require committed, crc_ok, count = 4216
+5. CFG_OUT read         must equal the sent chain
+6. JSTART + 12 TCK      startup sequence
+7. IR capture           require DONE = 1
+\end{lstlisting}
+A host-side \code{.bobc} container (magic \code{BOBC}, version, device name,
+width, CRC, payload) is validated in full before any hardware is touched.
+\src{hw/src/core/cfg_ctrl.v}
+\src{docs/bitstream-format.md}
+\src{tools/bob/chainbits.py}
+
+\section{User clock, CDC and boundary scan}
+\label{sec:clock}
+Every fabric flop runs on the 125 MHz board clock through a BUFG and may change
+only on an edge where GCE is high. Clock control realises the user clock as an
+enable rather than a derived clock, following UG949's recommendation: JTAG mode
+produces one pulse per TCK rising edge while USER1 ce is set (plus manual step
+or INTEST autostep pulses), and free-running mode produces one pulse every
+$2^{\mathrm{clk\_div}+8}$ sysclk cycles, at most 488 kHz. All TCK-domain inputs
+pass through two-flop ASYNC\_REG synchronizers. The XDC therefore grants
+120-cycle multicycles on fabric flop-to-flop paths, justified by the free-running
+minimum of 256 cycles and by a TCK ceiling of about 1\,MHz.
+These are operating contracts, not self-enforcing properties. The review
+identified three gaps that remain open in the source: nothing enforces one
+enable source at a time (a manual step on a TCK rising edge and an autostep on
+the falling edge can produce two GCE pulses roughly half a TCK period apart,
+about 62 sysclk cycles at 1 MHz); a mode-switch commit can place two pulses
+close together; and \code{dirtyjtag.py} applies any requested frequency without
+a ceiling check. Consequences depend on guest designs; they are not known
+hardware failures on this build.
+Boundary scan uses 40 cells, two per pad: the first NPAD cells observe the
+fabric's pad outputs (GTS forces them to zero before startup), the next NPAD
+cells drive fabric inputs. SAMPLE is transparent observation; EXTEST drives
+pads; INTEST drives fabric inputs, with autostep providing one user-clock edge
+per scan. Test-Logic-Reset is consumed synchronously only, after a documented
+combinational glitch caused real hardware failures in the predecessor.
+\src{hw/src/core/clock_ctrl.v}
+\src{host/dirtyjtag.py}
+
+\section{Guest design flow: from Verilog to a running fabric}
+\label{sec:flow}
+\begin{lstlisting}[caption={M8 flow: each step has a proof obligation}]
+tools/bob/synth.py examples/counter.v
+  Yosys synth_xilinx-style flow restricted to bob cells:
+  $lut, BOB_FDRE/FDSE, BOB_ADD, BOB_BRAM18, BOB_DSP.
+  Fails if a foreign cell remains or the design uses >1 clock.
+tools/bob/equiv.py examples/counter.v
+  Source vs synthesised netlist in one iverilog bench, 300 random
+  cycles, outputs compared before and after every edge; the source
+  trace is saved for later reuse.
+tools/bob/place.py counter --check
+  Deterministic packing/placement, then rr-graph routing; --check
+  replays the source trace through the cycle model.
+sim/run_synth_sim.sh
+  The same placed bitstreams on the complete fabric RTL (tb_synth).
+\end{lstlisting}
+Packing merges an adder and its flip-flop into one carry-mode CLB, merges a LUT
+feeding only one FF, keeps extra loads of small LUTs on O5, and runs carry
+chains up a CLB column from a generator row, so the global carry-in never enters
+a design; chains longer than a column continue through a tap CLB in the next
+carry column. Placement is deliberately simple and deterministic; VPR takes over
+packing, placement and routing at M9. Known M8 limits recorded in the plan: no
+asynchronous resets or latches, one clock, no mid-chain carry tap, no BRAM
+output-register or DSP register absorption.
+\subsection{Routing a guest net}
+\code{host/bitstream.py} routes nets by breadth-first search over the rr graph,
+sharing tracks among fanout and reordering rip-ups when a net fails;
+\code{tools/bob/model.py} evaluates exactly the muxes and directs the RTL has,
+so model and RTL agree by construction. The equivalence harness exists because
+mapping bugs are silent: a wrong INIT addressing convention or mis-ordered
+carry bit still simulates, just wrongly.
+\src{tools/bob/synth.py}
+\src{tools/bob/place.py}
+\src{host/bitstream.py}
+
+\section{Verification: layers, mutants and evidence}
+\label{sec:verify}
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Layer & Mechanism & Recorded result\\\midrule
+Config plane & tb\_cfg vectors, per-guard mutants & 180 checks; 5/5 killed\\
+CLB sweep & 128 flag combinations vs model & 7040 checks (K=6)\\
+BRAM & mode/register sweep vs model & 5292 checks\\
+DSP & opmode/register sweep + cascade & 1344 checks\\
+Fabric (48-CLB) & tb\_bob incl.\ random routed netlists & 852 checks\\
+K=4 substitution & full suite at K=4 & 722 checks\\
+Synthesis & 6 examples, 3-way equivalence & tb\_synth 486\\
+Fabric mutants & ce/sr/divider/gce mutants & 25/25 killed\\
+pytest & device, layout, Tcl, reports, synth & 88 passed\\
+\bottomrule
+\end{tabular}
+\end{center}
+These are recorded results from the plan and logs; not rerun for this report.
+The independent software model is the oracle: RTL checks compare against it,
+and it is itself exercised by mutation tests that prove each guard's absence
+would be caught. Milestone hardware tests always run the full earlier
+regression first, so a new milestone cannot pass while breaking an old one.
+
+\section{Host build flow and the Windows hand-off}
+\label{sec:build}
+Vivado runs on a separate Windows machine; \code{hw/} is the complete bundle.
+\code{build.tcl} reuses an existing Vivado project, syncs it to
+\code{sources.f}, fingerprints sources so it rebuilds only on real changes, and
+errors out if implementation claims success without a bitstream. It writes
+timing, utilisation and DRC reports plus a build-info fingerprint (tag, top,
+IDCODE, USERCODE, part, source list, WNS) into \code{out/<tag>/}, which is
+copied back to \code{docs/reports/<tag>/}. The fabric's combinational loops are
+by construction, so LUTLP-1 is downgraded to a warning for fabric tops only,
+via a pre-implementation and pre-bitstream Tcl hook. Synthesis uses
+\code{RuntimeOptimized} because timing-driven synthesis of the looped fabric is
+slow; this changes optimisation effort, not the meaning of subsequent static
+timing analysis. On negative WNS the script warns, explains that static timing
+is inconclusive on this design by construction, and still writes the bitstream.
+\src{hw/scripts/build.tcl}
+\src{hw/scripts/drc_waiver.tcl}
+\src{tests/test_build_tcl.py}
+
+\section{Hardware status and the evidence trail}
+\label{sec:status}
+\begin{longtable}{p{0.14\textwidth}p{0.46\textwidth}p{0.28\textwidth}}
+\toprule
+Milestone & Content & Evidence status\\\midrule\endhead
+M0--M2 & Layout, schema, config plane & Vivado reports archived; board checks logged\\
+M3 & 4$\times$4 fabric on the config plane & Report archived; board checks logged\\
+M4 & User clock, routed CE/SR, K parameter & Report archived; WNS $+0.843$\,ns\\
+M5 & BRAM tile & Board checks logged; utilisation report not copied back\\
+M6 & DSP tile & Board regression logged passing; report missing\\
+M7 & Generated fabric, 16-CLB profile & Simulated; hardware test not passed\\
+M8 & Synthesis onto bob cells & Simulated; board test rides the M7 bitstream\\
+M9--M13 & VPR PnR, bitgen, bring-up, frames & Planned\\\bottomrule
+\end{longtable}
+The last M7 log entries are three identification failures returning
+\code{0xFFFFFFFF}, which per the project's own debugging table means nothing
+answered on TDO: the board was not programmed, or the probe was disconnected.
+They do not test the fabric, so they neither validate nor refute it; the most
+recent passing board regression remains M6. Note that IDCODE/USERCODE identity
+alone does not prove which rebuild is loaded, since rebuilds of the same
+profile share both codes; a source fingerprint or bitstream hash would close
+that gap in future acceptance checks.
+
+\section{Open issues and recommended next steps}
+\label{sec:issues}
+\begin{enumerate}
+\item \textbf{Version control.} The tree has no Git history; the M6 host tools
+had to be rebuilt from a session transcript after an overwrite. Recommended:
+initialise Git, tag milestones, and derive \code{release/} bundles from tags
+(archive or worktree) rather than manual copies, keeping the Windows hand-off
+workflow.
+\item \textbf{M7 acceptance.} Obtain the 16-CLB Vivado reports, analyse any
+negative WNS by actual startpoint and endpoint, then run the hardware
+regression. Nothing should be waived before the real paths are inspected.
+\item \textbf{Operating contracts as code.} Commit only while GWE = 0 (with
+matching status and host interpretation), one enable source at a time, a TCK
+ceiling enforced in \code{dirtyjtag.py}, consistency tests tying the multicycle
+value to the divider and probe ceiling, and a \code{report_cdc} review of the
+BRAM command handshake and quasi-static drive words.
+\item \textbf{Report acceptance.} \code{test_reports.py} checks only folders
+that already exist and asserts no slack sign. A separate acceptance target
+should require the current build's reports, IDENTITY match, nonnegative slack
+or a justified exception, expected RAMB18/DSP counts, and a logged hardware
+pass; everyday checks stay usable before reports exist.
+\item \textbf{Clearer dead-probe diagnosis.} \code{0xFFFFFFFF} currently
+produces the same "wrong bitstream" message as a genuine mismatch; it should
+say that nothing is driving TDO.
+\item \textbf{Scaling.} Measure LUTRAM configuration memory and out-of-context
+or incremental builds before growing the grid.
+\end{enumerate}
+\src{tests/test_reports.py}
+\src{host/hwtest.py}
+
+\section{How to reproduce the work}
+\label{sec:repro}
+On the Mac, \code{make check} regenerates device files, runs every simulation,
+lint and pytest, and must be green before any hand-off; \code{make rrgraph}
+rebuilds the routing graph in Docker after an architecture change; \code{make
+hw} refreshes generated vectors inside \code{hw/}. On the Windows machine,
+\code{build.tcl} rebuilds only what changed and can program the board. Back on
+the Mac, \code{make hwtest M=Mx} runs the regression plus the milestone's
+checks and appends \code{docs/hwtest/results.log}. Older bitstreams are tested
+with the frozen tools under \code{release/}. This report compiles with:
+\begin{lstlisting}[language={}]
+cd /Users/sk/work/bob/bob_full_v1/docs
+pdflatex bob_full_v1_report.tex   # run twice for the table of contents
+\end{lstlisting}
+No compilation was performed for this delivery.
+
+\end{document}

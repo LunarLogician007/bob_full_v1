@@ -1,0 +1,27 @@
+tag         M2
+top         cfg_test_top
+idcode      0x4BEEF093
+usercode    0x00000002
+part        xc7z020clg400-1
+fingerprint 0389cf80
+wns         493.734772 ns
+built       2026-09-14 06:25:16
+sources
+  src/clb/clb_pkg.sv
+  src/clb/lut6.sv
+  src/clb/clb.sv
+  src/clb/mux_bank.v
+  src/clb/tile.v
+  src/core/jtag_tap.v
+  src/core/bsc_cell.v
+  src/core/jtag_tap6.v
+  src/core/cfg_tile_sr.v
+  src/core/cfg_mem.v
+  src/core/cfg_ctrl.v
+  src/core/capture_chain.v
+  src/fabric/fabric.v
+  src/fabric/fpga4x4.v
+  src/fabric/mini_fpga.v
+  src/top/fpga4x4_top.v
+  src/top/mini_fpga_top.v
+  src/top/cfg_test_top.v

@@ -1,0 +1,419 @@
+2026-09-14 03:24:51  M0  tag=M0 top=fpga4x4_top
+    FAIL  idcode           0xFFFFFFFF, build.cfg expects 0x3BEEF093
+2026-09-14 03:25:16  M0  tag=M0 top=fpga4x4_top
+    FAIL  idcode           0xFFFFFFFF, build.cfg expects 0x3BEEF093
+2026-09-14 03:26:04  M0  tag=M0 top=fpga4x4_top
+    FAIL  idcode           0xFFFFFFFF, build.cfg expects 0x3BEEF093
+2026-09-14 03:26:11  M0  tag=M0 top=fpga4x4_top
+    FAIL  idcode           0xFFFFFFFF, build.cfg expects 0x3BEEF093
+2026-09-14 03:26:23  M0  tag=M0 top=fpga4x4_top
+    FAIL  idcode           0xFFFFFFFF, build.cfg expects 0x3BEEF093
+2026-09-14 03:28:01  M0  tag=M0 top=fpga4x4_top
+    FAIL  idcode           0xFFFFFFFF, build.cfg expects 0x3BEEF093
+2026-09-14 03:28:21  M0  tag=M0 top=fpga4x4_top
+    FAIL  idcode           0xFFFFFFFF, build.cfg expects 0x3BEEF093
+2026-09-14 03:28:50  M0  tag=M0 top=fpga4x4_top
+    FAIL  idcode           0xFFFFFFFF, build.cfg expects 0x3BEEF093
+2026-09-14 03:31:01  M0  tag=M0 top=fpga4x4_top
+    PASS  idcode           0x3BEEF093, build.cfg expects 0x3BEEF093
+    PASS  bypass           measured 1 bit(s)
+    PASS  selftest         11/11 designs match the model
+    PASS  showcase-live    pad_i=000010 pads=110 model=110
+2026-09-14 03:46:09  M0  tag=M0 top=fpga4x4_top
+    PASS  idcode           0x3BEEF093, build.cfg expects 0x3BEEF093
+    PASS  bypass           measured 1 bit(s)
+    PASS  selftest         11/11 designs match the model
+    PASS  showcase-live    pad_i=000010 pads=110 model=110
+2026-09-14 04:14:32  M0  tag=M0 top=fpga4x4_top
+    PASS  idcode           0x3BEEF093, build.cfg expects 0x3BEEF093
+    PASS  bypass           measured 1 bit(s)
+    PASS  selftest         11/11 designs match the model
+    PASS  showcase-live    pad_i=000010 pads=110 model=110
+2026-09-14 05:51:35  M1  tag=M1 top=fpga4x4_top
+    PASS  idcode           0x3BEEF093, build.cfg expects 0x3BEEF093
+    PASS  bypass           measured 1 bit(s)
+    PASS  selftest         11/11 designs match the model
+    PASS  showcase-live    pad_i=000010 pads=110 model=110
+    PASS  chain-length     2896 bits, design intact after the marker scan
+2026-09-14 06:27:03  M2  tag=M2 top=cfg_test_top
+    PASS  idcode           0x4BEEF093, build.cfg expects 0x4BEEF093
+    PASS  bypass           measured 1 bit(s)
+    PASS  usercode         0x00000002, build.cfg expects 0x00000002
+    PASS  ir-capture       {'done': 0, 'init_b': 1, 'committed': 0, 'crc_err': 0, 'lsb01': True}
+    PASS  chain-length     measured 64, cfg_test_top has 64
+    PASS  load-readback    4 random chains committed with CRC and read back twice
+    PASS  crc-reject       crc_err=1 committed=1 previous kept=True
+    PASS  len-reject       len_err=1 crc_err=0 count=63 previous kept=True
+    PASS  startup          GSR=0 GTS=0 GWE=1 DONE=1  (LD3 on, LD2..0 = 101)
+    PASS  capture          counter 55 -> 128, SW1..0=01 BTN3..0=0000
+    PASS  jprogram         counter=0 chain=0x0 DONE=0 GSR=1
+2026-09-14 06:55:33  M3  tag=M3 top=fpga4x4_top
+    PASS  idcode           0x5BEEF093, build.cfg expects 0x5BEEF093
+    PASS  bypass           measured 1 bit(s)
+    PASS  selftest         11/11 designs match the model
+    PASS  usercode         0x00000003, build.cfg expects 0x00000003
+    PASS  chain-length     2896 bits, design intact after the marker scan
+    PASS  ir-status        {'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}
+    PASS  crc-reject-live  crc_err=1 DONE=1 config kept=True showcase vectors wrong=0
+    PASS  gts              outputs before JSTART=000, after=011, model=011
+    PASS  gsr-gwe          q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1
+    PASS  capture-user1    CAPTURE=0x0420 USER1[19:4]=0x0420 (switches must not move during the check)
+    PASS  jprogram         DONE=0 GTS=1 chain zero=True outputs=000
+    PASS  showcase-live    pad_i=000001 pads=110 model=110
+2026-09-14 07:46:44  M4  tag=M4 top=fpga4x4_top
+    PASS  idcode           0x6BEEF093, build.cfg expects 0x6BEEF093
+    PASS  bypass           measured 1 bit(s)
+    PASS  selftest         11/11 designs match the model
+    PASS  usercode         0x00000004, build.cfg expects 0x00000004
+    PASS  chain-length     3064 bits, design intact after the marker scan
+    PASS  ir-status        {'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}
+    PASS  crc-reject-live  crc_err=1 DONE=1 config kept=True showcase vectors wrong=0
+    PASS  gts              outputs before JSTART=000, after=011, model=011
+    PASS  gsr-gwe          q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1
+    PASS  capture-user1    CAPTURE=0x0420 USER1[19:4]=0x0420 (switches must not move during the check)
+    PASS  jprogram         DONE=0 GTS=1 chain zero=True outputs=000
+    PASS  showcase-live    pad_i=000001 pads=110 model=110
+    FAIL  ce-sr            SW1..0=00: q=1 model=0
+    PASS  counter-step     counts [15, 4, 9, 14, 3, 8] (steps [5, 5, 5, 5, 5], want 5 each); ce off: [11, 11, 11] (want constant)
+    PASS  counter-run      23 counts in 3.00 s = 7.66/s (expected 7.45)
+    PASS  blinky           running: LD0 ~0.93 Hz, LD1 ~0.47 Hz, LD2 ~0.23 Hz, LD3 on (check by eye)
+2026-09-14 07:47:17  M4  tag=M4 top=fpga4x4_top
+    PASS  idcode           0x6BEEF093, build.cfg expects 0x6BEEF093
+    PASS  bypass           measured 1 bit(s)
+    PASS  selftest         11/11 designs match the model
+    PASS  usercode         0x00000004, build.cfg expects 0x00000004
+    PASS  chain-length     3064 bits, design intact after the marker scan
+    PASS  ir-status        {'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}
+    PASS  crc-reject-live  crc_err=1 DONE=1 config kept=True showcase vectors wrong=0
+    PASS  gts              outputs before JSTART=000, after=011, model=011
+    PASS  gsr-gwe          q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1
+    PASS  capture-user1    CAPTURE=0x0420 USER1[19:4]=0x0420 (switches must not move during the check)
+    PASS  jprogram         DONE=0 GTS=1 chain zero=True outputs=000
+    PASS  showcase-live    pad_i=000001 pads=110 model=110
+    FAIL  ce-sr            SW1..0=00: q=1 model=0
+    PASS  counter-step     counts [15, 4, 9, 14, 3, 8] (steps [5, 5, 5, 5, 5], want 5 each); ce off: [11, 11, 11] (want constant)
+    PASS  counter-run      23 counts in 3.00 s = 7.66/s (expected 7.45)
+    PASS  blinky           running: LD0 ~0.93 Hz, LD1 ~0.47 Hz, LD2 ~0.23 Hz, LD3 on (check by eye)
+2026-09-14 07:47:33  M4  tag=M4 top=fpga4x4_top
+    PASS  idcode           0x6BEEF093, build.cfg expects 0x6BEEF093
+    PASS  bypass           measured 1 bit(s)
+    PASS  selftest         11/11 designs match the model
+    PASS  usercode         0x00000004, build.cfg expects 0x00000004
+    PASS  chain-length     3064 bits, design intact after the marker scan
+    PASS  ir-status        {'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}
+    PASS  crc-reject-live  crc_err=1 DONE=1 config kept=True showcase vectors wrong=0
+    PASS  gts              outputs before JSTART=000, after=011, model=011
+    PASS  gsr-gwe          q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1
+    PASS  capture-user1    CAPTURE=0x0021 USER1[19:4]=0x0021 (switches must not move during the check)
+    PASS  jprogram         DONE=0 GTS=1 chain zero=True outputs=000
+    PASS  showcase-live    pad_i=000011 pads=011 model=011
+    PASS  ce-sr            CE loads, SR clears (beats CE), both low holds - 7 steps match model.py
+    PASS  counter-step     counts [15, 4, 9, 14, 3, 8] (steps [5, 5, 5, 5, 5], want 5 each); ce off: [11, 11, 11] (want constant)
+    PASS  counter-run      23 counts in 3.00 s = 7.66/s (expected 7.45)
+    PASS  blinky           running: LD0 ~0.93 Hz, LD1 ~0.47 Hz, LD2 ~0.23 Hz, LD3 on (check by eye)
+2026-09-14 07:49:15  M4  tag=M4 top=fpga4x4_top
+    PASS  idcode           0x6BEEF093, build.cfg expects 0x6BEEF093
+    PASS  bypass           measured 1 bit(s)
+    PASS  selftest         11/11 designs match the model
+    PASS  usercode         0x00000004, build.cfg expects 0x00000004
+    PASS  chain-length     3064 bits, design intact after the marker scan
+    PASS  ir-status        {'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}
+    PASS  crc-reject-live  crc_err=1 DONE=1 config kept=True showcase vectors wrong=0
+    PASS  gts              outputs before JSTART=000, after=011, model=011
+    PASS  gsr-gwe          q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1
+    PASS  capture-user1    CAPTURE=0x0021 USER1[19:4]=0x0021 (switches must not move during the check)
+    PASS  jprogram         DONE=0 GTS=1 chain zero=True outputs=000
+    PASS  showcase-live    pad_i=000011 pads=011 model=011
+    PASS  ce-sr            CE loads, SR clears (beats CE), both low holds - 7 steps match model.py
+    PASS  counter-step     counts [15, 4, 9, 14, 3, 8] (steps [5, 5, 5, 5, 5], want 5 each); ce off: [11, 11, 11] (want constant)
+    PASS  counter-run      23 counts in 3.00 s = 7.66/s (expected 7.45)
+    PASS  blinky           running: LD0 ~0.93 Hz, LD1 ~0.47 Hz, LD2 ~0.23 Hz, LD3 on (check by eye)
+2026-09-14 09:20:26  M5  tag=M5 top=fpga4x4_top
+    PASS  idcode           0x7BEEF093, build.cfg expects 0x7BEEF093
+    PASS  bypass           measured 1 bit(s)
+    PASS  selftest         11/11 designs match the model
+    PASS  usercode         0x00000005, build.cfg expects 0x00000005
+    PASS  chain-length     3488 bits, design intact after the marker scan
+    PASS  ir-status        {'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}
+    PASS  crc-reject-live  crc_err=1 DONE=1 config kept=True showcase vectors wrong=0
+    PASS  gts              outputs before JSTART=000, after=011, model=011
+    PASS  gsr-gwe          q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1
+    PASS  capture-user1    CAPTURE=0x0021 USER1[19:4]=0x0021 (switches must not move during the check)
+    PASS  jprogram         DONE=0 GTS=1 chain zero=True outputs=000
+    PASS  showcase-live    pad_i=000011 pads=011 model=011
+    PASS  ce-sr            CE loads, SR clears (beats CE), both low holds - 7 steps match model.py
+    PASS  counter-step     counts [15, 4, 9, 14, 3, 8] (steps [5, 5, 5, 5, 5], want 5 each); ce off: [11, 11, 11] (want constant)
+    PASS  counter-run      23 counts in 3.00 s = 7.66/s (expected 7.45)
+    PASS  bram-init        64/64 words read back
+    PASS  bram-locked      err=1 gwe=1
+    FAIL  bram-rom         ValueError: unsupported format character 'b' (0x62) at index 3
+    PASS  bram-modes       72/72 stepped operations match model.py
+    PASS  bram-rom-live    SW1..0 = 00/01/10/11 should light LD0 / LD1 / LD2 / all three
+2026-09-14 09:20:59  M5  tag=M5 top=fpga4x4_top
+    PASS  idcode           0x7BEEF093, build.cfg expects 0x7BEEF093
+    PASS  bypass           measured 1 bit(s)
+    PASS  selftest         11/11 designs match the model
+    PASS  usercode         0x00000005, build.cfg expects 0x00000005
+    PASS  chain-length     3488 bits, design intact after the marker scan
+    PASS  ir-status        {'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}
+    PASS  crc-reject-live  crc_err=1 DONE=1 config kept=True showcase vectors wrong=0
+    PASS  gts              outputs before JSTART=000, after=011, model=011
+    PASS  gsr-gwe          q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1
+    PASS  capture-user1    CAPTURE=0x0420 USER1[19:4]=0x0420 (switches must not move during the check)
+    PASS  jprogram         DONE=0 GTS=1 chain zero=True outputs=000
+    PASS  showcase-live    pad_i=000010 pads=110 model=110
+    PASS  ce-sr            CE loads, SR clears (beats CE), both low holds - 7 steps match model.py
+    PASS  counter-step     counts [15, 4, 9, 14, 3, 8] (steps [5, 5, 5, 5, 5], want 5 each); ce off: [11, 11, 11] (want constant)
+    PASS  counter-run      23 counts in 3.00 s = 7.67/s (expected 7.45)
+    PASS  bram-init        64/64 words read back
+    PASS  bram-locked      err=1 gwe=1
+    FAIL  bram-rom         ValueError: unsupported format character 'b' (0x62) at index 3
+    PASS  bram-modes       72/72 stepped operations match model.py
+    PASS  bram-rom-live    SW1..0 = 00/01/10/11 should light LD0 / LD1 / LD2 / all three
+2026-09-14 09:21:18  M5  tag=M5 top=fpga4x4_top
+    PASS  idcode           0x7BEEF093, build.cfg expects 0x7BEEF093
+    PASS  bypass           measured 1 bit(s)
+    PASS  selftest         11/11 designs match the model
+    PASS  usercode         0x00000005, build.cfg expects 0x00000005
+    PASS  chain-length     3488 bits, design intact after the marker scan
+    PASS  ir-status        {'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}
+    PASS  crc-reject-live  crc_err=1 DONE=1 config kept=True showcase vectors wrong=0
+    PASS  gts              outputs before JSTART=000, after=011, model=011
+    PASS  gsr-gwe          q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1
+    PASS  capture-user1    CAPTURE=0x0000 USER1[19:4]=0x0000 (switches must not move during the check)
+    PASS  jprogram         DONE=0 GTS=1 chain zero=True outputs=000
+    PASS  showcase-live    pad_i=000000 pads=000 model=000
+    PASS  ce-sr            CE loads, SR clears (beats CE), both low holds - 7 steps match model.py
+    PASS  counter-step     counts [15, 4, 9, 14, 3, 8] (steps [5, 5, 5, 5, 5], want 5 each); ce off: [11, 11, 11] (want constant)
+    PASS  counter-run      23 counts in 3.00 s = 7.66/s (expected 7.45)
+    PASS  bram-init        64/64 words read back
+    PASS  bram-locked      err=1 gwe=1
+    FAIL  bram-rom         ValueError: unsupported format character 'b' (0x62) at index 3
+    PASS  bram-modes       72/72 stepped operations match model.py
+    PASS  bram-rom-live    SW1..0 = 00/01/10/11 should light LD0 / LD1 / LD2 / all three
+2026-09-14 09:23:29  M5  tag=M5 top=fpga4x4_top
+    FAIL  idcode           0x00000000, build.cfg expects 0x7BEEF093
+2026-09-14 09:23:48  M5  tag=M5 top=fpga4x4_top
+    PASS  idcode           0x7BEEF093, build.cfg expects 0x7BEEF093
+    PASS  bypass           measured 1 bit(s)
+    PASS  selftest         11/11 designs match the model
+    PASS  usercode         0x00000005, build.cfg expects 0x00000005
+    PASS  chain-length     3488 bits, design intact after the marker scan
+    PASS  ir-status        {'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}
+    PASS  crc-reject-live  crc_err=1 DONE=1 config kept=True showcase vectors wrong=0
+    PASS  gts              outputs before JSTART=000, after=011, model=011
+    PASS  gsr-gwe          q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1
+    PASS  capture-user1    CAPTURE=0x0021 USER1[19:4]=0x0021 (switches must not move during the check)
+    PASS  jprogram         DONE=0 GTS=1 chain zero=True outputs=000
+    PASS  showcase-live    pad_i=000011 pads=011 model=011
+    PASS  ce-sr            CE loads, SR clears (beats CE), both low holds - 7 steps match model.py
+    PASS  counter-step     counts [15, 4, 9, 14, 3, 8] (steps [5, 5, 5, 5, 5], want 5 each); ce off: [11, 11, 11] (want constant)
+    PASS  counter-run      23 counts in 3.00 s = 7.66/s (expected 7.45)
+    PASS  bram-init        64/64 words read back
+    PASS  bram-locked      err=1 gwe=1
+    FAIL  bram-rom         ValueError: unsupported format character 'b' (0x62) at index 3
+    PASS  bram-modes       72/72 stepped operations match model.py
+    PASS  bram-rom-live    SW1..0 = 00/01/10/11 should light LD0 / LD1 / LD2 / all three
+2026-09-14 09:24:05  M5  tag=M5 top=fpga4x4_top
+    PASS  idcode           0x7BEEF093, build.cfg expects 0x7BEEF093
+    PASS  bypass           measured 1 bit(s)
+    PASS  selftest         11/11 designs match the model
+    PASS  usercode         0x00000005, build.cfg expects 0x00000005
+    PASS  chain-length     3488 bits, design intact after the marker scan
+    PASS  ir-status        {'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}
+    PASS  crc-reject-live  crc_err=1 DONE=1 config kept=True showcase vectors wrong=0
+    PASS  gts              outputs before JSTART=000, after=011, model=011
+    PASS  gsr-gwe          q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1
+    PASS  capture-user1    CAPTURE=0x0021 USER1[19:4]=0x0021 (switches must not move during the check)
+    PASS  jprogram         DONE=0 GTS=1 chain zero=True outputs=000
+    PASS  showcase-live    pad_i=000011 pads=011 model=011
+    PASS  ce-sr            CE loads, SR clears (beats CE), both low holds - 7 steps match model.py
+    PASS  counter-step     counts [15, 4, 9, 14, 3, 8] (steps [5, 5, 5, 5, 5], want 5 each); ce off: [11, 11, 11] (want constant)
+    PASS  counter-run      23 counts in 3.00 s = 7.66/s (expected 7.45)
+    PASS  bram-init        64/64 words read back
+    PASS  bram-locked      err=1 gwe=1
+    FAIL  bram-rom         ValueError: unsupported format character 'b' (0x62) at index 3
+    PASS  bram-modes       72/72 stepped operations match model.py
+    PASS  bram-rom-live    SW1..0 = 00/01/10/11 should light LD0 / LD1 / LD2 / all three
+2026-09-14 09:28:59  M5  tag=M5 top=fpga4x4_top
+    PASS  idcode           0x7BEEF093, build.cfg expects 0x7BEEF093
+    PASS  bypass           measured 1 bit(s)
+    PASS  selftest         11/11 designs match the model
+    PASS  usercode         0x00000005, build.cfg expects 0x00000005
+    PASS  chain-length     3488 bits, design intact after the marker scan
+    PASS  ir-status        {'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}
+    PASS  crc-reject-live  crc_err=1 DONE=1 config kept=True showcase vectors wrong=0
+    PASS  gts              outputs before JSTART=000, after=011, model=011
+    PASS  gsr-gwe          q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1
+    PASS  capture-user1    CAPTURE=0x0021 USER1[19:4]=0x0021 (switches must not move during the check)
+    PASS  jprogram         DONE=0 GTS=1 chain zero=True outputs=000
+    PASS  showcase-live    pad_i=000011 pads=011 model=011
+    PASS  ce-sr            CE loads, SR clears (beats CE), both low holds - 7 steps match model.py
+    PASS  counter-step     counts [15, 4, 9, 14, 3, 8] (steps [5, 5, 5, 5, 5], want 5 each); ce off: [11, 11, 11] (want constant)
+    PASS  counter-run      23 counts in 3.00 s = 7.66/s (expected 7.45)
+    PASS  bram-init        64/64 words read back
+    PASS  bram-locked      err=1 gwe=1
+    FAIL  bram-rom         ValueError: unsupported format character 'b' (0x62) at index 3
+    PASS  bram-modes       72/72 stepped operations match model.py
+    PASS  bram-rom-live    SW1..0 = 00/01/10/11 should light LD0 / LD1 / LD2 / all three
+2026-09-14 09:29:33  M4  tag=M5 top=fpga4x4_top
+    PASS  idcode           0x7BEEF093, build.cfg expects 0x7BEEF093
+    PASS  bypass           measured 1 bit(s)
+    PASS  selftest         11/11 designs match the model
+    PASS  usercode         0x00000005, build.cfg expects 0x00000005
+    PASS  chain-length     3488 bits, design intact after the marker scan
+    PASS  ir-status        {'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}
+    PASS  crc-reject-live  crc_err=1 DONE=1 config kept=True showcase vectors wrong=0
+    PASS  gts              outputs before JSTART=000, after=011, model=011
+    PASS  gsr-gwe          q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1
+    PASS  capture-user1    CAPTURE=0x0021 USER1[19:4]=0x0021 (switches must not move during the check)
+    PASS  jprogram         DONE=0 GTS=1 chain zero=True outputs=000
+    PASS  showcase-live    pad_i=000011 pads=011 model=011
+    PASS  ce-sr            CE loads, SR clears (beats CE), both low holds - 7 steps match model.py
+    PASS  counter-step     counts [15, 4, 9, 14, 3, 8] (steps [5, 5, 5, 5, 5], want 5 each); ce off: [11, 11, 11] (want constant)
+    PASS  counter-run      23 counts in 3.00 s = 7.66/s (expected 7.45)
+    PASS  blinky           running: LD0 ~0.93 Hz, LD1 ~0.47 Hz, LD2 ~0.23 Hz, LD3 on (check by eye)
+2026-09-14 09:29:46  M4  tag=M5 top=fpga4x4_top
+    PASS  idcode           0x7BEEF093, build.cfg expects 0x7BEEF093
+    PASS  bypass           measured 1 bit(s)
+    PASS  selftest         11/11 designs match the model
+    PASS  usercode         0x00000005, build.cfg expects 0x00000005
+    PASS  chain-length     3488 bits, design intact after the marker scan
+    PASS  ir-status        {'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}
+    PASS  crc-reject-live  crc_err=1 DONE=1 config kept=True showcase vectors wrong=0
+    PASS  gts              outputs before JSTART=000, after=011, model=011
+    PASS  gsr-gwe          q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1
+    PASS  capture-user1    CAPTURE=0x0000 USER1[19:4]=0x0000 (switches must not move during the check)
+    PASS  jprogram         DONE=0 GTS=1 chain zero=True outputs=000
+    PASS  showcase-live    pad_i=000000 pads=000 model=000
+    PASS  ce-sr            CE loads, SR clears (beats CE), both low holds - 7 steps match model.py
+    PASS  counter-step     counts [15, 4, 9, 14, 3, 8] (steps [5, 5, 5, 5, 5], want 5 each); ce off: [11, 11, 11] (want constant)
+    PASS  counter-run      23 counts in 3.00 s = 7.66/s (expected 7.45)
+    PASS  blinky           running: LD0 ~0.93 Hz, LD1 ~0.47 Hz, LD2 ~0.23 Hz, LD3 on (check by eye)
+2026-09-14 09:29:55  M3  tag=M5 top=fpga4x4_top
+    PASS  idcode           0x7BEEF093, build.cfg expects 0x7BEEF093
+    PASS  bypass           measured 1 bit(s)
+    PASS  selftest         11/11 designs match the model
+    PASS  usercode         0x00000005, build.cfg expects 0x00000005
+    PASS  chain-length     3488 bits, design intact after the marker scan
+    PASS  ir-status        {'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}
+    PASS  crc-reject-live  crc_err=1 DONE=1 config kept=True showcase vectors wrong=0
+    PASS  gts              outputs before JSTART=000, after=011, model=011
+    PASS  gsr-gwe          q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1
+    PASS  capture-user1    CAPTURE=0x0000 USER1[19:4]=0x0000 (switches must not move during the check)
+    PASS  jprogram         DONE=0 GTS=1 chain zero=True outputs=000
+    PASS  showcase-live    pad_i=000000 pads=000 model=000
+2026-09-14 09:30:11  M5  tag=M5 top=fpga4x4_top
+    PASS  idcode           0x7BEEF093, build.cfg expects 0x7BEEF093
+    PASS  bypass           measured 1 bit(s)
+    PASS  selftest         11/11 designs match the model
+    PASS  usercode         0x00000005, build.cfg expects 0x00000005
+    PASS  chain-length     3488 bits, design intact after the marker scan
+    PASS  ir-status        {'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}
+    PASS  crc-reject-live  crc_err=1 DONE=1 config kept=True showcase vectors wrong=0
+    PASS  gts              outputs before JSTART=000, after=011, model=011
+    PASS  gsr-gwe          q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1
+    PASS  capture-user1    CAPTURE=0x0000 USER1[19:4]=0x0000 (switches must not move during the check)
+    PASS  jprogram         DONE=0 GTS=1 chain zero=True outputs=000
+    PASS  showcase-live    pad_i=000000 pads=000 model=000
+    PASS  ce-sr            CE loads, SR clears (beats CE), both low holds - 7 steps match model.py
+    PASS  counter-step     counts [15, 4, 9, 14, 3, 8] (steps [5, 5, 5, 5, 5], want 5 each); ce off: [11, 11, 11] (want constant)
+    PASS  counter-run      23 counts in 3.00 s = 7.66/s (expected 7.45)
+    PASS  bram-init        64/64 words read back
+    PASS  bram-locked      err=1 gwe=1
+    FAIL  bram-rom         ValueError: unsupported format character 'b' (0x62) at index 3
+    PASS  bram-modes       72/72 stepped operations match model.py
+    PASS  bram-rom-live    SW1..0 = 00/01/10/11 should light LD0 / LD1 / LD2 / all three
+2026-09-14 15:25:56  M5  tag=M6 top=fpga4x4_top
+    FAIL  idcode           0x7BEEF093, build.cfg expects 0x8BEEF093
+2026-09-14 15:26:14  M5  tag=M6 top=fpga4x4_top
+    FAIL  idcode           0x7BEEF093, build.cfg expects 0x8BEEF093
+2026-09-14 15:26:32  M5  tag=M6 top=fpga4x4_top
+    FAIL  idcode           0x7BEEF093, build.cfg expects 0x8BEEF093
+2026-09-14 15:26:45  M6  tag=M6 top=fpga4x4_top
+    FAIL  idcode           0x7BEEF093, build.cfg expects 0x8BEEF093
+2026-09-14 15:26:52  M4  tag=M6 top=fpga4x4_top
+    FAIL  idcode           0x7BEEF093, build.cfg expects 0x8BEEF093
+2026-09-14 20:30:13  M6  tag=M7 top=bob_top
+    FAIL  idcode           0x8BEEF093, build.cfg expects 0x9BEEF093
+2026-09-14 20:30:20  M5  tag=M7 top=bob_top
+    FAIL  idcode           0x8BEEF093, build.cfg expects 0x9BEEF093
+# (run from release/mac_M6: M6 Mac tools restored and verified byte-identical against release/hw_M6 generated files)
+2026-09-14 20:34:32  M6  tag=M6 top=fpga4x4_top
+    PASS  idcode           0x8BEEF093, build.cfg expects 0x8BEEF093
+    PASS  bypass           measured 1 bit(s)
+    PASS  selftest         11/11 designs match the model
+    PASS  usercode         0x00000006, build.cfg expects 0x00000006
+    PASS  chain-length     3720 bits, design intact after the marker scan
+    PASS  ir-status        {'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}
+    PASS  crc-reject-live  crc_err=1 DONE=1 config kept=True showcase vectors wrong=0
+    PASS  gts              outputs before JSTART=000, after=011, model=011
+    PASS  gsr-gwe          q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1
+    PASS  capture-user1    CAPTURE=0x0420 USER1[19:4]=0x0420 (switches must not move during the check)
+    PASS  jprogram         DONE=0 GTS=1 chain zero=True outputs=000
+    PASS  showcase-live    pad_i=000010 pads=110 model=110
+    PASS  ce-sr            CE loads, SR clears (beats CE), both low holds - 7 steps match model.py
+    PASS  counter-step     counts [15, 4, 9, 14, 3, 8] (steps [5, 5, 5, 5, 5], want 5 each); ce off: [11, 11, 11] (want constant)
+    PASS  counter-run      23 counts in 3.00 s = 7.67/s (expected 7.45)
+    PASS  bram-init        64/64 words read back
+    PASS  bram-locked      err=1 gwe=1
+    PASS  bram-rom         LEDs ['101', '011', '101', '001'] contents ['101', '011', '101', '001']
+    PASS  bram-modes       72/72 stepped operations match model.py
+    PASS  dsp-modes        60/60 stepped operations match model.py 
+    PASS  dsp-mult         LEDs ['000', '011', '110', '001'] expected ['000', '011', '110', '001']
+    PASS  dsp-accum        P0 0 -> 23 in 3.03 s = 7.60/s (expected 7.45)
+    PASS  dsp-accum-live   running: LD0 ~3.7 Hz, LD1 ~1.9 Hz, LD2 ~0.93 Hz (check by eye)
+2026-09-14 20:55:53  M5  tag=M7 top=bob_top
+    FAIL  idcode           0x8BEEF093, build.cfg expects 0x9BEEF093
+2026-09-14 20:55:59  M6  tag=M7 top=bob_top
+    FAIL  idcode           0x8BEEF093, build.cfg expects 0x9BEEF093
+2026-09-16 23:15:15  M7  tag=M7 top=bob_top
+    FAIL  idcode           0xFFFFFFFF, build.cfg expects 0xABEEF093
+2026-09-16 23:15:37  M7  tag=M7 top=bob_top
+    FAIL  idcode           0xFFFFFFFF, build.cfg expects 0xABEEF093
+2026-09-16 23:15:38  M7  tag=M7 top=bob_top
+    FAIL  idcode           0xFFFFFFFF, build.cfg expects 0xABEEF093
+2026-09-17 00:38:27  M7  tag=M7 top=bob_top
+    FAIL  idcode           0xFFFFFFFF, build.cfg expects 0xABEEF093
+2026-09-17 00:38:37  M6  tag=M7 top=bob_top
+    FAIL  idcode           0xFFFFFFFF, build.cfg expects 0xABEEF093
+2026-09-17 00:38:39  M7  tag=M7 top=bob_top
+    FAIL  idcode           0xFFFFFFFF, build.cfg expects 0xABEEF093
+2026-09-17 00:40:04  M7  tag=M7 top=bob_top
+    PASS  idcode           0xABEEF093, build.cfg expects 0xABEEF093
+    PASS  bypass           measured 1 bit(s)
+    PASS  selftest         12/12 designs match the model
+    PASS  usercode         0x00000007, build.cfg expects 0x00000007
+    PASS  chain-length     4216 bits, design intact after the marker scan
+    PASS  ir-status        {'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}
+    PASS  crc-reject-live  crc_err=1 DONE=1 config kept=True showcase vectors wrong=0
+    PASS  gts              outputs before JSTART=000, after=011, model=011
+    PASS  gsr-gwe          q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1
+    PASS  capture-user1    CAPTURE=0x0000 USER1[19:4]=0x0000 (switches must not move during the check)
+    PASS  jprogram         DONE=0 GTS=1 chain zero=True outputs=000
+    PASS  showcase-live    pad_i=000000 LD2..0=000 model=000
+    PASS  ce-sr            CE loads, SR clears (beats CE), both low holds - 7 steps match model.py
+    PASS  counter-step     counts [15, 4, 9, 14, 3, 8] (steps [5, 5, 5, 5, 5], want 5 each); ce off: [11, 11, 11] (want constant)
+    PASS  counter-run      23 counts in 3.00 s = 7.67/s (expected 7.45)
+    PASS  bram-init        64/64 words read back
+    PASS  bram-locked      err=1 gwe=1
+    PASS  bram-rom         LEDs ['001', '010', '101', '110'] contents ['001', '010', '101', '110']
+    PASS  bram-modes       72/72 stepped operations match model.py
+    PASS  dsp-modes        60/60 stepped operations match model.py 
+    PASS  dsp-mult         LEDs ['000', '011', '110', '001'] expected ['000', '011', '110', '001']
+    PASS  dsp-accum        P0 0 -> 23 in 3.03 s = 7.60/s (expected 7.45)
+    PASS  bram-select      16 words each read back from bram0 and bram1; SELECT 9 ignored (target 0)
+    PASS  pipeline         LEDs ['010', '110', '011', '010', '110', '010', '010', '011'] model ['010', '110', '011', '010', '110', '010', '010', '011']
+    PASS  counter8         counts [15, 4, 9, 14, 3, 8, 13, 2, 7, 12, 1, 6] (steps [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5], want 5 each)
+    PASS  pipeline-live    SW1..0 = 00/01/10/11 should light LD0 / LD1 / LD2 / all three
+2026-09-17 00:42:54  M8  tag=M7 top=bob_top
+    PASS  idcode           0xABEEF093, build.cfg expects 0xABEEF093
+    PASS  bypass           measured 1 bit(s)
+    PASS  selftest         12/12 designs match the model
+    PASS  chain-length     4216 bits, design intact after the marker scan
+    PASS  synth-gates      3 CLBs, 64 clocks match the source Verilog
+    PASS  synth-adder      4 CLBs, 64 clocks match the source Verilog
+    PASS  synth-counter    11 CLBs, 64 clocks match the source Verilog
+    PASS  synth-blinky     15 CLBs, 64 clocks match the source Verilog
+    PASS  synth-ram        0 CLBs, 64 clocks match the source Verilog
+    PASS  synth-mult       7 CLBs, 64 clocks match the source Verilog

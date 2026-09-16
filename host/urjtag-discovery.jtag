@@ -1,0 +1,30 @@
+# urjtag: auto-discover the shape of the TAP with no part declaration at all.
+#   jtag -n -q host/urjtag-discovery.jtag
+#
+# 'discovery' probes the IR length, then the DR length behind every possible
+# instruction.  For this design it should report:
+#
+#   Detecting DR length for IR 0000 ...  9   (EXTEST -> boundary)
+#   Detecting DR length for IR 0001 ...  9   (SAMPLE -> boundary)
+#   Detecting DR length for IR 0010 ... 32   (IDCODE)
+#   Detecting DR length for IR 0011 ... 32   (USER)
+#   Detecting DR length for IR 0100 ...  9   (INTEST -> boundary)
+#   Detecting DR length for IR 0101 ... 71   (CONFIG -> CLB bitstream)
+#   Detecting DR length for IR 0110..1111 ... 1   (fall through to BYPASS)
+#
+# That single command maps the whole instruction set - including the width of
+# the CLB's configuration chain - without needing any BSDL or database entry.
+# It takes a minute or so.
+#
+# Expect the IR-length step itself to fail:
+#
+#   Detecting IR length ... USB read failed (timeout expired ?)
+#
+# That is a probe limitation, not a fault in the design.  DirtyJTAG's CMD_XFER
+# caps a single transfer at 62 bytes (496 bits) and urjtag's IR-length probe
+# shifts a longer run than that.  The DR sweep below it is unaffected, and
+# 'detect' reports the IR length correctly anyway.
+cable DirtyJTAG
+frequency 1000000
+discovery
+quit

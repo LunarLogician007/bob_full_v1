@@ -1,0 +1,1045 @@
+<title>The 181-Bit Tile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+
+<style>
+:root {
+  --ground:#e7ebea; --surface:#fafbfa; --surface-2:#f0f4f3; --sunk:#dde4e2;
+  --ink:#15181a; --ink-2:#414a4d; --faint:#7d8a8d; --rule:#cfd8d6; --rule-2:#e0e7e5;
+  --cfg:#1b6e6a; --cfg-soft:#d6e8e6; --cfg-line:#8fc0bc;
+  --hot:#c4431c; --hot-soft:#f6e0d8;
+  --shadow:0 1px 2px rgba(20,30,30,.05), 0 8px 28px rgba(20,30,30,.10);
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --disp:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --body:"Source Serif 4",Georgia,"Times New Roman",serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#101414; --surface:#181d1d; --surface-2:#1e2424; --sunk:#0c0f0f;
+  --ink:#e8edec; --ink-2:#b4bfbd; --faint:#7d8a8d; --rule:#2c3534; --rule-2:#232b2b;
+  --cfg:#5fbdb6; --cfg-soft:#14312f; --cfg-line:#2f6a66;
+  --hot:#f0764a; --hot-soft:#3a1c11;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 28px rgba(0,0,0,.5);
+}}
+:root[data-theme="dark"]{
+  --ground:#101414; --surface:#181d1d; --surface-2:#1e2424; --sunk:#0c0f0f;
+  --ink:#e8edec; --ink-2:#b4bfbd; --faint:#7d8a8d; --rule:#2c3534; --rule-2:#232b2b;
+  --cfg:#5fbdb6; --cfg-soft:#14312f; --cfg-line:#2f6a66;
+  --hot:#f0764a; --hot-soft:#3a1c11;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 28px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--body);
+     font-size:16.5px;line-height:1.58;-webkit-font-smoothing:antialiased}
+.page{padding-inline:20px;padding-block:0 90px}
+.col{max-width:680px;margin-inline:auto}
+.wide{max-width:1060px;margin-inline:auto}
+h1,h2,h3,h4,.eyebrow,.lbl,button,select,th,input{font-family:var(--disp)}
+h1{font-size:clamp(34px,6vw,56px);font-weight:700;line-height:1.02;letter-spacing:-.025em;
+   margin:0 0 18px;text-wrap:balance}
+h2{font-size:clamp(23px,3.2vw,30px);font-weight:700;letter-spacing:-.02em;line-height:1.14;
+   margin:0 0 10px;text-wrap:balance}
+h3{font-size:17px;font-weight:600;letter-spacing:-.01em;margin:26px 0 8px}
+h4{font-size:11px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;
+   color:var(--faint);margin:0 0 10px}
+p{margin:0 0 15px}
+a{color:var(--cfg)}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--faint);margin:0 0 8px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.eyebrow .w{font-family:var(--mono);font-weight:700;letter-spacing:0;color:var(--cfg);
+  font-size:12px;background:var(--cfg-soft);padding:2px 7px;border-radius:3px}
+code,.m{font-family:var(--mono);font-size:.87em}
+.m-hot{color:var(--hot)} .m-cfg{color:var(--cfg)}
+
+/* nav */
+nav.toc{position:sticky;top:0;z-index:20;background:var(--ground);
+  border-bottom:1px solid var(--rule);margin-bottom:0}
+nav.toc .inner{max-width:1060px;margin-inline:auto;display:flex;gap:2px;
+  overflow-x:auto;padding:9px 0}
+nav.toc a{font-family:var(--disp);font-size:11px;font-weight:600;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--faint);text-decoration:none;white-space:nowrap;
+  padding:5px 10px;border-radius:4px}
+nav.toc a:hover{color:var(--ink);background:var(--surface-2)}
+
+header.mast{padding-block:56px 38px}
+.kicker{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--hot);margin:0 0 18px}
+.lede{font-size:19.5px;line-height:1.5;color:var(--ink-2);margin:0 0 26px}
+.facts{display:flex;flex-wrap:wrap;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.fact{flex:1 1 116px;padding:13px 14px 13px 0}
+.fact .n{font-family:var(--mono);font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+.fact .k{font-family:var(--disp);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--faint);margin-top:2px}
+
+section{padding-block:42px 0;scroll-margin-top:56px}
+.panel{background:var(--surface);border:1px solid var(--rule);border-radius:6px;
+  box-shadow:var(--shadow);margin-block:20px;overflow:hidden}
+.panel-head{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;padding:13px 17px;
+  border-bottom:1px solid var(--rule-2);background:var(--surface-2)}
+.panel-body{padding:17px}
+.panel-foot{padding:12px 17px;border-top:1px solid var(--rule-2);background:var(--surface-2);
+  font-size:13.5px;color:var(--ink-2);line-height:1.5}
+.scroll{overflow-x:auto}
+
+.ctl{display:flex;align-items:center;gap:8px}
+.lbl{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);font-weight:600}
+select,input[type=search]{font-family:var(--mono);font-size:13px;padding:6px 9px;
+  background:var(--surface);color:var(--ink);border:1px solid var(--rule);border-radius:4px}
+input[type=search]{min-width:210px}
+.bits{display:flex;gap:4px}
+button.bit{font-family:var(--mono);font-size:12px;width:38px;padding:6px 0;cursor:pointer;
+  background:var(--surface);color:var(--faint);border:1px solid var(--rule);border-radius:4px;
+  transition:background .12s,color .12s,border-color .12s}
+button.bit .v{display:block;font-size:14px;font-weight:700;color:var(--ink-2)}
+button.bit[aria-pressed="true"]{background:var(--hot);border-color:var(--hot);color:#fff}
+button.bit[aria-pressed="true"] .v{color:#fff}
+button.flag{font-family:var(--mono);font-size:11.5px;cursor:pointer;padding:6px 9px;
+  background:var(--surface);color:var(--ink-2);border:1px solid var(--rule);border-radius:4px}
+button.flag[aria-pressed="true"]{background:var(--cfg-soft);border-color:var(--cfg-line);
+  color:var(--cfg);font-weight:700}
+button.act{font-family:var(--disp);font-size:12px;font-weight:600;letter-spacing:.04em;
+  cursor:pointer;padding:7px 14px;border-radius:4px;background:var(--ink);color:var(--ground);
+  border:1px solid var(--ink)}
+button.act.ghost{background:transparent;color:var(--ink-2);border-color:var(--rule)}
+button.seg{font-family:var(--disp);font-size:11px;font-weight:600;letter-spacing:.06em;
+  text-transform:uppercase;cursor:pointer;padding:6px 11px;border:1px solid var(--rule);
+  background:var(--surface);color:var(--faint);border-radius:4px}
+button.seg[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--ground)}
+:focus-visible{outline:2px solid var(--hot);outline-offset:2px}
+
+.reads{display:flex;flex-wrap:wrap;gap:10px;margin-top:15px}
+.read{flex:1 1 145px;border:1px solid var(--rule-2);border-radius:5px;padding:9px 11px;
+  background:var(--surface-2)}
+.read .k{font-family:var(--disp);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+.read .v{font-family:var(--mono);font-size:16px;font-weight:700;margin-top:3px;
+  font-variant-numeric:tabular-nums;word-break:break-all}
+.read .v.on{color:var(--hot)} .read .v.off{color:var(--faint)}
+
+.strip{display:flex;width:100%;height:44px;border-radius:5px;overflow:hidden;border:1px solid var(--rule)}
+.strip>div{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:11px;color:var(--ink-2);border-right:1px solid var(--rule-2);
+  min-width:0;padding:0 4px;text-align:center}
+.strip>div:last-child{border-right:0}
+.strip .t{font-family:var(--disp);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th{font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--faint);
+  text-align:left;font-weight:600;padding:8px 12px 7px 0;border-bottom:1px solid var(--rule);
+  background:var(--surface);position:sticky;top:0}
+td{padding:6px 12px 6px 0;border-bottom:1px solid var(--rule-2);vertical-align:top}
+td.m,th.m{font-family:var(--mono);font-variant-numeric:tabular-nums}
+tbody tr:last-child td{border-bottom:0}
+tbody tr.hit{background:var(--hot-soft)}
+.tbox{max-height:460px;overflow:auto;border:1px solid var(--rule-2);border-radius:5px}
+.tbox table{font-size:12.5px}
+.tbox td,.tbox th{padding-left:11px}
+
+.grid64{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;max-width:420px}
+.grid64 button{font-family:var(--mono);font-size:11px;aspect-ratio:1;cursor:pointer;
+  border:1px solid var(--rule);border-radius:3px;background:var(--surface);color:var(--faint);padding:0}
+.grid64 button.on{background:var(--hot);border-color:var(--hot);color:#fff;font-weight:700}
+.grid64 button.sel{outline:2px solid var(--cfg);outline-offset:1px}
+
+.req{border:1px solid var(--rule-2);border-radius:5px;overflow:hidden;margin-bottom:10px;
+  background:var(--surface)}
+.req .rh{display:flex;gap:10px;align-items:baseline;padding:10px 13px;background:var(--surface-2);
+  border-bottom:1px solid var(--rule-2)}
+.req .rid{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--cfg);
+  background:var(--cfg-soft);padding:2px 6px;border-radius:3px}
+.req .rt{font-family:var(--disp);font-size:14px;font-weight:600}
+.req .rb{padding:11px 13px;font-size:14px;color:var(--ink-2)}
+.req .rb b{color:var(--ink);font-weight:600}
+
+.note{font-size:14.5px;color:var(--ink-2);border-left:2px solid var(--cfg-line);
+  padding-left:14px;margin-block:18px}
+.foot{margin-top:50px;padding-top:20px;border-top:1px solid var(--rule);font-size:13px;color:var(--faint)}
+svg{display:block;max-width:100%}
+svg text{font-family:var(--mono)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (max-width:560px){.panel-head,.panel-body{padding:13px}body{font-size:16px}}
+</style>
+
+<nav class="toc"><div class="inner">
+  <a href="#req">Requirements</a>
+  <a href="#gates">Gate primitives</a>
+  <a href="#lut">LUT6</a>
+  <a href="#clb">CLB</a>
+  <a href="#route">Routing muxes</a>
+  <a href="#bits">All 181 bits</a>
+  <a href="#cost">Resource cost</a>
+  <a href="#fabric">Fabric</a>
+</div></nav>
+
+<div class="page">
+
+<header class="mast col">
+  <p class="kicker">Soft FPGA · PYNQ-Z2 · architecture specification</p>
+  <h1>The 181-Bit Tile</h1>
+  <p class="lede">
+    A miniature FPGA built inside the fabric of a real one. This document
+    specifies it from the gate upward: the multiplexer every structure is made
+    of, the datapath around the lookup table, the routing, and what each one of
+    the 181 configuration bits in a tile actually does.
+  </p>
+  <div class="facts">
+    <div class="fact"><div class="n">63</div><div class="k">muxes per LUT</div></div>
+    <div class="fact"><div class="n">745</div><div class="k">muxes per tile</div></div>
+    <div class="fact"><div class="n">181</div><div class="k">bits per tile</div></div>
+    <div class="fact"><div class="n">2896</div><div class="k">bits per fabric</div></div>
+    <div class="fact"><div class="n">5792</div><div class="k">config flip-flops</div></div>
+  </div>
+</header>
+
+<!-- ===================== REQUIREMENTS ===================== -->
+<section class="col" id="req">
+  <p class="eyebrow">Section 1</p>
+  <h2>What it had to do</h2>
+  <p>
+    The architecture is not arbitrary. Each structure below exists because of a
+    requirement, and several of the stranger details — five select bits for
+    twenty sources, a reset that is deliberately synchronous, a clock that comes
+    from the debug probe — are direct consequences.
+  </p>
+</section>
+
+<div class="wide" id="reqlist"></div>
+
+<!-- ===================== GATE PRIMITIVES ===================== -->
+<section class="col" id="gates">
+  <p class="eyebrow"><span class="w">3 primitives</span> Section 2</p>
+  <h2>Everything is one of three things</h2>
+  <p>
+    The whole fabric reduces to three primitives. Nearly all of it is the first
+    one: a 2:1 multiplexer, repeated eleven thousand times.
+  </p>
+</section>
+
+<div class="wide">
+  <div class="panel">
+    <div class="panel-head"><span class="lbl">The primitives, at gate level</span></div>
+    <div class="panel-body scroll">
+      <svg id="prims" width="1000" height="230" role="img"
+           aria-label="Gate-level diagrams of a 2:1 multiplexer, an XOR gate and a D flip-flop with enable and reset"></svg>
+    </div>
+    <div class="panel-foot">
+      A 2:1 multiplexer is two AND gates, an inverter and an OR:
+      <span class="m">o = (a · s̄) + (b · s)</span>. On a real FPGA this costs a
+      fraction of one LUT, which is why building a soft FPGA inside a hard one is
+      affordable at all — the hard fabric's 6-input tables absorb several of these
+      each.
+    </div>
+  </div>
+</div>
+
+<!-- ===================== LUT ===================== -->
+<section class="col" id="lut">
+  <p class="eyebrow"><span class="w">64 bits · 63 muxes</span> Section 3</p>
+  <h2>The lookup table</h2>
+  <p>
+    A LUT6 holds 64 configuration bits and answers one question: for this
+    combination of six inputs, what is the output? Bit <span class="m">n</span>
+    is the answer for input vector <span class="m">n</span>. There is no logic in
+    it — only memory and a tree of multiplexers.
+  </p>
+  <h3>Why a mux tree and not an array index</h3>
+  <p>
+    Written as <span class="m">o = INIT[i]</span> it would still synthesise to a
+    tree, but the structure would be the tool's choice rather than the
+    architecture's. Writing the five levels explicitly fixes where the
+    <em>fracture</em> tap sits: after five levels the survivor is already a
+    complete 5-input function of <span class="m">i[4:0]</span> over
+    <span class="m">INIT[31:0]</span>. That wire is
+    <span class="m m-cfg">o5</span> — a second, smaller lookup table hiding
+    inside the first, for free.
+  </p>
+</section>
+
+<div class="wide">
+  <div class="panel">
+    <div class="panel-head">
+      <div class="ctl"><span class="lbl">Function</span><select id="fn" aria-label="LUT function"></select></div>
+      <div class="ctl"><span class="lbl">Inputs</span><div class="bits" id="lutbits"></div></div>
+      <div class="ctl" style="margin-left:auto"><button class="act ghost" id="rand">Random INIT</button></div>
+    </div>
+    <div class="panel-body">
+      <div class="scroll"><svg id="tree" width="940" height="300" role="img"
+        aria-label="Multiplexer tree reducing 64 configuration bits to one output"></svg></div>
+      <div class="reads">
+        <div class="read"><div class="k">INIT</div><div class="v" id="r-init" style="font-size:14px">—</div></div>
+        <div class="read"><div class="k">Address i[5:0]</div><div class="v" id="r-addr">—</div></div>
+        <div class="read"><div class="k">o6 · full LUT6</div><div class="v" id="r-o6">—</div></div>
+        <div class="read"><div class="k">o5 · fractured LUT5</div><div class="v" id="r-o5">—</div></div>
+      </div>
+    </div>
+    <div class="panel-foot" id="lut-foot"></div>
+  </div>
+</div>
+
+<div class="wide">
+  <div class="panel">
+    <div class="panel-head">
+      <span class="lbl">INIT[63:0] — click a cell to jump the LUT to that address</span>
+      <span class="m" style="margin-left:auto;color:var(--faint);font-size:11px">row = i[5:3] · column = i[2:0]</span>
+    </div>
+    <div class="panel-body">
+      <div class="grid64" id="grid64"></div>
+      <div class="reads">
+        <div class="read"><div class="k">Selected bit</div><div class="v" id="g-bit">—</div></div>
+        <div class="read"><div class="k">Drives</div><div class="v" id="g-role" style="font-size:12.5px">—</div></div>
+      </div>
+    </div>
+    <div class="panel-foot">
+      The lower half, <span class="m">INIT[31:0]</span>, is read by both outputs:
+      <span class="m">o6</span> when <span class="m">i5</span> is 0, and
+      <span class="m m-cfg">o5</span> always. The upper half is
+      <span class="m">o6</span>-only. That asymmetry is the fracture, stated as a
+      bit range.
+    </div>
+  </div>
+</div>
+
+<!-- ===================== CLB ===================== -->
+<section class="col" id="clb">
+  <p class="eyebrow"><span class="w">71 bits</span> Section 4</p>
+  <h2>The logic block</h2>
+  <p>
+    A lookup table alone cannot add or remember. Two structures fix that, and
+    seven configuration bits above the truth table decide which paths are live.
+  </p>
+  <h3>The carry chain</h3>
+  <p>
+    Ripple carry through general logic is slow, because each bit's carry has to
+    traverse a whole LUT. The fix, on every commercial FPGA and here, is a
+    dedicated path: the LUT computes only the <em>propagate</em> term and two
+    hard gates do the rest. The sum is
+    <span class="m">prop ⊕ cin</span> (an XOR), and the carry out is
+    <span class="m">cin</span> when propagate is true, otherwise a generate term
+    (a 2:1 mux). One block becomes one bit of an adder, and the carry crosses a
+    tile in one gate rather than one lookup.
+  </p>
+  <h3>The flip-flop</h3>
+  <p>
+    Synchronous reset, clock-enable independent — FDRE/FDSE behaviour. Holding
+    <span class="m">sr</span> keeps the flop reset, which is idempotent and so
+    safe to hold across a scan that takes thousands of clocks.
+  </p>
+</section>
+
+<div class="wide">
+  <div class="panel">
+    <div class="panel-head" id="flags"></div>
+    <div class="panel-body">
+      <div class="scroll"><svg id="clbsvg" width="940" height="300" role="img"
+        aria-label="CLB datapath: LUT, carry chain, flip-flop and output multiplexer"></svg></div>
+      <div class="reads">
+        <div class="read"><div class="k">Inputs i[5:0]</div><div class="v" id="c-in">—</div></div>
+        <div class="read"><div class="k">cin</div><div class="v" id="c-cin">—</div></div>
+        <div class="read"><div class="k">o · block output</div><div class="v" id="c-o">—</div></div>
+        <div class="read"><div class="k">cout</div><div class="v" id="c-cout">—</div></div>
+        <div class="read"><div class="k">71-bit CLB word</div><div class="v" id="c-word" style="font-size:12.5px">—</div></div>
+      </div>
+    </div>
+    <div class="panel-foot" id="clb-foot"></div>
+  </div>
+</div>
+
+<!-- ===================== ROUTING ===================== -->
+<section class="col" id="route">
+  <p class="eyebrow"><span class="w">110 bits · 682 muxes</span> Section 5</p>
+  <h2>The routing</h2>
+  <p>
+    A logic block alone is not an FPGA. What turns sixteen of them into one is
+    the routing, and a tile has two kinds. A <strong>connection box</strong>
+    decides what the block <em>sees</em>; a <strong>switch box</strong> decides
+    what the tile <em>passes on</em>. Both are the same circuit with a different
+    multiplexer count, so both are instances of one module.
+  </p>
+  <h3>Why twenty sources, and why five bits</h3>
+  <p>
+    Every multiplexer in a tile chooses from the same twenty-entry bus: two
+    constants, the block's own two outputs, and four tracks from each of four
+    edges. Twenty needs five select bits; five bits address thirty-two, so
+    <strong>twelve encodings are unreachable</strong>. Rather than leave them
+    undefined, the hardware pads the source bus to thirty-two entries with hard
+    zeros, so a malformed bitstream reads a defined 0 instead of an
+    <span class="m">X</span>. That padding is also why the gate cost below is a
+    32:1 tree rather than a 20:1 one.
+  </p>
+</section>
+
+<div class="wide">
+  <div class="panel">
+    <div class="panel-head"><span class="lbl">A 20:1 source mux, built from the primitive</span></div>
+    <div class="panel-body scroll">
+      <svg id="muxtree" width="1000" height="210" role="img"
+        aria-label="A 32-to-1 multiplexer tree built from 31 two-to-one multiplexers"></svg>
+    </div>
+    <div class="panel-foot">
+      Five levels, <span class="m">16 + 8 + 4 + 2 + 1 = 31</span> multiplexers per
+      source mux. A tile has 6 of them in the connection box and 16 in the switch
+      box: <span class="m">22 × 31 = 682</span>.
+    </div>
+  </div>
+</div>
+
+<div class="wide">
+  <div class="panel">
+    <div class="panel-head"><span class="lbl">Connection box — pick a source for each LUT input</span></div>
+    <div class="panel-body">
+      <div id="cb-rows" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(195px,1fr));gap:10px"></div>
+      <div class="reads">
+        <div class="read"><div class="k">CB field · bits 100:71</div><div class="v" id="cb-bits" style="font-size:12px">—</div></div>
+        <div class="read"><div class="k">Sources used</div><div class="v" id="cb-used" style="font-size:13px">—</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="wide">
+  <div class="panel">
+    <div class="panel-head"><span class="lbl">The twenty-entry source bus</span></div>
+    <div class="panel-body scroll"><table id="srctable"></table></div>
+    <div class="panel-foot">
+      That a tile can see its own outputs is deliberate, not a convenience: it lets
+      a single tile hold a registered feedback loop — a counter bit, a toggle —
+      using no routing resources at all.
+    </div>
+  </div>
+</div>
+
+<!-- ===================== BIT MAP ===================== -->
+<section class="col" id="bits">
+  <p class="eyebrow"><span class="w">181 bits</span> Section 6</p>
+  <h2>Every bit, individually</h2>
+  <p>
+    The complete tile word. Bit 0 is the low end of the scan chain, so it is the
+    first bit to leave TDI. In the fabric, tile <span class="m">n</span> occupies
+    bits <span class="m">181n</span> through <span class="m">181n + 180</span>,
+    with tile <span class="m">(0,0)</span> first.
+  </p>
+</section>
+
+<div class="wide">
+  <div class="strip" style="margin-bottom:14px">
+    <div style="flex:71;background:var(--cfg-soft)"><span class="t">CLB</span><span>70:0 · 71 bits</span></div>
+    <div style="flex:30;background:var(--surface-2)"><span class="t">Connection box</span><span>100:71 · 30</span></div>
+    <div style="flex:80;background:var(--sunk)"><span class="t">Switch box</span><span>180:101 · 80</span></div>
+  </div>
+  <div class="panel">
+    <div class="panel-head">
+      <div class="ctl" id="segs"></div>
+      <div class="ctl" style="margin-left:auto">
+        <input type="search" id="bitq" placeholder="filter: INIT, FF_EN, SB[E0], 137…" aria-label="Filter bits">
+        <span class="m" id="bitcount" style="color:var(--faint);font-size:12px"></span>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="tbox"><table id="bittable">
+        <thead><tr><th class="m" style="width:52px">Bit</th><th style="width:130px">Field</th>
+        <th style="width:250px">Function</th><th>Notes</th></tr></thead>
+        <tbody id="bitbody"></tbody>
+      </table></div>
+    </div>
+    <div class="panel-foot">
+      Select fields are little-end first: <span class="m">sel[0]</span> is the
+      weight-1 bit. So the connection box field for <span class="m">i0</span>
+      occupies bits 71–75 with bit 71 as the least significant, and the switch box
+      field for output <span class="m">N0</span> occupies 101–105.
+      Offsets are <span class="m">71 + 5k</span> for LUT input
+      <span class="m">k</span>, and <span class="m">101 + 5(4d + t)</span> for
+      direction <span class="m">d</span> ∈ N,E,S,W and track <span class="m">t</span>.
+    </div>
+  </div>
+</div>
+
+<!-- ===================== COST ===================== -->
+<section class="col" id="cost">
+  <p class="eyebrow">Section 7</p>
+  <h2>What it costs</h2>
+  <p>
+    Counting in 2:1 multiplexers, the unit everything is built from. The routing
+    dominates the logic by nearly eleven to one — which is not a flaw in this
+    design but the standard result for FPGA fabrics, and the reason routing
+    architecture is where commercial effort goes.
+  </p>
+</section>
+
+<div class="wide">
+  <div class="panel">
+    <div class="panel-body scroll"><table id="costtable"></table></div>
+    <div class="panel-foot">
+      Configuration storage is counted twice over because the chain needs both a
+      shift register and a holding register: the fabric must not see partial
+      configuration while 2896 bits ripple past. That separation is also what
+      makes the chain readable — the holding register is re-captured at Capture-DR,
+      so a scan can read back what is actually loaded.
+    </div>
+  </div>
+</div>
+
+<!-- ===================== FABRIC ===================== -->
+<section class="col" id="fabric">
+  <p class="eyebrow"><span class="w">2896 bits</span> Section 8</p>
+  <h2>Sixteen tiles, and one rule</h2>
+  <p>
+    Tracks are point to point between neighbours and the track number survives
+    the hop. Driving a tile's switch box output in direction <span class="m">D</span>
+    on track <span class="m">t</span> makes that signal arrive at the neighbour in
+    direction <span class="m">D</span>, on the opposite side, on the same track.
+  </p>
+  <p>
+    That is the whole routing model, and the router is a direct transcription: a
+    breadth-first search over tiles, one switch box multiplexer per hop. A
+    multiplexer already carrying the same signal is free to cross again, which is
+    the entirety of fanout support.
+  </p>
+  <h3>Where the pads meet the fabric</h3>
+  <p>
+    Signals flow west to east. <span class="m">pad_i[3:0]</span> arrive on every
+    row's west edge on tracks 0–3; <span class="m">pad_i[5:4]</span> on every
+    column's south edge on tracks 0–1; <span class="m">pad_o[k]</span> is row
+    <span class="m">k</span>'s east edge, track 0. Column 0 therefore reaches four
+    inputs directly and row 0 all six — anything further in has to be routed
+    there, which is what makes this a fabric rather than a lookup table with extra
+    steps.
+  </p>
+</section>
+
+<div class="wide">
+  <div class="panel">
+    <div class="panel-head">
+      <div class="ctl"><span class="lbl">Compiled design</span><select id="design" aria-label="Compiled design"></select></div>
+      <span class="m" id="d-desc" style="color:var(--ink-2);font-size:12.5px"></span>
+    </div>
+    <div class="panel-body">
+      <div class="scroll"><svg id="mesh" width="900" height="530" role="img"
+        aria-label="Four by four tile mesh showing placed logic and routed tracks"></svg></div>
+      <div class="reads">
+        <div class="read"><div class="k">LUTs placed</div><div class="v" id="d-luts">—</div></div>
+        <div class="read"><div class="k">Switch box muxes</div><div class="v" id="d-sb">—</div></div>
+        <div class="read"><div class="k">Bits set of 2896</div><div class="v" id="d-pop">—</div></div>
+      </div>
+    </div>
+    <div class="panel-foot" id="d-foot"></div>
+  </div>
+  <div class="foot">
+    Verified at 174 checks in RTL simulation and 163 input vectors replayed on the
+    board, with expected results produced by an independent software model of the
+    fabric rather than by the Verilog. Configuration loads in 0.04 s over a
+    Raspberry Pi Pico running DirtyJTAG.
+  </div>
+</div>
+
+</div>
+
+<script>
+(function () {
+"use strict";
+const $ = (s) => document.querySelector(s);
+const NS = "http://www.w3.org/2000/svg";
+const el = (n, a) => { const e = document.createElementNS(NS, n);
+  for (const k in a) e.setAttribute(k, a[k]); return e; };
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const txt = (svg, x, y, s, o) => { const t = el("text", Object.assign(
+  { x, y, "font-size": 10, fill: css("--faint") }, o || {})); t.textContent = s;
+  svg.append(t); return t; };
+
+const BITS = {"rows":[{"b":0,"sec":"CLB","f":"INIT[0]","d":"LUT output when i[5:0] = 000000","n":"Serves o6 always; also o5 when the address is below 32."},{"b":1,"sec":"CLB","f":"INIT[1]","d":"LUT output when i[5:0] = 000001","n":"Serves o6 always; also o5 when the address is below 32."},{"b":2,"sec":"CLB","f":"INIT[2]","d":"LUT output when i[5:0] = 000010","n":"Serves o6 always; also o5 when the address is below 32."},{"b":3,"sec":"CLB","f":"INIT[3]","d":"LUT output when i[5:0] = 000011","n":"Serves o6 always; also o5 when the address is below 32."},{"b":4,"sec":"CLB","f":"INIT[4]","d":"LUT output when i[5:0] = 000100","n":"Serves o6 always; also o5 when the address is below 32."},{"b":5,"sec":"CLB","f":"INIT[5]","d":"LUT output when i[5:0] = 000101","n":"Serves o6 always; also o5 when the address is below 32."},{"b":6,"sec":"CLB","f":"INIT[6]","d":"LUT output when i[5:0] = 000110","n":"Serves o6 always; also o5 when the address is below 32."},{"b":7,"sec":"CLB","f":"INIT[7]","d":"LUT output when i[5:0] = 000111","n":"Serves o6 always; also o5 when the address is below 32."},{"b":8,"sec":"CLB","f":"INIT[8]","d":"LUT output when i[5:0] = 001000","n":"Serves o6 always; also o5 when the address is below 32."},{"b":9,"sec":"CLB","f":"INIT[9]","d":"LUT output when i[5:0] = 001001","n":"Serves o6 always; also o5 when the address is below 32."},{"b":10,"sec":"CLB","f":"INIT[10]","d":"LUT output when i[5:0] = 001010","n":"Serves o6 always; also o5 when the address is below 32."},{"b":11,"sec":"CLB","f":"INIT[11]","d":"LUT output when i[5:0] = 001011","n":"Serves o6 always; also o5 when the address is below 32."},{"b":12,"sec":"CLB","f":"INIT[12]","d":"LUT output when i[5:0] = 001100","n":"Serves o6 always; also o5 when the address is below 32."},{"b":13,"sec":"CLB","f":"INIT[13]","d":"LUT output when i[5:0] = 001101","n":"Serves o6 always; also o5 when the address is below 32."},{"b":14,"sec":"CLB","f":"INIT[14]","d":"LUT output when i[5:0] = 001110","n":"Serves o6 always; also o5 when the address is below 32."},{"b":15,"sec":"CLB","f":"INIT[15]","d":"LUT output when i[5:0] = 001111","n":"Serves o6 always; also o5 when the address is below 32."},{"b":16,"sec":"CLB","f":"INIT[16]","d":"LUT output when i[5:0] = 010000","n":"Serves o6 always; also o5 when the address is below 32."},{"b":17,"sec":"CLB","f":"INIT[17]","d":"LUT output when i[5:0] = 010001","n":"Serves o6 always; also o5 when the address is below 32."},{"b":18,"sec":"CLB","f":"INIT[18]","d":"LUT output when i[5:0] = 010010","n":"Serves o6 always; also o5 when the address is below 32."},{"b":19,"sec":"CLB","f":"INIT[19]","d":"LUT output when i[5:0] = 010011","n":"Serves o6 always; also o5 when the address is below 32."},{"b":20,"sec":"CLB","f":"INIT[20]","d":"LUT output when i[5:0] = 010100","n":"Serves o6 always; also o5 when the address is below 32."},{"b":21,"sec":"CLB","f":"INIT[21]","d":"LUT output when i[5:0] = 010101","n":"Serves o6 always; also o5 when the address is below 32."},{"b":22,"sec":"CLB","f":"INIT[22]","d":"LUT output when i[5:0] = 010110","n":"Serves o6 always; also o5 when the address is below 32."},{"b":23,"sec":"CLB","f":"INIT[23]","d":"LUT output when i[5:0] = 010111","n":"Serves o6 always; also o5 when the address is below 32."},{"b":24,"sec":"CLB","f":"INIT[24]","d":"LUT output when i[5:0] = 011000","n":"Serves o6 always; also o5 when the address is below 32."},{"b":25,"sec":"CLB","f":"INIT[25]","d":"LUT output when i[5:0] = 011001","n":"Serves o6 always; also o5 when the address is below 32."},{"b":26,"sec":"CLB","f":"INIT[26]","d":"LUT output when i[5:0] = 011010","n":"Serves o6 always; also o5 when the address is below 32."},{"b":27,"sec":"CLB","f":"INIT[27]","d":"LUT output when i[5:0] = 011011","n":"Serves o6 always; also o5 when the address is below 32."},{"b":28,"sec":"CLB","f":"INIT[28]","d":"LUT output when i[5:0] = 011100","n":"Serves o6 always; also o5 when the address is below 32."},{"b":29,"sec":"CLB","f":"INIT[29]","d":"LUT output when i[5:0] = 011101","n":"Serves o6 always; also o5 when the address is below 32."},{"b":30,"sec":"CLB","f":"INIT[30]","d":"LUT output when i[5:0] = 011110","n":"Serves o6 always; also o5 when the address is below 32."},{"b":31,"sec":"CLB","f":"INIT[31]","d":"LUT output when i[5:0] = 011111","n":"Serves o6 always; also o5 when the address is below 32."},{"b":32,"sec":"CLB","f":"INIT[32]","d":"LUT output when i[5:0] = 100000","n":"Serves o6 only - o5 is tapped before i5 is consulted, so it never reads this half."},{"b":33,"sec":"CLB","f":"INIT[33]","d":"LUT output when i[5:0] = 100001","n":"Serves o6 only - o5 is tapped before i5 is consulted, so it never reads this half."},{"b":34,"sec":"CLB","f":"INIT[34]","d":"LUT output when i[5:0] = 100010","n":"Serves o6 only - o5 is tapped before i5 is consulted, so it never reads this half."},{"b":35,"sec":"CLB","f":"INIT[35]","d":"LUT output when i[5:0] = 100011","n":"Serves o6 only - o5 is tapped before i5 is consulted, so it never reads this half."},{"b":36,"sec":"CLB","f":"INIT[36]","d":"LUT output when i[5:0] = 100100","n":"Serves o6 only - o5 is tapped before i5 is consulted, so it never reads this half."},{"b":37,"sec":"CLB","f":"INIT[37]","d":"LUT output when i[5:0] = 100101","n":"Serves o6 only - o5 is tapped before i5 is consulted, so it never reads this half."},{"b":38,"sec":"CLB","f":"INIT[38]","d":"LUT output when i[5:0] = 100110","n":"Serves o6 only - o5 is tapped before i5 is consulted, so it never reads this half."},{"b":39,"sec":"CLB","f":"INIT[39]","d":"LUT output when i[5:0] = 100111","n":"Serves o6 only - o5 is tapped before i5 is consulted, so it never reads this half."},{"b":40,"sec":"CLB","f":"INIT[40]","d":"LUT output when i[5:0] = 101000","n":"Serves o6 only - o5 is tapped before i5 is consulted, so it never reads this half."},{"b":41,"sec":"CLB","f":"INIT[41]","d":"LUT output when i[5:0] = 101001","n":"Serves o6 only - o5 is tapped before i5 is consulted, so it never reads this half."},{"b":42,"sec":"CLB","f":"INIT[42]","d":"LUT output when i[5:0] = 101010","n":"Serves o6 only - o5 is tapped before i5 is consulted, so it never reads this half."},{"b":43,"sec":"CLB","f":"INIT[43]","d":"LUT output when i[5:0] = 101011","n":"Serves o6 only - o5 is tapped before i5 is consulted, so it never reads this half."},{"b":44,"sec":"CLB","f":"INIT[44]","d":"LUT output when i[5:0] = 101100","n":"Serves o6 only - o5 is tapped before i5 is consulted, so it never reads this half."},{"b":45,"sec":"CLB","f":"INIT[45]","d":"LUT output when i[5:0] = 101101","n":"Serves o6 only - o5 is tapped before i5 is consulted, so it never reads this half."},{"b":46,"sec":"CLB","f":"INIT[46]","d":"LUT output when i[5:0] = 101110","n":"Serves o6 only - o5 is tapped before i5 is consulted, so it never reads this half."},{"b":47,"sec":"CLB","f":"INIT[47]","d":"LUT output when i[5:0] = 101111","n":"Serves o6 only - o5 is tapped before i5 is consulted, so it never reads this half."},{"b":48,"sec":"CLB","f":"INIT[48]","d":"LUT output when i[5:0] = 110000","n":"Serves o6 only - o5 is tapped before i5 is consulted, so it never reads this half."},{"b":49,"sec":"CLB","f":"INIT[49]","d":"LUT output when i[5:0] = 110001","n":"Serves o6 only - o5 is tapped before i5 is consulted, so it never reads this half."},{"b":50,"sec":"CLB","f":"INIT[50]","d":"LUT output when i[5:0] = 110010","n":"Serves o6 only - o5 is tapped before i5 is consulted, so it never reads this half."},{"b":51,"sec":"CLB","f":"INIT[51]","d":"LUT output when i[5:0] = 110011","n":"Serves o6 only - o5 is tapped before i5 is consulted, so it never reads this half."},{"b":52,"sec":"CLB","f":"INIT[52]","d":"LUT output when i[5:0] = 110100","n":"Serves o6 only - o5 is tapped before i5 is consulted, so it never reads this half."},{"b":53,"sec":"CLB","f":"INIT[53]","d":"LUT output when i[5:0] = 110101","n":"Serves o6 only - o5 is tapped before i5 is consulted, so it never reads this half."},{"b":54,"sec":"CLB","f":"INIT[54]","d":"LUT output when i[5:0] = 110110","n":"Serves o6 only - o5 is tapped before i5 is consulted, so it never reads this half."},{"b":55,"sec":"CLB","f":"INIT[55]","d":"LUT output when i[5:0] = 110111","n":"Serves o6 only - o5 is tapped before i5 is consulted, so it never reads this half."},{"b":56,"sec":"CLB","f":"INIT[56]","d":"LUT output when i[5:0] = 111000","n":"Serves o6 only - o5 is tapped before i5 is consulted, so it never reads this half."},{"b":57,"sec":"CLB","f":"INIT[57]","d":"LUT output when i[5:0] = 111001","n":"Serves o6 only - o5 is tapped before i5 is consulted, so it never reads this half."},{"b":58,"sec":"CLB","f":"INIT[58]","d":"LUT output when i[5:0] = 111010","n":"Serves o6 only - o5 is tapped before i5 is consulted, so it never reads this half."},{"b":59,"sec":"CLB","f":"INIT[59]","d":"LUT output when i[5:0] = 111011","n":"Serves o6 only - o5 is tapped before i5 is consulted, so it never reads this half."},{"b":60,"sec":"CLB","f":"INIT[60]","d":"LUT output when i[5:0] = 111100","n":"Serves o6 only - o5 is tapped before i5 is consulted, so it never reads this half."},{"b":61,"sec":"CLB","f":"INIT[61]","d":"LUT output when i[5:0] = 111101","n":"Serves o6 only - o5 is tapped before i5 is consulted, so it never reads this half."},{"b":62,"sec":"CLB","f":"INIT[62]","d":"LUT output when i[5:0] = 111110","n":"Serves o6 only - o5 is tapped before i5 is consulted, so it never reads this half."},{"b":63,"sec":"CLB","f":"INIT[63]","d":"LUT output when i[5:0] = 111111","n":"Serves o6 only - o5 is tapped before i5 is consulted, so it never reads this half."},{"b":64,"sec":"CLB","f":"FF_EN","d":"o = flop q (1) or combinational (0)","n":"Chooses whether the block is registered. The single most common bit to change: clear for a gate, set for state."},{"b":65,"sec":"CLB","f":"FF_RSTVAL","d":"value loaded into q on synchronous reset","n":"Makes the flop an FDRE (0) or an FDSE (1). Only consulted when FF_SR_EN is set and sr is high."},{"b":66,"sec":"CLB","f":"FF_CE_EN","d":"1 = flop honours ce, 0 = always enabled","n":"With this clear the flop follows comb on every TCK. Set it and the flop only moves on an explicit enable, which is how a scan chain single-steps logic."},{"b":67,"sec":"CLB","f":"FF_SR_EN","d":"1 = flop honours sr, 0 = reset ignored","n":"Lets a block opt out of the global reset. A pipeline stage that must not be cleared leaves this at 0."},{"b":68,"sec":"CLB","f":"CY_EN","d":"1 = carry chain drives the datapath","n":"Re-purposes the LUT: o6 stops being the answer and becomes the propagate term. The datapath takes o6 XOR cin."},{"b":69,"sec":"CLB","f":"CY_DI_SEL","d":"0 = i[0], 1 = o5","n":"Where the carry generate term comes from. Using o5 is what lets one block do add, subtract and compare with the fracture."},{"b":70,"sec":"CLB","f":"FF_D_SEL","d":"0 = o6, 1 = o5","n":"Selects the fractured output as the registered value. Ignored when CY_EN is set."},{"b":71,"sec":"CB","f":"CB[i0].sel[0]","d":"LUT input i0 source select, weight 1","n":"Five bits choose one of the 20 sources for LUT input i0."},{"b":72,"sec":"CB","f":"CB[i0].sel[1]","d":"LUT input i0 source select, weight 2","n":"Five bits choose one of the 20 sources for LUT input i0."},{"b":73,"sec":"CB","f":"CB[i0].sel[2]","d":"LUT input i0 source select, weight 4","n":"Five bits choose one of the 20 sources for LUT input i0."},{"b":74,"sec":"CB","f":"CB[i0].sel[3]","d":"LUT input i0 source select, weight 8","n":"Five bits choose one of the 20 sources for LUT input i0."},{"b":75,"sec":"CB","f":"CB[i0].sel[4]","d":"LUT input i0 source select, weight 16","n":"Five bits choose one of the 20 sources for LUT input i0."},{"b":76,"sec":"CB","f":"CB[i1].sel[0]","d":"LUT input i1 source select, weight 1","n":"Five bits choose one of the 20 sources for LUT input i1."},{"b":77,"sec":"CB","f":"CB[i1].sel[1]","d":"LUT input i1 source select, weight 2","n":"Five bits choose one of the 20 sources for LUT input i1."},{"b":78,"sec":"CB","f":"CB[i1].sel[2]","d":"LUT input i1 source select, weight 4","n":"Five bits choose one of the 20 sources for LUT input i1."},{"b":79,"sec":"CB","f":"CB[i1].sel[3]","d":"LUT input i1 source select, weight 8","n":"Five bits choose one of the 20 sources for LUT input i1."},{"b":80,"sec":"CB","f":"CB[i1].sel[4]","d":"LUT input i1 source select, weight 16","n":"Five bits choose one of the 20 sources for LUT input i1."},{"b":81,"sec":"CB","f":"CB[i2].sel[0]","d":"LUT input i2 source select, weight 1","n":"Five bits choose one of the 20 sources for LUT input i2."},{"b":82,"sec":"CB","f":"CB[i2].sel[1]","d":"LUT input i2 source select, weight 2","n":"Five bits choose one of the 20 sources for LUT input i2."},{"b":83,"sec":"CB","f":"CB[i2].sel[2]","d":"LUT input i2 source select, weight 4","n":"Five bits choose one of the 20 sources for LUT input i2."},{"b":84,"sec":"CB","f":"CB[i2].sel[3]","d":"LUT input i2 source select, weight 8","n":"Five bits choose one of the 20 sources for LUT input i2."},{"b":85,"sec":"CB","f":"CB[i2].sel[4]","d":"LUT input i2 source select, weight 16","n":"Five bits choose one of the 20 sources for LUT input i2."},{"b":86,"sec":"CB","f":"CB[i3].sel[0]","d":"LUT input i3 source select, weight 1","n":"Five bits choose one of the 20 sources for LUT input i3."},{"b":87,"sec":"CB","f":"CB[i3].sel[1]","d":"LUT input i3 source select, weight 2","n":"Five bits choose one of the 20 sources for LUT input i3."},{"b":88,"sec":"CB","f":"CB[i3].sel[2]","d":"LUT input i3 source select, weight 4","n":"Five bits choose one of the 20 sources for LUT input i3."},{"b":89,"sec":"CB","f":"CB[i3].sel[3]","d":"LUT input i3 source select, weight 8","n":"Five bits choose one of the 20 sources for LUT input i3."},{"b":90,"sec":"CB","f":"CB[i3].sel[4]","d":"LUT input i3 source select, weight 16","n":"Five bits choose one of the 20 sources for LUT input i3."},{"b":91,"sec":"CB","f":"CB[i4].sel[0]","d":"LUT input i4 source select, weight 1","n":"Five bits choose one of the 20 sources for LUT input i4."},{"b":92,"sec":"CB","f":"CB[i4].sel[1]","d":"LUT input i4 source select, weight 2","n":"Five bits choose one of the 20 sources for LUT input i4."},{"b":93,"sec":"CB","f":"CB[i4].sel[2]","d":"LUT input i4 source select, weight 4","n":"Five bits choose one of the 20 sources for LUT input i4."},{"b":94,"sec":"CB","f":"CB[i4].sel[3]","d":"LUT input i4 source select, weight 8","n":"Five bits choose one of the 20 sources for LUT input i4."},{"b":95,"sec":"CB","f":"CB[i4].sel[4]","d":"LUT input i4 source select, weight 16","n":"Five bits choose one of the 20 sources for LUT input i4."},{"b":96,"sec":"CB","f":"CB[i5].sel[0]","d":"LUT input i5 source select, weight 1","n":"Five bits choose one of the 20 sources for LUT input i5."},{"b":97,"sec":"CB","f":"CB[i5].sel[1]","d":"LUT input i5 source select, weight 2","n":"Five bits choose one of the 20 sources for LUT input i5."},{"b":98,"sec":"CB","f":"CB[i5].sel[2]","d":"LUT input i5 source select, weight 4","n":"Five bits choose one of the 20 sources for LUT input i5."},{"b":99,"sec":"CB","f":"CB[i5].sel[3]","d":"LUT input i5 source select, weight 8","n":"Five bits choose one of the 20 sources for LUT input i5."},{"b":100,"sec":"CB","f":"CB[i5].sel[4]","d":"LUT input i5 source select, weight 16","n":"Five bits choose one of the 20 sources for LUT input i5."},{"b":101,"sec":"SB","f":"SB[N0].sel[0]","d":"outgoing track N[0] source select, weight 1","n":"Drives this tile's track 0 toward the north; the neighbour sees it on its opposite edge, same track number."},{"b":102,"sec":"SB","f":"SB[N0].sel[1]","d":"outgoing track N[0] source select, weight 2","n":"Drives this tile's track 0 toward the north; the neighbour sees it on its opposite edge, same track number."},{"b":103,"sec":"SB","f":"SB[N0].sel[2]","d":"outgoing track N[0] source select, weight 4","n":"Drives this tile's track 0 toward the north; the neighbour sees it on its opposite edge, same track number."},{"b":104,"sec":"SB","f":"SB[N0].sel[3]","d":"outgoing track N[0] source select, weight 8","n":"Drives this tile's track 0 toward the north; the neighbour sees it on its opposite edge, same track number."},{"b":105,"sec":"SB","f":"SB[N0].sel[4]","d":"outgoing track N[0] source select, weight 16","n":"Drives this tile's track 0 toward the north; the neighbour sees it on its opposite edge, same track number."},{"b":106,"sec":"SB","f":"SB[N1].sel[0]","d":"outgoing track N[1] source select, weight 1","n":"Drives this tile's track 1 toward the north; the neighbour sees it on its opposite edge, same track number."},{"b":107,"sec":"SB","f":"SB[N1].sel[1]","d":"outgoing track N[1] source select, weight 2","n":"Drives this tile's track 1 toward the north; the neighbour sees it on its opposite edge, same track number."},{"b":108,"sec":"SB","f":"SB[N1].sel[2]","d":"outgoing track N[1] source select, weight 4","n":"Drives this tile's track 1 toward the north; the neighbour sees it on its opposite edge, same track number."},{"b":109,"sec":"SB","f":"SB[N1].sel[3]","d":"outgoing track N[1] source select, weight 8","n":"Drives this tile's track 1 toward the north; the neighbour sees it on its opposite edge, same track number."},{"b":110,"sec":"SB","f":"SB[N1].sel[4]","d":"outgoing track N[1] source select, weight 16","n":"Drives this tile's track 1 toward the north; the neighbour sees it on its opposite edge, same track number."},{"b":111,"sec":"SB","f":"SB[N2].sel[0]","d":"outgoing track N[2] source select, weight 1","n":"Drives this tile's track 2 toward the north; the neighbour sees it on its opposite edge, same track number."},{"b":112,"sec":"SB","f":"SB[N2].sel[1]","d":"outgoing track N[2] source select, weight 2","n":"Drives this tile's track 2 toward the north; the neighbour sees it on its opposite edge, same track number."},{"b":113,"sec":"SB","f":"SB[N2].sel[2]","d":"outgoing track N[2] source select, weight 4","n":"Drives this tile's track 2 toward the north; the neighbour sees it on its opposite edge, same track number."},{"b":114,"sec":"SB","f":"SB[N2].sel[3]","d":"outgoing track N[2] source select, weight 8","n":"Drives this tile's track 2 toward the north; the neighbour sees it on its opposite edge, same track number."},{"b":115,"sec":"SB","f":"SB[N2].sel[4]","d":"outgoing track N[2] source select, weight 16","n":"Drives this tile's track 2 toward the north; the neighbour sees it on its opposite edge, same track number."},{"b":116,"sec":"SB","f":"SB[N3].sel[0]","d":"outgoing track N[3] source select, weight 1","n":"Drives this tile's track 3 toward the north; the neighbour sees it on its opposite edge, same track number."},{"b":117,"sec":"SB","f":"SB[N3].sel[1]","d":"outgoing track N[3] source select, weight 2","n":"Drives this tile's track 3 toward the north; the neighbour sees it on its opposite edge, same track number."},{"b":118,"sec":"SB","f":"SB[N3].sel[2]","d":"outgoing track N[3] source select, weight 4","n":"Drives this tile's track 3 toward the north; the neighbour sees it on its opposite edge, same track number."},{"b":119,"sec":"SB","f":"SB[N3].sel[3]","d":"outgoing track N[3] source select, weight 8","n":"Drives this tile's track 3 toward the north; the neighbour sees it on its opposite edge, same track number."},{"b":120,"sec":"SB","f":"SB[N3].sel[4]","d":"outgoing track N[3] source select, weight 16","n":"Drives this tile's track 3 toward the north; the neighbour sees it on its opposite edge, same track number."},{"b":121,"sec":"SB","f":"SB[E0].sel[0]","d":"outgoing track E[0] source select, weight 1","n":"Drives this tile's track 0 toward the east; the neighbour sees it on its opposite edge, same track number."},{"b":122,"sec":"SB","f":"SB[E0].sel[1]","d":"outgoing track E[0] source select, weight 2","n":"Drives this tile's track 0 toward the east; the neighbour sees it on its opposite edge, same track number."},{"b":123,"sec":"SB","f":"SB[E0].sel[2]","d":"outgoing track E[0] source select, weight 4","n":"Drives this tile's track 0 toward the east; the neighbour sees it on its opposite edge, same track number."},{"b":124,"sec":"SB","f":"SB[E0].sel[3]","d":"outgoing track E[0] source select, weight 8","n":"Drives this tile's track 0 toward the east; the neighbour sees it on its opposite edge, same track number."},{"b":125,"sec":"SB","f":"SB[E0].sel[4]","d":"outgoing track E[0] source select, weight 16","n":"Drives this tile's track 0 toward the east; the neighbour sees it on its opposite edge, same track number."},{"b":126,"sec":"SB","f":"SB[E1].sel[0]","d":"outgoing track E[1] source select, weight 1","n":"Drives this tile's track 1 toward the east; the neighbour sees it on its opposite edge, same track number."},{"b":127,"sec":"SB","f":"SB[E1].sel[1]","d":"outgoing track E[1] source select, weight 2","n":"Drives this tile's track 1 toward the east; the neighbour sees it on its opposite edge, same track number."},{"b":128,"sec":"SB","f":"SB[E1].sel[2]","d":"outgoing track E[1] source select, weight 4","n":"Drives this tile's track 1 toward the east; the neighbour sees it on its opposite edge, same track number."},{"b":129,"sec":"SB","f":"SB[E1].sel[3]","d":"outgoing track E[1] source select, weight 8","n":"Drives this tile's track 1 toward the east; the neighbour sees it on its opposite edge, same track number."},{"b":130,"sec":"SB","f":"SB[E1].sel[4]","d":"outgoing track E[1] source select, weight 16","n":"Drives this tile's track 1 toward the east; the neighbour sees it on its opposite edge, same track number."},{"b":131,"sec":"SB","f":"SB[E2].sel[0]","d":"outgoing track E[2] source select, weight 1","n":"Drives this tile's track 2 toward the east; the neighbour sees it on its opposite edge, same track number."},{"b":132,"sec":"SB","f":"SB[E2].sel[1]","d":"outgoing track E[2] source select, weight 2","n":"Drives this tile's track 2 toward the east; the neighbour sees it on its opposite edge, same track number."},{"b":133,"sec":"SB","f":"SB[E2].sel[2]","d":"outgoing track E[2] source select, weight 4","n":"Drives this tile's track 2 toward the east; the neighbour sees it on its opposite edge, same track number."},{"b":134,"sec":"SB","f":"SB[E2].sel[3]","d":"outgoing track E[2] source select, weight 8","n":"Drives this tile's track 2 toward the east; the neighbour sees it on its opposite edge, same track number."},{"b":135,"sec":"SB","f":"SB[E2].sel[4]","d":"outgoing track E[2] source select, weight 16","n":"Drives this tile's track 2 toward the east; the neighbour sees it on its opposite edge, same track number."},{"b":136,"sec":"SB","f":"SB[E3].sel[0]","d":"outgoing track E[3] source select, weight 1","n":"Drives this tile's track 3 toward the east; the neighbour sees it on its opposite edge, same track number."},{"b":137,"sec":"SB","f":"SB[E3].sel[1]","d":"outgoing track E[3] source select, weight 2","n":"Drives this tile's track 3 toward the east; the neighbour sees it on its opposite edge, same track number."},{"b":138,"sec":"SB","f":"SB[E3].sel[2]","d":"outgoing track E[3] source select, weight 4","n":"Drives this tile's track 3 toward the east; the neighbour sees it on its opposite edge, same track number."},{"b":139,"sec":"SB","f":"SB[E3].sel[3]","d":"outgoing track E[3] source select, weight 8","n":"Drives this tile's track 3 toward the east; the neighbour sees it on its opposite edge, same track number."},{"b":140,"sec":"SB","f":"SB[E3].sel[4]","d":"outgoing track E[3] source select, weight 16","n":"Drives this tile's track 3 toward the east; the neighbour sees it on its opposite edge, same track number."},{"b":141,"sec":"SB","f":"SB[S0].sel[0]","d":"outgoing track S[0] source select, weight 1","n":"Drives this tile's track 0 toward the south; the neighbour sees it on its opposite edge, same track number."},{"b":142,"sec":"SB","f":"SB[S0].sel[1]","d":"outgoing track S[0] source select, weight 2","n":"Drives this tile's track 0 toward the south; the neighbour sees it on its opposite edge, same track number."},{"b":143,"sec":"SB","f":"SB[S0].sel[2]","d":"outgoing track S[0] source select, weight 4","n":"Drives this tile's track 0 toward the south; the neighbour sees it on its opposite edge, same track number."},{"b":144,"sec":"SB","f":"SB[S0].sel[3]","d":"outgoing track S[0] source select, weight 8","n":"Drives this tile's track 0 toward the south; the neighbour sees it on its opposite edge, same track number."},{"b":145,"sec":"SB","f":"SB[S0].sel[4]","d":"outgoing track S[0] source select, weight 16","n":"Drives this tile's track 0 toward the south; the neighbour sees it on its opposite edge, same track number."},{"b":146,"sec":"SB","f":"SB[S1].sel[0]","d":"outgoing track S[1] source select, weight 1","n":"Drives this tile's track 1 toward the south; the neighbour sees it on its opposite edge, same track number."},{"b":147,"sec":"SB","f":"SB[S1].sel[1]","d":"outgoing track S[1] source select, weight 2","n":"Drives this tile's track 1 toward the south; the neighbour sees it on its opposite edge, same track number."},{"b":148,"sec":"SB","f":"SB[S1].sel[2]","d":"outgoing track S[1] source select, weight 4","n":"Drives this tile's track 1 toward the south; the neighbour sees it on its opposite edge, same track number."},{"b":149,"sec":"SB","f":"SB[S1].sel[3]","d":"outgoing track S[1] source select, weight 8","n":"Drives this tile's track 1 toward the south; the neighbour sees it on its opposite edge, same track number."},{"b":150,"sec":"SB","f":"SB[S1].sel[4]","d":"outgoing track S[1] source select, weight 16","n":"Drives this tile's track 1 toward the south; the neighbour sees it on its opposite edge, same track number."},{"b":151,"sec":"SB","f":"SB[S2].sel[0]","d":"outgoing track S[2] source select, weight 1","n":"Drives this tile's track 2 toward the south; the neighbour sees it on its opposite edge, same track number."},{"b":152,"sec":"SB","f":"SB[S2].sel[1]","d":"outgoing track S[2] source select, weight 2","n":"Drives this tile's track 2 toward the south; the neighbour sees it on its opposite edge, same track number."},{"b":153,"sec":"SB","f":"SB[S2].sel[2]","d":"outgoing track S[2] source select, weight 4","n":"Drives this tile's track 2 toward the south; the neighbour sees it on its opposite edge, same track number."},{"b":154,"sec":"SB","f":"SB[S2].sel[3]","d":"outgoing track S[2] source select, weight 8","n":"Drives this tile's track 2 toward the south; the neighbour sees it on its opposite edge, same track number."},{"b":155,"sec":"SB","f":"SB[S2].sel[4]","d":"outgoing track S[2] source select, weight 16","n":"Drives this tile's track 2 toward the south; the neighbour sees it on its opposite edge, same track number."},{"b":156,"sec":"SB","f":"SB[S3].sel[0]","d":"outgoing track S[3] source select, weight 1","n":"Drives this tile's track 3 toward the south; the neighbour sees it on its opposite edge, same track number."},{"b":157,"sec":"SB","f":"SB[S3].sel[1]","d":"outgoing track S[3] source select, weight 2","n":"Drives this tile's track 3 toward the south; the neighbour sees it on its opposite edge, same track number."},{"b":158,"sec":"SB","f":"SB[S3].sel[2]","d":"outgoing track S[3] source select, weight 4","n":"Drives this tile's track 3 toward the south; the neighbour sees it on its opposite edge, same track number."},{"b":159,"sec":"SB","f":"SB[S3].sel[3]","d":"outgoing track S[3] source select, weight 8","n":"Drives this tile's track 3 toward the south; the neighbour sees it on its opposite edge, same track number."},{"b":160,"sec":"SB","f":"SB[S3].sel[4]","d":"outgoing track S[3] source select, weight 16","n":"Drives this tile's track 3 toward the south; the neighbour sees it on its opposite edge, same track number."},{"b":161,"sec":"SB","f":"SB[W0].sel[0]","d":"outgoing track W[0] source select, weight 1","n":"Drives this tile's track 0 toward the west; the neighbour sees it on its opposite edge, same track number."},{"b":162,"sec":"SB","f":"SB[W0].sel[1]","d":"outgoing track W[0] source select, weight 2","n":"Drives this tile's track 0 toward the west; the neighbour sees it on its opposite edge, same track number."},{"b":163,"sec":"SB","f":"SB[W0].sel[2]","d":"outgoing track W[0] source select, weight 4","n":"Drives this tile's track 0 toward the west; the neighbour sees it on its opposite edge, same track number."},{"b":164,"sec":"SB","f":"SB[W0].sel[3]","d":"outgoing track W[0] source select, weight 8","n":"Drives this tile's track 0 toward the west; the neighbour sees it on its opposite edge, same track number."},{"b":165,"sec":"SB","f":"SB[W0].sel[4]","d":"outgoing track W[0] source select, weight 16","n":"Drives this tile's track 0 toward the west; the neighbour sees it on its opposite edge, same track number."},{"b":166,"sec":"SB","f":"SB[W1].sel[0]","d":"outgoing track W[1] source select, weight 1","n":"Drives this tile's track 1 toward the west; the neighbour sees it on its opposite edge, same track number."},{"b":167,"sec":"SB","f":"SB[W1].sel[1]","d":"outgoing track W[1] source select, weight 2","n":"Drives this tile's track 1 toward the west; the neighbour sees it on its opposite edge, same track number."},{"b":168,"sec":"SB","f":"SB[W1].sel[2]","d":"outgoing track W[1] source select, weight 4","n":"Drives this tile's track 1 toward the west; the neighbour sees it on its opposite edge, same track number."},{"b":169,"sec":"SB","f":"SB[W1].sel[3]","d":"outgoing track W[1] source select, weight 8","n":"Drives this tile's track 1 toward the west; the neighbour sees it on its opposite edge, same track number."},{"b":170,"sec":"SB","f":"SB[W1].sel[4]","d":"outgoing track W[1] source select, weight 16","n":"Drives this tile's track 1 toward the west; the neighbour sees it on its opposite edge, same track number."},{"b":171,"sec":"SB","f":"SB[W2].sel[0]","d":"outgoing track W[2] source select, weight 1","n":"Drives this tile's track 2 toward the west; the neighbour sees it on its opposite edge, same track number."},{"b":172,"sec":"SB","f":"SB[W2].sel[1]","d":"outgoing track W[2] source select, weight 2","n":"Drives this tile's track 2 toward the west; the neighbour sees it on its opposite edge, same track number."},{"b":173,"sec":"SB","f":"SB[W2].sel[2]","d":"outgoing track W[2] source select, weight 4","n":"Drives this tile's track 2 toward the west; the neighbour sees it on its opposite edge, same track number."},{"b":174,"sec":"SB","f":"SB[W2].sel[3]","d":"outgoing track W[2] source select, weight 8","n":"Drives this tile's track 2 toward the west; the neighbour sees it on its opposite edge, same track number."},{"b":175,"sec":"SB","f":"SB[W2].sel[4]","d":"outgoing track W[2] source select, weight 16","n":"Drives this tile's track 2 toward the west; the neighbour sees it on its opposite edge, same track number."},{"b":176,"sec":"SB","f":"SB[W3].sel[0]","d":"outgoing track W[3] source select, weight 1","n":"Drives this tile's track 3 toward the west; the neighbour sees it on its opposite edge, same track number."},{"b":177,"sec":"SB","f":"SB[W3].sel[1]","d":"outgoing track W[3] source select, weight 2","n":"Drives this tile's track 3 toward the west; the neighbour sees it on its opposite edge, same track number."},{"b":178,"sec":"SB","f":"SB[W3].sel[2]","d":"outgoing track W[3] source select, weight 4","n":"Drives this tile's track 3 toward the west; the neighbour sees it on its opposite edge, same track number."},{"b":179,"sec":"SB","f":"SB[W3].sel[3]","d":"outgoing track W[3] source select, weight 8","n":"Drives this tile's track 3 toward the west; the neighbour sees it on its opposite edge, same track number."},{"b":180,"sec":"SB","f":"SB[W3].sel[4]","d":"outgoing track W[3] source select, weight 16","n":"Drives this tile's track 3 toward the west; the neighbour sees it on its opposite edge, same track number."}],"acct":{"lut":63,"cb_per":31,"cb":186,"sb":496,"tile":745,"fabric":11920,"cfg_ff":5792,"tiles":16}};
+const DESIGNS = {"and":{"desc":"AND at tile(0,0), routed east to pad_o[0]","luts":[{"r":0,"c":0,"init":"8888888888888888"}],"routes":[{"r":0,"c":0,"d":"E"},{"r":0,"c":1,"d":"E"},{"r":0,"c":2,"d":"E"},{"r":0,"c":3,"d":"E"}],"truth":{"000000":"000","000001":"000","000010":"000","000011":"001"},"popcount":23},"three":{"desc":"AND / XOR / NAND across three tiles, with fanout","luts":[{"r":0,"c":0,"init":"8888888888888888"},{"r":1,"c":1,"init":"6666666666666666"},{"r":2,"c":2,"init":"5555555555555555"}],"routes":[{"r":0,"c":0,"d":"E"},{"r":0,"c":1,"d":"E"},{"r":0,"c":2,"d":"N"},{"r":0,"c":2,"d":"E"},{"r":0,"c":3,"d":"E"},{"r":1,"c":0,"d":"E"},{"r":1,"c":0,"d":"E"},{"r":1,"c":1,"d":"E"},{"r":1,"c":2,"d":"N"},{"r":1,"c":2,"d":"E"},{"r":1,"c":3,"d":"E"},{"r":2,"c":2,"d":"E"},{"r":2,"c":3,"d":"E"}],"truth":{"000000":"100","000001":"110","000010":"110","000011":"001"},"popcount":103},"corner":{"desc":"OR at tile(3,3), the far corner from the input pads","luts":[{"r":3,"c":3,"init":"EEEEEEEEEEEEEEEE"}],"routes":[{"r":0,"c":3,"d":"E"},{"r":1,"c":3,"d":"S"},{"r":2,"c":3,"d":"S"},{"r":3,"c":0,"d":"E"},{"r":3,"c":0,"d":"E"},{"r":3,"c":1,"d":"E"},{"r":3,"c":1,"d":"E"},{"r":3,"c":2,"d":"E"},{"r":3,"c":2,"d":"E"},{"r":3,"c":3,"d":"S"}],"truth":{"000000":"000","000001":"001","000010":"001","000011":"001"},"popcount":64},"chain":{"desc":"buffer / inverter chain up column 0 (pad -> 3 tiles -> pad)","luts":[{"r":0,"c":0,"init":"AAAAAAAAAAAAAAAA"},{"r":1,"c":0,"init":"5555555555555555"},{"r":2,"c":0,"init":"5555555555555555"}],"routes":[{"r":0,"c":0,"d":"N"},{"r":0,"c":3,"d":"E"},{"r":1,"c":0,"d":"N"},{"r":1,"c":3,"d":"S"},{"r":2,"c":0,"d":"E"},{"r":2,"c":1,"d":"E"},{"r":2,"c":2,"d":"E"},{"r":2,"c":3,"d":"S"}],"truth":{"000000":"000","000001":"001"},"popcount":109},"showcase":{"desc":"AND, OR and XOR of the two switches on the three LEDs","luts":[{"r":0,"c":0,"init":"8888888888888888"},{"r":1,"c":1,"init":"EEEEEEEEEEEEEEEE"},{"r":2,"c":2,"init":"6666666666666666"}],"routes":[{"r":0,"c":0,"d":"E"},{"r":0,"c":1,"d":"E"},{"r":0,"c":2,"d":"E"},{"r":0,"c":3,"d":"E"},{"r":1,"c":0,"d":"E"},{"r":1,"c":0,"d":"E"},{"r":1,"c":1,"d":"E"},{"r":1,"c":2,"d":"E"},{"r":1,"c":3,"d":"E"},{"r":2,"c":0,"d":"E"},{"r":2,"c":0,"d":"E"},{"r":2,"c":1,"d":"E"},{"r":2,"c":1,"d":"E"},{"r":2,"c":2,"d":"E"},{"r":2,"c":3,"d":"E"}],"truth":{"000000":"000","000001":"110","000010":"110","000011":"011"},"popcount":123}};
+
+/* ===================== requirements ===================== */
+const REQS = [
+["R1","Standard interface, no custom protocol",
+ "The device must be reachable by tools that already exist. It implements <b>IEEE 1149.1</b> — so <span class='m'>openFPGALoader</span> and <span class='m'>urjtag</span> drive it unmodified, and <span class='m'>urjtag discovery</span> can map the whole instruction set with no database entry."],
+["R2","No dependency on the host processor",
+ "The design must not need the Zynq processing system, AXI, or a block design. It is <b>pure programmable logic</b>, so it survives a board that will not boot Linux and can be debugged with nothing but four wires."],
+["R3","One clock domain",
+ "<b>TCK clocks the entire chip</b>, including the logic block's flip-flop. There is no system clock and therefore no clock-domain crossing anywhere — no synchronisers, no free-running core clock for a scan to race against."],
+["R4","No reset pin",
+ "Flip-flops power up from their bitstream INIT values, and the IEEE-guaranteed <b>five TCKs with TMS high</b> always returns to Test-Logic-Reset. That keeps the harness at four wires plus ground."],
+["R5","Test-Logic-Reset must be used synchronously",
+ "A combinational decode of the reset state can <b>glitch</b>: three state transitions have a source and destination that between them set every bit. The boundary cell samples it on a clock edge instead. Get this wrong and the boundary silently commits zeros at Update-DR while capture and shift still look perfect."],
+["R6","Configuration must be readable",
+ "A write-only chain cannot be debugged. CONFIG <b>re-captures the holding register at Capture-DR</b>, so a scan reads back what is loaded — at the cost that a read is also a write, and must shift the same word back in."],
+["R7","The fabric must not see partial configuration",
+ "The chain has a <b>shift register and a separate holding register</b>. 2896 bits ripple through the first; the second moves once, at Update-DR. This doubles the configuration flip-flop count and is not optional."],
+["R8","Boundary scan independent of the logic",
+ "Nine BC_1 cells sit on the pins, not on the fabric. EXTEST drives the pads with the logic isolated; INTEST drives the logic with the pins disconnected; SAMPLE watches without touching either. Each is a different relationship to the <b>same nine cells</b>."],
+["R9","A malformed bitstream must not produce X",
+ "Five select bits address 32 sources but only 20 exist. The source bus is <b>padded to 32 entries with hard zeros</b>, so the twelve unreachable encodings read a defined 0."],
+["R10","A block must be able to feed itself",
+ "The source bus includes the tile's own two outputs, so a <b>registered feedback loop</b> — a counter bit, a toggle — costs no routing resources at all."],
+];
+const rl = $("#reqlist");
+REQS.forEach(([id, t, b]) => {
+  const d = document.createElement("div");
+  d.className = "req";
+  d.innerHTML = "<div class='rh'><span class='rid'>" + id + "</span><span class='rt'>" + t +
+    "</span></div><div class='rb'>" + b + "</div>";
+  rl.append(d);
+});
+
+/* ===================== gate glyphs ===================== */
+function gAnd(svg, x, y, w, h, st) {
+  svg.append(el("path", { d: "M" + x + " " + y + " L" + (x + w*0.45) + " " + y +
+    " A " + (h/2) + " " + (h/2) + " 0 0 1 " + (x + w*0.45) + " " + (y+h) +
+    " L" + x + " " + (y+h) + " Z", fill: "none", stroke: st, "stroke-width": 1.4 }));
+}
+function gOr(svg, x, y, w, h, st, xor) {
+  svg.append(el("path", { d: "M" + x + " " + y + " Q " + (x+w*0.45) + " " + (y+h/2) + " " +
+    x + " " + (y+h) + " Q " + (x+w*0.7) + " " + (y+h) + " " + (x+w) + " " + (y+h/2) +
+    " Q " + (x+w*0.7) + " " + y + " " + x + " " + y + " Z",
+    fill: "none", stroke: st, "stroke-width": 1.4 }));
+  if (xor) svg.append(el("path", { d: "M" + (x-6) + " " + y + " Q " + (x+w*0.38) + " " +
+    (y+h/2) + " " + (x-6) + " " + (y+h), fill: "none", stroke: st, "stroke-width": 1.4 }));
+}
+function gBub(svg, x, y, st) {
+  svg.append(el("circle", { cx: x, cy: y, r: 4, fill: css("--surface"), stroke: st, "stroke-width": 1.4 }));
+}
+function ln(svg, pts, st, w) {
+  svg.append(el("path", { d: "M" + pts.map((p) => p[0] + " " + p[1]).join(" L"),
+    fill: "none", stroke: st, "stroke-width": w || 1.2, "stroke-linejoin": "round" }));
+}
+
+function drawPrims() {
+  const svg = $("#prims"); while (svg.firstChild) svg.removeChild(svg.firstChild);
+  const st = css("--ink-2"), cfg = css("--cfg"), faint = css("--faint"), hot = css("--hot");
+
+  /* --- 2:1 mux from gates --- */
+  txt(svg, 10, 18, "2:1 MULTIPLEXER   o = (a·s̄) + (b·s)", { fill: cfg, "font-weight": 700, "font-size": 11 });
+  ln(svg, [[16, 60], [70, 60]], st); txt(svg, 8, 64, "a", { fill: st });
+  ln(svg, [[16, 92], [70, 92]], st); txt(svg, 8, 96, "b", { fill: st });
+  ln(svg, [[16, 140], [40, 140]], st); txt(svg, 8, 144, "s", { fill: hot });
+  // inverter path for s -> top AND
+  ln(svg, [[40, 140], [40, 118], [56, 118], [56, 72], [70, 72]], st);
+  gBub(svg, 62, 118, st);
+  // s direct to bottom AND
+  ln(svg, [[40, 140], [48, 140], [48, 104], [70, 104]], st);
+  gAnd(svg, 70, 50, 50, 32, st); txt(svg, 82, 70, "&", { fill: st, "font-size": 12 });
+  gAnd(svg, 70, 86, 50, 32, st); txt(svg, 82, 106, "&", { fill: st, "font-size": 12 });
+  ln(svg, [[120, 66], [150, 66]], st);
+  ln(svg, [[120, 102], [150, 102]], st);
+  gOr(svg, 150, 56, 46, 56, st); txt(svg, 162, 88, "≥1", { fill: st, "font-size": 11 });
+  ln(svg, [[196, 84], [236, 84]], st); txt(svg, 240, 88, "o", { fill: st });
+  txt(svg, 16, 176, "11 920 of these make the fabric", { fill: faint, "font-size": 10 });
+  txt(svg, 16, 190, "≈ 4 transistors each in silicon", { fill: faint, "font-size": 10 });
+
+  /* --- XORCY --- */
+  txt(svg, 340, 18, "XORCY   sum = prop ⊕ cin", { fill: cfg, "font-weight": 700, "font-size": 11 });
+  ln(svg, [[346, 66], [400, 66]], st); txt(svg, 338, 70, "p", { fill: st });
+  ln(svg, [[346, 98], [400, 98]], st); txt(svg, 332, 102, "cin", { fill: st });
+  gOr(svg, 400, 52, 52, 60, st, true); txt(svg, 414, 86, "=1", { fill: st, "font-size": 11 });
+  ln(svg, [[452, 82], [492, 82]], st); txt(svg, 496, 86, "sum", { fill: st });
+  txt(svg, 346, 140, "One XOR carries the sum bit.", { fill: faint, "font-size": 10 });
+  txt(svg, 346, 154, "The carry crosses a tile in one", { fill: faint, "font-size": 10 });
+  txt(svg, 346, 168, "gate, not one lookup — which is", { fill: faint, "font-size": 10 });
+  txt(svg, 346, 182, "the entire point of a carry chain.", { fill: faint, "font-size": 10 });
+
+  /* --- flop --- */
+  txt(svg, 640, 18, "FDRE / FDSE   synchronous reset, CE-independent", { fill: cfg, "font-weight": 700, "font-size": 11 });
+  svg.append(el("rect", { x: 700, y: 46, width: 96, height: 100, rx: 4,
+    fill: css("--surface-2"), stroke: st, "stroke-width": 1.4 }));
+  ln(svg, [[660, 64], [700, 64]], st); txt(svg, 640, 68, "d", { fill: st });
+  ln(svg, [[660, 96], [700, 96]], st); txt(svg, 636, 100, "ce", { fill: st });
+  ln(svg, [[660, 128], [700, 128]], st); txt(svg, 636, 132, "sr", { fill: hot });
+  // clock triangle
+  ln(svg, [[700, 108], [712, 116], [700, 124]], st);
+  txt(svg, 716, 120, "clk", { fill: st, "font-size": 9 });
+  ln(svg, [[796, 88], [840, 88]], st); txt(svg, 844, 92, "q", { fill: st });
+  txt(svg, 640, 176, "if (sr) q ← FF_RSTVAL;  else if (ce) q ← d;", { fill: faint, "font-size": 10 });
+  txt(svg, 640, 190, "sr wins over ce — holding it is idempotent.", { fill: faint, "font-size": 10 });
+}
+
+/* ===================== 32:1 mux tree ===================== */
+function drawMuxTree() {
+  const svg = $("#muxtree"); while (svg.firstChild) svg.removeChild(svg.firstChild);
+  const st = css("--rule"), cfg = css("--cfg"), faint = css("--faint"), ink2 = css("--ink-2"),
+        hot = css("--hot"), cfgSoft = css("--cfg-soft");
+  const rows = [32, 16, 8, 4, 2, 1], W = 1000, PAD = 60, top = 40, gy = 28;
+  for (let r = 0; r < rows.length; r++) {
+    const n = rows[r], y = top + r * gy;
+    const xo = (j) => PAD + (j + 0.5) * ((W - 2*PAD) / n);
+    if (r < rows.length - 1) {
+      for (let j = 0; j < rows[r+1]; j++)
+        for (const s of [0, 1])
+          ln(svg, [[xo(2*j + s), y + 6], [PAD + (j + 0.5)*((W - 2*PAD)/rows[r+1]), y + gy - 6]], st, 1);
+    }
+    for (let j = 0; j < n; j++) {
+      const w = Math.min(((W - 2*PAD) / n) - 3, 22);
+      svg.append(el("rect", { x: xo(j) - w/2, y: y - 6, width: w, height: 12, rx: 2,
+        fill: r === 0 ? "transparent" : cfgSoft, stroke: r === 0 ? st : cfg, "stroke-width": 1 }));
+    }
+    txt(svg, 8, y + 4, r === 0 ? "sources" : "sel[" + (r-1) + "]",
+      { fill: r === 0 ? faint : hot, "font-size": 10, "font-weight": r === 0 ? 400 : 700 });
+    txt(svg, W - 48, y + 4, r === 0 ? "32" : String(rows[r]) + "×",
+      { fill: faint, "font-size": 10 });
+  }
+  txt(svg, PAD, 26, "0 const0   1 const1   2 clb_o   3 clb_o5   4–19 N/E/S/W tracks   20–31 tied low",
+    { fill: faint, "font-size": 10 });
+  txt(svg, PAD, top + 6*gy + 14, "16 + 8 + 4 + 2 + 1  =  31 two-to-one multiplexers per source mux",
+    { fill: ink2, "font-size": 11, "font-weight": 700 });
+}
+
+/* ===================== LUT ===================== */
+function mkInit(fn) { let v = 0n;
+  for (let a = 0; a < 64; a++) { const b = [0,1,2,3,4,5].map((k) => (a >> k) & 1);
+    if (fn(b)) v |= 1n << BigInt(a); } return v; }
+const FNS = [
+  ["AND  i1·i0", (b) => b[0] & b[1]],
+  ["OR   i1+i0", (b) => b[0] | b[1]],
+  ["XOR  i1⊕i0", (b) => b[0] ^ b[1]],
+  ["NAND", (b) => !(b[0] & b[1])],
+  ["NOR", (b) => !(b[0] | b[1])],
+  ["MUX2 i2?i1:i0", (b) => (b[2] ? b[1] : b[0])],
+  ["MAJ3", (b) => (b[0]&b[1]) | (b[1]&b[2]) | (b[0]&b[2])],
+  ["AND6 all six", (b) => b.every((x) => x)],
+  ["Parity ⊕i[5:0]", (b) => b.reduce((a, x) => a ^ x, 0)],
+  ["Fracture o5≠o6", (b) => (b[5] ? (b[0] | b[1]) : (b[0] & b[1]))],
+];
+let init = mkInit(FNS[0][1]);
+let ins = [0,0,0,0,0,0];
+const fnSel = $("#fn");
+FNS.forEach(([n], i) => fnSel.append(new Option(n, String(i))));
+const bitWrap = $("#lutbits");
+for (let k = 5; k >= 0; k--) {
+  const b = document.createElement("button");
+  b.className = "bit"; b.type = "button"; b.id = "lutbit" + k;
+  b.setAttribute("aria-pressed", "false");
+  b.innerHTML = "i" + k + '<span class="v">0</span>';
+  b.addEventListener("click", () => { ins[k] ^= 1; drawLUT(); drawCLB(); });
+  bitWrap.append(b);
+}
+function levels() {
+  const rows = [[]];
+  for (let i = 0; i < 64; i++) rows[0].push(Number((init >> BigInt(i)) & 1n));
+  for (let r = 0; r < 5; r++) { const p = rows[r], n = [];
+    for (let g = 0; g < p.length/2; g++) n.push(ins[r] ? p[2*g+1] : p[2*g]); rows.push(n); }
+  rows.push([ins[5] ? rows[5][1] : rows[5][0]]);
+  return rows;
+}
+function drawLUT() {
+  const rows = levels(), addr = ins.reduce((a, b, k) => a | (b << k), 0);
+  const svg = $("#tree"); while (svg.firstChild) svg.removeChild(svg.firstChild);
+  const W = 940, PAD = 74, top = 26, gy = 40;
+  const hot = css("--hot"), faint = css("--faint"), rule = css("--rule-2"), cfg = css("--cfg"),
+        hotSoft = css("--hot-soft"), surf2 = css("--surface-2"), cfgLine = css("--cfg-line");
+  const xo = (r, j) => PAD + (j + 0.5) * ((W - PAD - 30) / rows[r].length);
+  const yo = (r) => top + r * gy;
+  for (let r = 0; r < 6; r++) {
+    const act = addr >> (r + 1);
+    for (let j = 0; j < rows[r+1].length; j++) for (const s of [0, 1]) {
+      const f = 2*j + s; if (f >= rows[r].length) continue;
+      const live = (j === act) && (s === ins[r]);
+      svg.append(el("line", { x1: xo(r, f), y1: yo(r) + 9, x2: xo(r+1, j), y2: yo(r+1) - 9,
+        stroke: live ? hot : rule, "stroke-width": live ? 2 : 1, "stroke-opacity": live ? 1 : .5 }));
+    }
+  }
+  for (let r = 0; r < rows.length; r++) {
+    const n = rows[r].length, w = Math.min(((W - PAD - 30)/n) - 2, 26);
+    for (let j = 0; j < n; j++) {
+      const on = j === (addr >> r), o5c = (r === 5 && j === 0), v = rows[r][j],
+            x = xo(r, j), y = yo(r);
+      svg.append(el("rect", { x: x - w/2, y: y - 9, width: w, height: 18, rx: 2,
+        fill: v ? (on ? hot : hotSoft) : (on ? surf2 : "transparent"),
+        stroke: o5c ? cfgLine : (on ? hot : rule), "stroke-width": (on || o5c) ? 1.5 : 1 }));
+      if (w >= 9) txt(svg, x, y + 4, String(v), { "text-anchor": "middle",
+        "font-size": w >= 14 ? 11 : 9, fill: v && on ? "#fff" : (on ? css("--ink") : faint),
+        "font-weight": on ? 700 : 400 });
+    }
+    const lab = r === 0 ? "INIT · 64" : (r === 6 ? "o6" : "sel i" + (r-1) + " · " + n);
+    txt(svg, 4, yo(r) + 4, lab, { fill: (r > 0 && r < 6 && ins[r-1]) ? hot : faint, "font-size": 10 });
+  }
+  const o5x = xo(5, 0), o5y = yo(5);
+  svg.append(el("line", { x1: o5x - 14, y1: o5y, x2: o5x - 64, y2: o5y,
+    stroke: cfgLine, "stroke-width": 1.5, "stroke-dasharray": "3 3" }));
+  txt(svg, o5x - 70, o5y + 4, "o5 = " + rows[5][0],
+    { "text-anchor": "end", "font-size": 11, fill: cfg, "font-weight": 700 });
+  txt(svg, xo(6, 0) + 22, yo(6) + 4, "o6 = " + rows[6][0],
+    { "font-size": 12, fill: hot, "font-weight": 700 });
+  txt(svg, 4, yo(6) + 34, "63 multiplexers total — 32 + 16 + 8 + 4 + 2 + 1",
+    { fill: faint, "font-size": 10 });
+  for (let k = 0; k < 6; k++) {
+    const b = document.getElementById("lutbit" + k);
+    b.setAttribute("aria-pressed", ins[k] ? "true" : "false");
+    b.querySelector(".v").textContent = ins[k];
+  }
+  $("#r-init").textContent = "0x" + init.toString(16).toUpperCase().padStart(16, "0");
+  $("#r-addr").textContent = addr + " · " + addr.toString(2).padStart(6, "0");
+  $("#r-o6").innerHTML = "<span class='" + (rows[6][0] ? "on" : "off") + "'>" + rows[6][0] + "</span>";
+  $("#r-o5").innerHTML = "<span class='" + (rows[5][0] ? "on" : "off") + "'>" + rows[5][0] + "</span>";
+  $("#lut-foot").innerHTML = "Address <span class='m'>" + addr +
+    "</span> selects <span class='m'>INIT[" + addr + "]</span>; the highlighted path is the only one of " +
+    "the 63 multiplexers carrying it. <span class='m m-cfg'>o5</span> is read off level 5 position 0 — " +
+    "<span class='m'>INIT[" + (addr & 31) + "]</span>, the same table five inputs wide. Toggle " +
+    "<span class='m'>i5</span> and watch o5 refuse to move.";
+  drawGrid();
+}
+fnSel.addEventListener("change", () => { init = mkInit(FNS[+fnSel.value][1]); drawLUT(); drawCLB(); });
+$("#rand").addEventListener("click", () => { let v = 0n;
+  for (let i = 0; i < 64; i++) if (Math.random() < .5) v |= 1n << BigInt(i);
+  init = v; drawLUT(); drawCLB(); });
+
+/* --- 64-cell INIT grid --- */
+const grid = $("#grid64");
+for (let a = 0; a < 64; a++) {
+  const b = document.createElement("button");
+  b.type = "button"; b.id = "g" + a; b.title = "INIT[" + a + "] — i[5:0] = " + a.toString(2).padStart(6, "0");
+  b.addEventListener("click", () => { for (let k = 0; k < 6; k++) ins[k] = (a >> k) & 1;
+    drawLUT(); drawCLB(); });
+  grid.append(b);
+}
+function drawGrid() {
+  const addr = ins.reduce((a, b, k) => a | (b << k), 0);
+  for (let a = 0; a < 64; a++) {
+    const b = document.getElementById("g" + a);
+    const v = Number((init >> BigInt(a)) & 1n);
+    b.textContent = v; b.className = (v ? "on" : "") + (a === addr ? " sel" : "");
+  }
+  $("#g-bit").textContent = "INIT[" + addr + "]";
+  $("#g-role").innerHTML = addr < 32
+    ? "o6 when i5=0<br>and o5 always"
+    : "o6 only<br>(o5 never reads here)";
+}
+
+/* ===================== CLB ===================== */
+const FLAGS = [["FF_EN",64],["FF_RSTVAL",65],["FF_CE_EN",66],["FF_SR_EN",67],
+               ["CY_EN",68],["CY_DI_SEL",69],["FF_D_SEL",70]];
+let flags = {FF_EN:0,FF_RSTVAL:0,FF_CE_EN:0,FF_SR_EN:0,CY_EN:0,CY_DI_SEL:0,FF_D_SEL:0};
+let cin = 0, sr = 0, q = 0;
+const fw = $("#flags");
+FLAGS.forEach(([n, bit]) => {
+  const b = document.createElement("button");
+  b.className = "flag"; b.type = "button"; b.id = "fl-" + n;
+  b.setAttribute("aria-pressed", "false"); b.title = "configuration bit " + bit;
+  b.textContent = n;
+  b.addEventListener("click", () => { flags[n] ^= 1; drawCLB(); });
+  fw.append(b);
+});
+function lvl(id, label, get, set) {
+  const b = document.createElement("button");
+  b.className = "flag"; b.type = "button"; b.id = id;
+  b.setAttribute("aria-pressed", "false"); b.textContent = label;
+  b.style.borderStyle = "dashed";
+  b.title = "a live level from the USER register, not a configuration bit";
+  b.addEventListener("click", () => { set(); drawCLB(); });
+  fw.append(b); return b;
+}
+const cinBtn = lvl("fl-cin", "cin", () => cin, () => { cin ^= 1; });
+const srBtn  = lvl("fl-sr",  "sr",  () => sr,  () => { sr ^= 1; });
+const clk = document.createElement("button");
+clk.className = "act"; clk.type = "button"; clk.textContent = "Clock ↑";
+clk.style.marginLeft = "auto"; fw.append(clk);
+
+function clbEval() {
+  const addr = ins.reduce((a, b, k) => a | (b << k), 0);
+  const o6 = Number((init >> BigInt(addr)) & 1n);
+  const o5 = Number((init >> BigInt(addr & 31)) & 1n);
+  const di = flags.CY_DI_SEL ? o5 : ins[0];
+  const comb = flags.CY_EN ? (o6 ^ cin) : (flags.FF_D_SEL ? o5 : o6);
+  const cout = flags.CY_EN ? (o6 ? cin : di) : 0;
+  return { o6, o5, di, comb, cout, o: flags.FF_EN ? q : comb };
+}
+clk.addEventListener("click", () => {
+  const s = clbEval();
+  const srEff = flags.FF_SR_EN ? sr : 0;
+  if (srEff) q = flags.FF_RSTVAL; else q = s.comb;
+  drawCLB();
+});
+function drawCLB() {
+  const s = clbEval(), svg = $("#clbsvg");
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  const hot = css("--hot"), rule = css("--rule"), ink2 = css("--ink-2"), faint = css("--faint"),
+        surf2 = css("--surface-2"), cfg = css("--cfg"), cfgSoft = css("--cfg-soft");
+  const box = (x, y, w, h, label, sub, active) => {
+    svg.append(el("rect", { x, y, width: w, height: h, rx: 4,
+      fill: active ? cfgSoft : surf2, stroke: active ? cfg : rule, "stroke-width": active ? 1.8 : 1 }));
+    txt(svg, x + w/2, y + (sub ? h/2 - 2 : h/2 + 4), label,
+      { "text-anchor": "middle", "font-size": 12, "font-weight": 700, fill: active ? cfg : ink2 });
+    if (sub) txt(svg, x + w/2, y + h/2 + 14, sub, { "text-anchor": "middle", "font-size": 9.5, fill: faint });
+  };
+  const poly = (pts, live, label, lx, ly) => {
+    svg.append(el("path", { d: "M" + pts.map((p) => p[0] + " " + p[1]).join(" L"),
+      stroke: live ? hot : rule, "stroke-width": live ? 2.2 : 1.2, fill: "none",
+      "stroke-linejoin": "round", "stroke-opacity": live ? 1 : .6 }));
+    if (label) txt(svg, lx, ly, label, { "text-anchor": "middle", "font-size": 10,
+      fill: live ? hot : faint, "font-weight": live ? 700 : 400 });
+  };
+  const cyOn = !!flags.CY_EN, ffOn = !!flags.FF_EN, TOP = 88, H = 70, MID = TOP + H/2;
+  poly([[380, TOP], [380, 42], [928, 42]], cyOn && s.cout === 1, "cout = " + s.cout, 660, 36);
+  poly([[24, 268], [315, 268], [315, TOP + H]], cin === 1, "cin = " + cin, 150, 262);
+  box(40, TOP, 130, H, "LUT6", "63 muxes · INIT", true);
+  box(250, TOP, 130, H, "CARRY", "MUXCY + XORCY", cyOn);
+  box(450, TOP, 100, H, "D MUX", cyOn ? "sum" : (flags.FF_D_SEL ? "o5" : "o6"), true);
+  box(620, TOP, 110, H, "FLOP", "q = " + q, ffOn);
+  box(790, TOP, 100, H, "OUT MUX", ffOn ? "q" : "comb", true);
+  poly([[170, TOP+20], [250, TOP+20]], s.o6 === 1, (cyOn ? "prop = " : "o6 = ") + s.o6, 210, TOP+14);
+  poly([[170, TOP+50], [205, TOP+50], [205, 232], [420, 232], [420, TOP+50], [450, TOP+50]],
+       !cyOn && s.comb === 1, (flags.FF_D_SEL ? "o5" : "o6") + " direct", 312, 226);
+  poly([[380, MID], [450, MID]], cyOn && s.comb === 1, cyOn ? "sum" : "", 415, MID - 6);
+  poly([[550, MID], [620, MID]], s.comb === 1, "comb = " + s.comb, 585, MID - 6);
+  poly([[730, TOP+20], [790, TOP+20]], ffOn && q === 1, "q", 760, TOP+14);
+  poly([[550, TOP+50], [578, TOP+50], [578, 200], [762, 200], [762, TOP+50], [790, TOP+50]],
+       !ffOn && s.comb === 1, "bypass", 670, 194);
+  poly([[890, MID], [928, MID]], s.o === 1, "o = " + s.o, 909, MID - 8);
+  FLAGS.forEach(([n]) => document.getElementById("fl-" + n)
+    .setAttribute("aria-pressed", flags[n] ? "true" : "false"));
+  cinBtn.setAttribute("aria-pressed", cin ? "true" : "false");
+  srBtn.setAttribute("aria-pressed", sr ? "true" : "false");
+  let word = init;
+  FLAGS.forEach(([n, bit]) => { if (flags[n]) word |= 1n << BigInt(bit); });
+  $("#c-in").textContent = ins.slice().reverse().join("");
+  $("#c-cin").innerHTML = "<span class='" + (cin ? "on" : "off") + "'>" + cin + "</span>";
+  $("#c-o").innerHTML = "<span class='" + (s.o ? "on" : "off") + "'>" + s.o + "</span>";
+  $("#c-cout").innerHTML = "<span class='" + (s.cout ? "on" : "off") + "'>" + s.cout + "</span>";
+  $("#c-word").textContent = "0x" + word.toString(16).toUpperCase().padStart(18, "0");
+  $("#clb-foot").innerHTML = cyOn
+    ? "Carry mode. The LUT has stopped being the answer and is now the <em>propagate</em> term: the datapath takes <span class='m'>o6 ⊕ cin</span> and the carry out is <span class='m'>cin</span> when propagate is 1, otherwise the generate term <span class='m'>" + (flags.CY_DI_SEL ? "o5" : "i0") + " = " + s.di + "</span>. One block, one bit of an adder."
+    : (ffOn
+      ? "Registered. <span class='m'>o</span> is the flop's <span class='m'>q</span> and only moves when clocked. Set <span class='m m-cfg'>FF_CE_EN</span> as well and it waits for an explicit clock enable — which is how a scan chain single-steps logic without a free-running clock."
+      : "Purely combinational: the lookup table passes straight through to <span class='m'>o</span>. Every gate demo uses this configuration, and the seven flag bits are all zero.");
+}
+
+/* ===================== source bus + CB ===================== */
+const SRC = [];
+SRC[0] = ["const0", "hard zero — also what the 12 unreachable encodings read"];
+SRC[1] = ["const1", "hard one"];
+SRC[2] = ["clb_o", "this tile's own output — local feedback, no routing"];
+SRC[3] = ["clb_o5", "this tile's fractured output"];
+[["N","north"],["E","east"],["S","south"],["W","west"]].forEach(([d, full], di) => {
+  for (let t = 0; t < 4; t++)
+    SRC[4 + di*4 + t] = [d + "[" + t + "]", "track " + t + " arriving from the " + full];
+});
+$("#srctable").innerHTML =
+  "<thead><tr><th class='m' style='width:56px'>Code</th><th class='m' style='width:72px'>sel[4:0]</th>" +
+  "<th style='width:96px'>Source</th><th>Meaning</th></tr></thead><tbody>" +
+  SRC.map((s, i) => "<tr><td class='m'>" + i + "</td><td class='m' style='color:var(--faint)'>" +
+    i.toString(2).padStart(5, "0") + "</td><td class='m' style='color:var(--cfg);font-weight:500'>" +
+    s[0] + "</td><td>" + s[1] + "</td></tr>").join("") +
+  "<tr><td class='m' style='color:var(--faint)'>20–31</td><td class='m' style='color:var(--faint)'>10100–11111</td>" +
+  "<td class='m' style='color:var(--faint)'>—</td><td style='color:var(--faint)'>unreachable; the bus is padded with hard zeros so these read 0 rather than X</td></tr></tbody>";
+
+let cb = [16, 17, 0, 0, 0, 0];
+const cbWrap = $("#cb-rows");
+for (let k = 0; k < 6; k++) {
+  const d = document.createElement("div");
+  d.innerHTML = "<div class='lbl' style='margin-bottom:4px'>i" + k + " · bits " + (71+5*k) + "–" + (75+5*k) + "</div>";
+  const sel = document.createElement("select");
+  sel.id = "cb" + k; sel.setAttribute("aria-label", "source for LUT input i" + k); sel.style.width = "100%";
+  SRC.forEach((s, i) => sel.append(new Option(String(i).padStart(2, "0") + "  " + s[0], String(i))));
+  sel.value = String(cb[k]);
+  sel.addEventListener("change", () => { cb[k] = +sel.value; drawCB(); });
+  d.append(sel); cbWrap.append(d);
+}
+function drawCB() {
+  let bits = [];
+  for (let k = 5; k >= 0; k--) bits.push(cb[k].toString(2).padStart(5, "0"));
+  $("#cb-bits").textContent = bits.join(" ");
+  $("#cb-used").textContent = [...new Set(cb.map((c) => SRC[c][0]))].join("  ");
+}
+
+/* ===================== the 181-bit table ===================== */
+let seg = "ALL";
+const segWrap = $("#segs");
+[["ALL","All 181"],["CLB","CLB 71"],["CB","Conn box 30"],["SB","Switch box 80"]].forEach(([k, label]) => {
+  const b = document.createElement("button");
+  b.className = "seg"; b.type = "button"; b.textContent = label;
+  b.setAttribute("aria-pressed", k === "ALL" ? "true" : "false");
+  b.addEventListener("click", () => {
+    seg = k;
+    segWrap.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", "false"));
+    b.setAttribute("aria-pressed", "true"); renderBits();
+  });
+  segWrap.append(b);
+});
+$("#bitq").addEventListener("input", renderBits);
+function renderBits() {
+  const q = $("#bitq").value.trim().toLowerCase();
+  const rows = BITS.rows.filter((r) => (seg === "ALL" || r.sec === seg) &&
+    (!q || (r.f + " " + r.d + " " + r.b).toLowerCase().includes(q)));
+  $("#bitbody").innerHTML = rows.map((r) =>
+    "<tr><td class='m' style='color:var(--hot);font-weight:700'>" + r.b + "</td>" +
+    "<td class='m' style='color:var(--cfg)'>" + r.f + "</td>" +
+    "<td>" + r.d + "</td><td style='color:var(--faint)'>" + r.n + "</td></tr>").join("");
+  $("#bitcount").textContent = rows.length + " of 181";
+}
+
+/* ===================== cost ===================== */
+const A = BITS.acct;
+$("#costtable").innerHTML =
+  "<thead><tr><th>Structure</th><th class='m'>Per unit</th><th class='m'>Count</th>" +
+  "<th class='m'>2:1 muxes</th><th>Note</th></tr></thead><tbody>" +
+  [["LUT6 tree", A.lut, 1, A.lut, "32+16+8+4+2+1 — the logic itself"],
+   ["Connection box mux", A.cb_per, 6, A.cb, "one per LUT input"],
+   ["Switch box mux", A.cb_per, 16, A.sb, "one per outgoing track: 4 directions × 4 tracks"],
+   ["<b>Tile total</b>", "—", 1, "<b>" + A.tile + "</b>", "routing outnumbers logic " +
+     (A.cb + A.sb) + " to " + A.lut + ", about 11 to 1"],
+   ["<b>Fabric total</b>", A.tile, 16, "<b>" + A.fabric + "</b>", "plus 16 flip-flops and 16 carry chains"],
+   ["Config flip-flops", "—", "—", "<b>" + A.cfg_ff + "</b>", "2896 shift + 2896 holding — see R7"],
+  ].map((r) => "<tr><td>" + r[0] + "</td><td class='m'>" + r[1] + "</td><td class='m'>" + r[2] +
+    "</td><td class='m'>" + r[3] + "</td><td style='color:var(--faint)'>" + r[4] + "</td></tr>").join("") +
+  "</tbody>";
+
+/* ===================== fabric mesh ===================== */
+const dsel = $("#design");
+Object.keys(DESIGNS).forEach((k) => dsel.append(new Option(k, k)));
+dsel.value = "three";
+function drawMesh() {
+  const D = DESIGNS[dsel.value], svg = $("#mesh");
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  const hot = css("--hot"), rule = css("--rule"), ink2 = css("--ink-2"), faint = css("--faint"),
+        surf2 = css("--surface-2"), cfg = css("--cfg"), cfgSoft = css("--cfg-soft");
+  const defs = el("defs", {});
+  const mk = el("marker", { id: "ah", viewBox: "0 0 8 8", refX: "6", refY: "4",
+    markerWidth: "5", markerHeight: "5", orient: "auto" });
+  mk.append(el("path", { d: "M0 0 L8 4 L0 8 z", fill: hot }));
+  defs.append(mk); svg.append(defs);
+  const S = 98, GAP = 26, OX = 124, OY = 42;
+  const px = (c) => OX + c * (S + GAP), py = (r) => OY + (3 - r) * (S + GAP);
+  for (let r = 0; r < 4; r++)
+    txt(svg, OX - 14, py(r) + S/2 + 4, "pad_i[3:0] →", { "text-anchor": "end", "font-size": 10, fill: cfg });
+  for (let c = 0; c < 4; c++)
+    txt(svg, px(c) + S/2, py(0) + S + 20, "↑ pad_i[5:4]", { "text-anchor": "middle", "font-size": 10, fill: cfg });
+  const placed = {}; D.luts.forEach((L) => { placed[L.r + "," + L.c] = L; });
+  for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) {
+    const L = placed[r + "," + c];
+    svg.append(el("rect", { x: px(c), y: py(r), width: S, height: S, rx: 5,
+      fill: L ? cfgSoft : surf2, stroke: L ? cfg : rule, "stroke-width": L ? 1.8 : 1 }));
+    txt(svg, px(c) + 7, py(r) + 15, "(" + r + "," + c + ")", { "font-size": 10, fill: faint });
+    if (L) {
+      txt(svg, px(c) + S/2, py(r) + S/2 + 2, "LUT",
+        { "text-anchor": "middle", "font-size": 11, "font-weight": 700, fill: cfg });
+      txt(svg, px(c) + S/2, py(r) + S/2 + 16, L.init.slice(0, 8) + "…",
+        { "text-anchor": "middle", "font-size": 8.5, fill: ink2 });
+    }
+  }
+  D.routes.forEach((R) => {
+    const x = px(R.c) + S/2, y = py(R.r) + S/2;
+    const dx = R.d === "E" ? 1 : R.d === "W" ? -1 : 0;
+    const dy = R.d === "N" ? -1 : R.d === "S" ? 1 : 0;
+    const L = (S + GAP)/2 + 6;
+    svg.append(el("path", { d: "M" + x + " " + y + " L" + (x + dx*L) + " " + (y + dy*L),
+      stroke: hot, "stroke-width": 2, "stroke-opacity": .85, fill: "none", "marker-end": "url(#ah)" }));
+  });
+  for (let k = 0; k < 3; k++)
+    txt(svg, px(3) + S + 14, py(k) + S/2 + 4, "→ pad_o[" + k + "]",
+      { "font-size": 10, fill: hot, "font-weight": 700 });
+  $("#d-desc").textContent = D.desc;
+  $("#d-luts").textContent = D.luts.length;
+  $("#d-sb").textContent = D.routes.length;
+  $("#d-pop").textContent = D.popcount;
+  $("#d-foot").innerHTML = "<strong>" + D.luts.length + " LUT" + (D.luts.length > 1 ? "s" : "") +
+    "</strong> and <strong>" + D.routes.length + " switch-box multiplexers</strong>, packed into " +
+    D.popcount + " set bits of 2896. Truth table from the software model: " +
+    Object.entries(D.truth).map(([i, o]) =>
+      "<span class='m'>" + i + "</span>→<span class='m m-hot'>" + o + "</span>").join("　");
+}
+dsel.addEventListener("change", drawMesh);
+
+/* ===================== boot ===================== */
+drawPrims(); drawMuxTree(); drawLUT(); drawCLB(); drawCB(); renderBits(); drawMesh();
+const mq = window.matchMedia("(prefers-color-scheme: dark)");
+if (mq.addEventListener) mq.addEventListener("change", () => {
+  drawPrims(); drawMuxTree(); drawLUT(); drawCLB(); drawMesh();
+});
+})();
+</script>

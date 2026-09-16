@@ -1,0 +1,37 @@
+# urjtag: configure the CLB as an AND gate and read the boundary back.
+#   ./install_urjtag_part.sh          (once, so 'detect' recognises 0x2BEEF093)
+#   jtag -n -q host/urjtag-gate.jtag
+#
+# This is the same thing minifpga.py does, spelled out in urjtag's own
+# commands. For walking truth tables use minifpga.py - it handles the INTEST
+# pipelining for you.
+cable DirtyJTAG
+frequency 1000000
+detect
+
+# 71-bit CONFIG: bits 63:0 are the LUT INIT, bits 70:64 the control flags.
+# 0x8888888888888888 replicated across all 64 entries is AND(i1,i0) with
+# i[5:2] don't-care. All control flags zero = purely combinational.
+instruction CONFIG
+shift ir
+dr 0x0008888888888888888
+shift dr
+
+# Apply i[1:0] = 11 through the boundary. Bits 8:3 are the input vector,
+# bits 2:0 are where the answers come back.
+instruction INTEST
+shift ir
+dr 000000011
+shift dr
+
+# INTEST is pipelined by one scan, so this second scan is the one that
+# returns the answer to the vector above. Expect bit 0 (o) = 1.
+dr 000000011
+shift dr
+dr
+
+# Leave test mode: the boundary goes transparent and the CLB runs from the
+# real switches. Toggle SW0 and SW1 and watch LD0.
+instruction BYPASS
+shift ir
+quit

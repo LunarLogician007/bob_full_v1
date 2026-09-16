@@ -1,0 +1,10 @@
+# urjtag: read the IDCODE of the soft TAP.
+#   jtag -n -q host/urjtag-detect.jtag
+#
+# Even with no part declaration installed, urjtag prints the raw Device Id,
+# which is all we need for the first smoke test.  Expect:
+#   Device Id: 00011011111011101111000010010011 (0x1BEEF093)
+cable DirtyJTAG
+frequency @FREQ@
+detect
+quit

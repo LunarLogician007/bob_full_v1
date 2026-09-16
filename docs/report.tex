@@ -1,0 +1,888 @@
+% =============================================================================
+% report.tex -- A soft FPGA on the PYNQ-Z2, reached over JTAG from a Pico
+%
+% Not compiled as part of any build. To produce a PDF:
+%     pdflatex report.tex && pdflatex report.tex
+% =============================================================================
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=25mm]{geometry}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{enumitem}
+
+\hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue!60!black,
+            citecolor=black, pdftitle={A soft FPGA on the PYNQ-Z2}}
+
+\definecolor{codebg}{gray}{0.96}
+\definecolor{codekw}{rgb}{0.13,0.29,0.53}
+\definecolor{codecm}{rgb}{0.35,0.45,0.35}
+
+\lstset{
+  basicstyle=\ttfamily\scriptsize,
+  backgroundcolor=\color{codebg},
+  keywordstyle=\color{codekw}\bfseries,
+  commentstyle=\color{codecm}\itshape,
+  breaklines=true,
+  frame=none,
+  xleftmargin=8pt,
+  framexleftmargin=8pt,
+  showstringspaces=false,
+  columns=fullflexible,
+}
+\lstdefinestyle{v}{language=Verilog}
+\lstdefinestyle{py}{language=Python}
+\lstdefinestyle{sh}{language=bash}
+
+\newcommand{\file}[1]{\texttt{#1}}
+\newcommand{\sig}[1]{\texttt{#1}}
+
+\title{\textbf{A Soft FPGA on the PYNQ-Z2}\\[2mm]
+       \large A 4$\times$4 CLB fabric, an IEEE 1149.1 TAP, and a bitstream
+       compiler, driven from a Raspberry Pi Pico}
+\author{Project report}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent
+This project builds a miniature FPGA inside the programmable logic of a real
+one. Sixteen configurable logic blocks sit in a routed mesh behind an
+IEEE 1149.1 Test Access Port, configured by a 2896-bit scan chain and surrounded
+by a boundary scan ring on the physical pins. A Python toolchain places, routes
+and packs designs into that bitstream, and a Raspberry Pi Pico running DirtyJTAG
+carries them to the board over four wires on a PMOD header.
+
+Everything reported here has been verified twice: 174 checks in RTL simulation
+and 163 input vectors replayed on the physical board, with expected results
+produced by an independent software model of the fabric rather than by the
+Verilog itself.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+% =============================================================================
+\section{What was built, and in what order}
+
+The work proceeded in three stages, each a complete and independently working
+artefact. The identification code programmed into the TAP carries a version
+nibble so the three can never be confused on the wire.
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+\textbf{Stage} & \textbf{IDCODE} & \textbf{Top module} & \textbf{Config chain} \\
+\midrule
+1. Bare TAP           & \texttt{0x1BEEF093} & ---                    & none \\
+2. Single CLB         & \texttt{0x2BEEF093} & \file{mini\_fpga\_top} & 71 bits \\
+3. 4$\times$4 fabric  & \texttt{0x3BEEF093} & \file{fpga4x4\_top}    & 2896 bits \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Stage 1 established that a soft TAP written from scratch could be reached from
+the Pico at all. Stage 2 added a logic block and a boundary scan ring and made
+the board do something visible. Stage 3 scaled the block to a routed mesh and
+added the toolchain that turns a design description into bits.
+
+Stages 2 and 3 are both retained and both build from the same sources; the
+Vivado script takes the desired top as an argument.
+
+\subsection{The two JTAG chains}
+
+A point of confusion worth settling immediately. Two entirely separate JTAG
+chains are live at the same time and never interact.
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+\textbf{Chain} & \textbf{Port} & \textbf{Contains} & \textbf{Used for} \\
+\midrule
+Built-in & micro-USB (PROG) & real \texttt{xc7z020} TAP + ARM DAP & loading the bitstream \\
+Ours     & PMODA + Pico     & the soft TAP and the fabric          & everything afterwards \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The board's own JTAG is used exactly once per power cycle, to configure the
+FPGA. From then on all interaction happens over the PMOD chain. The soft TAP is
+not a pass-through or a tap onto the existing chain; it is a second, independent
+IEEE 1149.1 device that happens to be implemented in the first one's fabric.
+
+% =============================================================================
+\section{Physical setup}
+
+\subsection{Wiring}
+
+Five wires between the Pico and PMODA. Both sides are 3.3\,V CMOS, so no level
+shifting is required.
+
+\begin{center}
+\begin{tabular}{lllll}
+\toprule
+\textbf{Signal} & \textbf{Pico GPIO} & \textbf{Pico pin} & \textbf{PMODA pin} & \textbf{Zynq pin} \\
+\midrule
+TCK & GP18 & 24 & 7       & U18 \\
+TMS & GP19 & 25 & 1       & Y18 \\
+TDI & GP16 & 21 & 2       & Y19 \\
+TDO & GP17 & 22 & 3       & Y16 \\
+GND & GND  & 23 & 5 or 11 & --- \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Two details matter more than they appear to.
+
+\textbf{TDI and TDO are not crossed.} JTAG signal names are chain-relative
+rather than per-device: the probe's TDI pin is an output that feeds the target's
+TDI input. Wiring them crossed like a UART produces a completely dead scan chain
+with no error message.
+
+\textbf{TCK is on PMODA pin 7, not pin 4.} TCK clocks every flip-flop in the
+design, so it must reach a global clock buffer. \texttt{U18} is
+\texttt{IO\_L12P\_T1\_MRCC\_34}, the only clock-capable pin on that header.
+Placing TCK anywhere else raises a \texttt{CLOCK\_DEDICATED\_ROUTE} design rule
+error. PMODB was rejected for exactly this reason despite being directly
+connected rather than sitting behind PMODA's 200\,$\Omega$ series resistors,
+which are electrically irrelevant below a few megahertz.
+
+Both boards are powered from their own USB supplies with only ground connected
+between them. Back-feeding one regulator from the other is a good way to damage
+a board.
+
+\subsection{The probe}
+
+The Pico runs \emph{pico-dirtyJtag}, a port of Jean Thomas's DirtyJTAG to the
+RP2040, presenting a vendor-specific USB interface at \texttt{1209:c0ca}. Both
+\texttt{openFPGALoader} (cable \texttt{dirtyJtag}) and \texttt{urjtag} (cable
+\texttt{DirtyJTAG}) speak it natively. Release V1.07 ships a prebuilt
+\file{dirtyJtag.uf2}, so no SDK build is needed.
+
+Firmware pin assignments, which the wiring table above matches:
+TDI\,=\,GP16, TDO\,=\,GP17, TCK\,=\,GP18, TMS\,=\,GP19.
+
+% =============================================================================
+\section{The Test Access Port}
+
+\file{rtl/jtag\_tap.v} is a complete IEEE 1149.1 TAP written from scratch. The
+entire design lives in the TCK clock domain: there is no system clock, no Zynq
+processing system, no AXI, and no reset pin. The probe clocks everything, which
+is what a TAP is supposed to do and what removes every clock-domain-crossing
+question from the design.
+
+\subsection{Timing contract}
+
+This is the part that is easy to get wrong by exactly one clock edge, and
+getting it wrong produces a scan chain that looks almost right.
+
+\begin{itemize}[nosep]
+  \item TMS and TDI are sampled on the \textbf{rising} edge of TCK.
+  \item The state machine advances on the \textbf{rising} edge.
+  \item TDO is launched on the \textbf{falling} edge.
+  \item IR and DR update latches fire on the \textbf{falling} edge.
+  \item All shift registers are LSB-first.
+\end{itemize}
+
+\subsection{State encoding and a latent hazard}
+
+The sixteen states use the conventional 4-bit JTAG numbering, chosen so that
+\texttt{TEST\_LOGIC\_RESET} is \texttt{4'hF}. All-ones is also the natural
+power-up value, which matters because there is no reset pin: FPGA flip-flops
+come up from their bitstream INIT values, and the IEEE-guaranteed ``five TCKs
+with TMS high'' sequence always returns to Test-Logic-Reset from anywhere.
+
+The inherited \file{bsc\_cell.v} carries a header warning that Test-Logic-Reset
+must be consumed \emph{synchronously}, because a combinational decode of the
+state register can glitch. That warning was written against a different state
+encoding, so it was checked against this one rather than assumed. A decode of
+\texttt{4'hF} can glitch during any transition where source and destination
+between them set every bit:
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{From} & \textbf{To} & \textbf{Bitwise OR} \\
+\midrule
+\texttt{RUN\_TEST\_IDLE 1100} & \texttt{SELECT\_DR 0111} & \texttt{1111} \\
+\texttt{CAPTURE\_IR 1110}     & \texttt{EXIT1\_IR 1001}  & \texttt{1111} \\
+\texttt{UPDATE\_IR 1101}      & \texttt{SELECT\_DR 0111} & \texttt{1111} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Three such transitions exist. Nothing constrains four bits to change together,
+so the warning applies here too and \sig{tlr} is only ever consumed on a clock
+edge. The failure mode it prevents is unpleasant: the boundary silently commits
+zeros at Update-DR, EXTEST and INTEST both fail, and capture and shift continue
+to look perfect.
+
+\subsection{Instruction set}
+
+The instruction register is 4 bits. Capture-IR loads \texttt{4'b0001}, since
+IEEE mandates the two least significant bits read back as \texttt{01} --- which
+is exactly what lets a probe auto-discover the IR length with no database entry.
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+\textbf{IR} & \textbf{Name} & \textbf{Register} & \textbf{Width} \\
+\midrule
+\texttt{0000} & EXTEST         & boundary & 9 \\
+\texttt{0001} & SAMPLE/PRELOAD & boundary & 9 \\
+\texttt{0010} & IDCODE         & idcode   & 32 \\
+\texttt{0011} & USER           & user     & 32 \\
+\texttt{0100} & INTEST         & boundary & 9 \\
+\texttt{0101} & CONFIG         & config   & 71 or 2896 \\
+\texttt{1111} & BYPASS         & bypass   & 1 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+All internal data registers shift in parallel and only the selected one reaches
+TDO. This is cheaper than a shift-enable network and is safe because every
+register re-captures at Capture-DR and only commits at an Update-DR qualified by
+the instruction. The boundary strobes are qualified the same way, so scanning
+IDCODE or CONFIG cannot disturb what the boundary is driving.
+
+\subsection{The USER register}
+
+Thirty-two bits. The low four are control, written at Update-DR; above them sit
+\texttt{STATUS\_W} bits of live status, captured at Capture-DR.
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Bit} & \textbf{Name} & \textbf{Effect} \\
+\midrule
+0 & \sig{ce}       & global clock enable, as a level \\
+1 & \sig{sr}       & global synchronous set/reset, as a level \\
+2 & \sig{cin}      & carry in to the bottom of each carry chain \\
+3 & \sig{step}     & a 0$\rightarrow$1 transition gives exactly one clock enable pulse \\
+4 & \sig{autostep} & each INTEST Update-DR gives one clock enable pulse \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\texttt{STATUS\_W} is a parameter: 3 for the single CLB, returning
+\texttt{\{cout, o5, o\}}; 16 for the fabric, returning every tile's CLB output
+in bits 19:4. That gives visibility inside the fabric without adding pins.
+
+% =============================================================================
+\section{The configurable logic block, from first principles}
+
+The CLB, its LUT and the boundary cell were inherited unchanged from a prior
+project and verified byte-identical with \texttt{cmp}. They are described here
+in full because the bitstream format is defined by their internals.
+
+\subsection{The fracturable LUT6}
+
+\file{rtl/lut6.sv} is a 64-entry lookup table built as an explicit multiplexer
+tree rather than an array index. The tree structure is the point: it makes the
+\emph{fracture} tap fall out naturally.
+
+\begin{lstlisting}[style=v]
+wire [31:0] s0;  wire [15:0] s1;  wire [7:0] s2;  wire [3:0] s3;  wire [1:0] s4;
+
+for (g = 0; g < 32; g++) assign s0[g] = i[0] ? init[2*g+1] : init[2*g];
+for (g = 0; g < 16; g++) assign s1[g] = i[1] ? s0[2*g+1]   : s0[2*g];
+for (g = 0; g <  8; g++) assign s2[g] = i[2] ? s1[2*g+1]   : s1[2*g];
+for (g = 0; g <  4; g++) assign s3[g] = i[3] ? s2[2*g+1]   : s2[2*g];
+for (g = 0; g <  2; g++) assign s4[g] = i[4] ? s3[2*g+1]   : s3[2*g];
+
+assign o5 = s4[0];                  // LUT5 over INIT[31:0]
+assign o6 = i[5] ? s4[1] : s4[0];   // the full 6-input function
+\end{lstlisting}
+
+Five levels of 2:1 multiplexers reduce 64 configuration bits to two values; the
+sixth input selects between them. After five levels, \texttt{s4[0]} is already
+the 5-input function of \texttt{i[4:0]} over \texttt{INIT[31:0]} --- a complete
+LUT5, available for free. That is \sig{o5}, and it is what lets one physical
+block implement two smaller independent functions.
+
+An INIT word is simply the truth table: bit $n$ is the output for input vector
+$n$. So \texttt{0x8888888888888888} is AND, because within each nibble only
+index~3 ($i_1 i_0 = 11$) is set, and the nibble repeats so $i_{5..2}$ are
+don't-care. \texttt{0x6666666666666666} is XOR by the same reasoning. The
+toolchain builds these by evaluating a Python function over all 64 addresses
+rather than by writing hexadecimal by hand.
+
+\subsection{Carry chain and flip-flop}
+
+\file{rtl/clb.sv} wraps the LUT with a carry chain and a flip-flop, mirroring
+the Xilinx slice structure.
+
+\begin{lstlisting}[style=v]
+wire di      = cy_di_sel ? lut_o5 : i[0];
+wire prop    = lut_o6;
+wire cy_mux  = prop ? cin : di;     // MUXCY: propagate or generate
+wire cy_sum  = prop ^ cin;          // XORCY: the sum bit
+assign cout  = cy_en ? cy_mux : 1'b0;
+
+wire comb    = cy_en ? cy_sum : (ff_d_sel ? lut_o5 : lut_o6);
+wire ce_eff  = ff_ce_en ? ce : 1'b1;
+wire sr_eff  = ff_sr_en ? sr : 1'b0;
+
+always @(posedge clk)
+  if      (sr_eff) q <= ff_rstval;  // synchronous, CE-independent
+  else if (ce_eff) q <= comb;
+
+assign o  = ff_en ? q : comb;
+assign o5 = lut_o5;
+\end{lstlisting}
+
+In carry mode the LUT computes the \emph{propagate} term and the dedicated logic
+does the rest: the sum is $\text{prop} \oplus \text{cin}$ and the carry out is
+either \sig{cin} (propagate) or a generate term taken from \texttt{i[0]} or the
+fractured LUT5. One block is therefore one bit of an adder, subtractor or
+comparator.
+
+The reset is synchronous and clock-enable-independent, matching FDRE/FDSE
+behaviour: holding \sig{sr} keeps the flop reset, which is idempotent and
+therefore safe to hold across a slow scan.
+
+\subsection{The 71-bit CLB configuration word}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Bits} & \textbf{Field} & \textbf{Meaning} \\
+\midrule
+63:0 & \texttt{INIT}       & the LUT6 truth table \\
+64   & \texttt{FF\_EN}     & \sig{o} is the flop's \sig{q} (1) or combinational (0) \\
+65   & \texttt{FF\_RSTVAL} & value loaded on synchronous reset \\
+66   & \texttt{FF\_CE\_EN} & the flop honours the global clock enable \\
+67   & \texttt{FF\_SR\_EN} & the flop honours \sig{sr} \\
+68   & \texttt{CY\_EN}     & carry-chain mode \\
+69   & \texttt{CY\_DI\_SEL}& carry generate source: \texttt{i[0]} or \sig{o5} \\
+70   & \texttt{FF\_D\_SEL} & datapath source: \sig{o6} or \sig{o5} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% =============================================================================
+\section{The tile, from first principles}
+
+A CLB alone is not a fabric. What makes sixteen blocks into an FPGA is the
+routing around them, and that is what a \emph{tile} adds. The architecture was
+already specified in \file{rtl/clb\_pkg.sv}; the RTL implementing it is new.
+
+\subsection{The shared source bus}
+
+Every multiplexer in a tile --- and there are twenty-two of them --- chooses
+from the same twenty-entry source bus. This uniformity is what keeps both the
+hardware and the router simple.
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Index} & \textbf{Source} & \textbf{Note} \\
+\midrule
+0     & constant 0            & \\
+1     & constant 1            & \\
+2     & this tile's CLB \sig{o}   & local feedback, no routing needed \\
+3     & this tile's CLB \sig{o5}  & the fractured output \\
+4--7  & tracks arriving from the North & \\
+8--11 & tracks arriving from the East  & \\
+12--15& tracks arriving from the South & \\
+16--19& tracks arriving from the West  & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Twenty sources need five select bits. Five bits address thirty-two, so twelve
+encodings are unreachable; the hardware pads the bus to thirty-two entries with
+hard zeros so a malformed bitstream reads a defined value rather than an
+\texttt{X}.
+
+That a tile can see its own outputs is deliberate and not merely a convenience:
+it is what allows a single tile to hold a registered feedback loop --- a counter
+bit, a toggle flip-flop --- with no routing resources at all.
+
+\subsection{Connection box and switch box}
+
+The two routing structures are the same circuit with a different multiplexer
+count, so both are instances of \file{rtl/mux\_bank.v}.
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+\textbf{Structure} & \textbf{Muxes} & \textbf{Bits} & \textbf{Drives} \\
+\midrule
+Connection box & 6  & 30 & the six LUT inputs \\
+Switch box     & 16 & 80 & four outgoing tracks on each of four edges \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The connection box decides what the logic block \emph{sees}. The switch box
+decides what the tile \emph{passes on}. Switch box multiplexer $j$ is indexed as
+$j = \text{dir} \times \text{NTRACK} + \text{track}$ with
+$\text{dir} \in \{N, E, S, W\} = \{0,1,2,3\}$.
+
+\subsection{Tile configuration word}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Bits} & \textbf{Section} & \textbf{Width} \\
+\midrule
+70:0    & CLB            & 71 \\
+100:71  & connection box & 30 \\
+180:101 & switch box     & 80 \\
+\midrule
+        & \textbf{tile}  & \textbf{181} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% =============================================================================
+\section{The fabric}
+
+\file{rtl/fabric.v} instantiates a $4 \times 4$ mesh. Coordinates increase North
+and East; the tile index is $r \times 4 + c$, and that is also the order tiles
+appear in the configuration word.
+
+\subsection{Track adjacency}
+
+Tracks are point to point between neighbours, and the track number is preserved
+across the hop:
+
+\begin{align*}
+\text{tile}(r,c).\text{in\_n} &= \text{tile}(r{+}1,c).\text{out\_s} &
+\text{tile}(r,c).\text{in\_s} &= \text{tile}(r{-}1,c).\text{out\_n} \\
+\text{tile}(r,c).\text{in\_e} &= \text{tile}(r,c{+}1).\text{out\_w} &
+\text{tile}(r,c).\text{in\_w} &= \text{tile}(r,c{-}1).\text{out\_e}
+\end{align*}
+
+Driving tile $T$'s switch box output in direction $D$ on track $t$ therefore
+makes that signal arrive at $T$'s neighbour in direction $D$, on the opposite
+side, on the same track. This single rule is the whole routing model, and the
+router in the toolchain is a direct transcription of it.
+
+The carry chain runs South to North up each column, with the bottom row's
+\sig{cin} taken from the USER register, so a column of four tiles is a four-bit
+adder.
+
+\subsection{Where the pads meet the fabric}
+
+Signals flow West to East, which makes a design read as a left-to-right
+dataflow.
+
+\begin{itemize}[nosep]
+  \item \textbf{Inputs:} every row's West edge carries \texttt{pad\_i[3:0]} on
+        tracks 0--3; every column's South edge carries \texttt{pad\_i[4]} on
+        track 0 and \texttt{pad\_i[5]} on track 1.
+  \item \textbf{Outputs:} \texttt{pad\_o[k]} is row $k$'s East edge, track 0,
+        for $k = 0,1,2$.
+\end{itemize}
+
+Column 0 can therefore reach \texttt{pad\_i[3:0]} directly and row 0 can reach
+all six; anything further in must be routed there through switch boxes. That
+asymmetry is deliberate --- it is what makes this a fabric rather than a lookup
+table with extra steps.
+
+On the board, \texttt{pad\_i[5:0]} is \texttt{\{BTN3..BTN0, SW1, SW0\}} and
+\texttt{pad\_o[2:0]} is \texttt{\{LD2, LD1, LD0\}}. LD3 indicates a non-zero
+configuration word is loaded.
+
+\subsection{Fabric configuration word}
+
+\[
+\text{FABRIC\_CFG\_W} = 181 \times 16 = 2896 \text{ bits}
+\]
+
+Tile 0 occupies bits 180:0, tile 1 bits 361:181, and so on. The chain shifts
+LSB-first, so the first bit out of TDI is \texttt{INIT[0]} of tile $(0,0)$.
+
+% =============================================================================
+\section{The boundary scan ring}
+
+Nine cells, all instances of the inherited \file{rtl/bsc\_cell.v}, a BC\_1
+general-purpose cell with two flip-flops: a capture register on the scan path
+and an update register that drives.
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+\textbf{Bit} & \textbf{Cell} & \textbf{Captures} & \textbf{Drives} \\
+\midrule
+0   & \texttt{out\_o}    & CLB \sig{o}         & LD0 \\
+1   & \texttt{out\_o5}   & CLB \sig{o5}        & LD1 \\
+2   & \texttt{out\_cout} & CLB \sig{cout}      & LD2 \\
+3--8& \texttt{in\_i0..5} & the six input pads  & the fabric's inputs \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Shifted LSB-first with the cell nearest TDO first, so the numbering is identical
+whether reading or writing. Bits 8:3 are the vector applied; bits 2:0 are the
+answers read.
+
+The two-flop split is the point of the cell. The capture register samples the
+system value at Capture-DR and then shifts, so moving data through the boundary
+never disturbs what the cell is driving; the update register moves only at
+Update-DR, so the boundary changes once, as a unit, at a moment the test
+controls.
+
+% =============================================================================
+\section{The bitstream generation engine}
+
+\file{host/bitstream.py} mirrors \file{rtl/clb\_pkg.sv} constant for constant
+and adds placement, routing, packing and an independent software model.
+
+\subsection{Interface}
+
+\begin{lstlisting}[style=py]
+from bitstream import Design, LUT
+
+d = Design()
+a, b   = d.input(0), d.input(1)
+g_and  = d.lut(0, 0, LUT.and2(), [a, b])     # place an AND at tile (0,0)
+g_nand = d.lut(2, 2, LUT.inv(0), [g_and])    # invert it three tiles away
+d.output(0, g_and)
+d.output(2, g_nand)
+bs = d.build()                                # place, route, pack 2896 bits
+\end{lstlisting}
+
+\subsection{LUT INIT construction}
+
+Truth tables are generated rather than written, by evaluating a Python predicate
+over all 64 addresses:
+
+\begin{lstlisting}[style=py]
+def lut(fn, nin=6):
+    init = 0
+    for a in range(64):
+        bits = [(a >> k) & 1 for k in range(6)]
+        if fn(*bits[:nin]):
+            init |= 1 << a
+    return init
+\end{lstlisting}
+
+This produced \texttt{0x8888888888888888} for AND and
+\texttt{0x6666666666666666} for XOR independently --- the same values that had
+already been verified on hardware in stage 2, which was a useful early
+confirmation that the engine and the silicon agreed about bit ordering.
+
+\subsection{Routing}
+
+The router is a breadth-first search over tiles. The start set is where the
+signal is natively visible: for a cell, the tile producing it; for an input pad,
+the edge tiles the pad arrives at. Each hop allocates one switch box
+multiplexer.
+
+\begin{lstlisting}[style=py]
+for d in (DIR_E, DIR_N, DIR_S, DIR_W):
+    nr, nc = r + DELTA[d][0], c + DELTA[d][1]
+    for t in range(NTRACK):
+        owner = self.sb_owner.get((r, c, d, t))
+        if owner is not None and owner != key:
+            continue                      # this track belongs to another net
+        ncode = SRC_OF_DIR[OPPOSITE[d]](t)
+        ...
+\end{lstlisting}
+
+A multiplexer already carrying \emph{the same} signal is free to traverse again.
+That single condition is the whole of fanout support: a net reaching several
+sinks reuses its existing path rather than allocating a second one, with no
+special case anywhere.
+
+Constants never route. A tile's own outputs never route. Both are already on
+every tile's source bus.
+
+\subsection{The software model}
+
+\texttt{simulate(bs, pad\_i)} evaluates a packed bitstream in software and
+returns \texttt{pad\_o}. It exists specifically so that expected results for the
+testbench come from somewhere other than the Verilog.
+
+It is an iterative fixed point over every CLB output and every track, not a
+recursive walk. That is forced by the architecture: the mesh has cycles by
+construction --- a tile can see its own output, and two tiles can point at each
+other --- so there is no evaluation order to recurse in. The first version was
+written recursively and immediately exhausted the stack, which is discussed in
+Section~\ref{sec:defects}.
+
+% =============================================================================
+\section{Verification strategy}
+
+The central idea is that the bitstream generator and the RTL must be made to
+check each other, because a shared misunderstanding between them would otherwise
+be invisible.
+
+\begin{enumerate}[nosep]
+  \item \file{sim/gen\_vectors.py} builds each design with the \emph{real}
+        engine and computes expected outputs with the engine's \emph{software
+        model}.
+  \item It emits \file{sim/vectors.vh}: bitstream literals and expected
+        input/output pairs.
+  \item \file{sim/tb\_fpga4x4.v} loads the same bits into the RTL through the
+        actual CONFIG scan chain and compares.
+\end{enumerate}
+
+If the generator and the fabric disagree about what a bitstream means, a named
+vector fails. The two were written from the same specification but in different
+languages, by different mechanisms, so agreement is meaningful.
+
+The hardware self-test then replays the identical designs and vectors on the
+board through INTEST, comparing against the same model.
+
+\subsection{Results}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Stage} & \textbf{Coverage} & \textbf{Result} \\
+\midrule
+Fabric simulation      & 174 checks, 11 designs, 151 generated vectors & all pass \\
+Single-CLB simulation  & 25 checks, 11 groups                          & all pass \\
+Verilator lint         & both tops                                     & clean \\
+Hardware self-test     & 11 designs, 163 vectors, on the board         & all pass \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Every configuration load on hardware completed in 0.04\,s with readback
+verified.
+
+% =============================================================================
+\section{Defects found and fixed}
+\label{sec:defects}
+
+Recorded because most of them are instructive rather than clerical.
+
+\subsection{Read-modify-write registers}
+
+CONFIG, USER and the boundary are all capture/update registers: whatever is
+shifted in is committed at Update-DR. A ``read'' that shifts zeros in returns
+the correct answer and then leaves zeros behind it.
+
+This was caught three separate times --- first in simulation when a USER
+read-back silently cleared the register, then again when a CONFIG read-back
+cleared the \sig{configured} flag. The fix throughout is to shift the same word
+back in. \texttt{load\_bitstream()} does this and then verifies.
+
+\subsection{The flip-flop could not be stepped from a USER scan}
+
+An attempt to single-step the flop by writing the USER \sig{step} bit failed,
+and the reason was structural rather than a coding error. \sig{bsr\_mode} is
+decoded from the current instruction, as IEEE requires. The instant a USER scan
+is loaded to issue the step, the boundary goes transparent and the CLB stops
+seeing the vector INTEST applied --- it would clock in whatever the physical
+switches happen to be.
+
+The fix was to add \texttt{USER\_AUTOSTEP}. With it set, an INTEST Update-DR
+raises the clock enable itself on the very next rising edge, while INTEST is
+still selected and the boundary is still driving. One INTEST scan then means
+``apply this vector and advance the flop one clock with it''.
+
+\subsection{Recursive fabric evaluation}
+
+The first software model evaluated a track by recursing into its source tile,
+which recursed into its neighbours, and exhausted the stack immediately. Rewritten
+as an iterative fixed point over all state, with an explicit oscillation bail-out.
+
+\subsection{A stale TDO read}
+
+\texttt{CMD\_GETSIG} returns the firmware's cached TDO, which is only refreshed
+inside a PIO transfer. Reading it without first issuing a clock pulse returns a
+stale bit. All host tools now pulse TCK and then read.
+
+\subsection{Vivado combinational loop DRC}
+
+Implementation failed with:
+
+\begin{lstlisting}
+[DRC LUTLP-1] Combinatorial Loop Alert: 1569 LUT cells form a combinatorial loop.
+\end{lstlisting}
+
+This is the architecture, not a defect. A routing mesh in which any switch box
+multiplexer can select any neighbouring track has cycles in the netlist graph by
+construction; whether a loop actually \emph{exists} depends on the bitstream,
+and none the router emits contains one.
+
+Of Vivado's two documented resolutions, naming a net per loop with
+\texttt{ALLOW\_COMBINATORIAL\_LOOPS} is unworkable here: there are many loops and
+the net names are synthesis output that changes every build. The check is
+therefore downgraded, in \file{constr/pynq\_z2\_jtag.xdc} and re-applied by
+\file{vivado/drc\_waiver.tcl} as a hook on \texttt{opt\_design} and
+\texttt{write\_bitstream}, because a DRC severity is a tool setting rather than a
+design property and does not reliably survive every step.
+
+The downgrade is scoped to \file{fpga4x4\_top}. The single-CLB build has no mesh
+and must never trip LUTLP-1; if it does, that is a genuine defect and masking it
+would be wrong.
+
+\subsection{An empty worst-slack value read as a failure}
+
+The build reported \texttt{timing not met (WNS  ns)} --- with no number. Vivado
+had returned an empty slack value, and the Tcl guard \texttt{if \{\$wns < 0\}}
+falls back to \emph{string} comparison when the operand is not numeric, where
+\texttt{""} sorts before \texttt{"0"}. An absent measurement was therefore
+reported as a failure. The check now confirms \texttt{string is double -strict}
+before comparing.
+
+An empty value is expected on this design rather than alarming: with loops
+broken arbitrarily for analysis there may be no complete path for the tool to
+call the worst one.
+
+\subsection{Terminal echo in the interactive console}
+
+Only the first keystroke registered. Two causes. \texttt{tty.setcbreak} disables
+line buffering but \emph{leaves ECHO on}, so every key was echoed into the middle
+of a display that redraws with cursor-up. And \texttt{select} watched the raw
+file descriptor while \texttt{sys.stdin.read(1)} read through Python's buffered
+text wrapper, stranding keys in the buffer. Fixed by clearing \texttt{ECHO}
+explicitly while keeping \texttt{ISIG}, and by reading with \texttt{os.read} on
+the descriptor.
+
+\subsection{LEDs dark during INTEST}
+
+The scan reported \texttt{LEDs = 001} while the board sat unlit. Both were
+correct. In INTEST \emph{every} cell drives, including the three output cells, so
+the pads are fed from those cells' update registers rather than from the fabric.
+Shifting zeros into bits 2:0 actively held the LEDs off; the fabric's answer
+arrives only by capture and never reaches a pad on its own.
+
+The console now uses three scans per step: apply the vector, capture the answer,
+then write that answer back into the output cells. The LEDs mirror the fabric one
+scan behind. A negative control --- running the previous two-scan code against a
+faithful model of \file{bsc\_cell} --- reproduced the original symptom exactly,
+confirming the test detects the defect rather than merely agreeing with the fix.
+
+\subsection{Loading 2896 bits}
+
+One USB round trip per bit is acceptable for a 32-bit IDCODE and hopeless for the
+configuration chain. \texttt{shift\_dr\_fast()} uses DirtyJTAG's
+\texttt{CMD\_XFER}, which shifts up to 496 bits per packet with TMS held low.
+
+Two details had to be right. Data is MSB-first \emph{within each byte}, pinned
+down by the firmware's \texttt{jtag\_set\_tdi} writing \texttt{1u << 7} for a
+single bit. And only whole bytes go that way; the ragged tail and the final
+TMS-high bit are ordinary pulses. Every load is verified by readback and falls
+back to the per-pulse path on disagreement. Measured: 0.04\,s per load.
+
+% =============================================================================
+\section{File manifest}
+
+\subsection{RTL}
+
+\begin{longtable}{llp{72mm}}
+\toprule
+\textbf{File} & \textbf{Lines} & \textbf{Purpose} \\
+\midrule
+\endhead
+\file{clb\_pkg.sv}     & 237 & Architecture definition: field offsets, widths, source encodings, LUT builders. \emph{Inherited, byte-identical.} The authority for the bitstream format. \\
+\file{lut6.sv}         & 35  & Fracturable 6-input LUT as a mux tree. \emph{Inherited, byte-identical.} \\
+\file{clb.sv}          & 63  & LUT + carry chain + flip-flop. \emph{Inherited, byte-identical.} \\
+\file{bsc\_cell.v}     & 122 & BC\_1 boundary scan cell. \emph{Inherited, byte-identical.} \\
+\file{jtag\_tap.v}     & 283 & IEEE 1149.1 TAP: state machine, IR, IDCODE/USER/CONFIG/BYPASS, boundary strobes, step logic. \\
+\file{mux\_bank.v}     & 41  & $N$ configurable multiplexers on a shared source bus; used as both connection box and switch box. \\
+\file{tile.v}          & 102 & One tile: CLB + connection box + switch box, and the 20-entry source bus. \\
+\file{fabric.v}        & 144 & The $4\times4$ mesh: neighbour wiring, edge ports, carry chains. \\
+\file{fpga4x4.v}       & 187 & Fabric core: TAP + boundary ring + fabric, and the pad-to-edge mapping. \\
+\file{fpga4x4\_top.v}  & 56  & Board wrapper: BUFG on TCK, switches, buttons, LEDs. \\
+\file{mini\_fpga.v}    & 153 & Single-CLB core (stage 2), retained as a fallback. \\
+\file{mini\_fpga\_top.v}& 69 & Board wrapper for the single-CLB build. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Host toolchain}
+
+\begin{longtable}{llp{72mm}}
+\toprule
+\textbf{File} & \textbf{Lines} & \textbf{Purpose} \\
+\midrule
+\endhead
+\file{bitstream.py}     & 489 & Architecture model, LUT builders, placement, router, packer, software simulator. \\
+\file{designs.py}       & 118 & The eleven example designs, shared by simulation and hardware so both run the same thing. \\
+\file{dirtyjtag.py}     & 342 & Shared transport: USB, TAP navigation, per-pulse and bulk shifting, boundary helpers. \\
+\file{fpga.py}          & 242 & Fabric tool: report, load, self-test, watch, boundary-scan console. \\
+\file{bscan.py}         & 202 & Interactive boundary-scan control: INTEST/EXTEST/SAMPLE. \\
+\file{minifpga.py}      & 345 & The equivalent tool for the single-CLB build. \\
+\file{tap\_probe.py}    & 144 & Low-level diagnostic: raw TDO stream, loopback, LED walk. \\
+\file{wire\_check.py}   & 179 & Per-jumper continuity and PMODA pin-numbering check. \\
+\file{detect.sh}        & 43  & IDCODE read via openFPGALoader and urjtag; names the build found. \\
+\file{install\_urjtag\_part.sh} & 105 & Adds both builds to urjtag's part database. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Simulation, constraints and build}
+
+\begin{longtable}{llp{72mm}}
+\toprule
+\textbf{File} & \textbf{Lines} & \textbf{Purpose} \\
+\midrule
+\endhead
+\file{tb\_fpga4x4.v}      & 261 & Fabric testbench; includes the generated vectors. \\
+\file{tb\_mini\_fpga.v}   & 338 & Single-CLB testbench, eleven groups. \\
+\file{gen\_vectors.py}    & 52  & Turns the designs into \file{vectors.vh}. \\
+\file{vectors.vh}         & 235 & \emph{Generated.} Bitstream literals and expected outputs. \\
+\file{run\_fabric\_sim.sh}& 19  & Regenerate vectors, compile, run. \\
+\file{run\_sim.sh}        & 18  & Single-CLB simulation. \\
+\file{lint.sh}            & 33  & Verilator lint of both tops, with documented waivers. \\
+\file{pynq\_z2\_jtag.xdc} & 117 & Pins, pulls, clock, timing, DRC handling; serves both tops. \\
+\file{create\_project.tcl}& 229 & The entire Vivado flow in one session: create, build, optionally program. \\
+\file{drc\_waiver.tcl}    & 23  & Re-applies the LUTLP-1 downgrade at the steps where it runs. \\
+\bottomrule
+\end{longtable}
+
+% =============================================================================
+\section{Operation}
+
+\subsection{Build}
+
+\begin{lstlisting}[style=sh]
+vivado -mode batch -source vivado/create_project.tcl                  # build
+vivado -mode batch -source vivado/create_project.tcl -tclargs all     # build + program
+vivado -mode batch -source vivado/create_project.tcl -tclargs program # program only
+\end{lstlisting}
+
+Adding a top module name builds the single-CLB design instead. The whole flow
+runs in one Vivado session; splitting create and build across two scripts meant
+the second had to re-open a project the first had already opened.
+
+\subsection{Use}
+
+\begin{lstlisting}[style=sh]
+./sim/run_fabric_sim.sh              # 174 checks
+./host/fpga.py --list                # the built-in designs
+./host/fpga.py --report three        # place and route, no hardware needed
+./host/fpga.py --load showcase       # compile, load, run, watch the switches
+./host/fpga.py --selftest            # every design, verified on the board
+./host/fpga.py --load xor --bscan    # take the switches over from JTAG
+\end{lstlisting}
+
+% =============================================================================
+\section{Known limitations}
+
+\begin{itemize}
+  \item \textbf{Static timing analysis is inconclusive.} The fabric's
+        combinational loops are broken arbitrarily by the tool, so some paths are
+        not analysed and any reported worst slack is indicative rather than
+        exhaustive. TCK is constrained at 1\,MHz for the fabric against a link
+        driven at 100\,kHz--1\,MHz; the margin is deliberate compensation.
+  \item \textbf{The router is shortest-path, not congestion-aware.} It allocates
+        the first free track on a breadth-first path. For designs of the size the
+        fabric holds this has been sufficient, but it will fail on a congested
+        design where a longer route would have succeeded.
+  \item \textbf{The software model is combinational only.} It rejects designs
+        with \texttt{FF\_EN} set. Sequential designs can be built and run on
+        hardware but their expected results are not independently generated.
+  \item \textbf{No timing model.} The toolchain has no notion of delay, so it
+        cannot report a maximum frequency for a placed design.
+  \item \textbf{Three output pads.} The boundary ring exposes three outputs and
+        six inputs, which bounds what a design can show without additional pins.
+\end{itemize}
+
+\end{document}

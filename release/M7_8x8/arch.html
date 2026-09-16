@@ -1,0 +1,1894 @@
+<meta charset="utf-8">
+<title>bob — Interactive Die Slice (M7)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  @page { size: A3 landscape; margin: 8mm }
+
+  :root {
+    --ink: #17171a;
+    --ink-2: #4a4a52;
+    --mute: #74747e;
+    --faint: #9a9aa4;
+    --rule: #e4e4dd;
+    --rule-2: #f0efe9;
+    --paper: #ffffff;
+    --desk: #b9b7b0;
+    --accent: #b8500f;
+    --accent-2: #d97a28;
+    --accent-bg: #fdf6ef;
+    --shadow: 0 1px 2px rgba(20,20,25,.05), 0 8px 30px rgba(20,20,25,.13);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box }
+
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--desk);
+    font-family: var(--sans);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ───────────────────────── top bar ───────────────────────── */
+  .bar {
+    position: sticky; top: 0; z-index: 20;
+    display: flex; gap: 14px; align-items: center;
+    padding: 0 18px; height: 46px;
+    background: #1e1e22;
+    color: #eceae4;
+    font-size: 13px;
+    border-bottom: 1px solid #000;
+  }
+  .bar .brand { font-weight: 620; letter-spacing: -.015em; font-size: 13.5px }
+  .bar .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent-2); flex: none }
+  .bar .tip {
+    font-family: var(--mono); font-size: 11px; color: #c9a071;
+    letter-spacing: .04em; text-transform: uppercase;
+  }
+  .bar .sp { flex: 1 }
+  .bar .meta { font-family: var(--mono); font-size: 10.5px; color: #85858e; letter-spacing: .03em }
+  .bar button {
+    background: #303036; color: #eceae4;
+    border: 1px solid #46464e; border-radius: 6px;
+    padding: 5px 12px; font: inherit; font-size: 12px; cursor: pointer;
+    transition: background .12s, border-color .12s;
+  }
+  .bar button:hover { background: #3c3c44; border-color: #63636e }
+
+  /* ───────────────────────── sheet ───────────────────────── */
+  .sheet {
+    background: var(--paper);
+    margin: 18px auto 26px;
+    max-width: 1700px;
+    border-radius: 4px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  svg { display: block; width: 100%; height: auto }
+
+  .hit { cursor: pointer; fill: rgba(0,0,0,0); transition: fill .1s }
+  .hit:hover { fill: rgba(217,122,40,.20); stroke: var(--accent); stroke-width: 1.6 }
+
+  /* ───────────────────────── overlay card ───────────────────────── */
+  .ov {
+    position: fixed; inset: 0; z-index: 50;
+    background: rgba(16,16,19,.60);
+    backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+    display: none; align-items: flex-start; justify-content: center;
+    padding: 32px 20px 60px; overflow-y: auto;
+  }
+  .ov.on { display: flex }
+
+  .card {
+    background: var(--paper); border-radius: 14px;
+    max-width: 1140px; width: 100%;
+    box-shadow: 0 24px 70px rgba(0,0,0,.40);
+    overflow: hidden;
+    animation: rise .16s cubic-bezier(.2,.7,.3,1);
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: none } }
+
+  .chead {
+    display: flex; gap: 14px; align-items: flex-start;
+    padding: 18px 24px 16px; border-bottom: 1px solid var(--rule);
+  }
+  .chead .sw { width: 4px; height: 38px; border-radius: 2px; flex: none; margin-top: 3px }
+  .chead h2 { margin: 0; font-size: 20px; letter-spacing: -.022em; font-weight: 640; line-height: 1.2 }
+  .chead p { margin: 4px 0 0; font-size: 12px; color: var(--mute); font-family: var(--mono); letter-spacing: .01em }
+  .chead .x {
+    margin-left: auto; background: #f4f3ef; border: 1px solid var(--rule);
+    border-radius: 8px; width: 30px; height: 30px; cursor: pointer;
+    font-size: 14px; color: var(--ink-2); flex: none; line-height: 1;
+  }
+  .chead .x:hover { background: #eae9e3 }
+
+  .crumb {
+    padding: 9px 24px; background: #fbfaf7; border-bottom: 1px solid var(--rule-2);
+    font-size: 11px; font-family: var(--mono); color: var(--faint);
+    display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
+  }
+  .crumb button { background: none; border: none; color: var(--accent); cursor: pointer; font: inherit; padding: 0 }
+  .crumb button:hover { text-decoration: underline }
+
+  .cbody { padding: 20px 24px 26px }
+
+  .dsvg {
+    border: 1px solid var(--rule); border-radius: 10px;
+    background: #fdfdfb; padding: 14px; overflow-x: auto;
+  }
+  .dsvg + .dsvg { margin-top: 12px }
+
+  .sect {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--faint);
+    margin: 24px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--rule-2);
+  }
+
+  .notes { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 9px }
+  .notes li { font-size: 13.5px; line-height: 1.5; color: #35353c; padding-left: 17px; position: relative; max-width: 92ch }
+  .notes li:before {
+    content: ''; position: absolute; left: 0; top: .60em;
+    width: 5px; height: 5px; border-radius: 50%; background: var(--accent-2);
+  }
+  .notes b { color: var(--ink); font-weight: 620 }
+  .notes code { font-family: var(--mono); font-size: 12px; background: #f4f3ef; padding: 1px 5px; border-radius: 4px }
+
+  .chips { display: flex; gap: 8px; flex-wrap: wrap }
+  .chips button {
+    background: #fff; border: 1px solid #dddcd4; border-radius: 20px;
+    padding: 6px 14px; font: inherit; font-size: 12.5px; cursor: pointer; color: #3a3a42;
+    transition: all .12s;
+  }
+  .chips button:hover { border-color: var(--accent-2); color: var(--accent); background: var(--accent-bg) }
+
+  .lnk { margin-top: 20px; font-size: 12.5px; color: var(--mute) }
+  .lnk a { color: var(--accent) }
+
+  .dm { transition: fill .1s }
+  .drillmark { cursor: pointer }
+
+  /* ───────────────────────── live demo controls ───────────────────────── */
+  .demo {
+    margin-top: 12px; border: 1px solid var(--rule); border-radius: 10px;
+    background: #fbfaf7; padding: 13px 15px;
+  }
+  .demo h4 {
+    margin: 0 0 11px; font-family: var(--mono); font-size: 10px;
+    letter-spacing: .13em; text-transform: uppercase; color: var(--faint); font-weight: 500;
+  }
+  .demo h4 span { color: var(--accent); }
+  .ctl { display: flex; gap: 18px; align-items: center; flex-wrap: wrap }
+  .ctl .grp { display: flex; gap: 6px; align-items: center }
+  .ctl label { font-family: var(--mono); font-size: 11px; color: var(--mute) }
+
+  .sw6 {
+    width: 34px; height: 30px; border-radius: 7px; cursor: pointer;
+    border: 1px solid #d5d4cc; background: #fff; color: var(--faint);
+    font-family: var(--mono); font-size: 12px; font-weight: 600;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    line-height: 1.05; padding: 0; transition: all .12s;
+  }
+  .sw6 .n { font-size: 8px; letter-spacing: .04em; color: var(--faint) }
+  .sw6.on { background: var(--accent); border-color: var(--accent); color: #fff }
+  .sw6.on .n { color: rgba(255,255,255,.72) }
+  .sw6:hover { border-color: var(--accent-2) }
+
+  .demo select, .demo input[type=text] {
+    font: inherit; font-family: var(--mono); font-size: 12px;
+    padding: 5px 9px; border: 1px solid #d5d4cc; border-radius: 7px; background: #fff; color: var(--ink);
+  }
+  .demo button.act {
+    font: inherit; font-size: 12px; padding: 6px 12px;
+    border: 1px solid #d5d4cc; border-radius: 7px; background: #fff; cursor: pointer; color: #3a3a42;
+  }
+  .demo button.act:hover { border-color: var(--accent-2); color: var(--accent) }
+
+  .led {
+    font-family: var(--mono); font-size: 13px; font-weight: 700;
+    padding: 6px 13px; border-radius: 7px; border: 1px solid;
+    background: #f2f1ec; border-color: #ddddd4; color: var(--faint);
+  }
+  .led.hi { background: #1f7a44; border-color: #176034; color: #fff }
+
+  .hexout { font-family: var(--mono); font-size: 11.5px; color: var(--mute) }
+  .hexout b { color: var(--ink); font-weight: 600 }
+
+
+  /* ───────────────────────── provenance table (bob) ───────────────────────── */
+  .kv { width: 100%; border-collapse: collapse; font-size: 12.5px }
+  .kv td { padding: 7px 10px; border-bottom: 1px solid var(--rule-2); vertical-align: top; line-height: 1.45 }
+  .kv td:first-child { width: 34%; font-family: var(--mono); font-size: 11.5px; color: var(--ink) }
+  .kv td:last-child { color: #35353c }
+  .kv code, .notes code { font-family: var(--mono); font-size: 11.5px; background: #f4f3ef; padding: 1px 5px; border-radius: 4px }
+  .kv tr:last-child td { border-bottom: none }
+
+  /* ───────────────────────── print ───────────────────────── */
+  @media print {
+    html, body { background: #fff }
+    .bar, .ov { display: none !important }
+    .sheet { margin: 0; max-width: none; box-shadow: none; border-radius: 0 }
+    .hit { display: none }
+  }
+</style>
+
+<div class="bar">
+  <span class="dot"></span>
+  <span class="brand">bob — FPGA inside the XC7Z020 · M7 fabric</span>
+  <span class="tip">▸ click any block to open it</span>
+  <span class="sp"></span>
+  <span class="meta">A3 landscape · ⌘P → Save as PDF</span>
+  <button onclick="print()">Print / PDF</button>
+</div>
+
+<div class="sheet"><div id="out"></div></div>
+
+<div class="ov" id="ov">
+  <div class="card">
+    <div class="chead">
+      <div class="sw" id="dsw"></div>
+      <div>
+        <h2 id="dtitle"></h2>
+        <p id="dsub"></p>
+      </div>
+      <button class="x" id="dx" title="close (Esc)">✕</button>
+    </div>
+    <div class="crumb" id="dcrumb"></div>
+    <div class="cbody">
+      <div id="dschemw"><div class="dsvg" id="dschem"></div><div id="ddemo"></div></div>
+      <div id="drowsw"><div class="sect" id="drowshdr">Block diagram</div><div class="dsvg" id="ddiag"></div></div>
+      <div id="dnotesw">
+        <div class="sect">Key points</div>
+        <ul class="notes" id="dnotes"></ul>
+      </div>
+      <div id="ddrillw">
+        <div class="sect">Open a sub-block</div>
+        <div class="chips" id="ddrill"></div>
+      </div>
+      <div id="dsrcw"><div class="sect">Where it comes from</div><table class="kv" id="dsrc"></table></div>
+      <div id="dwhyw"><div class="sect">Why that source</div><ul class="notes" id="dwhy"></ul></div>
+      <div id="dfilesw"><div class="sect">Files that implement / use it</div><table class="kv" id="dfiles"></table></div>
+      <div id="dtbw"><div class="sect">Verified by</div><table class="kv" id="dtb"></table></div>
+      <div class="lnk" id="dlnk"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  "use strict";
+  /* ============================================================================
+     PALETTE  —  each family:  f = fill, s = stroke, t = text
+     ========================================================================= */
+  const C = {
+    CLB:  { f: "#dce8f7", s: "#3f76ad", t: "#1d4b78" },
+    BRAM: { f: "#d7ecdc", s: "#3d8a58", t: "#1f5c38" },
+    DSP:  { f: "#f9e7c8", s: "#b3801f", t: "#78530f" },
+    CMT:  { f: "#e6dcf3", s: "#7a58ab", t: "#4d3273" },
+    IO:   { f: "#eae5db", s: "#8c8271", t: "#544d3f" },
+    CFG:  { f: "#f8dbd3", s: "#bb5340", t: "#8a3423" },
+    GTX:  { f: "#d6eaed", s: "#3a8189", t: "#215257" },
+    HARD: { f: "#e0e5ea", s: "#68757f", t: "#39434b" },
+    BRD:  { f: "#f2f1ec", s: "#7d7669", t: "#3a352c" },
+    SOFT: { s: "#c05a12", t: "#8f4108", f: "rgba(192,90,18,.05)" },
+    DIE:  { s: "#26262a" },
+    INK: "#17171a", MUTE: "#74747e", FAINT: "#9a9aa4",
+    LINE: "#b9b9b2", RULE: "#e4e4dd",
+    WIRE: "#5c5c64", HOT: "#d97a28", HOT2: "#b8500f", GRN: "#1f7a44"
+  };
+  const MONO = "ui-monospace,'SF Mono',Menlo,Consolas,monospace";
+  const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+  /* ============================================================================
+     PRIMITIVES  —  every helper pushes markup into the current buffer S
+     ========================================================================= */
+  let S = [];
+
+  function rect(x, y, w, h, o = {}) {
+    S.push(`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${o.rx ?? 2}"`
+      + ` fill="${o.f ?? "none"}" stroke="${o.s ?? "none"}" stroke-width="${o.sw ?? 1}"`
+      + (o.dash ? ` stroke-dasharray="${o.dash}"` : "")
+      + (o.cls ? ` class="${o.cls}"` : "")
+      + (o.op ? ` opacity="${o.op}"` : "") + "/>");
+  }
+
+  function txt(x, y, s, o = {}) {
+    const rot = o.rot ? ` transform="rotate(${o.rot} ${x} ${y})"` : "";
+    S.push(`<text x="${x}" y="${y}"${rot} font-size="${o.size ?? 9}"`
+      + ` fill="${o.fill ?? C.INK}" text-anchor="${o.anchor ?? "middle"}"`
+      + ` font-weight="${o.w ?? 400}" font-family="${o.mono ? MONO : "inherit"}"`
+      + ` letter-spacing="${o.ls ?? 0}"`
+      + (o.op ? ` opacity="${o.op}"` : "") + `>${esc(s)}</text>`);
+  }
+
+  function line(x1, y1, x2, y2, o = {}) {
+    S.push(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${o.s ?? C.LINE}"`
+      + ` stroke-width="${o.sw ?? 1}" stroke-linecap="${o.cap ?? "butt"}"`
+      + (o.dash ? ` stroke-dasharray="${o.dash}"` : "")
+      + (o.marker ? ` marker-end="url(#${o.marker})"` : "") + "/>");
+  }
+
+  function path(d, o = {}) {
+    S.push(`<path d="${d}" fill="${o.f ?? "none"}" stroke="${o.s ?? C.WIRE}"`
+      + ` stroke-width="${o.sw ?? 1}" stroke-linejoin="round" stroke-linecap="${o.cap ?? "butt"}"`
+      + (o.dash ? ` stroke-dasharray="${o.dash}"` : "")
+      + (o.marker ? ` marker-end="url(#${o.marker})"` : "") + "/>");
+  }
+
+  function block(x, y, w, h, name, cap, k, o = {}) {
+    rect(x, y, w, h, { f: k.f, s: k.s, sw: o.sw ?? 1.1, rx: o.rx ?? 3 });
+    const cy = y + h / 2;
+    if (cap) {
+      txt(x + w / 2, cy - 1, name, { size: o.size ?? 9.5, w: 640, fill: k.t, mono: o.mono });
+      txt(x + w / 2, cy + 10, cap, { size: o.cs ?? 7.2, fill: C.MUTE, mono: true });
+    } else {
+      txt(x + w / 2, cy + 3.4, name, { size: o.size ?? 9.5, w: 640, fill: k.t, mono: o.mono });
+    }
+  }
+
+  /* transparent click target — always emitted last so it sits above the art.
+     fill is a presentation attribute so the markup survives a CSS-less export. */
+  function hit(id, x, y, w, h, rx) {
+    S.push(`<rect class="hit" data-id="${id}" x="${x}" y="${y}" width="${w}" height="${h}"`
+      + ` rx="${rx ?? 3}" fill="transparent" pointer-events="all"/>`);
+  }
+
+  /* ============================================================================
+     SCHEMATIC TOOLKIT  —  real symbols, not labelled rectangles
+     ========================================================================= */
+
+  /* wire through a list of [x,y] points, orthogonal as drawn */
+  function wire(pts, o = {}) {
+    path("M" + pts.map(p => p.join(",")).join(" L"),
+      { s: o.s ?? C.WIRE, sw: o.sw ?? 1.1, dash: o.dash, marker: o.marker, cap: "round" });
+  }
+
+  /* junction dot */
+  function dot(x, y, o = {}) {
+    S.push(`<circle cx="${x}" cy="${y}" r="${o.r ?? 2.1}" fill="${o.s ?? C.WIRE}"/>`);
+  }
+
+  /* open pin circle (port boundary) */
+  function port(x, y, o = {}) {
+    S.push(`<circle cx="${x}" cy="${y}" r="${o.r ?? 2.6}" fill="#fff" stroke="${o.s ?? C.WIRE}" stroke-width="1.1"/>`);
+  }
+
+  /* multiplexer — the classic tapered trapezoid.
+     dir "r" = inputs on the left, output right.  sel drawn on the bottom edge. */
+  function mux(x, y, w, h, o = {}) {
+    const t = o.taper ?? Math.min(h * 0.22, 9);
+    path(`M${x},${y} L${x + w},${y + t} L${x + w},${y + h - t} L${x},${y + h} Z`,
+      { f: o.f ?? "#fff", s: o.s ?? C.WIRE, sw: o.sw ?? 1.1 });
+    if (o.label) txt(x + w / 2 + 1, y + h / 2 + (o.lo ?? 3), o.label,
+      { size: o.ls2 ?? 7.4, fill: o.lf ?? C.MUTE, mono: true, w: 600 });
+    return { in: i => [x, y + h * i], out: [x + w, y + h / 2], sel: [x + w / 2, y + h] };
+  }
+
+  /* flip-flop / register — box with the clock wedge on the lower-left */
+  function ff(x, y, w, h, o = {}) {
+    rect(x, y, w, h, { f: o.f ?? "#fff", s: o.s ?? C.WIRE, sw: o.sw ?? 1.1, rx: 1.5 });
+    path(`M${x},${y + h - 11} L${x + 8},${y + h - 6.5} L${x},${y + h - 2}`,
+      { s: o.s ?? C.WIRE, sw: 1.1 });
+    if (o.label) txt(x + w / 2 + 3, y + h / 2 - 1, o.label, { size: o.ls2 ?? 7.6, fill: o.lf ?? C.INK, w: 620 });
+    if (o.sub) txt(x + w / 2 + 3, y + h / 2 + 8.5, o.sub, { size: 6.2, fill: C.FAINT, mono: true });
+    return { d: [x, y + 10], clk: [x, y + h - 6.5], q: [x + w, y + h / 2] };
+  }
+
+  /* buffer / inverter triangle pointing right */
+  function buf(x, y, w, h, o = {}) {
+    path(`M${x},${y} L${x + w},${y + h / 2} L${x},${y + h} Z`,
+      { f: o.f ?? "#fff", s: o.s ?? C.WIRE, sw: o.sw ?? 1.1 });
+    if (o.inv) S.push(`<circle cx="${x + w + 2.4}" cy="${y + h / 2}" r="2.4" fill="#fff" stroke="${o.s ?? C.WIRE}" stroke-width="1.1"/>`);
+    return { in: [x, y + h / 2], out: [x + w + (o.inv ? 4.8 : 0), y + h / 2] };
+  }
+
+  /* AND / OR / XOR gate bodies (IEEE distinctive shapes) */
+  function gate(kind, x, y, w, h, o = {}) {
+    const s = o.s ?? C.WIRE, f = o.f ?? "#fff", sw = o.sw ?? 1.1;
+    if (kind === "and") {
+      path(`M${x},${y} L${x + w * .45},${y} A${w * .55},${h / 2} 0 0 1 ${x + w * .45},${y + h} L${x},${y + h} Z`, { f, s, sw });
+    } else {
+      const back = kind === "xor" ? 5 : 0;
+      path(`M${x + back},${y} Q${x + back + w * .55},${y + h * .06} ${x + w},${y + h / 2}`
+        + ` Q${x + back + w * .55},${y + h * .94} ${x + back},${y + h}`
+        + ` Q${x + back + w * .22},${y + h / 2} ${x + back},${y} Z`, { f, s, sw });
+      if (kind === "xor") path(`M${x},${y} Q${x + w * .22},${y + h / 2} ${x},${y + h}`, { s, sw });
+    }
+    if (o.inv) S.push(`<circle cx="${x + w + 2.4}" cy="${y + h / 2}" r="2.4" fill="#fff" stroke="${s}" stroke-width="${sw}"/>`);
+    if (o.label) txt(x + w * .42, y + h / 2 + 2.6, o.label, { size: 6.4, fill: C.FAINT, mono: true });
+    return { a: [x, y + h * .28], b: [x, y + h * .72], out: [x + w + (o.inv ? 4.8 : 0), y + h / 2] };
+  }
+
+  /* NMOS pass transistor — the thing a routing PIP and a LUT mux leg really are.
+     `flip` puts the gate on the right, so a mirrored pair never crosses its own leads. */
+  function nmos(x, y, o = {}) {
+    const s = o.s ?? C.WIRE, h = o.h ?? 16, w = 7, d = o.flip ? 1 : -1;
+    line(x, y, x, y + h, { s, sw: 1.3 });                              // channel
+    line(x + d * w, y + 2, x + d * w, y + h - 2, { s, sw: 1.1 });       // gate plate
+    line(x + d * w, y + h / 2, x + d * 14, y + h / 2, { s, sw: 1 });    // gate lead
+    return { g: [x + d * 14, y + h / 2], s1: [x, y], s2: [x, y + h] };
+  }
+
+  /* the same device rotated for a left-to-right signal, as in an SRAM access
+     transistor. The two leads jog perpendicular into the channel bar — without that
+     jog the bar is collinear with the wire and the symbol reads as a capacitor.
+     `y` is the level of the signal wire; the gate lead runs up to `gateTo`. */
+  function nmosH(x, y, o = {}) {
+    const s = o.s ?? C.WIRE, w = o.w ?? 28;
+    const ch = y - 8, plate = y - 15, gy = o.gateTo ?? y - 34;
+    line(x, y, x, ch, { s, sw: 1.1 });                           // left lead
+    line(x + w, y, x + w, ch, { s, sw: 1.1 });                   // right lead
+    line(x, ch, x + w, ch, { s, sw: 1.4 });                      // channel bar
+    line(x + 3, plate, x + w - 3, plate, { s, sw: 1.4 });        // gate plate
+    line(x + w / 2, plate, x + w / 2, gy, { s, sw: 1 });         // gate lead
+    return { g: [x + w / 2, gy], t1: [x, y], t2: [x + w, y] };
+  }
+
+  /* a single SRAM configuration cell, drawn as a small square.
+     v = 0/1 fills it; hot = highlight as the selected cell */
+  function cell(x, y, w, h, v, o = {}) {
+    const on = !!v;
+    rect(x, y, w, h, {
+      f: o.hot ? C.HOT : (on ? (o.onf ?? "#3f76ad") : (o.off ?? "#eef1f4")),
+      s: o.hot ? C.HOT2 : (o.s ?? "#b6c2ce"), sw: o.hot ? 1.3 : .6, rx: 1
+    });
+    if (o.showv && h >= 8) txt(x + w / 2, y + h / 2 + 2.6, on ? "1" : "0",
+      { size: 6, mono: true, fill: o.hot ? "#fff" : (on ? "#fff" : C.FAINT), w: 700 });
+  }
+
+  /* bus with a slash and a width label — standard schematic notation */
+  function bus(x1, y1, x2, y2, n, o = {}) {
+    line(x1, y1, x2, y2, { s: o.s ?? C.WIRE, sw: o.sw ?? 1.6, marker: o.marker });
+    const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+    line(mx - 3.5, my + 4, mx + 3.5, my - 4, { s: o.s ?? C.WIRE, sw: 1 });
+    if (n) txt(mx + (o.dx ?? 6), my - (o.dy ?? 6), n, { size: 6.4, fill: o.nf ?? C.MUTE, mono: true, anchor: o.anchor ?? "start" });
+  }
+
+  /* dashed enclosure with a corner caption — "this whole region is one X" */
+  function frame(x, y, w, h, label, o = {}) {
+    rect(x, y, w, h, { s: o.s ?? C.LINE, sw: o.sw ?? 1, dash: o.dash ?? "5 4", rx: o.rx ?? 5, f: o.f ?? "none" });
+    if (label) {
+      const lw = label.length * 4.4 + 10;
+      rect(x + 10, y - 6.5, lw, 13, { f: o.bg ?? "#fdfdfb", rx: 3 });
+      txt(x + 15, y + 2.6, label, { size: 6.9, anchor: "start", fill: o.lf ?? C.MUTE, mono: true, ls: .5, w: 600 });
+    }
+  }
+
+  /* small caption under a symbol */
+  function cap(x, y, s, o = {}) {
+    txt(x, y, s, { size: o.size ?? 6.4, fill: o.fill ?? C.FAINT, mono: true, anchor: o.anchor ?? "middle", ls: .3 });
+  }
+
+  /* section heading inside a schematic */
+  function hdr(x, y, s, o = {}) {
+    txt(x, y, s.toUpperCase(), { size: o.size ?? 7.6, anchor: "start", fill: o.fill ?? C.MUTE, mono: true, ls: .9, w: 600 });
+  }
+
+  const DEFS = `<defs>
+  <pattern id="tile" width="8" height="15" patternUnits="userSpaceOnUse">
+    <line x1="0" y1="14.5" x2="8" y2="14.5" stroke="rgba(20,30,45,.14)" stroke-width="1"/>
+  </pattern>
+  <pattern id="tilefine" width="6" height="6" patternUnits="userSpaceOnUse">
+    <path d="M0,6 L6,0" stroke="rgba(20,30,45,.07)" stroke-width="1"/>
+  </pattern>
+  <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.6" markerHeight="5.6" orient="auto-start-reverse">
+    <path d="M0,1.2 L9,5 L0,8.8 z" fill="${C.WIRE}"/></marker>
+  <marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.6" markerHeight="5.6" orient="auto-start-reverse">
+    <path d="M0,1.2 L9,5 L0,8.8 z" fill="${C.CMT.s}"/></marker>
+  <marker id="ahh" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.6" markerHeight="5.6" orient="auto-start-reverse">
+    <path d="M0,1.2 L9,5 L0,8.8 z" fill="${C.HOT2}"/></marker>
+  <marker id="ahg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.6" markerHeight="5.6" orient="auto-start-reverse">
+    <path d="M0,1.2 L9,5 L0,8.8 z" fill="${C.GRN}"/></marker>
+</defs>`;
+
+  /* wrap a completed buffer into a standalone svg */
+  function svg(w, h, minw) {
+    return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"`
+      + ` style="min-width:${minw ?? Math.min(w, 720)}px;max-width:100%;height:auto"`
+      + ` font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,system-ui,sans-serif">`
+      + `${DEFS}${S.join("\n")}</svg>`;
+  }
+
+  const BOB = {"chain":9400,"W":10,"H":10,"chanw":24,"nmux":2105,"mbits":5934,"ntype":{"IPIN":792,"CHANX":719,"CHANY":594},"tiles":[["ctrl",null,null,0,8,0,0],["t_x1y0",1,0,8,26,16,26],["t_x2y0",2,0,34,23,7,23],["t_x3y0",3,0,57,27,7,27],["t_x4y0",4,0,84,23,7,23],["t_x5y0",5,0,107,23,7,23],["t_x6y0",6,0,130,27,7,27],["t_x7y0",7,0,157,23,7,23],["t_x8y0",8,0,180,26,16,26],["t_x0y1",0,1,206,26,16,26],["t_x1y1",1,1,232,161,37,90],["t_x2y1",2,1,393,166,38,95],["t_x3y1",3,1,559,99,34,91],["t_x4y1",4,1,658,161,37,90],["t_x5y1",5,1,819,166,38,95],["t_x6y1",6,1,985,156,52,140],["t_x7y1",7,1,1141,161,37,90],["t_x8y1",8,1,1302,155,38,84],["t_x9y1",9,1,1457,3,1,3],["t_x0y2",0,2,1460,23,7,23],["t_x1y2",1,2,1483,151,28,80],["t_x2y2",2,2,1634,154,29,83],["t_x3y2",3,2,1788,61,19,61],["t_x4y2",4,2,1849,151,28,80],["t_x5y2",5,2,2000,154,29,83],["t_x6y2",6,2,2154,94,31,94],["t_x7y2",7,2,2248,151,28,80],["t_x8y2",8,2,2399,152,29,81],["t_x9y2",9,2,2551,3,1,3],["t_x0y3",0,3,2554,23,7,23],["t_x1y3",1,3,2577,151,28,80],["t_x2y3",2,3,2728,154,29,83],["t_x3y3",3,3,2882,62,19,62],["t_x4y3",4,3,2944,151,28,80],["t_x5y3",5,3,3095,154,29,83],["t_x6y3",6,3,3249,94,31,94],["t_x7y3",7,3,3343,151,28,80],["t_x8y3",8,3,3494,152,29,81],["t_x9y3",9,3,3646,3,1,3],["t_x0y4",0,4,3649,23,7,23],["t_x1y4",1,4,3672,151,28,80],["t_x2y4",2,4,3823,142,20,71],["t_x3y4",3,4,3965,101,31,101],["t_x4y4",4,4,4066,142,20,71],["t_x5y4",5,4,4208,142,20,71],["t_x6y4",6,4,4350,154,49,154],["t_x7y4",7,4,4504,142,20,71],["t_x8y4",8,4,4646,152,29,81],["t_x9y4",9,4,4798,3,1,3],["t_x0y5",0,5,4801,23,7,23],["t_x1y5",1,5,4824,151,28,80],["t_x2y5",2,5,4975,154,29,83],["t_x3y5",3,5,5129,86,25,78],["t_x4y5",4,5,5215,151,28,80],["t_x5y5",5,5,5366,154,29,83],["t_x6y5",6,5,5520,144,43,128],["t_x7y5",7,5,5664,151,28,80],["t_x8y5",8,5,5815,152,29,81],["t_x9y5",9,5,5967,3,1,3],["t_x0y6",0,6,5970,23,7,23],["t_x1y6",1,6,5993,151,28,80],["t_x2y6",2,6,6144,154,29,83],["t_x3y6",3,6,6298,61,19,61],["t_x4y6",4,6,6359,151,28,80],["t_x5y6",5,6,6510,154,29,83],["t_x6y6",6,6,6664,94,31,94],["t_x7y6",7,6,6758,151,28,80],["t_x8y6",8,6,6909,152,29,81],["t_x9y6",9,6,7061,3,1,3],["t_x0y7",0,7,7064,23,7,23],["t_x1y7",1,7,7087,151,28,80],["t_x2y7",2,7,7238,154,29,83],["t_x3y7",3,7,7392,62,19,62],["t_x4y7",4,7,7454,151,28,80],["t_x5y7",5,7,7605,154,29,83],["t_x6y7",6,7,7759,94,31,94],["t_x7y7",7,7,7853,151,28,80],["t_x8y7",8,7,8004,152,29,81],["t_x9y7",9,7,8156,3,1,3],["t_x0y8",0,8,8159,26,16,26],["t_x1y8",1,8,8185,155,38,84],["t_x2y8",2,8,8340,152,29,81],["t_x3y8",3,8,8492,113,40,113],["t_x4y8",4,8,8605,152,29,81],["t_x5y8",5,8,8757,152,29,81],["t_x6y8",6,8,8909,166,58,166],["t_x7y8",7,8,9075,152,29,81],["t_x8y8",8,8,9227,144,38,73],["t_x9y8",9,8,9371,3,1,3],["t_x1y9",1,9,9374,3,1,3],["t_x2y9",2,9,9377,3,1,3],["t_x3y9",3,9,9380,3,1,3],["t_x4y9",4,9,9383,3,1,3],["t_x5y9",5,9,9386,3,1,3],["t_x6y9",6,9,9389,3,1,3],["t_x7y9",7,9,9392,3,1,3],["t_x8y9",8,9,9395,3,1,3],["tail",null,null,9398,2,0,0]],"blocks":[["io_x1y0","io",1,0,0,-1],["io_x2y0","io",2,0,1,-1],["io_x3y0","io",3,0,2,-1],["io_x4y0","io",4,0,3,-1],["io_x5y0","io",5,0,4,-1],["io_x6y0","io",6,0,5,-1],["io_x7y0","io",7,0,6,-1],["io_x8y0","io",8,0,7,-1],["io_x0y1","io",0,1,8,-1],["clb_x1y1","clb",1,1,0,232],["clb_x2y1","clb",2,1,1,393],["bram0","bram",3,1,0,559],["clb_x4y1","clb",4,1,2,658],["clb_x5y1","clb",5,1,3,819],["dsp0","dsp",6,1,0,985],["clb_x7y1","clb",7,1,4,1141],["clb_x8y1","clb",8,1,5,1302],["io_x9y1","io",9,1,9,-1],["io_x0y2","io",0,2,10,-1],["clb_x1y2","clb",1,2,6,1483],["clb_x2y2","clb",2,2,7,1634],["clb_x4y2","clb",4,2,8,1849],["clb_x5y2","clb",5,2,9,2000],["clb_x7y2","clb",7,2,10,2248],["clb_x8y2","clb",8,2,11,2399],["io_x9y2","io",9,2,11,-1],["io_x0y3","io",0,3,12,-1],["clb_x1y3","clb",1,3,12,2577],["clb_x2y3","clb",2,3,13,2728],["clb_x4y3","clb",4,3,14,2944],["clb_x5y3","clb",5,3,15,3095],["clb_x7y3","clb",7,3,16,3343],["clb_x8y3","clb",8,3,17,3494],["io_x9y3","io",9,3,13,-1],["io_x0y4","io",0,4,14,-1],["clb_x1y4","clb",1,4,18,3672],["clb_x2y4","clb",2,4,19,3823],["clb_x4y4","clb",4,4,20,4066],["clb_x5y4","clb",5,4,21,4208],["clb_x7y4","clb",7,4,22,4504],["clb_x8y4","clb",8,4,23,4646],["io_x9y4","io",9,4,15,-1],["io_x0y5","io",0,5,16,-1],["clb_x1y5","clb",1,5,24,4824],["clb_x2y5","clb",2,5,25,4975],["bram1","bram",3,5,1,5129],["clb_x4y5","clb",4,5,26,5215],["clb_x5y5","clb",5,5,27,5366],["dsp1","dsp",6,5,1,5520],["clb_x7y5","clb",7,5,28,5664],["clb_x8y5","clb",8,5,29,5815],["io_x9y5","io",9,5,17,-1],["io_x0y6","io",0,6,18,-1],["clb_x1y6","clb",1,6,30,5993],["clb_x2y6","clb",2,6,31,6144],["clb_x4y6","clb",4,6,32,6359],["clb_x5y6","clb",5,6,33,6510],["clb_x7y6","clb",7,6,34,6758],["clb_x8y6","clb",8,6,35,6909],["io_x9y6","io",9,6,19,-1],["io_x0y7","io",0,7,20,-1],["clb_x1y7","clb",1,7,36,7087],["clb_x2y7","clb",2,7,37,7238],["clb_x4y7","clb",4,7,38,7454],["clb_x5y7","clb",5,7,39,7605],["clb_x7y7","clb",7,7,40,7853],["clb_x8y7","clb",8,7,41,8004],["io_x9y7","io",9,7,21,-1],["io_x0y8","io",0,8,22,-1],["clb_x1y8","clb",1,8,42,8185],["clb_x2y8","clb",2,8,43,8340],["clb_x4y8","clb",4,8,44,8605],["clb_x5y8","clb",5,8,45,8757],["clb_x7y8","clb",7,8,46,9075],["clb_x8y8","clb",8,8,47,9227],["io_x9y8","io",9,8,23,-1],["io_x1y9","io",1,9,24,-1],["io_x2y9","io",2,9,25,-1],["io_x3y9","io",3,9,26,-1],["io_x4y9","io",4,9,27,-1],["io_x5y9","io",5,9,28,-1],["io_x6y9","io",6,9,29,-1],["io_x7y9","io",7,9,30,-1],["io_x8y9","io",8,9,31,-1]],"pads":{"8":"SW0","10":"SW1","12":"BTN0","14":"BTN1","16":"BTN2","18":"BTN3","9":"LD0","11":"LD1","13":"LD2"},"chanfanin":[[1,122],[2,435],[3,130],[4,7],[5,7],[7,72],[8,142],[9,98],[11,176],[12,99],[13,15],[14,8],[15,2]],"ipinfanin":[[2,112],[4,680]]};
+  /* ============================ DRILL-DOWN CONTENT (bob) ============================ */
+  /* item = [name, caption, drillId|null, kindKey|null]  ·  row = {t:"flow"|"row", label, items}
+     bob pages add: src [[source, what was taken]], why [..], files [[file, role]], tb [[testbench, what]] */
+  const F = (label, ...items) => ({ t: "flow", label, items });
+  const B = (label, ...items) => ({ t: "row", label, items });
+  const DET = {};
+  const D = (id, o) => DET[id] = o;
+  const TB = "hw/tb/tb_bob.v";
+
+  D("clb", {
+    title: "CLB — one BLE per tile", sub: "LUT6 (O6/O5) · carry MUXCY/XORCY · FDRE/FDSE · 71 config bits", k: "CLB", stage: "hw/src/clb/clb.sv",
+    rows: [
+      F("how a signal reaches the logic",
+        ["CHANX / CHANY", "L4 unidirectional · W=24", "routing", "GTX"],
+        ["IPIN MUX", "fan-in 4 · 3 bits · 0=const0 1=const1", "cbox", "GTX"],
+        ["I[5:0] · CE · SR", "8 routed pins", null, "CLB"]),
+      B("inside the BLE",
+        ["LUTK", "K=6 · INIT 64 bits · O5 tap", "lut", "CLB"],
+        ["CARRY", "MUXCY + XORCY · cin from below", "carry", "DSP"],
+        ["FLIP-FLOP", "FDRE/FDSE · CE/SR routed · GSR/GWE/gce", "ff", "CLB"]),
+      F("and back out",
+        ["O · O5", "OPINs · fc_out 0.10", null, "CLB"],
+        ["CHANNEL MUXES", "the wires starting here", "sbox", "GTX"]),
+      B("dedicated", ["COUT → CIN", "VPR direct, CLB above, no bits", "carry", "DSP"])],
+    notes: ["48 CLBs at x ∈ {1,2,4,5,7,8}, y 1…8. Each is <b>one BLE</b>: VPR's k6_frac_N10 packs 10 BLEs + local interconnect per cluster, which would cost far more configuration flip-flops than an XC7Z020 can hold as shift + shadow register pairs.",
+      "The CLB word is <b>71 bits</b>: INIT[63:0], ff_en, ff_rstval, ff_ce_en, ff_sr_en, cy_en, cy_di_sel, ff_d_sel. The routing bits of the same tile sit right after it in the chain.",
+      "Flip-flops run on <b>sysclk</b> with <code>gce</code> as the user clock — an enable, never a derived clock (UG949).",
+      "M8 synthesis maps onto exactly this: <code>$lut</code>, <code>BOB_FDRE/FDSE</code>, <code>BOB_ADD</code> (LUT A^B + carry)."],
+    src: [["AMD UG474 (7-series CLB)", "LUT6_2 fracture (O5 = INIT[31:0] over i[4:0]), CARRY4 MUXCY/XORCY, FDRE/FDSE priority (SR beats CE)"],
+      ["OpenFPGA k6_frac_N10_tileable…dsp36 (VPR arch)", "tile pin interface I/O/cin/cout, fc_in 0.15 / fc_out 0.10, carry as a direct"],
+      ["bob/rtl/clb.sv (hardware-proven)", "the original CLB, reused and extended with CE/SR, GSR/GWE, K"]],
+    why: ["UG474 is the silicon bob is emulated on: matching its LUT6_2 and FDRE semantics means yosys' xilinx-proven mapping ideas apply directly.",
+      "OpenFPGA's arch is regression-tested with VPR, so the pin/fc choices route in practice; bob only reduced N10 to N1."],
+    files: [["hw/src/clb/clb.sv", "the BLE"], ["hw/src/clb/lutk.sv", "K-input fracturable LUT"], ["hw/src/clb/clb_pkg.sv", "field offsets, INIT helpers"],
+      ["hw/src/generated/bob_fabric.v", "48 instances u_clb_x*y*"], ["tools/bob/device.py", "clb fields, pins, VPR tile"],
+      ["tools/bob/model.py", "clb_comb / clb_next"], ["host/bitstream.py", "Design.lut()"], ["tools/bob/place.py", "M8 packer"]],
+    tb: [["hw/tb/tb_clb.sv", "7040 checks — every flag combination vs model.py"], [TB + " [9][10][21][22]", "routed CE/SR, carry counters, random netlists every clock"],
+      ["hw/tb/tb_synth.v", "yosys designs on the fabric vs source Verilog"], ["tests/test_lutk.py", "lutk(6) == original lut6"]],
+    drill: ["lut", "carry", "ff", "cbox", "sbox"]
+  });
+
+  D("lut", {
+    title: "LUT6 — lutk.sv", sub: "a 64:1 mux tree over INIT · O5 tap at the 32-bit boundary", k: "CLB", stage: "hw/src/clb/lutk.sv",
+    rows: [F("the mux tree", ["INIT[63:0]", "64 chain bits", "chain", "CFG"], ["2:1 × 63", "six stages", null, "CLB"], ["O6", "any 6-input function", null, "CLB"]),
+      B("fracturable tap", ["O5", "INIT[i[4:0]] — any 5-input function", null, "CLB"])],
+    notes: ["Parameter <b>K</b> (device.py lut_k): the same RTL runs at K=4 — <code>sim/run_k4_sim.sh</code> proves it on the whole FPGA.",
+      "O5 lets the M8 packer keep a LUT's extra loads when its flip-flop takes O6."],
+    src: [["AMD UG474 LUT6_2", "O6/O5 fracture definition"], ["bob/rtl/lut6.sv", "hardware-proven original (docs/reference/lut6.sv)"]],
+    why: ["Keeping the proven lut6 as the golden reference lets pytest prove the parameterised version equal at K=6."],
+    files: [["hw/src/clb/lutk.sv", "RTL"], ["tools/bob/model.py", "clb_comb"], ["tools/bob/synth.py", "abc -lut K"]],
+    tb: [["tests/test_lutk.py", "lutk(6) == lut6 on 3000 vectors; K=4 vs Python"], ["hw/tb/tb_clb.sv", "flag sweep"]],
+    drill: ["clb", "chain"]
+  });
+
+  D("carry", {
+    title: "Carry chain — MUXCY / XORCY", sub: "cout of CLB (x,y) is cin of CLB (x,y+1) · 42 VPR directs", k: "DSP", stage: "hw/src/clb/clb.sv",
+    rows: [F("one bit (cy_en = 1)", ["CIN", "from below / row 1: USER1 cin", null, "DSP"], ["S = O6", "propagate", null, "CLB"],
+        ["MUXCY", "CO = S ? CIN : DI", null, "DSP"], ["XORCY", "sum = S ^ CIN → FF D / O", null, "DSP"]),
+      B("generate input", ["DI", "cy_di_sel: 0 = I0, 1 = O5", null, "CLB"])],
+    notes: ["Directs cost <b>no configuration bits</b>: in the rr graph an IPIN driven only by an OPIN is a wire.",
+      "M8 puts a <b>generator CLB</b> at row 1 (LUT 0, DI = I0 = carry in) so the JTAG USER1 cin never enters a synthesised design, and a <b>tap CLB</b> (sum = carry) when a chain continues in another column.",
+      "An 8-bit counter up column 8 is checked for 300 consecutive clocks in simulation and on the board."],
+    src: [["AMD UG474 CARRY4", "MUXCY/XORCY equations, DI/S naming"], ["OpenFPGA arch directlist adder_carry", "carry as a VPR direct (bob runs it South→North)"],
+      ["yosys share/xilinx/arith_map.v", "$alu → per-bit carry cells (M8 BOB_ADD)"]],
+    why: ["The direct keeps arithmetic off the general routing — the same reason CARRY4 exists.", "arith_map.v is yosys' tested mapping; bob only adds the DI = I0 constraint."],
+    files: [["hw/src/clb/clb.sv", "carry logic"], ["hw/src/generated/bob_fabric.v", "assign rCIN = rCOUT (directs)"], ["tools/bob/synth/bob_map.v", "_80_bob_alu"], ["tools/bob/place.py", "chains, generators, taps"]],
+    tb: [[TB + " [10][11][21]", "4-bit and 8-bit counters vs model"], ["hwtest counter-step / counter8 / synth-blinky", "on the board"]],
+    drill: ["clb", "ff"]
+  });
+
+  D("ff", {
+    title: "Flip-flop — FDRE / FDSE", sub: "sysclk + gce · SR beats CE · INIT = rstval = GSR value", k: "CLB", stage: "hw/src/clb/clb.sv",
+    rows: [F("priority, highest first", ["GSR", "q ← ff_rstval", "startup", "CFG"], ["GWE · gce", "else hold", "clock", "CMT"],
+        ["SR (ff_sr_en)", "q ← ff_rstval", null, "CLB"], ["CE (ff_ce_en)", "q ← D", null, "CLB"]),
+      B("D source", ["O6", "ff_d_sel 0", null, "CLB"], ["O5", "ff_d_sel 1", null, "CLB"], ["sum", "when cy_en", "carry", "DSP"])],
+    notes: ["The M3 hardware <code>gsr-gwe</code> check steps JSTART one TCK at a time and proves the FF is frozen with GSR=0, GWE=0.",
+      "CE and SR are <b>routed pins</b> (UG474 per-slice CE/SR), so M8 synthesis puts enables and sync resets straight on them."],
+    src: [["AMD UG474 FDRE/FDSE", "SR over CE, INIT"], ["AMD UG470 startup", "GSR / GWE meaning"], ["AMD UG949", "clock enables instead of derived clocks"]],
+    why: ["Matching FDRE/FDSE lets yosys dfflegalize target $_SDFFE_PP0P_/PP1P_ with init = reset."],
+    files: [["hw/src/clb/clb.sv", "q_reg"], ["hw/src/core/clock_ctrl.v", "gce, synchronised GSR/GWE"], ["tools/bob/synth/bob_map.v", "FF techmap"]],
+    tb: [["hw/tb/tb_clb.sv", "GSR/GWE/gce/CE/SR sweep"], [TB + " [7][9]", "startup edges, routed CE/SR incl. INTEST autostep"]],
+    drill: ["clb", "startup", "clock"]
+  });
+
+  D("routing", {
+    title: "Routing — VPR's rr graph as hardware", sub: "W=24 · L4 unidirectional · Wilton Fs=3 · 2105 muxes · 5934 bits", k: "GTX", stage: "tools/bob/fabric_gen.py",
+    rows: [F("the flow that builds it",
+        ["device.py ARCH", "grid, pins, W, fc", null, "HARD"], ["vpr_arch.py", "bob_k6.xml", null, "HARD"],
+        ["VPR (Docker)", "routes and2.blif, writes rr_graph", null, "HARD"], ["device.py", "nodes with drivers → muxes → chain", "chain", "CFG"],
+        ["fabric_gen.py", "bob_fabric.v", null, "HARD"]),
+      B("mux kinds", ["CHANX 719", "wire starts: 0=const0, 1+i", "sbox", "GTX"], ["CHANY 594", "same encoding", "sbox", "GTX"],
+        ["IPIN 792", "0=const0 1=const1 2+i", "cbox", "GTX"]),
+      B("free", ["90 directs", "carry + DSP cascade", "carry", "DSP"], ["125 undriven", "bottom cin, clk, dsp0 pcin, 19 edge wires", null, "GTX"])],
+    notes: ["<b>RTL, router, model and VPR use one graph.</b> The rr graph is committed (<code>tools/bob/arch/bob_k6_rr.xml.gz</code>) with the sha256 of the arch that made it; <code>make check</code> fails if they drift.",
+      "An all-zero chain selects const0 everywhere, so a dark fabric has <b>no loops</b>; the netlist still has thousands of potential cycles — Vivado LUTLP-1 is waived for bob_top.",
+      "W=24 was measured: 8×8 with W=16 → 4.2k routing bits, W=24 → 6.0k, W=32 → 7.8k."],
+    src: [["OpenFPGA k6_frac_N10_tileable_adder_chain_dpram8K_dsp36_fracff_40nm.xml", "tileable layout, L4 unidir segment, Wilton Fs=3, fc, switches"],
+      ["OpenFPGA fabric generation method", "every rr node with fan-in becomes a routing multiplexer"], ["VPR 9 (OpenFPGA Docker)", "builds the tileable rr graph"]],
+    why: ["A router and a fabric generated from different descriptions produce bitstreams that route in software and fail in hardware; VPR's graph is the single source.",
+      "The reference arch is regression-tested, so the channel structure is known to route real benchmarks (M9 will run VPR on bob's own designs)."],
+    files: [["tools/bob/vpr_arch.py", "arch XML"], ["tools/bob/vpr_rrgraph.sh", "VPR run"], ["tools/bob/rrgraph.py", "graph reader"], ["tools/bob/device.py", "muxes + chain"],
+      ["tools/bob/fabric_gen.py", "RTL"], ["hw/src/fabric/bob_mux.v", "one mux"], ["host/bitstream.py", "BFS router over the graph"], ["tools/bob/model.py", "evaluates the same muxes"]],
+    tb: [[TB + " [3][22]", "routed designs + 4 random routed netlists, every CLB output every clock"], ["tests/test_device.py", "encoding, pips unique, pins, directs, trees never share wires"],
+      ["sim/mutate_fabric.sh", "mux-no-const1, mux-inputs-shifted, carry-direct-cut killed"]],
+    drill: ["sbox", "cbox", "chain", "clb"]
+  });
+
+  D("sbox", {
+    title: "Switch box — wire-start muxes", sub: "CHANX/CHANY node · fan-in 1…12 · bits = ⌈log2(N+1)⌉", k: "GTX", stage: "hw/src/fabric/bob_mux.v",
+    rows: [F("one L4 wire", ["SELECT", "chain bits at the wire's start tile", "chain", "CFG"], ["bob_mux", "0 const0 · 1+i input i", null, "GTX"], ["WIRE (4 tiles)", "one rr node, ptc per position", null, "GTX"]),
+      B("inputs (ascending rr node id)", ["ending / passing wires", "Wilton Fs=3", null, "GTX"], ["OPINs", "CLB O/O5, BRAM DO, DSP P, pad in", null, "CLB"])],
+    notes: ["A mux lives at <b>(xlow,ylow)</b> for an INC_DIR wire and <b>(xhigh,yhigh)</b> for DEC_DIR — where the wire is driven.",
+      "Wider fan-ins (11–12) appear where many wires meet; single-input muxes still cost one bit so 0 stays const0."],
+    src: [["OpenFPGA / VPR tileable rr graph", "the edges into each wire"], ["bob mux convention (M1)", "value 0 = const0 so all-zero is inert"]],
+    why: ["Keeping 0 = const0 from the first 4×4 fabric keeps random/partial chains loop-free in simulation (the M4 hang)."],
+    files: [["hw/src/fabric/bob_mux.v", "tab[sel]"], ["hw/src/generated/bob_fabric.v", "m<id> instances"]],
+    tb: [["tests/test_device.py::test_mux_encoding", "minimal width, inputs == VPR fan-in"], ["sim/mutate_fabric.sh", "mux-inputs-shifted killed"]],
+    drill: ["routing", "cbox"]
+  });
+
+  D("cbox", {
+    title: "Connection box — IPIN muxes", sub: "fc_in 0.15 × W=24 → fan-in 4 · 0=const0 · 1=const1", k: "GTX", stage: "hw/src/fabric/bob_mux.v",
+    rows: [F("one block pin", ["4 channel wires", "fc_in", "sbox", "GTX"], ["bob_mux C1=1", "3 bits", null, "GTX"], ["IPIN", "LUT I, CE, SR, BRAM/DSP pin, pad out", null, "CLB"])],
+    notes: ["const1 on IPINs lets designs tie CE/EN/B-bits high <b>without routing</b> (the pipeline's B = 3 uses it).", "680 IPINs have fan-in 4, 112 have fan-in 2."],
+    src: [["OpenFPGA arch fc_in 0.15", "tracks per pin"], ["bob (M7)", "const1 option on IPINs"]],
+    why: ["Constants are common on hard-block pins; generating them in LUTs would waste CLBs out of 48."],
+    files: [["hw/src/fabric/bob_mux.v", "C1 parameter"], ["host/bitstream.py", "Design._sink / Const"]],
+    tb: [["sim/mutate_fabric.sh", "mux-no-const1 killed"], [TB + " [20]", "pipeline uses const1 B pins"]],
+    drill: ["routing", "sbox", "clb"]
+  });
+
+  D("bram", {
+    title: "BRAM — 1024 × 18 true dual port", sub: "column x=3 · bram0 rows 1–4 · bram1 rows 5–8 · one RAMB18 each", k: "BRAM", stage: "hw/src/tiles/bram_core.v",
+    rows: [
+      F("port A (port B identical)",
+        ["64 IPIN MUXES", "addr·di·we·en·rst·regce from routing", "cbox", "GTX"],
+        ["jtag_a", "or the USER4 drive word", "user4", "CFG"],
+        ["bram_core", "Vivado READ_FIRST template", null, "BRAM"],
+        ["WRITE MODE", "WRITE_FIRST / READ_FIRST / NO_CHANGE", null, "BRAM"],
+        ["DOA_REG", "optional, REGCE, RST priority", null, "BRAM"],
+        ["36 OPINs", "do_a / do_b onto the channels", "sbox", "GTX"]),
+      B("contents (not in the chain)", ["USER4 WRITE / READ", "only while GWE = 0", "user4", "CFG"], ["SELECT", "which BRAM (M7)", "user4", "CFG"])],
+    notes: ["8 config bits per BRAM: wmode_a, wmode_b, reg_a, reg_b, jtag_a, jtag_b. The pin muxes are ordinary rr-graph IPIN muxes.",
+      "WRITE_FIRST and NO_CHANGE are derived from the READ_FIRST RAM with registers, so the mode is a <b>configuration bit</b> and the host still infers one RAMB18.",
+      "Contents are loaded like UG470 keeps them: <b>separate from configuration</b>, write-locked once GWE rises; JPROGRAM does not clear them.",
+      "M8 infers it from Verilog through yosys <code>memory_libmap</code> (<code>tools/bob/synth/bob_brams.txt</code>)."],
+    src: [["AMD UG473 (RAMB18E1)", "true dual port, write modes, DOx_REG/REGCE, output latch semantics"], ["Vivado RAM inference template (UG901)", "the RTL shape that maps to RAMB18"],
+      ["AMD UG470", "BRAM contents as their own block type, written before startup"], ["OpenFPGA arch memory tile", "a height>1 block in its own column"], ["yosys brams_xc4v.txt / brams_xc6v_map.v", "M8 memory library pattern"]],
+    why: ["UG473 behaviour + the Vivado template means the guest BRAM is a real hard RAM on the host, not 18k flip-flops.", "A column block height 4 is what VPR/OpenFPGA tileable layouts support."],
+    files: [["hw/src/tiles/bram_core.v", "memory + modes"], ["hw/src/tiles/bram_block.v", "fabric/JTAG pin choice"], ["hw/src/tiles/bram_jtag.v", "USER4, SELECT, contents CDC"],
+      ["tools/bob/model.py", "class Bram"], ["tools/bob/synth/bob_brams.txt", "memory_libmap"], ["host/cfgplane.py", "bram_scan/select/write/read"]],
+    tb: [["hw/tb/tb_bram.v", "5292 checks, all 36 mode × register combinations vs model.py"], [TB + " [12]–[15][19]", "contents, ROM, lock, modes, two BRAMs via SELECT"],
+      ["hw/tb/tb_synth.v", "inferred RAM (examples/ram.v) vs source"], ["hwtest bram-* / bram-select / synth-ram", "on the board"]],
+    drill: ["user4", "cbox", "dsp"]
+  });
+
+  D("dsp", {
+    title: "DSP — DSP48E1-style slice", sub: "column x=6 · dsp0 rows 1–4 · dsp1 rows 5–8 · PCOUT → PCIN direct", k: "DSP", stage: "hw/src/tiles/dsp_core.v",
+    rows: [
+      F("datapath",
+        ["A25 · B18 · C48 · D25", "IPIN muxes or DSP drive word", "cbox", "GTX"],
+        ["PRE-ADDER", "D ± A (use_d, d_sub)", null, "DSP"],
+        ["MULTIPLIER", "25 × 18 signed", null, "DSP"],
+        ["OPMODE", "M · M+C · P+M · (PCIN>>>17)+M", null, "DSP"],
+        ["P48", "OPINs; PCOUT = P", null, "DSP"]),
+      B("register stages (config bits)", ["AREG/DREG", "ce_ad rst_ad", null, "DSP"], ["BREG", "", null, "DSP"], ["MREG", "", null, "DSP"], ["CREG/PREG", "ce_p rst_p", null, "DSP"]),
+      B("cascade", ["dsp0.pcout → dsp1.pcin", "48 VPR directs, no bits", "carry", "DSP"])],
+    notes: ["16 config bits per slice: opmode, use_d, d_sub, six REG bits, jtag_a/b/c/d, jtag_ctrl.",
+      "Written in UG479 inference style, so Vivado maps each slice to a <b>DSP48E1</b>.",
+      "M8 maps Verilog multipliers onto it with yosys <code>mul2dsp</code> at 25×18 signed (<code>examples/mult.v</code>)."],
+    src: [["AMD UG479 (DSP48E1)", "A/B/C/D widths, pre-adder, OPMODE subset, register attributes, PCOUT→PCIN"], ["OpenFPGA arch mult_36 column", "hard multiplier as a tall column block with directs"],
+      ["yosys share/xilinx/xc7_dsp_map.v + mul2dsp.v", "M8 multiplier mapping"]],
+    why: ["The host has DSP48E1s: UG479 semantics make the guest slice cost one real DSP.", "Trimmed (no dynamic OPMODE, no pattern detect) to what synthesis actually uses."],
+    files: [["hw/src/tiles/dsp_core.v", "datapath"], ["hw/src/tiles/dsp_block.v", "fabric/JTAG bus choice"], ["hw/src/tiles/dsp_jtag.v", "private DSP register"], ["tools/bob/model.py", "class Dsp"], ["tools/bob/synth/bob_map.v", "$__MUL25X18"]],
+    tb: [["hw/tb/tb_dsp.v", "1344 checks vs model.py"], [TB + " [16]–[18][20]", "every opmode + cascade, multiplier, accumulator, pipeline"], ["hwtest dsp-* / synth-mult", "on the board"]],
+    drill: ["dspjtag", "bram", "carry"]
+  });
+
+  D("io", {
+    title: "I/O pad — VPR io block + two boundary cells", sub: "32 pads round the ring · 9 wired to the PYNQ-Z2 · the rest boundary-scan only", k: "IO", stage: "hw/src/fabric/bob_fpga.v",
+    rows: [
+      F("in", ["BOARD PIN", "SW/BTN or 0", "board", "BRD"], ["INPUT CELL", "BSR bit NPAD+k", "bsr", "CFG"], ["inpad OPIN", "onto the channels", "sbox", "GTX"]),
+      F("out", ["outpad IPIN MUX", "routed", "cbox", "GTX"], ["GTS GATE", "0 until startup", "startup", "CFG"], ["OUTPUT CELL", "BSR bit k", "bsr", "CFG"], ["BOARD PIN", "LD0–2", "board", "BRD"])],
+    notes: ["Pads are numbered row-major round the ring: SW0 8, SW1 10, BTN0–3 12/14/16/18 on the <b>West</b> edge; LD0–2 9/11/13 on the <b>East</b> edge — every design crosses the grid.",
+      "No per-pad config bits (the board pins have fixed direction); GTS forces outputs 0 rather than hi-Z.",
+      "INTEST drives the fabric's pads from JTAG, which is how every hardware check applies vectors independent of the real switches."],
+    src: [["OpenFPGA arch io tile", "capacity-1 perimeter io, pins on all four sides"], ["IEEE 1149.1 BC_1 cell", "capture/update split, EXTEST/INTEST/SAMPLE"], ["Aegis docs/arch/io.md", "pad + boundary cell as one I/O tile"]],
+    why: ["VPR needs io blocks on the perimeter to place and route pad nets (M9).", "The boundary ring was already hardware-proven in bob."],
+    files: [["hw/src/fabric/bob_fpga.v", "64 bsc_cell, GTS gate"], ["hw/src/top/bob_top.v", "board pins → pad numbers"], ["hw/src/core/bsc_cell.v", "BC_1"], ["host/fpga.py", "bsr_word / bsr_leds"]],
+    tb: [[TB + " [5]", "EXTEST, SAMPLE on the pads"], [TB + " [9]", "INTEST autostep with the real switch held"], ["hwtest selftest", "every design through INTEST"]],
+    drill: ["bsr", "board", "startup"]
+  });
+
+  D("board", {
+    title: "PYNQ-Z2 — the host board", sub: "XC7Z020 PL · Pico DirtyJTAG on PMODA · sysclk H16", k: "BRD", stage: "hw/constr/pynq_z2.xdc",
+    rows: [B("pins", ["TCK U18 (MRCC)", "TMS Y18 · TDI Y19 · TDO Y16", "jtag", "CFG"], ["SYSCLK H16", "125 MHz", "clock", "CMT"],
+        ["SW0 M20 · SW1 M19", "pads 8, 10", "io", "IO"], ["BTN0–3 D19 D20 L20 L19", "pads 12–18", "io", "IO"], ["LD0–2 R14 P14 N16", "pads 9 11 13 · LD3 M14 = DONE", "io", "IO"])],
+    notes: ["TCK must sit on a clock-capable pin; moving it needs CLOCK_DEDICATED_ROUTE.", "The Pico runs DirtyJTAG; host/dirtyjtag.py bulk-shifts the 9400-bit chain in well under a second."],
+    src: [["Xilinx PYNQ boards/Pynq-Z2 base.xdc", "pin numbers"], ["pico-dirtyJtag", "probe firmware and USB protocol"]],
+    why: ["Official constraints avoid guessing pins; DirtyJTAG is the proven probe from bob."],
+    files: [["hw/constr/pynq_z2.xdc", "pins, clocks, multicycles"], ["hw/src/top/bob_top.v", "BUFGs, pad map"], ["host/dirtyjtag.py", "probe"], ["host/hwtest.py", "hardware test"]],
+    tb: [["tests/test_layout.py", "XDC is plain XDC, create_clock on tck"], ["tests/test_reports.py", "Vivado reports: tck constrained, RAMB18/DSP present"]],
+    drill: ["io", "jtag", "clock"]
+  });
+
+  D("jtag", {
+    title: "JTAG TAP — jtag_tap6.v", sub: "IEEE 1149.1 · 16-state FSM · 6-bit AMD 7-series IR", k: "CFG", stage: "hw/src/core/jtag_tap6.v",
+    rows: [F("every host operation", ["TMS walk", "Select-DR/IR", null, "CFG"], ["Capture", "load the register", null, "CFG"], ["Shift", "LSB first, TDO on falling edge", null, "CFG"], ["Update", "falling edge", null, "CFG"]),
+      B("instructions → registers",
+        ["CFG_IN 000101 · CFG_OUT 000100", "the chain", "chain", "CFG"], ["USER2 000011 CFG_CTRL", "CRC, status", "cfgctrl", "CFG"],
+        ["USER1 · USER3 CAPTURE", "ce/step/cin · CLB outs", "capture", "CFG"], ["USER4 100011 · DSP 101000", "BRAM / DSP access", "user4", "CFG"],
+        ["JPROGRAM · JSTART", "clear · startup", "startup", "CFG"], ["SAMPLE · EXTEST · INTEST", "boundary", "bsr", "CFG"])],
+    notes: ["Capture-IR returns <code>{DONE, INIT_B, COMMITTED, CRC_ERR, 0, 1}</code>, so any IR scan reports configuration status.",
+      "<b>tlr is only consumed synchronously</b> — a combinational decode of the state register glitches, which broke EXTEST on the PS+PL build (bsc_cell.v history).",
+      "USER1 bit 4 <b>autostep</b> gives exactly one fabric clock per INTEST scan: how the board checks run sequential designs."],
+    src: [["IEEE 1149.1", "TAP state machine, edge timing"], ["AMD UG470 + OpenOCD xc7.cfg + openFPGALoader", "6-bit codes, IR capture DONE/INIT_B bits"], ["bob/rtl/jtag_tap.v", "hardware-proven 4-bit TAP it was copied from"]],
+    why: ["Using AMD's codes makes bob look like a 7-series part to standard tools; the FSM is the proven one, unchanged."],
+    files: [["hw/src/core/jtag_tap6.v", "TAP"], ["host/dirtyjtag.py", "shift_ir / shift_dr_fast"], ["host/cfgplane.py", "IR table"]],
+    tb: [["hw/tb/tb_cfg.v", "180 checks on the config plane"], [TB + " [1][8][23]", "IDCODE, BYPASS, IR capture, TLR"], ["hwtest idcode / bypass / ir-status", "board"]],
+    drill: ["cfgctrl", "startup", "chain", "bsr"]
+  });
+
+  D("cfgctrl", {
+    title: "CFG_CTRL — CRC-32C commit guard", sub: "commit only if count == 9400 AND ~crc == expected", k: "CFG", stage: "hw/src/core/cfg_ctrl.v",
+    rows: [F("one load", ["JPROGRAM", "clear cfg, GSR=GTS=1", "startup", "CFG"], ["CFG_CTRL write", "key 0xC5 + expected CRC", null, "CFG"],
+        ["CFG_IN shift", "CRC + count per bit", "chain", "CFG"], ["Update-DR", "commit ⇔ len_good ∧ crc_good", null, "CFG"], ["CFG_OUT", "readback, never commits", "chain", "CFG"], ["JSTART", "phases", "startup", "CFG"]),
+      B("status register (64)", ["[31:0] ~crc", "", null, "CFG"], ["[47:32] count", "", null, "CFG"], ["[55:48] flags", "DONE GWE GTS GSR COMMITTED LEN_ERR CRC_ERR CRC_OK", null, "CFG"], ["[63:56] 0x02", "version", null, "CFG"])],
+    notes: ["CRC-32C reflected 0x82F63B78, init/xorout 0xFFFFFFFF, bit-serial in shift order; 9400 is byte aligned so it equals the byte-wise CRC-32C.",
+      "A corrupted chain sets CRC_ERR and the <b>running design keeps working</b> (tb section [4], hwtest crc-reject-live)."],
+    src: [["AMD UG470", "CRC before startup, write-protected registers (the key idea)"], ["CRC-32C (Castagnoli)", "polynomial 0x1EDC6F41"]],
+    why: ["A scan chain has no framing: without length + CRC a dropped bit silently loads a different design."],
+    files: [["hw/src/core/cfg_ctrl.v", "RTL"], ["tools/bob/chainbits.py", "crc32c_bits, ctrl words"], ["host/cfgplane.py", "load() sequence"], ["docs/bitstream-format.md", "the spec"]],
+    tb: [["hw/tb/tb_cfg.v", "CRC vs Python, length/CRC reject, key"], ["sim/mutate_cfg.sh", "guards deleted one at a time, all killed"], ["tests/test_chainbits.py", "CRC check value 0xE3069283"]],
+    drill: ["startup", "chain", "jtag"]
+  });
+
+  D("startup", {
+    title: "Startup FSM — GSR → GTS → GWE → DONE", sub: "one phase per TCK in Run-Test/Idle with JSTART, only if COMMITTED", k: "CFG", stage: "hw/src/core/cfg_ctrl.v",
+    rows: [F("phases", ["0 · reset", "GSR 1 GTS 1 GWE 0", null, "CFG"], ["1", "GSR ← 0", null, "CFG"], ["2", "GTS ← 0 (pads live)", null, "CFG"], ["3", "GWE ← 1 (FF/RAM writes)", null, "CFG"], ["4", "DONE ← 1 (LD3)", null, "BRAM"])],
+    notes: ["JPROGRAM returns to phase 0 from anywhere. Without COMMITTED the FSM never leaves phase 0.",
+      "GSR/GWE reach the fabric through clock_ctrl's two-flop synchronisers; the tb checks the clock edge that sees GSR=0 with GWE=0 leaves the FF frozen."],
+    src: [["AMD UG470 startup sequence", "order GSR, GTS, GWE, DONE; JSTART clocked in RTI"]],
+    why: ["Releasing GSR before GWE is what gives every flip-flop a defined INIT on the first user clock."],
+    files: [["hw/src/core/cfg_ctrl.v", "phase counter"], ["hw/src/fabric/bob_fpga.v", "GTS gate on pad outputs"], ["hw/src/core/clock_ctrl.v", "gsr_s / gwe_s"]],
+    tb: [[TB + " [2][7]", "GTS forced, edge-by-edge JSTART"], ["hwtest gts / gsr-gwe / jprogram", "board"]],
+    drill: ["cfgctrl", "clock", "ff"]
+  });
+
+  D("chain", {
+    title: "Configuration chain — 9400 bits", sub: "one shift register + shadow register · ctrl | 96 grid tiles row-major | tail", k: "CFG", stage: "hw/src/core/cfg_tile_sr.v",
+    rows: [F("per bit", ["TDI", "enters bit 9399", null, "CFG"], ["sr (posedge)", "capture ← cfg · shift", null, "CFG"], ["cfg shadow (negedge)", "commit / clear", null, "CFG"], ["fabric", "sees only cfg", "routing", "GTX"]),
+      B("order", ["ctrl 8", "clk_mode, clk_div", "clock", "CMT"], ["grid tiles", "block fields, then muxes by node id", "routing", "GTX"], ["tail", "byte pad", null, "CFG"])],
+    notes: ["Chain bit k is the k-th bit shifted in. Tile boundaries exist only in device.json — the RTL is one 9400-bit <code>cfg_tile_sr</code>.",
+      "Shadow register: the fabric never sees bits sliding past, and CFG_OUT readback is non-destructive.",
+      "M13 replaces exactly this module with UG470 frames; tiles, VPR and the tools stay."],
+    src: [["OpenFPGA config_protocol scan_chain", "chain through every tile's configuration flops"], ["Aegis docs/arch/configuration.md", "shift register + shadow config register"]],
+    why: ["Scan chain is the simplest protocol proven in both projects; frames come last (M13) once everything else is solid."],
+    files: [["hw/src/core/cfg_tile_sr.v", "cell"], ["tools/bob/device.py", "chain layout"], ["tools/bob/device.json", "tiles, chain_lo"], ["host/bitstream.py", "Bitstream word"]],
+    tb: [[TB + " [2]", "random loop-free chain: commit, readback twice, 32-bit marker length"], ["tests/test_device.py", "every bit mapped exactly once, encode/decode round trip"]],
+    drill: ["cfgctrl", "routing", "clb"]
+  });
+
+  D("clock", {
+    title: "User clock — clock_ctrl.v", sub: "sysclk 125 MHz + gce enable · JTAG-stepped or free-running", k: "CMT", stage: "hw/src/core/clock_ctrl.v",
+    rows: [F("clk_mode 0 — JTAG-stepped", ["TCK", "2-flop sync", null, "CMT"], ["rising edge ∧ USER1 ce", "or step / autostep", null, "CMT"], ["gce pulse", "one sysclk cycle", null, "CMT"]),
+      F("clk_mode 1 — free-running", ["counter", "2^(clk_div+8) cycles", null, "CMT"], ["gce pulse", "≤ 488 kHz", null, "CMT"]),
+      B("also synchronised", ["GSR · GWE · cin", "ASYNC_REG", null, "CMT"])],
+    notes: ["gce pulses are ≥ 120 sysclk cycles apart, so every fabric flop-to-flop path gets a 120-cycle multicycle in the XDC — the routing graph needs hundreds of ns.",
+      "M4's build closed with only +0.84 ns WNS on sysclk even with these multicycles; M7's much deeper routing depends on them."],
+    src: [["AMD UG949", "clock enables instead of logic-generated clocks"], ["Aegis docs/arch/clock.md", "divider-based user clock"]],
+    why: ["A single BUFG clock + enable keeps the host timing analysable; a generated clock through the fabric would not be."],
+    files: [["hw/src/core/clock_ctrl.v", "RTL"], ["hw/constr/pynq_z2.xdc", "clock groups, multicycles"], ["host/bitstream.py", "Design.set_clock"]],
+    tb: [[TB + " [10][11]", "one count per TCK edge; 100 pulses in 3200 ns"], ["sim/mutate_fabric.sh", "step-ignores-ce, divider-off-by-1 killed"], ["hwtest counter-run", "7.45 counts/s on the board"]],
+    drill: ["ff", "startup", "jtag"]
+  });
+
+  D("capture", {
+    title: "CAPTURE / USER1 — user-state readback", sub: "USER3: all 48 CLB outputs · USER1: ce/sr/cin/step/autostep + first 16", k: "CFG", stage: "hw/src/core/capture_chain.v",
+    rows: [F("scan", ["Capture-DR", "snapshot clb_o[47:0]", null, "CFG"], ["Shift-DR", "LSB first", null, "CFG"], ["Update-DR", "nothing", null, "CFG"])],
+    notes: ["AMD readback capture in scan form: nothing in the design is disturbed.", "Bit i is CLB i in row-major order (device.json capture.order)."],
+    src: [["AMD UG470 readback capture", "snapshot user state over JTAG"]], why: ["Lets hardware checks see flip-flops without spending pads."],
+    files: [["hw/src/core/capture_chain.v", "RTL"], ["host/hwtest.py", "counter checks decode it"]],
+    tb: [[TB + " [6]", "CAPTURE == model.py for every CLB; == USER1[19:4]"], ["hwtest capture-user1 / counter8", "board"]],
+    drill: ["jtag", "clb"]
+  });
+
+  D("user4", {
+    title: "USER4 — BRAM contents & drive", sub: "96-bit register · LOAD_PTR WRITE READ SET_DRIVE SELECT · version 0x07", k: "CFG", stage: "hw/src/tiles/bram_jtag.v",
+    rows: [F("a command crosses domains", ["Update-DR (TCK)", "latch cmd, payload, target", null, "CFG"], ["toggle req_t", "", null, "CFG"], ["2-flop sync (sysclk)", "edge detect", null, "CMT"], ["execute", "init_go[target] if GWE = 0", "bram", "BRAM"]),
+      B("immediate in TCK domain", ["SET_DRIVE", "drive[target]", null, "CFG"], ["SELECT", "target ← payload if < NBRAM", null, "CFG"])],
+    notes: ["A READ's word appears in the <b>next</b> scan's capture.", "WRITE after JSTART sets err — contents are locked like UG470."],
+    src: [["AMD UG470", "BRAM contents separate, written before startup"]], why: ["Keeps megabytes of contents out of the configuration chain and its CRC."],
+    files: [["hw/src/tiles/bram_jtag.v", "RTL"], ["host/cfgplane.py", "bram_scan / bram_select"]],
+    tb: [[TB + " [12][14][19]", "contents, lock, SELECT"], ["sim/mutate_fabric.sh", "bram-init-unlocked, bram-select-ignored killed"]],
+    drill: ["bram", "jtag"]
+  });
+
+  D("dspjtag", {
+    title: "DSP register — private instruction 101000", sub: "256 bits · capture P0/P1 · SET_DRIVE 124 bits per slice", k: "CFG", stage: "hw/src/tiles/dsp_jtag.v",
+    rows: [F("scan", ["Capture", "P0 · P1 · version 0x07", null, "CFG"], ["Shift", "", null, "CFG"], ["Update cmd 4", "drive ← [247:0]", null, "CFG"], ["dsp_block", "uses drive where jtag_* set", "dsp", "DSP"])],
+    notes: ["All four AMD USER codes were taken, so the DSP gets a private code."],
+    src: [["bob M6", "stepped DSP verification design"]], why: ["Lets every opmode be checked cycle by cycle on silicon without routing 248 signals."],
+    files: [["hw/src/tiles/dsp_jtag.v", "RTL"], ["host/cfgplane.py", "dsp_scan"]],
+    tb: [[TB + " [16]", "60 stepped operations vs model"], ["hwtest dsp-modes", "board"]],
+    drill: ["dsp", "jtag"]
+  });
+
+  D("bsr", {
+    title: "Boundary scan — 64 BC_1 cells", sub: "cell k < 32: output of pad k · cell 32+k: input of pad k", k: "CFG", stage: "hw/src/core/bsc_cell.v",
+    rows: [F("one cell", ["capture_reg (posedge)", "data_in or scan_in", null, "CFG"], ["update_reg (negedge)", "", null, "CFG"], ["mode mux", "EXTEST/INTEST drive, else transparent", null, "CFG"])],
+    notes: ["The capture/update split is what lets a scan change pins once, as a unit.", "Test-Logic-Reset is sampled synchronously — the fix proven on the PYNQ-Z2."],
+    src: [["IEEE 1149.1 BC_1", "cell structure"], ["bob/rtl/bsc_cell.v", "hardware-proven cell with the TLR fix"]], why: ["Proven on this exact board; INTEST is the hardware test harness."],
+    files: [["hw/src/core/bsc_cell.v", "cell"], ["hw/src/fabric/bob_fpga.v", "64-cell ring"], ["host/fpga.py", "intest_sweep, sample"]],
+    tb: [[TB + " [5][9]", "EXTEST/SAMPLE/INTEST"], ["hwtest selftest / ce-sr / synth-*", "board"]],
+    drill: ["io", "jtag"]
+  });
+
+  D("flow", {
+    title: "Guest flow — Verilog to a running bob", sub: "M8 built · M9 VPR PnR · M10 bitgen (next)", k: "SOFT", stage: "tools/bob/synth.py",
+    rows: [F("today (M8)", ["design.v", "board ports sw/btn/led/clk", null, "BRD"], ["synth.py", "yosys → bob cells", null, "SOFT"], ["equiv.py", "netlist == source (iverilog)", null, "SOFT"],
+        ["place.py", "pack · place · route (Design)", "routing", "GTX"], ["cfgplane.load", "CRC · CFG_IN · readback · JSTART", "cfgctrl", "CFG"], ["hwtest", "LEDs == source every clock", "board", "BRD"]),
+      F("next", ["synth BLIF", "", null, "SOFT"], ["VPR pack/place/route", "on the committed rr graph (M9)", "routing", "GTX"], ["bitgen", "routes → mux values (M10)", "chain", "CFG"])],
+    notes: ["Cells: <code>$lut</code>, <code>BOB_FDRE/FDSE</code>, <code>BOB_ADD</code>, <code>BOB_BRAM18</code>, <code>BOB_DSP</code>. Anything else fails synthesis.",
+      "Every example is checked three ways: netlist vs source, placed bitstream on model.py vs source, placed bitstream on the fabric RTL vs source."],
+    src: [["yosys synth_xilinx", "pass order"], ["yosys xilinx ff/arith/dsp maps, brams_xc4v", "mapping patterns"], ["Aegis synth-equiv", "cell simulation models for equivalence"]],
+    why: ["synth_xilinx is yosys' most-used FPGA flow; bob's fabric deliberately mirrors 7-series cells so the patterns carry over."],
+    files: [["tools/bob/synth.py", "flow"], ["tools/bob/synth/*", "cells, maps, BRAM library"], ["tools/bob/equiv.py", "equivalence"], ["tools/bob/place.py", "placer"], ["examples/*.v", "designs"]],
+    tb: [["tests/test_synth.py", "flow for every example"], ["hw/tb/tb_synth.v", "486 checks on the fabric RTL"], ["hwtest M8 synth-*", "board, on the M7 bitstream"]],
+    drill: ["routing", "cfgctrl", "clb"]
+  });
+
+  /* ============================================================================
+     FLOORPLAN  —  the home screen: bob's real 10 × 10 VPR grid inside the XC7Z020 PL
+     ========================================================================= */
+  const W = 1700, H = 1112;
+  const DIE = { x: 44, y: 70, w: 1196, h: 818 };
+  const HITS = [];
+
+  txt(44, 30, "BOB — AN FPGA INSIDE AN FPGA", { size: 20, w: 680, anchor: "start", ls: -.45 });
+  txt(44, 50, "DIE SLICE · TOP VIEW · M7 FABRIC GENERATED FROM VPR'S ROUTING-RESOURCE GRAPH",
+    { size: 9, anchor: "start", fill: C.MUTE, mono: true, ls: 1.1 });
+  line(44, 58, 760, 58, { s: C.RULE, sw: 1 });
+  txt(930, 50, "▸ CLICK ANY TILE, CHANNEL OR BLOCK", { size: 9, anchor: "end", fill: C.HOT2, mono: true, w: 700, ls: .7 });
+  rect(944, 16, 296, 18, { f: "#fff", s: C.SOFT.s, sw: 1.2, dash: "5 3", rx: 4 });
+  txt(1092, 28.5, "DASHED  =  HOST-SIDE / NOT IN THE PL", { size: 7.8, fill: C.SOFT.t, mono: true, w: 600 });
+  rect(944, 39, 296, 18, { f: C.HARD.f, s: C.HARD.s, sw: 1.2, rx: 4 });
+  txt(1092, 51.5, "SOLID  =  RTL IN hw/  (THE VIVADO BUNDLE)", { size: 7.8, fill: C.HARD.t, mono: true, w: 600 });
+
+  /* ── host die + decorative pad ring ── */
+  rect(DIE.x, DIE.y, DIE.w, DIE.h, { f: "#fcfcfa", s: C.DIE.s, sw: 2.4, rx: 12 });
+  rect(DIE.x + 9, DIE.y + 9, DIE.w - 18, DIE.h - 18, { s: "#cfcfc8", sw: .8, rx: 9 });
+  (function pads() {
+    const g = [], p = 7.2, q = 5.8;
+    for (let x = DIE.x + 22; x < DIE.x + DIE.w - 24; x += 13.4) {
+      g.push(`<rect x="${x}" y="${DIE.y + 11.5}" width="${p}" height="${q}" rx="1.2" fill="#93938c"/>`);
+      g.push(`<rect x="${x}" y="${DIE.y + DIE.h - 19.5}" width="${p}" height="${q}" rx="1.2" fill="#93938c"/>`);
+    }
+    for (let y = DIE.y + 22; y < DIE.y + DIE.h - 24; y += 13.4) {
+      g.push(`<rect x="${DIE.x + 11.5}" y="${y}" width="${q}" height="${p}" rx="1.2" fill="#93938c"/>`);
+      g.push(`<rect x="${DIE.x + DIE.w - 19.5}" y="${y}" width="${q}" height="${p}" rx="1.2" fill="#93938c"/>`);
+    }
+    S.push(`<g opacity=".8">${g.join("")}</g>`);
+  })();
+  txt(DIE.x + DIE.w - 8, DIE.y + DIE.h + 14, "HOST: XILINX XC7Z020 PL  ·  PYNQ-Z2  ·  bob_top", { size: 7.2, anchor: "end", fill: C.MUTE, mono: true, ls: .8 });
+
+  /* ── the bob grid ── */
+  const GP = 75, GT = 63, GX = 92, GY = 104;               // pitch, tile size, origin
+  const gx = x => GX + x * GP, gy = y => GY + (BOB.H - 1 - y) * GP;
+  rect(GX - 14, GY - 18, BOB.W * GP + 16, BOB.H * GP + 22, { f: "#f5f7fa", s: "#d3dae2", sw: .9, rx: 5 });
+  txt(GX - 6, GY - 5, `bob_fabric.v  ·  ${BOB.W} × ${BOB.H} VPR GRID  ·  x → East, y ↑ North`, { size: 7.4, anchor: "start", fill: C.MUTE, mono: true, ls: .6 });
+
+  /* channels: CHANY between columns, CHANX between rows */
+  for (let x = 0; x < BOB.W - 1; x++) {
+    const cx = gx(x) + GT;
+    rect(cx + 1, GY, GP - GT - 2, BOB.H * GP - (GP - GT), { f: "#e3f0f2", s: "#b9d8dc", sw: .5, rx: 1 });
+    HITS.push(["routing", cx, GY, GP - GT, BOB.H * GP - (GP - GT)]);
+  }
+  for (let y = 0; y < BOB.H - 1; y++) {
+    const cy = gy(y) - (GP - GT);
+    rect(GX, cy + 1, BOB.W * GP - (GP - GT), GP - GT - 2, { f: "#e3f0f2", s: "#b9d8dc", sw: .5, rx: 1 });
+    HITS.push(["routing", GX, cy, BOB.W * GP - (GP - GT), GP - GT]);
+  }
+  txt(gx(0) + GT + (GP - GT) / 2, gy(5) + 30, `CHANY · W=${BOB.chanw} · L4`, { size: 6.2, rot: -90, fill: C.GTX.t, mono: true });
+
+  const tileOf = {};
+  BOB.tiles.forEach(t => { if (t[1] !== null) tileOf[t[1] + "," + t[2]] = t; });
+  const blk = {};
+  BOB.blocks.forEach(b => blk[b[2] + "," + b[3]] = b);
+
+  for (let x = 0; x < BOB.W; x++) for (let y = 0; y < BOB.H; y++) {
+    const b = blk[x + "," + y], t = tileOf[x + "," + y];
+    const X = gx(x), Y = gy(y);
+    const corner = (x === 0 || x === BOB.W - 1) && (y === 0 || y === BOB.H - 1);
+    if (corner) { rect(X, Y, GT, GT, { f: "url(#tilefine)", s: "#d6d6cf", sw: .6, rx: 2 }); continue; }
+    if (!b) continue;                                     /* covered by a tall block */
+    const [name, type, , , idx] = b;
+    if (type === "io") {
+      const pad = BOB.pads[idx];
+      rect(X, Y, GT, GT, { f: C.IO.f, s: pad ? C.IO.s : "#c9c2b4", sw: pad ? 1.4 : .8, rx: 3 });
+      txt(X + GT / 2, Y + 22, "pad " + idx, { size: 8.2, w: 640, fill: C.IO.t });
+      txt(X + GT / 2, Y + 36, pad || "JTAG only", { size: pad ? 8.4 : 6.4, w: pad ? 700 : 400, mono: true, fill: pad ? C.HOT2 : C.FAINT });
+      if (t) txt(X + GT / 2, Y + 52, t[5] + " mux", { size: 6, mono: true, fill: C.MUTE });
+      HITS.push(["io", X, Y, GT, GT]);
+    } else if (type === "clb") {
+      rect(X, Y, GT, GT, { f: C.CLB.f, s: C.CLB.s, sw: 1, rx: 3 });
+      rect(X, Y, GT, GT, { f: "url(#tile)", rx: 3 });
+      txt(X + GT / 2, Y + 24, "CLB", { size: 9.4, w: 680, fill: C.CLB.t });
+      txt(X + GT / 2, Y + 36, `x${x}y${y}`, { size: 6.8, mono: true, fill: C.MUTE });
+      if (t) txt(X + GT / 2, Y + 52, `${t[4]} bits`, { size: 6.2, mono: true, fill: C.FAINT });
+      if (y < BOB.H - 2) line(X + GT - 9, Y - 1, X + GT - 9, Y - (GP - GT) + 1, { s: C.DSP.s, sw: 1.6, marker: "ah" });
+      HITS.push(["clb", X, Y, GT, GT]);
+    } else {
+      const hgt = 4, k = type === "bram" ? C.BRAM : C.DSP, top = gy(y + hgt - 1);
+      const hh = hgt * GP - (GP - GT);
+      rect(X, top, GT, hh, { f: k.f, s: k.s, sw: 1.3, rx: 3 });
+      rect(X, top, GT, hh, { f: "url(#tile)", rx: 3 });
+      txt(X + GT / 2 - 6, top + hh / 2, type === "bram" ? `BRAM${idx}  ·  1024×18 TDP` : `DSP${idx}  ·  DSP48E1-style`, { size: 9.4, w: 680, fill: k.t, rot: -90 });
+      txt(X + GT / 2 + 9, top + hh / 2, type === "bram" ? "64 pins in · 36 out · USER4" : "A25 B18 C48 D25 · P48", { size: 6.8, mono: true, fill: C.MUTE, rot: -90 });
+      if (type === "dsp" && idx === 0) {
+        line(X + GT - 8, top - 1, X + GT - 8, top - (GP - GT) + 1, { s: C.DSP.s, sw: 2.2, marker: "ah" });
+      }
+      HITS.push([type, X, top, GT, hh]);
+    }
+  }
+  cap(gx(6) + GT + 18, gy(4) - 4, "PCOUT→PCIN", { anchor: "start", fill: C.DSP.t });
+  cap(gx(1) + 2, gy(1) + GT + 8, "row 1 cin ← USER1 cin", { fill: C.DSP.t, anchor: "start" });
+
+  /* ── configuration plane column (inside the die, right of the grid) ── */
+  const CPX = 878, CPW = 330;
+  rect(CPX - 8, GY - 18, CPW + 16, BOB.H * GP + 22, { f: "#fdf5f3", s: C.CFG.s, sw: .9, rx: 5 });
+  txt(CPX, GY - 5, "bob_fpga.v  ·  CONFIGURATION PLANE + CLOCK", { size: 7.4, anchor: "start", fill: C.CFG.t, mono: true, ls: .6, w: 600 });
+  const cp = [
+    ["JTAG TAP  ·  jtag_tap6.v", "IEEE 1149.1 FSM · 6-bit AMD IR", "jtag", C.CFG],
+    ["CFG_CTRL  ·  cfg_ctrl.v", "CRC-32C + length guard · key 0xC5", "cfgctrl", C.CFG],
+    ["STARTUP FSM", "GSR → GTS → GWE → DONE (LD3)", "startup", C.CFG],
+    [`CONFIG CHAIN  ·  ${BOB.chain} bits`, "shift + shadow · cfg_tile_sr.v", "chain", C.CFG],
+    ["USER1 / CAPTURE", "ce · step · autostep · 48 CLB outs", "capture", C.CFG],
+    ["USER4  ·  bram_jtag.v", "contents · drive · SELECT", "user4", C.CFG],
+    ["DSP REGISTER  ·  101000", "drive A/B/C/D · read P0 P1", "dspjtag", C.CFG],
+    ["BOUNDARY SCAN  ·  64 BC_1", "2 cells per pad · EXTEST INTEST SAMPLE", "bsr", C.CFG],
+    ["USER CLOCK  ·  clock_ctrl.v", "sysclk 125 MHz · gce enable", "clock", C.CMT]
+  ];
+  const cph = (BOB.H * GP - (GP - GT) - (cp.length - 1) * 8) / cp.length;
+  cp.forEach(([n, c2, id, k], i) => {
+    const y = GY + i * (cph + 8);
+    block(CPX, y, CPW, cph, n, c2, k, { size: 9.6, cs: 7.2, rx: 4 });
+    HITS.push([id, CPX, y, CPW, cph]);
+    if (i < cp.length - 1 && i < 3) line(CPX + CPW / 2, y + cph + 1, CPX + CPW / 2, y + cph + 7, { s: "#8e8e86", sw: 1.1, marker: "ah" });
+  });
+  line(CPX - 10, GY + 3 * (cph + 8) + cph / 2, gx(BOB.W - 1) + GT + 6, GY + 3 * (cph + 8) + cph / 2, { s: C.CFG.s, sw: 1.5, dash: "5 3", marker: "ah" });
+  txt(CPX - 14, GY + 3 * (cph + 8) + cph / 2 - 6, "cfg[9399:0] → every tile", { size: 7, anchor: "end", fill: C.CFG.t, mono: true, w: 600 });
+
+  /* ── legend panel ── */
+  (function legend() {
+    const LX = 1266, LY = DIE.y, LW = W - LX - 44;
+    rect(LX, LY, LW, DIE.h, { f: "#fcfcfa", s: "#d3d3cc", sw: 1, rx: 7 });
+    txt(LX + 15, LY + 23, "LEGEND", { size: 10.5, anchor: "start", w: 680, ls: 1.4 });
+    line(LX + 15, LY + 31, LX + LW - 15, LY + 31, { s: C.RULE, sw: 1 });
+    const sw = [
+      ["CLB  ×48", "1 BLE · LUT6 + carry + FDRE/FDSE", C.CLB, "clb"],
+      ["BRAM  ×2", "1024×18 true dual port", C.BRAM, "bram"],
+      ["DSP  ×2", "DSP48E1-style · cascaded", C.DSP, "dsp"],
+      ["I/O PAD  ×32", "9 board pins · rest JTAG only", C.IO, "io"],
+      ["ROUTING", `${BOB.nmux} muxes · ${BOB.mbits} bits · L4 W=${BOB.chanw}`, C.GTX, "routing"],
+      ["CONFIG / JTAG", "scan chain · CRC · startup", C.CFG, "chain"],
+      ["USER CLOCK", "sysclk + gce", C.CMT, "clock"]
+    ];
+    let y = LY + 47;
+    sw.forEach(([n, c2, k, id]) => {
+      rect(LX + 15, y, 26, 15, { f: k.f, s: k.s, sw: 1.1, rx: 2.5 });
+      rect(LX + 15, y, 26, 15, { f: "url(#tile)", rx: 2.5 });
+      txt(LX + 49, y + 8, n, { size: 8.6, anchor: "start", w: 640, fill: k.t });
+      txt(LX + 49, y + 18.5, c2, { size: 7, anchor: "start", fill: C.MUTE, mono: true });
+      HITS.push([id, LX + 13, y - 2, LW - 28, 24]);
+      y += 27;
+    });
+    rect(LX + 15, y, 26, 15, { f: C.SOFT.f, s: C.SOFT.s, sw: 1.6, dash: "5 3", rx: 2.5 });
+    txt(LX + 49, y + 8, "GUEST FLOW (Mac)", { size: 8.6, anchor: "start", w: 640, fill: C.SOFT.t });
+    txt(LX + 49, y + 18.5, "yosys · place · load · hwtest", { size: 7, anchor: "start", fill: C.MUTE, mono: true });
+    HITS.push(["flow", LX + 13, y - 2, LW - 28, 24]);
+    y += 34;
+
+    line(LX + 15, y, LX + LW - 15, y, { s: C.RULE, sw: 1 }); y += 19;
+    txt(LX + 15, y, "LOADING A DESIGN  (cfgplane.load)", { size: 9.2, anchor: "start", w: 680, ls: .9 }); y += 13;
+    const chain = [
+      ["JPROGRAM", "clear cfg · GSR=GTS=1", C.CFG, "startup"],
+      ["CFG_CTRL  ←  0xC5 · CRC-32C", "expected CRC behind a key", C.CFG, "cfgctrl"],
+      [`CFG_IN  ·  ${BOB.chain} bits`, "bit k = k-th bit on TDI", C.CFG, "chain"],
+      ["LENGTH ∧ CRC  →  COMMIT", "else CRC_ERR · old design kept", C.CFG, "cfgctrl"],
+      ["CFG_OUT READBACK", "never commits", C.CFG, "chain"],
+      ["USER4  (optional)", "BRAM contents while GWE = 0", C.BRAM, "user4"],
+      ["JSTART  ·  12 TCK in RTI", "GSR → GTS → GWE → DONE", C.CFG, "startup"],
+      ["DONE  ·  LD3 ON", "fabric is live", C.BRAM, "board"]
+    ];
+    const cw = LW - 30;
+    chain.forEach(([n, c2, k, id], i) => {
+      block(LX + 15, y, cw, 29, n, c2, k, { size: 8.2, cs: 6.6, rx: 3 });
+      HITS.push([id, LX + 15, y, cw, 29]);
+      y += 29;
+      if (i < chain.length - 1) { line(LX + 15 + cw / 2, y, LX + 15 + cw / 2, y + 9, { s: "#8e8e86", sw: 1.2, marker: "ah" }); y += 9; }
+    });
+    y += 16;
+    line(LX + 15, y, LX + LW - 15, y, { s: C.RULE, sw: 1 }); y += 19;
+    txt(LX + 15, y, "ONE CHAIN, BY THE NUMBERS", { size: 9.2, anchor: "start", w: 680, ls: .9 }); y += 16;
+    [["ctrl tile", "8"], ["48 CLB words", String(48 * 71)], ["BRAM + DSP fields", "48"], ["routing muxes", String(BOB.mbits)], ["tail pad", String(BOB.chain - 8 - 48 * 71 - 48 - BOB.mbits)], ["total", String(BOB.chain)]]
+      .forEach(([a, b], i) => {
+        txt(LX + 15, y, a, { size: 8, anchor: "start", fill: i === 5 ? C.INK : C.MUTE, w: i === 5 ? 680 : 400 });
+        txt(LX + LW - 15, y, b, { size: 8.4, anchor: "end", mono: true, w: 700, fill: i === 5 ? C.CFG.t : C.INK });
+        y += 14;
+      });
+  })();
+
+  /* ── board-level strip ── */
+  (function board() {
+    const BX = 44, BY = 916, BW = W - 88, BH = 176;
+    rect(BX, BY, BW, BH, { f: "#f8f8f5", s: "#d3d3cc", sw: 1, rx: 7 });
+    txt(BX + 17, BY + 23, "BOARD AND HOST CONTEXT", { size: 10.5, anchor: "start", w: 680, ls: 1.4 });
+    txt(BX + BW - 17, BY + 23, "WHAT TALKS TO THE PL, AND FROM WHERE", { size: 7.4, anchor: "end", fill: C.MUTE, mono: true, ls: .7 });
+    const PY = BY + 45;
+    line(BX + 17, PY, BX + BW - 17, PY, { s: C.DIE.s, sw: 2 });
+    txt(BX + 17, PY - 7, "↑  XC7Z020  PL  PIN  BOUNDARY", { size: 7.4, anchor: "start", fill: C.INK, mono: true, w: 600, ls: .8 });
+    const dev = [
+      ["PICO DirtyJTAG", "USB probe on PMODA", "TCK U18 · TMS TDI TDO", "JTAG TAP", "jtag", false],
+      ["125 MHz OSC", "board clock", "sysclk H16 · BUFG", "clock_ctrl", "clock", false],
+      ["SLIDE SWITCHES", "SW0 · SW1", "M20 · M19", "pads 8, 10", "io", false],
+      ["PUSH BUTTONS", "BTN0–BTN3", "D19 D20 L20 L19", "pads 12–18", "io", false],
+      ["LEDs LD0–LD3", "LD3 = DONE", "R14 P14 N16 M14", "pads 9 11 13", "io", false],
+      ["VIVADO (Windows)", "hw/ → bitstream", "build.tcl · reuse project", "bob_top.bit", "board", true],
+      ["VPR (Docker)", "rr graph builder", "make rrgraph", "bob_fabric.v", "routing", true],
+      ["MAC TOOLS", "yosys · place · load", "synth.py · cfgplane.py", "the chain", "flow", true],
+      ["hwtest.py", "every milestone", "INTEST · CAPTURE", "results.log", "flow", true]
+    ];
+    const gap = 10, dw = (BW - 34 - gap * (dev.length - 1)) / dev.length;
+    dev.forEach(([n, c2, sig, dst, id, soft], i) => {
+      const x = BX + 17 + i * (dw + gap), y = PY + 57, h = BH - (y - BY) - 17;
+      rect(x, y, dw, h, { f: soft ? "#fff" : C.BRD.f, s: soft ? C.SOFT.s : C.BRD.s, sw: 1.1, rx: 4, dash: soft ? "5 3" : null });
+      txt(x + dw / 2, y + 18, n, { size: 8.2, w: 680, fill: soft ? C.SOFT.t : C.BRD.t });
+      txt(x + dw / 2, y + 32, c2, { size: 6.7, fill: C.MUTE, mono: true });
+      line(x + dw / 2, y, x + dw / 2, PY + 3, { s: "#7f7f77", sw: 1.3, marker: "ah" });
+      txt(x + dw / 2, PY + 25, sig, { size: 6.5, fill: C.INK, mono: true });
+      txt(x + dw / 2, PY + 37, "→ " + dst, { size: 6.5, fill: C.SOFT.t, mono: true, w: 600 });
+      HITS.push([id, x, y, dw, h]);
+    });
+  })();
+
+  HITS.forEach(([id, x, y, w, h]) => hit(id, x, y, w, h));
+  document.getElementById("out").innerHTML =
+    `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"
+     font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,system-ui,sans-serif">
+     <rect width="${W}" height="${H}" fill="#fff"/>${DEFS}${S.join("\n")}</svg>`;
+
+  /* ============================================================================
+     SCHEMATIC + DEMO REGISTRIES  (same contract as architecture-v2.html)
+     ========================================================================= */
+  const SCHEM = {}, DEMO = {};
+  const CARRY = { timer: null };           // stopAnimations() in the navigation expects it
+
+  function val(x, y, v, o = {}) {
+    const unk = v === null || v === undefined, on = v === 1;
+    rect(x - 7.5, y - 7.5, 15, 15, { f: unk ? "#f2f2ee" : (on ? "#fdefe2" : "#f1f4f6"), s: unk ? "#dcdcd4" : (on ? C.HOT2 : "#c0c7ce"), sw: 1, rx: 3.5 });
+    txt(x, y + 3.6, unk ? "·" : String(v), { size: 8.4, mono: true, w: 700, fill: unk ? C.FAINT : (on ? C.HOT2 : C.MUTE) });
+    if (o.label) txt(x, y - 11.5, o.label, { size: 6.2, mono: true, fill: C.FAINT, ls: .3 });
+  }
+
+  /* ============================================================================
+     LUT6 (lutk.sv, K = 6)  —  live 64:1 multiplexer
+     ========================================================================= */
+  const popc = n => { let c = 0; while (n) { c += n & 1; n >>= 1; } return c; };
+  const LUTFN = {
+    xor:  { name: "6-input XOR (parity)", eq: "O6 = I0 ⊕ I1 ⊕ I2 ⊕ I3 ⊕ I4 ⊕ I5", f: i => popc(i) & 1 },
+    and:  { name: "6-input AND", eq: "O6 = I0 · I1 · I2 · I3 · I4 · I5", f: i => (i === 63 ? 1 : 0) },
+    add:  { name: "carry propagate (BOB_ADD)", eq: "O6 = I0 ⊕ I1   (sum = O6 ⊕ CIN)", f: i => (i & 1) ^ ((i >> 1) & 1) },
+    maj:  { name: "majority vote", eq: "O6 = 1 when four or more inputs are high", f: i => (popc(i) >= 4 ? 1 : 0) },
+    mux:  { name: "2:1 multiplexer (designs.py mux)", eq: "O6 = I2 ? I1 : I0", f: i => ((i >> 2) & 1 ? (i >> 1) & 1 : i & 1) },
+    rand: { name: "random truth table", eq: "no structure at all — the LUT does not care", f: () => (Math.random() < .5 ? 1 : 0) }
+  };
+  const LUT = { a: [1, 1, 0, 1, 0, 1], fn: "xor", init: new Array(64).fill(0) };
+  const lutIdx = () => LUT.a.reduce((n, b, i) => n | (b << i), 0);
+  function lutLoad(k) { LUT.fn = k; const f = LUTFN[k].f; for (let i = 0; i < 64; i++) LUT.init[i] = f(i); }
+  lutLoad("xor");
+  function lutHex() {
+    let s = "";
+    for (let d = 15; d >= 0; d--) { let v = 0; for (let b = 0; b < 4; b++) v |= LUT.init[d * 4 + b] << b; s += v.toString(16).toUpperCase(); }
+    return s;
+  }
+
+  SCHEM.lut = function () {
+    S = [];
+    const CX = 78, CW = 27, CH = 5.4, P = 6.2, Y0 = 48, idx = lutIdx();
+    const cellY = i => Y0 + i * P;
+    const nodeC = [Array.from({ length: 64 }, (_, i) => cellY(i) + CH / 2)];
+    for (let s = 1; s <= 6; s++) nodeC[s] = Array.from({ length: 64 >> s }, (_, j) => (nodeC[s - 1][2 * j] + nodeC[s - 1][2 * j + 1]) / 2);
+    const ST = [{ x: 132, w: 14, h: 11 }, { x: 186, w: 15, h: 13 }, { x: 244, w: 16, h: 17 }, { x: 306, w: 18, h: 22 }, { x: 374, w: 20, h: 28 }, { x: 448, w: 24, h: 36 }];
+    const stRight = s => ST[s - 1].x + ST[s - 1].w, outX = s => (s === 0 ? CX + CW : stRight(s)), RAIL_Y = 470;
+    hdr(0, 16, "lutk.sv at K = 6 — one 64:1 multiplexer, six routed inputs, sixty-four chain bits");
+    txt(1058, 16, "▸ THE ORANGE PATH IS THE ONE ACTIVE ROUTE", { size: 7, anchor: "end", fill: C.HOT2, mono: true, w: 600, ls: .5 });
+    for (let s = 1; s <= 6; s++) {
+      const st = ST[s - 1], rx = st.x + st.w / 2, on = LUT.a[s - 1];
+      line(rx, Y0 - 6, rx, RAIL_Y - 14, { s: on ? C.HOT : "#d2d6da", sw: on ? 1.6 : 1 });
+      txt(rx, RAIL_Y, "I" + (s - 1), { size: 8.6, mono: true, w: 700, fill: on ? C.HOT2 : C.FAINT });
+      val(rx, RAIL_Y + 15, on);
+      cap(rx, RAIL_Y + 32, "IPIN mux");
+    }
+    const live = [];
+    for (let s = 1; s <= 6; s++) {
+      const st = ST[s - 1];
+      for (let j = 0; j < (64 >> s); j++) {
+        const my = nodeC[s][j] - st.h / 2;
+        for (let k = 0; k < 2; k++) {
+          const src = 2 * j + k, sy = nodeC[s - 1][src], sx = outX(s - 1), dy = my + st.h * (k ? .74 : .26), dx = st.x, mx = sx + (dx - sx) * .55;
+          const pts = [[sx, sy], [mx, sy], [mx, dy], [dx, dy]];
+          if ((idx >> (s - 1)) === src) live.push(pts); else wire(pts, { s: "#ccd3d9", sw: .55 });
+        }
+      }
+    }
+    live.forEach(p => wire(p, { s: C.HOT, sw: 2 }));
+    for (let i = 0; i < 64; i++) {
+      cell(CX, cellY(i), CW, CH, LUT.init[i], { hot: i === idx });
+      if (i % 8 === 0) txt(CX - 7, cellY(i) + CH, String(i), { size: 5.6, anchor: "end", fill: C.FAINT, mono: true });
+    }
+    rect(CX, Y0, CW, 64 * P - (P - CH), { s: "#9aa6b2", sw: 1, rx: 2 });
+    txt(CX + CW / 2, Y0 - 9, "INIT", { size: 6.6, mono: true, fill: C.MUTE, w: 600 });
+    txt(CX + CW / 2, Y0 - 1.5, "[63:0]", { size: 6.6, mono: true, fill: C.MUTE, w: 600 });
+    [[0, 31, "INIT[31:0] → O5"], [32, 63, "INIT[63:32]"]].forEach(([a, b, lbl]) => {
+      const y1 = cellY(a), y2 = cellY(b) + CH, bx = 62;
+      path(`M${bx + 5},${y1} L${bx},${y1} L${bx},${y2} L${bx + 5},${y2}`, { s: "#c2c8ce", sw: 1 });
+      txt(bx - 6, (y1 + y2) / 2, lbl, { size: 6.2, mono: true, fill: C.FAINT, rot: -90, ls: .4 });
+    });
+    for (let s = 1; s <= 6; s++) {
+      const st = ST[s - 1];
+      for (let j = 0; j < (64 >> s); j++) {
+        const my = nodeC[s][j] - st.h / 2, on = (idx >> s) === j;
+        mux(st.x, my, st.w, st.h, { f: on ? "#fdf0e4" : "#fff", s: on ? C.HOT2 : "#a8b0b8", sw: on ? 1.4 : .8, label: st.h >= 16 ? "2:1" : null, ls2: 6, lf: on ? C.HOT2 : C.FAINT });
+        if (on) dot(st.x + st.w / 2, my + st.h, { r: 2, s: C.HOT2 });
+      }
+      cap(st.x + st.w / 2, Y0 - 20, (64 >> s) + "×");
+      cap(st.x + st.w / 2, Y0 - 12, (64 >> (s - 1)) + ":" + (64 >> s));
+    }
+    const o6y = nodeC[6][0], o6 = LUT.init[idx];
+    const ob = buf(492, o6y - 9, 17, 18, { s: C.HOT2, f: "#fdf0e4" });
+    wire([[stRight(6), o6y], [492, o6y]], { s: C.HOT, sw: 2 });
+    wire([[ob.out[0], o6y], [536, o6y]], { s: C.HOT, sw: 2 });
+    txt(542, o6y + 4, "O6", { size: 10, anchor: "start", mono: true, w: 700, fill: C.HOT2 });
+    val(590, o6y, o6);
+    cap(542, o6y + 18, "→ carry S · FF D · O", { anchor: "start" });
+    const o5y = nodeC[5][0], o5 = LUT.init[idx & 31];
+    wire([[stRight(5), o5y], [504, o5y], [504, o5y - 22], [536, o5y - 22]], { s: C.GRN, sw: 1.5, dash: "4 3" });
+    dot(stRight(5), o5y, { s: C.GRN });
+    txt(542, o5y - 18, "O5", { size: 10, anchor: "start", mono: true, w: 700, fill: C.GRN });
+    val(590, o5y - 22, o5);
+    cap(542, o5y - 4, "fracturable tap · OPIN O5", { anchor: "start" });
+    const PX = 700, PW = 364;
+    frame(PX, 44, PW, 250, "WHAT THE CHAIN ACTUALLY STORES", { bg: "#fdfdfb" });
+    txt(PX + 18, 74, LUTFN[LUT.fn].name.toUpperCase(), { size: 9, anchor: "start", w: 680, ls: .6 });
+    txt(PX + 18, 90, LUTFN[LUT.fn].eq, { size: 8, anchor: "start", fill: C.MUTE, mono: true });
+    const hex = lutHex(), hx = PX + 18, hy = 108, dw = 15.4, activeNib = 15 - (idx >> 2);
+    txt(hx, hy + 24, "INIT =", { size: 8.6, anchor: "start", mono: true, fill: C.MUTE });
+    txt(hx + 40, hy + 24, "64'h", { size: 8.6, anchor: "start", mono: true, fill: C.FAINT });
+    for (let d = 0; d < 16; d++) {
+      const x = hx + 68 + d * dw, on = d === activeNib;
+      rect(x, hy + 9, dw - 1.4, 20, { f: on ? "#fdefe2" : "#f6f7f8", s: on ? C.HOT2 : "#e0e4e8", sw: on ? 1.3 : .7, rx: 3 });
+      txt(x + (dw - 1.4) / 2, hy + 23, hex[d], { size: 9.6, mono: true, w: 700, fill: on ? C.HOT2 : C.INK });
+    }
+    cap(hx + 68, hy + 40, "chain bits clb.chain_lo + 0 … 63 (device.json)", { anchor: "start" });
+    const bits = [5, 4, 3, 2, 1, 0].map(i => LUT.a[i]).join("");
+    txt(PX + 18, 186, "SELECTED ADDRESS", { size: 7.4, anchor: "start", fill: C.FAINT, mono: true, ls: .9 });
+    txt(PX + 18, 206, `I[5:0] = ${bits}₂ = ${idx}`, { size: 11, anchor: "start", mono: true, w: 700 });
+    txt(PX + 18, 226, `O6 = INIT[${idx}] = ${o6}`, { size: 11, anchor: "start", mono: true, w: 700, fill: o6 ? C.GRN : C.MUTE });
+    txt(PX + 18, 246, `O5 = INIT[${idx & 31}] = ${o5}`, { size: 9, anchor: "start", mono: true, fill: C.MUTE });
+    txt(PX + 18, 274, "host/bitstream.py LUT.* builds these tables; yosys abc", { size: 8, anchor: "start", fill: C.MUTE });
+    txt(PX + 18, 286, "-lut 6 produces them for synthesised designs (M8).", { size: 8, anchor: "start", fill: C.MUTE });
+    frame(PX, 312, PW, 96, "ON THE HOST XC7Z020", { bg: "#fdfdfb" });
+    [["64", "configuration flip-flops (+64 shadow)"], ["≈21", "host LUTs for the 64:1 tree"], ["2", "host LUT levels on a real LUT6 + MUXF7/F8"], ["K", "one parameter: K=4 costs 16 bits"]]
+      .forEach(([n, d], i) => { const y = 336 + i * 18; txt(PX + 46, y, n, { size: 10, anchor: "end", mono: true, w: 700, fill: C.CLB.t }); txt(PX + 56, y, d, { size: 8, anchor: "start", fill: C.MUTE }); });
+    txt(0, 524, "Source: AMD UG474 LUT6_2 fracture; RTL hw/src/clb/lutk.sv, proven equal to bob's hardware-tested lut6.sv by tests/test_lutk.py.", { size: 8, anchor: "start", fill: C.MUTE });
+    return svg(1064, 540, 900);
+  };
+
+  DEMO.lut = {
+    html: `<div class="demo"><h4>Live — <span>flip the inputs, change the function</span></h4><div class="ctl">
+        <div class="grp"><label>INPUTS</label>${[0, 1, 2, 3, 4, 5].map(i => `<button class="sw6" data-lut-a="${i}"><span class="n">I${i}</span><span class="v">0</span></button>`).join("")}</div>
+        <div class="grp"><label>FUNCTION</label><select id="lutfn">${Object.entries(LUTFN).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join("")}</select></div>
+        <div class="grp"><button class="act" id="lutrand">Randomise inputs</button></div>
+        <div class="grp" style="margin-left:auto"><span class="hexout">O6 =</span><span class="led" id="lutled">0</span></div></div></div>`,
+    wire(redraw) {
+      const sync = () => {
+        document.querySelectorAll("[data-lut-a]").forEach(b => { const i = +b.dataset.lutA; b.classList.toggle("on", !!LUT.a[i]); b.querySelector(".v").textContent = LUT.a[i]; });
+        const o = LUT.init[lutIdx()], led = document.getElementById("lutled"); led.textContent = o; led.classList.toggle("hi", !!o);
+      };
+      document.querySelectorAll("[data-lut-a]").forEach(b => b.onclick = () => { LUT.a[+b.dataset.lutA] ^= 1; redraw(); sync(); });
+      const sel = document.getElementById("lutfn"); sel.value = LUT.fn;
+      sel.onchange = () => { lutLoad(sel.value); redraw(); sync(); };
+      document.getElementById("lutrand").onclick = () => { for (let i = 0; i < 6; i++) LUT.a[i] = Math.random() < .5 ? 1 : 0; redraw(); sync(); };
+      sync();
+    }
+  };
+
+  /* ============================================================================
+     CLB (clb.sv)  —  the whole BLE, live: flags, inputs, one clock edge
+     ========================================================================= */
+  const BLE = { i0: 1, i1: 0, cin: 1, ce: 1, sr: 0, q: 0, fn: "add",
+    f: { ff_en: 1, ff_rstval: 0, ff_ce_en: 1, ff_sr_en: 1, cy_en: 1, cy_di_sel: 0, ff_d_sel: 0 }, gsr: 0, gwe: 1 };
+  function bleEval() {
+    const i = BLE.i0 | (BLE.i1 << 1), t = LUTFN[BLE.fn].f;
+    const o6 = t(i), o5 = t(i & 31), f = BLE.f;
+    const di = f.cy_di_sel ? o5 : BLE.i0;
+    const comb = f.cy_en ? (o6 ^ BLE.cin) : (f.ff_d_sel ? o5 : o6);
+    const cout = f.cy_en ? (o6 ? BLE.cin : di) : 0;
+    const o = f.ff_en ? BLE.q : comb;
+    return { o6, o5, di, comb, cout, o };
+  }
+  function bleClock() {
+    const e = bleEval(), f = BLE.f;
+    if (BLE.gsr) BLE.q = f.ff_rstval;
+    else if (!BLE.gwe) { /* hold */ }
+    else if (f.ff_sr_en && BLE.sr) BLE.q = f.ff_rstval;
+    else if (!f.ff_ce_en || BLE.ce) BLE.q = e.comb;
+  }
+
+  SCHEM.clb = function () {
+    S = [];
+    const e = bleEval(), f = BLE.f, hot = (v) => v ? C.HOT : "#9aa6b2";
+    hdr(0, 16, "clb.sv — IPIN muxes → LUT6 → carry → FDRE/FDSE → O / O5 / COUT");
+    txt(1058, 16, "▸ VALUES ARE LIVE — CHANGE THEM BELOW", { size: 7, anchor: "end", fill: C.HOT2, mono: true, w: 600, ls: .5 });
+    frame(10, 34, 1044, 430, "ONE CLB TILE  ·  71 BLOCK BITS + ITS ROUTING MUXES", { bg: "#fdfdfb" });
+
+    /* routed input pins */
+    const pins = [["I0", BLE.i0], ["I1", BLE.i1], ["I2", 0], ["I3", 0], ["I4", 0], ["I5", 0]];
+    pins.forEach(([n, v], k) => {
+      const y = 66 + k * 30;
+      mux(40, y, 22, 22, { label: "4", ls2: 6.4 });
+      cap(51, y - 3, k === 0 ? "IPIN mux" : "");
+      wire([[62, y + 11], [168, y + 11]], { s: hot(v), sw: v ? 1.8 : 1.1, marker: "ah" });
+      txt(76, y + 8, n, { size: 7.4, mono: true, anchor: "start", fill: C.MUTE });
+      val(146, y + 11, v);
+    });
+    rect(170, 60, 96, 190, { f: C.CLB.f, s: C.CLB.s, sw: 1.3, rx: 4 });
+    txt(218, 140, "LUT6", { size: 12, w: 700, fill: C.CLB.t });
+    txt(218, 156, "INIT[63:0]", { size: 7, mono: true, fill: C.MUTE });
+    txt(218, 170, LUTFN[BLE.fn].eq.split("(")[0], { size: 6.2, mono: true, fill: C.MUTE });
+    txt(276, 102, "O6", { size: 7.6, mono: true, anchor: "start", w: 700 }); val(304, 98, e.o6);
+    txt(276, 222, "O5", { size: 7.6, mono: true, anchor: "start", w: 700, fill: C.GRN }); val(304, 218, e.o5);
+
+    /* carry: MUXCY + XORCY */
+    const cy = f.cy_en;
+    wire([[266, 110], [420, 110]], { s: hot(e.o6), sw: 1.4 });
+    gate("xor", 420, 96, 40, 30, { s: cy ? C.DSP.s : "#c7ccd1" });
+    cap(440, 136, "XORCY");
+    wire([[512, 505], [512, 470]], { s: "#fff" });
+    const mcy = mux(376, 300, 26, 48, { label: "CY", s: cy ? C.DSP.s : "#c7ccd1" });
+    cap(410, 362, "MUXCY", { anchor: "start" });
+    wire([[340, 110], [340, 290], [389, 290], [389, 300]], { s: hot(e.o6), sw: 1 });
+    txt(352, 286, "S=O6", { size: 6.4, mono: true, anchor: "start", fill: C.FAINT });
+    wire([[330, 324], [376, 324]], { s: hot(e.di), sw: 1.2 });
+    txt(250, 328, f.cy_di_sel ? "DI = O5" : "DI = I0", { size: 7, mono: true, anchor: "start", fill: C.MUTE }); val(352, 306, e.di);
+    wire([[389, 440], [389, 348]], { s: hot(BLE.cin), sw: 1.6, marker: "ah" });
+    txt(398, 436, "CIN ← CLB below (direct)", { size: 7, anchor: "start", mono: true, fill: C.DSP.t }); val(372, 430, BLE.cin);
+    wire([[402, 324], [440, 324], [440, 44]], { s: hot(e.cout), sw: 1.6, marker: "ah" });
+    txt(448, 52, "COUT → CLB above", { size: 7, anchor: "start", mono: true, fill: C.DSP.t }); val(430, 60, e.cout);
+    wire([[389, 290], [389, 270], [410, 270], [410, 118], [420, 118]], { s: hot(BLE.cin), sw: 1, dash: "3 2" });
+
+    /* D select + FF */
+    const dm = mux(520, 150, 26, 60, { label: "D", ls2: 7 });
+    wire([[464, 111], [500, 111], [500, 165], [520, 165]], { s: hot(e.o6 ^ BLE.cin), sw: 1.2 });
+    wire([[266, 230], [500, 230], [500, 195], [520, 195]], { s: hot(e.o5), sw: 1 });
+    cap(533, 222, f.cy_en ? "sum" : (f.ff_d_sel ? "O5" : "O6"));
+    const fb = ff(600, 150, 70, 64, { label: f.ff_rstval ? "FDSE" : "FDRE", sub: "q_reg" });
+    wire([[546, 180], [600, 160]], { s: hot(e.comb), sw: 1.6 });
+    val(574, 150, e.comb, { label: "D" });
+    wire([[560, 250], [635, 250], [635, 214]], { s: hot(BLE.ce), sw: 1.1 }); txt(520, 254, `CE ${f.ff_ce_en ? "(routed)" : "(ignored)"}`, { size: 6.8, mono: true, anchor: "start", fill: C.MUTE });
+    wire([[560, 270], [655, 270], [655, 214]], { s: hot(BLE.sr), sw: 1.1 }); txt(520, 280, `SR ${f.ff_sr_en ? "(routed)" : "(ignored)"}`, { size: 6.8, mono: true, anchor: "start", fill: C.MUTE });
+    wire([[570, 300], [590, 300], [590, 207], [600, 207]], { s: C.CMT.s, sw: 1.1 }); txt(520, 304, "sysclk · gce · GSR · GWE", { size: 6.8, mono: true, anchor: "start", fill: C.CMT.t });
+    val(700, 140, BLE.q, { label: "q" });
+
+    /* output mux */
+    const om = mux(760, 150, 26, 60, { label: "O", ls2: 7 });
+    wire([[670, 182], [760, 165]], { s: hot(BLE.q), sw: 1.2 });
+    wire([[546, 180], [560, 180], [560, 120], [740, 120], [740, 195], [760, 195]], { s: hot(e.comb), sw: 1 });
+    cap(773, 222, f.ff_en ? "ff_en = 1 → q" : "ff_en = 0 → comb");
+    wire([[786, 180], [880, 180]], { s: hot(e.o), sw: 2, marker: "ah" });
+    txt(890, 184, "O  → OPIN", { size: 9.4, anchor: "start", mono: true, w: 700, fill: C.CLB.t }); val(990, 180, e.o);
+    wire([[304, 232], [304, 390], [880, 390]], { s: C.GRN, sw: 1.3, dash: "4 3", marker: "ahg" });
+    txt(890, 394, "O5 → OPIN", { size: 9.4, anchor: "start", mono: true, w: 700, fill: C.GRN }); val(990, 390, e.o5);
+
+    /* the 7 flags as chain cells */
+    const fl = ["ff_en", "ff_rstval", "ff_ce_en", "ff_sr_en", "cy_en", "cy_di_sel", "ff_d_sel"];
+    txt(600, 440, "clb word [70:64] =", { size: 7.6, anchor: "start", mono: true, fill: C.MUTE });
+    fl.forEach((n, k) => { cell(708 + k * 44, 430, 40, 14, f[n], { showv: true }); cap(728 + k * 44, 456, n, { size: 5.8 }); });
+
+    txt(0, 492, "UG474 semantics: SR beats CE (FDRE/FDSE), CO = S ? CI : DI, sum = S ⊕ CI. Every flag is a chain bit; the eight input pins are rr-graph IPIN muxes.", { size: 8, anchor: "start", fill: C.MUTE });
+    return svg(1064, 506, 900);
+  };
+
+  DEMO.clb = {
+    html: `<div class="demo"><h4>Live — <span>set pins and flags, then clock the flip-flop</span></h4><div class="ctl">
+      <div class="grp"><label>PINS</label>${["i0", "i1", "cin", "ce", "sr"].map(k => `<button class="sw6" data-ble="${k}"><span class="n">${k.toUpperCase()}</span><span class="v">0</span></button>`).join("")}</div>
+      <div class="grp"><label>FLAGS</label>${["ff_en", "ff_rstval", "ff_ce_en", "ff_sr_en", "cy_en", "cy_di_sel", "ff_d_sel"].map(k => `<button class="sw6" style="width:auto;padding:0 7px" data-blef="${k}"><span class="n">${k}</span><span class="v">0</span></button>`).join("")}</div>
+      <div class="grp"><label>LUT</label><select id="blefn">${Object.entries(LUTFN).filter(([k]) => k !== "rand").map(([k, v]) => `<option value="${k}">${v.name}</option>`).join("")}</select></div>
+      <div class="grp"><button class="act" id="bleclk">gce pulse (clock)</button><button class="act" id="blegsr">GSR</button></div>
+      <div class="grp" style="margin-left:auto"><span class="hexout">O =</span><span class="led" id="bleled">0</span></div></div></div>`,
+    wire(redraw) {
+      const sync = () => {
+        document.querySelectorAll("[data-ble]").forEach(b => { const v = BLE[b.dataset.ble]; b.classList.toggle("on", !!v); b.querySelector(".v").textContent = v; });
+        document.querySelectorAll("[data-blef]").forEach(b => { const v = BLE.f[b.dataset.blef]; b.classList.toggle("on", !!v); b.querySelector(".v").textContent = v; });
+        const o = bleEval().o, led = document.getElementById("bleled"); led.textContent = o; led.classList.toggle("hi", !!o);
+      };
+      document.querySelectorAll("[data-ble]").forEach(b => b.onclick = () => { BLE[b.dataset.ble] ^= 1; redraw(); sync(); });
+      document.querySelectorAll("[data-blef]").forEach(b => b.onclick = () => { BLE.f[b.dataset.blef] ^= 1; redraw(); sync(); });
+      const sel = document.getElementById("blefn"); sel.value = BLE.fn; sel.onchange = () => { BLE.fn = sel.value; redraw(); sync(); };
+      document.getElementById("bleclk").onclick = () => { bleClock(); redraw(); sync(); };
+      document.getElementById("blegsr").onclick = () => { BLE.q = BLE.f.ff_rstval; redraw(); sync(); };
+      sync();
+    }
+  };
+
+  /* ============================================================================
+     CARRY — a 4-bit adder up one CLB column, with M8's generator CLB
+     ========================================================================= */
+  const ADD = { a: [1, 0, 1, 1], b: [1, 1, 0, 0], ci: 0 };
+  SCHEM.carry = function () {
+    S = [];
+    hdr(0, 16, "a column of BOB_ADD cells — S = A ⊕ B in the LUT, MUXCY / XORCY in the CLB, carry by VPR direct");
+    const X = 360, TH = 70, G = 22, bottom = 470;
+    let c = ADD.ci, sum = 0;
+    rect(X, bottom - TH, 240, TH, { f: C.CLB.f, s: C.CLB.s, sw: 1.1, rx: 4 });
+    txt(X + 120, bottom - TH + 24, "GENERATOR CLB  (row 1)", { size: 9, w: 680, fill: C.CLB.t });
+    txt(X + 120, bottom - TH + 40, "LUT = 0 → cout = DI = I0 = carry-in", { size: 7, mono: true, fill: C.MUTE });
+    val(X + 120, bottom - TH + 56, c, { label: "" });
+    txt(X - 12, bottom - TH / 2, "carry-in (const or routed)", { size: 7, anchor: "end", mono: true, fill: C.MUTE });
+    for (let k = 0; k < 4; k++) {
+      const y = bottom - (k + 2) * (TH + G) + G, s = ADD.a[k] ^ ADD.b[k], o = s ^ c, co = s ? c : ADD.a[k];
+      wire([[X + 120, y + TH + G], [X + 120, y + TH]], { s: c ? C.HOT : "#9aa6b2", sw: 2, marker: c ? "ahh" : "ah" });
+      rect(X, y, 240, TH, { f: C.CLB.f, s: C.CLB.s, sw: 1.1, rx: 4 });
+      rect(X, y, 240, TH, { f: "url(#tile)", rx: 4 });
+      txt(X + 10, y + 16, `CLB (x, ${k + 2})  ·  bit ${k}`, { size: 8.4, anchor: "start", w: 680, fill: C.CLB.t });
+      gate("xor", X + 16, y + 26, 30, 24, {}); txt(X + 31, y + 62, "LUT S", { size: 6, mono: true, fill: C.FAINT });
+      mux(X + 90, y + 24, 20, 34, { label: "CY", ls2: 5.6 });
+      gate("xor", X + 150, y + 26, 30, 24, {}); txt(X + 165, y + 62, "XORCY", { size: 6, mono: true, fill: C.FAINT });
+      val(X - 40, y + 30, ADD.a[k], { label: "A" }); val(X - 18, y + 30, ADD.b[k], { label: "B" });
+      val(X + 60, y + 38, s, { label: "S" });
+      wire([[X + 186, y + 38], [X + 300, y + 38]], { s: o ? C.HOT : "#9aa6b2", sw: 1.6, marker: "ah" });
+      txt(X + 310, y + 42, `SUM${k}`, { size: 9, anchor: "start", mono: true, w: 700 }); val(X + 360, y + 38, o);
+      sum |= o << k; c = co;
+    }
+    const ty = bottom - 6 * (TH + G) + G + TH;
+    wire([[X + 120, ty + G], [X + 120, ty + 4]], { s: c ? C.HOT : "#9aa6b2", sw: 2, marker: "ah" });
+    txt(X + 132, ty + 10, `COUT = ${c}  (a tap CLB makes it routable)`, { size: 7.4, anchor: "start", mono: true, fill: C.DSP.t });
+    const A = ADD.a.reduce((n, b, i) => n | (b << i), 0), Bv = ADD.b.reduce((n, b, i) => n | (b << i), 0);
+    frame(760, 60, 290, 150, "RESULT", { bg: "#fdfdfb" });
+    txt(780, 96, `${A} + ${Bv} + ${ADD.ci}`, { size: 16, anchor: "start", mono: true, w: 700 });
+    txt(780, 126, `= ${sum + (c << 4)}  (sum ${sum}, cout ${c})`, { size: 12, anchor: "start", mono: true, fill: C.GRN, w: 700 });
+    txt(780, 160, "each bit is one CLB with cy_en = 1,", { size: 8, anchor: "start", fill: C.MUTE });
+    txt(780, 174, "init = xor2 (xnor2 when subtracting)", { size: 8, anchor: "start", fill: C.MUTE });
+    txt(0, 500, "Sources: UG474 CARRY4 equations; yosys arith_map.v pattern (tools/bob/synth/bob_map.v); generator/tap CLBs: tools/bob/place.py (M8).", { size: 8, anchor: "start", fill: C.MUTE });
+    return svg(1064, 514, 880);
+  };
+  DEMO.carry = {
+    html: `<div class="demo"><h4>Live — <span>toggle the operands and carry-in</span></h4><div class="ctl">
+      <div class="grp"><label>A</label>${[0, 1, 2, 3].map(i => `<button class="sw6" data-add="a${i}"><span class="n">A${i}</span><span class="v">0</span></button>`).join("")}</div>
+      <div class="grp"><label>B</label>${[0, 1, 2, 3].map(i => `<button class="sw6" data-add="b${i}"><span class="n">B${i}</span><span class="v">0</span></button>`).join("")}</div>
+      <div class="grp"><button class="sw6" data-add="ci"><span class="n">CI</span><span class="v">0</span></button></div></div></div>`,
+    wire(redraw) {
+      const get = k => k === "ci" ? ADD.ci : ADD[k[0]][+k[1]];
+      const sync = () => document.querySelectorAll("[data-add]").forEach(b => { const v = get(b.dataset.add); b.classList.toggle("on", !!v); b.querySelector(".v").textContent = v; });
+      document.querySelectorAll("[data-add]").forEach(b => b.onclick = () => { const k = b.dataset.add; if (k === "ci") ADD.ci ^= 1; else ADD[k[0]][+k[1]] ^= 1; redraw(); sync(); });
+      sync();
+    }
+  };
+
+  /* ============================================================================
+     ROUTING  —  one wire-start mux and one IPIN mux from the real rr graph encoding
+     ========================================================================= */
+  const RT = { sel: 3, ipin: 2 };
+  const RT_IN = ["OPIN clb(4,4).O", "CHANX ← x2 · t0", "CHANX ← x2 · t4", "CHANX ← x2 · t8", "CHANY ↑ y1", "CHANY ↑ y2 · t1",
+    "CHANY ↑ y2 · t5", "CHANY ↑ y2 · t9", "CHANY ↓ y2 · t3", "CHANY ↓ y2 · t7", "CHANY ↓ y2 · t11", "CHANY ↑ y5"];
+
+  SCHEM.routing = function () {
+    S = [];
+    hdr(0, 16, "one CHANX wire of tile (4,4) — 12 driving edges in VPR's graph → a 4-bit bob_mux");
+    txt(1058, 16, "▸ CHANGE THE 4 CHAIN BITS BELOW", { size: 7, anchor: "end", fill: C.HOT2, mono: true, w: 600, ls: .5 });
+    const N = RT_IN.length, MX = 380, MY = 50, MH = 330, sel = RT.sel;
+    RT_IN.forEach((n, i) => {
+      const y = MY + 14 + i * ((MH - 28) / (N - 1)), on = sel === i + 1;
+      txt(300, y + 3, n, { size: 7.6, anchor: "end", mono: true, fill: on ? C.HOT2 : C.MUTE, w: on ? 700 : 400 });
+      wire([[306, y], [MX, y]], { s: on ? C.HOT : "#c8d0d6", sw: on ? 2 : 1 });
+      txt(MX + 10, y + 3, String(i + 1), { size: 6.4, anchor: "start", mono: true, fill: on ? C.HOT2 : C.FAINT });
+    });
+    const zy = MY + MH + 12;
+    txt(300, zy + 3, "const 0", { size: 7.6, anchor: "end", mono: true, fill: sel === 0 || sel > N ? C.HOT2 : C.MUTE });
+    wire([[306, zy], [MX, zy]], { s: sel === 0 || sel > N ? C.HOT : "#c8d0d6", sw: 1.4 });
+    txt(MX + 10, zy + 3, "0", { size: 6.4, anchor: "start", mono: true, fill: C.FAINT });
+    const m = mux(MX, MY, 46, MH + 26, { f: "#fdf6ef", s: C.GTX.s, sw: 1.4, label: "13:1", ls2: 8 });
+    const out = sel >= 1 && sel <= N ? RT_IN[sel - 1] : "const 0";
+    wire([[MX + 46, MY + (MH + 26) / 2], [560, MY + (MH + 26) / 2]], { s: C.HOT, sw: 2.4, marker: "ahh" });
+    rect(560, MY + (MH + 26) / 2 - 18, 300, 36, { f: C.GTX.f, s: C.GTX.s, sw: 1.3, rx: 4 });
+    txt(710, MY + (MH + 26) / 2 - 2, "CHANX wire · x1…x4, y4 · DEC_DIR", { size: 9, w: 680, fill: C.GTX.t });
+    txt(710, MY + (MH + 26) / 2 + 11, "= " + out, { size: 7.4, mono: true, fill: C.HOT2 });
+    for (let b = 0; b < 4; b++) {
+      const v = (sel >> b) & 1, x = MX - 40 + (3 - b) * 32;
+      cell(x, MY + MH + 50, 26, 18, v, { showv: true });
+      cap(x + 13, MY + MH + 80, `bit ${b}`);
+      line(x + 13, MY + MH + 50, MX + 23, MY + MH + 27, { s: "#d5d9de", sw: .8 });
+    }
+    txt(MX - 44, MY + MH + 63, "sel =", { size: 8, anchor: "end", mono: true, fill: C.MUTE });
+    txt(MX + 100, MY + MH + 64, `value ${sel} → ${sel === 0 ? "const 0 (dark)" : sel <= N ? "input " + (sel - 1) : "out of range → 0"}`, { size: 8.4, anchor: "start", mono: true, w: 640 });
+
+    /* IPIN connection box */
+    const IX = 620, IY = 300;
+    frame(IX - 20, IY - 30, 450, 150, "IPIN clb(4,4).I[0]  ·  fan-in 4  ·  C1 = 1  ·  3 bits", { bg: "#fdfdfb" });
+    const ins = ["const 0", "const 1", "CHANY t2", "CHANY t6", "CHANX t0", "CHANX t8"];
+    ins.forEach((n, i) => {
+      const y = IY - 6 + i * 18, on = RT.ipin === i;
+      txt(IX + 80, y + 3, n, { size: 7.4, anchor: "end", mono: true, fill: on ? C.HOT2 : C.MUTE, w: on ? 700 : 400 });
+      wire([[IX + 86, y], [IX + 150, y]], { s: on ? C.HOT : "#c8d0d6", sw: on ? 2 : 1 });
+      txt(IX + 154, y + 3, String(i), { size: 6.2, anchor: "start", mono: true, fill: C.FAINT });
+    });
+    mux(IX + 150, IY - 14, 30, 112, { f: "#fdf6ef", s: C.GTX.s, label: "6:1", ls2: 7 });
+    wire([[IX + 180, IY + 42], [IX + 290, IY + 42]], { s: C.HOT, sw: 2, marker: "ahh" });
+    txt(IX + 296, IY + 46, "LUT I0", { size: 9, anchor: "start", mono: true, w: 700, fill: C.CLB.t });
+    for (let b = 0; b < 3; b++) cell(IX + 300 + (2 - b) * 26, IY + 70, 22, 16, (RT.ipin >> b) & 1, { showv: true });
+
+    txt(0, 500, `Whole fabric: ${BOB.nmux} muxes (IPIN ${BOB.ntype.IPIN} · CHANX ${BOB.ntype.CHANX} · CHANY ${BOB.ntype.CHANY}), ${BOB.mbits} bits.`
+      + " Inputs are the driving rr nodes in ascending id — what tools/bob/device.py writes and host/bitstream.py selects.", { size: 8, anchor: "start", fill: C.MUTE });
+    txt(0, 514, "CHANX/CHANY fan-in histogram: " + BOB.chanfanin.map(([n, c]) => `${n}×${c}`).join("  ·  "), { size: 7.4, anchor: "start", mono: true, fill: C.FAINT });
+    return svg(1064, 528, 900);
+  };
+  DEMO.routing = {
+    html: `<div class="demo"><h4>Live — <span>program the two muxes</span></h4><div class="ctl">
+      <div class="grp"><label>wire mux bits</label>${[3, 2, 1, 0].map(b => `<button class="sw6" data-rtb="${b}"><span class="n">b${b}</span><span class="v">0</span></button>`).join("")}</div>
+      <div class="grp"><label>IPIN value</label><select id="rtip">${[0, 1, 2, 3, 4, 5].map(v => `<option value="${v}">${v}</option>`).join("")}</select></div>
+      <div class="grp" style="margin-left:auto"><span class="hexout">sel =</span><span class="led hi" id="rtled">3</span></div></div></div>`,
+    wire(redraw) {
+      const sync = () => { document.querySelectorAll("[data-rtb]").forEach(b => { const v = (RT.sel >> +b.dataset.rtb) & 1; b.classList.toggle("on", !!v); b.querySelector(".v").textContent = v; }); document.getElementById("rtled").textContent = RT.sel; };
+      document.querySelectorAll("[data-rtb]").forEach(b => b.onclick = () => { RT.sel ^= 1 << +b.dataset.rtb; redraw(); sync(); });
+      const s = document.getElementById("rtip"); s.value = RT.ipin; s.onchange = () => { RT.ipin = +s.value; redraw(); };
+      sync();
+    }
+  };
+
+  /* ============================================================================
+     CHAIN  —  all 9400 bits laid out, pick a tile
+     ========================================================================= */
+  const CH = { pick: "t_x4y4" };
+  SCHEM.chain = function () {
+    S = [];
+    hdr(0, 16, `the ${BOB.chain}-bit configuration chain — bit 0 first on TDI, ctrl | grid tiles row-major | tail`);
+    const X0 = 10, WW = 1044, Y = 50, HH = 34, sc = WW / BOB.chain;
+    BOB.tiles.forEach(([name, x, y, lo, w, nm]) => {
+      const bl = BOB.blocks.find(b => b[2] === x && b[3] === y && b[5] === lo);
+      const k = name === "ctrl" ? C.CMT : name === "tail" ? C.HARD : bl ? C[{ clb: "CLB", bram: "BRAM", dsp: "DSP", io: "IO" }[bl[1]]] : C.GTX;
+      const on = name === CH.pick;
+      rect(X0 + lo * sc, Y, Math.max(w * sc, .6), HH, { f: on ? C.HOT : k.f, s: on ? C.HOT2 : k.s, sw: on ? 1.2 : .3, rx: 0 });
+    });
+    rect(X0, Y, WW, HH, { s: "#9aa6b2", sw: 1, rx: 2 });
+    [0, 2000, 4000, 6000, 8000, BOB.chain].forEach(b => { line(X0 + b * sc, Y + HH, X0 + b * sc, Y + HH + 6, { s: C.FAINT }); cap(X0 + b * sc, Y + HH + 16, String(b)); });
+    const t = BOB.tiles.find(r => r[0] === CH.pick) || BOB.tiles[0];
+    const [name, x, y, lo, w, nm, mb] = t;
+    const bl = BOB.blocks.find(b => b[2] === x && b[3] === y && b[5] === lo);
+    frame(10, 120, 500, 170, `TILE ${name}`, { bg: "#fdfdfb" });
+    [["grid location", x === null ? "—" : `(${x}, ${y})`], ["chain bits", `[${lo + w - 1} : ${lo}]  (${w} bits)`], ["block fields", bl ? `${bl[0]}: ${w - mb} bits` : "none (routing only)"],
+     ["routing muxes", `${nm} muxes · ${mb} bits`]].forEach(([a, b], i) => {
+      txt(34, 152 + i * 26, a, { size: 8.6, anchor: "start", fill: C.MUTE });
+      txt(170, 152 + i * 26, b, { size: 9.4, anchor: "start", mono: true, w: 700 });
+    });
+    /* the cell */
+    frame(540, 120, 514, 170, "cfg_tile_sr.v — EVERY BIT IS A PAIR OF FLOPS", { bg: "#fdfdfb" });
+    const a = ff(600, 170, 70, 60, { label: "sr[k]", sub: "posedge" }), b = ff(760, 170, 70, 60, { label: "cfg[k]", sub: "negedge" });
+    wire([[560, 180], [600, 180]], { marker: "ah" }); txt(560, 172, "sr[k+1]", { size: 7, anchor: "start", mono: true, fill: C.MUTE });
+    wire([[670, 200], [760, 180]], { marker: "ah" }); txt(700, 176, "commit", { size: 7, mono: true, fill: C.CFG.t });
+    wire([[830, 200], [980, 200]], { s: C.HOT, sw: 1.8, marker: "ahh" }); txt(990, 204, "fabric", { size: 8.4, anchor: "start", mono: true, w: 700, fill: C.HOT2 });
+    wire([[635, 230], [635, 262], [560, 262]], { marker: "ah" }); txt(566, 256, "→ sr[k-1] … TDO", { size: 7, anchor: "start", mono: true, fill: C.MUTE });
+    wire([[830, 214], [850, 214], [850, 250], [690, 250], [690, 214], [670, 214]], { s: C.CFG.s, dash: "3 2" }); txt(770, 262, "capture (readback)", { size: 7, mono: true, fill: C.CFG.t });
+    txt(0, 318, "OpenFPGA scan_chain protocol with Aegis' shift + shadow split: the fabric only ever sees cfg, which changes on a CRC-approved commit.", { size: 8, anchor: "start", fill: C.MUTE });
+    return svg(1064, 332, 900);
+  };
+  DEMO.chain = {
+    html: `<div class="demo"><h4>Live — <span>pick a tile</span></h4><div class="ctl">
+      <div class="grp"><label>tile</label><select id="chsel">${BOB.tiles.map(t => `<option value="${t[0]}">${t[0]}</option>`).join("")}</select></div></div></div>`,
+    wire(redraw) { const s = document.getElementById("chsel"); s.value = CH.pick; s.onchange = () => { CH.pick = s.value; redraw(); }; }
+  };
+
+  /* ============================================================================
+     JTAG TAP (jtag_tap6.v)  —  the 16-state machine, steppable
+     ========================================================================= */
+  const TAPN = {
+    TLR: [532, 56, "Test-Logic-Reset"], RTI: [532, 118, "Run-Test / Idle"],
+    SDS: [340, 118, "Select-DR"], SIS: [724, 118, "Select-IR"],
+    CDR: [340, 176, "Capture-DR"], CIR: [724, 176, "Capture-IR"],
+    SDR: [340, 234, "Shift-DR"], SIR: [724, 234, "Shift-IR"],
+    E1DR: [340, 292, "Exit1-DR"], E1IR: [724, 292, "Exit1-IR"],
+    PDR: [180, 292, "Pause-DR"], PIR: [884, 292, "Pause-IR"],
+    E2DR: [180, 350, "Exit2-DR"], E2IR: [884, 350, "Exit2-IR"],
+    UDR: [340, 408, "Update-DR"], UIR: [724, 408, "Update-IR"]
+  };
+  const TAPE = [
+    ["TLR", "TLR", 1, "self"], ["TLR", "RTI", 0], ["RTI", "RTI", 0, "self"], ["RTI", "SDS", 1],
+    ["SDS", "CDR", 0], ["SDS", "SIS", 1], ["SIS", "CIR", 0], ["SIS", "TLR", 1],
+    ["CDR", "SDR", 0], ["CDR", "E1DR", 1], ["SDR", "SDR", 0, "self"], ["SDR", "E1DR", 1],
+    ["E1DR", "PDR", 0], ["E1DR", "UDR", 1], ["PDR", "PDR", 0, "self"], ["PDR", "E2DR", 1],
+    ["E2DR", "SDR", 0], ["E2DR", "UDR", 1], ["UDR", "RTI", 0], ["UDR", "SDS", 1],
+    ["CIR", "SIR", 0], ["CIR", "E1IR", 1], ["SIR", "SIR", 0, "self"], ["SIR", "E1IR", 1],
+    ["E1IR", "PIR", 0], ["E1IR", "UIR", 1], ["PIR", "PIR", 0, "self"], ["PIR", "E2IR", 1],
+    ["E2IR", "SIR", 0], ["E2IR", "UIR", 1], ["UIR", "RTI", 0], ["UIR", "SDS", 1]
+  ];
+  const TAP = { st: "TLR", ir: "IDCODE", last: null };
+  const IRS = [["IDCODE", "001001", "32-bit 0x9BEEF093"], ["USERCODE", "001000", "milestone number"], ["BYPASS", "111111", "1 bit"],
+    ["CFG_IN", "000101", "chain write · commits if CRC+len"], ["CFG_OUT", "000100", "chain readback"], ["USER2 CFG_CTRL", "000011", "64-bit CRC/status"],
+    ["USER1", "000010", "ce sr cin step autostep"], ["USER3 CAPTURE", "100010", "48 CLB outputs"], ["USER4 BRAM", "100011", "96-bit contents/drive"],
+    ["DSP (private)", "101000", "256-bit drive / P"], ["JPROGRAM", "001011", "clears at Update-IR"], ["JSTART", "001100", "startup in RTI"],
+    ["SAMPLE · EXTEST", "000001 · 100110", "64-cell boundary"], ["INTEST (private)", "000111", "cells drive the fabric"]];
+
+  SCHEM.jtag = function () {
+    S = [];
+    hdr(0, 16, "jtag_tap6.v — sixteen states, TMS sampled on the rising TCK edge");
+    const NW = 118, NH = 34;
+    const DETOUR = {
+      "SDS|SIS": [[[399, 135], [436, 135], [436, 166], [628, 166], [628, 135], [665, 135]], 532, 166],
+      "UDR|SDS": [[[281, 425], [104, 425], [104, 135], [281, 135]], 104, 280],
+      "UIR|SDS": [[[724, 442], [724, 452], [88, 452], [88, 100], [340, 100], [340, 118]], 88, 300],
+      "CDR|E1DR": [[[399, 193], [430, 193], [430, 309], [399, 309]], 430, 251],
+      "CIR|E1IR": [[[665, 193], [634, 193], [634, 309], [665, 309]], 634, 251]
+    };
+    const ctr = k => [TAPN[k][0], TAPN[k][1] + NH / 2];
+    TAPE.forEach(([a, b, tms, kind]) => {
+      const taken = TAP.last && TAP.last[0] === a && TAP.last[1] === b;
+      const col = taken ? C.GRN : (tms ? C.HOT : "#9aa6b2"), sw = taken ? 2.4 : (tms ? 1.3 : 1.1), mk = taken ? "ahg" : "ah";
+      const det = DETOUR[a + "|" + b];
+      if (det) {
+        wire(det[0], { s: col, sw, marker: mk });
+        rect(det[1] - 5, det[2] - 6, 10, 11, { f: "#fdfdfb", rx: 2 });
+        txt(det[1], det[2] + 3, String(tms), { size: 7, mono: true, fill: col, w: 700 });
+        return;
+      }
+      if (kind === "self") {
+        const [x, y] = ctr(a);
+        path(`M${x - NW / 2},${y - 8} C${x - NW / 2 - 34},${y - 26} ${x - NW / 2 - 34},${y + 26} ${x - NW / 2},${y + 8}`, { s: col, sw, marker: mk });
+        txt(x - NW / 2 - 40, y + 3, String(tms), { size: 7, mono: true, fill: col, anchor: "end", w: 700 });
+        return;
+      }
+      const [x1, y1] = ctr(a), [x2, y2] = ctr(b);
+      let pts;
+      if (Math.abs(x1 - x2) < 2) pts = [[x1, y1 + NH / 2], [x2, y2 - NH / 2]];
+      else if (Math.abs(y1 - y2) < 2) pts = [[x1 + (x2 > x1 ? NW / 2 : -NW / 2), y1], [x2 + (x2 > x1 ? -NW / 2 : NW / 2), y2]];
+      else { const mx = (x1 + x2) / 2; pts = [[x1 + (x2 > x1 ? NW / 2 : -NW / 2), y1], [mx, y1], [mx, y2], [x2 + (x2 > x1 ? -NW / 2 : NW / 2), y2]]; }
+      wire(pts, { s: col, sw, marker: mk });
+      const lx = (pts[0][0] + pts[pts.length - 1][0]) / 2, ly = (pts[0][1] + pts[pts.length - 1][1]) / 2;
+      rect(lx - 5, ly - 6, 10, 11, { f: "#fdfdfb", rx: 2 });
+      txt(lx, ly + 3, String(tms), { size: 7, mono: true, fill: col, w: 700 });
+    });
+    Object.entries(TAPN).forEach(([k, [x, y, label]]) => {
+      const cur = k === TAP.st, isShift = k === "SDR" || k === "SIR";
+      const kk = cur ? { f: "#fdefe2", s: C.HOT2, t: C.HOT2 } : isShift ? C.CFG : k === "TLR" ? C.HARD : C.BRD;
+      rect(x - NW / 2, y, NW, NH, { f: kk.f, s: kk.s, sw: cur ? 2.2 : (isShift ? 1.6 : 1.1), rx: 5 });
+      txt(x, y + 21, label, { size: 8, w: cur || isShift ? 700 : 560, fill: kk.t });
+    });
+
+    /* bob's instruction register */
+    frame(28, 476, 1028, 176, "BOB'S 6-BIT INSTRUCTIONS (AMD 7-SERIES CODES) — WHAT SHIFT-DR TALKS TO", { bg: "#fdfdfb" });
+    IRS.forEach(([n, code, what], i) => {
+      const col = i % 2, row = Math.floor(i / 2), x = 48 + col * 510, y = 500 + row * 21;
+      const on = TAP.ir === n.split(" ")[0] || TAP.ir === n;
+      txt(x, y, code, { size: 8.4, anchor: "start", mono: true, w: 700, fill: on ? C.HOT2 : C.CFG.t });
+      txt(x + 118, y, n, { size: 8.6, anchor: "start", w: on ? 700 : 560, fill: on ? C.HOT2 : C.INK });
+      txt(x + 270, y, what, { size: 7.6, anchor: "start", mono: true, fill: C.MUTE });
+    });
+    txt(0, 676, "Capture-IR loads {DONE, INIT_B, COMMITTED, CRC_ERR, 0, 1}. Orange edges TMS = 1, grey TMS = 0, green = the transition you just took. Five TMS = 1 always reaches Test-Logic-Reset.", { size: 8, anchor: "start", fill: C.MUTE });
+    return svg(1064, 690, 920);
+  };
+
+  DEMO.jtag = {
+    html: `<div class="demo"><h4>Live — <span>clock TCK with TMS = 0 or 1</span></h4><div class="ctl">
+      <div class="grp"><button class="act" id="tms0">TCK ↑ with TMS = 0</button><button class="act" id="tms1">TCK ↑ with TMS = 1</button><button class="act" id="tmsrst">5 × TMS = 1</button></div>
+      <div class="grp"><label>IR (for the table)</label><select id="tapir">${IRS.map(r => `<option>${r[0].split(" ")[0]}</option>`).join("")}</select></div>
+      <div class="grp" style="margin-left:auto"><span class="hexout">state</span><span class="led hi" id="tapled">TLR</span></div></div></div>`,
+    wire(redraw) {
+      const step = tms => { const e = TAPE.find(([a, , t]) => a === TAP.st && t === tms); TAP.last = [e[0], e[1]]; TAP.st = e[1]; };
+      const sync = () => { document.getElementById("tapled").textContent = TAPN[TAP.st][2]; };
+      document.getElementById("tms0").onclick = () => { step(0); redraw(); sync(); };
+      document.getElementById("tms1").onclick = () => { step(1); redraw(); sync(); };
+      document.getElementById("tmsrst").onclick = () => { for (let i = 0; i < 5; i++) step(1); redraw(); sync(); };
+      const sel = document.getElementById("tapir"); sel.value = TAP.ir; sel.onchange = () => { TAP.ir = sel.value; redraw(); };
+      sync();
+    }
+  };
+
+  /* ============================================================================
+     STARTUP + COMMIT (cfg_ctrl.v)  —  load, reject, JSTART, JPROGRAM
+     ========================================================================= */
+  const SU = { phase: 0, committed: 0, crc_ok: 0, crc_err: 0, len_err: 0, gsr: 1, gts: 1, gwe: 0, done: 0, log: "power-up" };
+  function suJprogram() { Object.assign(SU, { phase: 0, committed: 0, crc_ok: 0, crc_err: 0, len_err: 0, gsr: 1, gts: 1, gwe: 0, done: 0, log: "JPROGRAM: cfg cleared" }); }
+  function suLoad(crc, len) {
+    SU.crc_ok = +(crc && len); SU.crc_err = +!crc; SU.len_err = +!len;
+    if (crc && len) { SU.committed = 1; SU.log = "CFG_IN Update-DR: count = 9400, ~crc = expected → COMMIT"; }
+    else SU.log = `CFG_IN refused (${!crc ? "CRC_ERR " : ""}${!len ? "LEN_ERR" : ""}) — previous configuration kept`;
+  }
+  function suTick() {
+    if (!SU.committed) { SU.log = "JSTART tick ignored: not COMMITTED"; return; }
+    if (SU.phase === 4) { SU.log = "phase 4: DONE (stays)"; return; }
+    const p = SU.phase++;
+    if (p === 0) SU.gsr = 0; if (p === 1) SU.gts = 0; if (p === 2) SU.gwe = 1; if (p === 3) SU.done = 1;
+    SU.log = ["GSR released", "GTS released — pads live", "GWE asserted — flops and RAM write", "DONE — LD3 on"][p];
+  }
+
+  SCHEM.startup = function () {
+    S = [];
+    hdr(0, 16, "cfg_ctrl.v — the commit guard and the startup phase counter");
+    /* commit decision */
+    frame(10, 40, 1044, 150, "COMMIT DECISION  (CFG_IN Update-DR, falling edge)", { bg: "#fdfdfb" });
+    block(40, 70, 170, 44, "count == 9400", "16-bit counter per Shift-DR", C.CFG, { size: 9, cs: 6.6 });
+    block(40, 128, 170, 44, "~crc == expected", "CRC-32C 0x82F63B78 · key 0xC5", C.CFG, { size: 9, cs: 6.6 });
+    val(232, 92, SU.len_err ? 0 : (SU.crc_ok || SU.committed ? 1 : null), { label: "len_good" });
+    val(232, 150, SU.crc_err ? 0 : (SU.crc_ok || SU.committed ? 1 : null), { label: "crc_good" });
+    const g = gate("and", 300, 100, 46, 50, {});
+    wire([[210, 92], [270, 92], [270, 114], [300, 114]]); wire([[210, 150], [270, 150], [270, 136], [300, 136]]);
+    wire([[346, 125], [440, 125]], { s: SU.crc_ok ? C.GRN : C.WIRE, sw: 1.8, marker: SU.crc_ok ? "ahg" : "ah" });
+    block(446, 100, 190, 50, "cfg_commit", "sr → cfg shadow (9400 bits)", SU.crc_ok ? C.BRAM : C.CFG, { size: 9.4, cs: 6.6 });
+    block(680, 72, 170, 40, "CRC_ERR / LEN_ERR", "old cfg kept, INIT_B low", C.CFG, { size: 8.6, cs: 6.4 });
+    block(680, 130, 170, 40, "COMMITTED", "enables JSTART", C.CFG, { size: 8.6, cs: 6.4 });
+    val(870, 92, SU.crc_err | SU.len_err); val(870, 150, SU.committed);
+    txt(900, 96, "IR capture bit 2 / 4", { size: 7, anchor: "start", mono: true, fill: C.MUTE });
+    txt(900, 154, "IR capture bit 3", { size: 7, anchor: "start", mono: true, fill: C.MUTE });
+
+    /* startup FSM */
+    frame(10, 214, 1044, 240, "STARTUP FSM  —  one phase per TCK in Run-Test/Idle while IR = JSTART  ∧  COMMITTED", { bg: "#fdfdfb" });
+    const ph = [["0", "RESET", "GSR 1 · GTS 1 · GWE 0"], ["1", "GSR ← 0", "flops leave INIT"], ["2", "GTS ← 0", "pads driven"], ["3", "GWE ← 1", "writes enabled"], ["4", "DONE ← 1", "LD3 on"]];
+    ph.forEach(([n, a, b], i) => {
+      const x = 40 + i * 202, y = 266, cur = SU.phase === i;
+      rect(x, y, 150, 70, { f: cur ? "#fdefe2" : (i === 4 ? C.BRAM.f : C.CFG.f), s: cur ? C.HOT2 : (i === 4 ? C.BRAM.s : C.CFG.s), sw: cur ? 2.2 : 1.1, rx: 8 });
+      txt(x + 22, y + 24, n, { size: 16, w: 700, mono: true, fill: cur ? C.HOT2 : C.CFG.t });
+      txt(x + 88, y + 30, a, { size: 10, w: 700, fill: cur ? C.HOT2 : C.INK });
+      txt(x + 88, y + 48, b, { size: 6.8, mono: true, fill: C.MUTE });
+      if (i < 4) { wire([[x + 150, y + 35], [x + 202, y + 35]], { s: C.HOT, sw: 1.4, marker: "ahh" }); txt(x + 176, y + 28, "tick", { size: 6.4, mono: true, fill: C.HOT2 }); }
+    });
+    wire([[965, 336], [965, 380], [115, 380], [115, 336]], { s: C.CFG.s, sw: 1.3, dash: "5 3", marker: "ah" });
+    txt(540, 396, "JPROGRAM (Update-IR) — from any phase, also clears cfg and COMMITTED", { size: 7.6, mono: true, fill: C.CFG.t, w: 600 });
+    [["GSR", SU.gsr], ["GTS", SU.gts], ["GWE", SU.gwe], ["DONE", SU.done]].forEach(([n, v], i) => {
+      txt(60 + i * 110, 430, n, { size: 8.6, anchor: "start", mono: true, w: 700 }); val(110 + i * 110, 426, v);
+    });
+    txt(520, 430, SU.log, { size: 8.4, anchor: "start", mono: true, fill: C.HOT2, w: 600 });
+    txt(0, 482, "AMD UG470: integrity check before release; GSR → GTS → GWE → DONE. Checked edge by edge in hw/tb/tb_bob.v [7] and on the board by hwtest gsr-gwe.", { size: 8, anchor: "start", fill: C.MUTE });
+    return svg(1064, 496, 900);
+  };
+  DEMO.startup = {
+    html: `<div class="demo"><h4>Live — <span>walk a load the way cfgplane.load does</span></h4><div class="ctl">
+      <div class="grp"><button class="act" id="sujp">JPROGRAM</button><button class="act" id="sugood">CFG_IN good chain</button><button class="act" id="sucrc">CFG_IN corrupted bit</button><button class="act" id="sulen">CFG_IN 9399 bits</button><button class="act" id="sutick">JSTART tick</button></div>
+      <div class="grp" style="margin-left:auto"><span class="hexout">LD3 DONE</span><span class="led" id="suled">0</span></div></div></div>`,
+    wire(redraw) {
+      const sync = () => { const l = document.getElementById("suled"); l.textContent = SU.done; l.classList.toggle("hi", !!SU.done); };
+      const on = (id, fn) => document.getElementById(id).onclick = () => { fn(); redraw(); sync(); };
+      on("sujp", suJprogram); on("sugood", () => suLoad(1, 1)); on("sucrc", () => suLoad(0, 1)); on("sulen", () => suLoad(1, 0)); on("sutick", suTick);
+      sync();
+    }
+  };
+
+  /* ============================================================================
+     USER4 command crossing (bram_jtag.v)  and  the user clock (clock_ctrl.v)
+     ========================================================================= */
+  SCHEM.user4 = function () {
+    S = [];
+    hdr(0, 16, "bram_jtag.v — a JTAG command reaching a BRAM on the other clock");
+    frame(10, 40, 500, 250, "TCK DOMAIN", { bg: "#fdfdfb" });
+    frame(560, 40, 494, 250, "SYSCLK DOMAIN (125 MHz)", { bg: "#fdfdfb" });
+    block(40, 70, 190, 46, "96-bit shift register", "capture {ver, target, gwe, err, do_b, do_a, ptr, rdata}", C.CFG, { size: 8.8, cs: 5.8 });
+    block(40, 150, 190, 46, "Update-DR (negedge)", "cmd = sr[95:92]", C.CFG, { size: 8.8, cs: 6.4 });
+    wire([[135, 116], [135, 150]], { marker: "ah" });
+    block(280, 90, 200, 40, "SET_DRIVE · SELECT", "act immediately in TCK", C.CFG, { size: 8.6, cs: 6.4 });
+    block(280, 170, 200, 50, "cmd_q · pay_q · tgt_q", "latched, then req_t ← ~req_t", C.CFG, { size: 8.6, cs: 6.4 });
+    wire([[230, 173], [255, 173], [255, 110], [280, 110]], { marker: "ah" }); wire([[230, 180], [280, 190]], { marker: "ah" });
+    wire([[480, 195], [590, 195]], { s: C.HOT, sw: 1.8, marker: "ahh" }); txt(535, 188, "req_t", { size: 7, mono: true, fill: C.HOT2 });
+    const f1 = ff(590, 172, 46, 48, { label: "m0", sub: "ASYNC" }), f2 = ff(660, 172, 46, 48, { label: "m1", sub: "ASYNC" });
+    wire([[636, 196], [660, 196]]);
+    block(740, 170, 110, 50, "edge detect", "m1 ⊕ req_d", C.CMT, { size: 8.6, cs: 6.4 });
+    wire([[706, 196], [740, 196]], { marker: "ah" });
+    block(880, 60, 160, 50, "LOAD_PTR", "ptr ← payload", C.BRAM, { size: 8.6, cs: 6.4 });
+    block(880, 130, 160, 50, "WRITE / READ", "only if GWE = 0 → init_go[target]", C.BRAM, { size: 8.6, cs: 5.8 });
+    block(880, 200, 160, 50, "else err ← 1", "contents locked", C.CFG, { size: 8.6, cs: 6.4 });
+    wire([[850, 195], [865, 195], [865, 85], [880, 85]], { marker: "ah" }); wire([[865, 155], [880, 155]], { marker: "ah" }); wire([[865, 225], [880, 225]], { marker: "ah" });
+    [["1", "LOAD_PTR", "ptr ← payload[9:0]"], ["2", "WRITE", "mem[ptr] ← payload[17:0], ptr++"], ["3", "READ", "rdata ← mem[ptr] (next scan), ptr++"], ["4", "SET_DRIVE", "selected BRAM's 64 pin values"], ["5", "SELECT", "target ← payload (M7)"]]
+      .forEach(([c2, n, d], i) => { const y = 330 + i * 18; txt(30, y, c2, { size: 9, mono: true, w: 700, anchor: "start", fill: C.CFG.t }); txt(50, y, n, { size: 8.6, anchor: "start", w: 640 }); txt(160, y, d, { size: 8, anchor: "start", mono: true, fill: C.MUTE }); });
+    txt(0, 440, "UG470 keeps BRAM contents out of the configuration; the toggle + two-flop synchroniser is the standard single-bit CDC handshake.", { size: 8, anchor: "start", fill: C.MUTE });
+    return svg(1064, 454, 900);
+  };
+
+  const CLK = { mode: 0, ce: 1, div: 0 };
+  SCHEM.clock = function () {
+    S = [];
+    hdr(0, 16, "clock_ctrl.v — one real clock (sysclk), the user clock is the enable gce");
+    rect(20, 60, 140, 40, { f: C.BRD.f, s: C.BRD.s, rx: 4 }); txt(90, 84, "TCK (async)", { size: 9, w: 640 });
+    const a = ff(200, 56, 40, 48, { label: "s0" }), b = ff(260, 56, 40, 48, { label: "s1" });
+    wire([[160, 80], [200, 66]]); wire([[240, 80], [260, 66]]); cap(250, 118, "ASYNC_REG synchroniser");
+    const d1 = ff(330, 56, 40, 48, { label: "d" }); wire([[300, 80], [330, 66]]);
+    const ga = gate("and", 420, 60, 40, 36, {}); wire([[300, 80], [310, 80], [310, 130], [410, 130], [410, 70], [420, 70]]);
+    wire([[370, 80], [400, 80], [400, 86], [420, 86]], { s: C.WIRE }); cap(440, 108, "rise");
+    const g2 = gate("and", 500, 60, 40, 36, {}); wire([[460, 78], [500, 70]]);
+    rect(360, 150, 110, 30, { f: C.CFG.f, s: C.CFG.s, rx: 4 }); txt(415, 170, "USER1 ce (sync)", { size: 8 });
+    wire([[470, 165], [490, 165], [490, 86], [500, 86]], { s: CLK.ce ? C.HOT : C.WIRE, sw: CLK.ce ? 1.6 : 1 });
+    const go = gate("or", 580, 60, 40, 44, {}); wire([[540, 78], [580, 72]]);
+    rect(360, 200, 190, 30, { f: C.CFG.f, s: C.CFG.s, rx: 4 }); txt(455, 220, "USER1 step / INTEST autostep ↑", { size: 8 });
+    wire([[550, 215], [570, 215], [570, 92], [580, 92]]);
+    rect(360, 260, 190, 44, { f: C.CMT.f, s: C.CMT.s, rx: 4 }); txt(455, 280, "counter", { size: 9, w: 640, fill: C.CMT.t });
+    txt(455, 294, `period 2^(${CLK.div}+8) = ${2 ** (CLK.div + 8)} cycles`, { size: 7, mono: true, fill: C.MUTE });
+    const m = mux(680, 60, 30, 250, { label: "mode", ls2: 7 });
+    wire([[624, 82], [680, 82]], { s: CLK.mode ? C.WIRE : C.HOT, sw: CLK.mode ? 1 : 2 });
+    wire([[550, 282], [680, 282]], { s: CLK.mode ? C.HOT : C.WIRE, sw: CLK.mode ? 2 : 1 });
+    cap(695, 330, `clk_mode = ${CLK.mode} (ctrl tile bit 0)`);
+    const fg = ff(760, 160, 60, 50, { label: "gce" }); wire([[710, 185], [760, 170]], { s: C.HOT, sw: 2 });
+    wire([[820, 185], [1000, 185]], { s: C.HOT, sw: 2, marker: "ahh" }); txt(910, 176, "→ every CLB / BRAM / DSP register", { size: 8, mono: true, fill: C.HOT2 });
+    rect(760, 250, 240, 40, { f: C.CMT.f, s: C.CMT.s, rx: 4 }); txt(880, 274, "sysclk 125 MHz · H16 · BUFG", { size: 9, w: 640, fill: C.CMT.t });
+    wire([[880, 250], [880, 230], [770, 230], [770, 204], [760, 204]], { s: C.CMT.s });
+    const hz = 125e6 / 2 ** (CLK.div + 8);
+    frame(20, 360, 1034, 90, "WHAT IT MEANS", { bg: "#fdfdfb" });
+    txt(40, 390, CLK.mode ? `free-running: ${hz >= 1000 ? (hz / 1000).toFixed(1) + " kHz" : hz.toFixed(2) + " Hz"} user clock (div ${CLK.div}); hwtest counter-run uses div 16 = 7.45 Hz`
+      : `JTAG-stepped: one gce per TCK rising edge while ce = ${CLK.ce}; step/autostep give exactly one`, { size: 9.4, anchor: "start", mono: true, w: 600 });
+    txt(40, 414, "gce pulses are ≥ 120 sysclk cycles apart → pynq_z2.xdc gives fabric paths a 120-cycle multicycle (UG949: enables, not generated clocks).", { size: 8, anchor: "start", fill: C.MUTE });
+    return svg(1064, 466, 900);
+  };
+  DEMO.clock = {
+    html: `<div class="demo"><h4>Live — <span>clock mode and divider</span></h4><div class="ctl">
+      <div class="grp"><button class="sw6" data-clk="mode"><span class="n">MODE</span><span class="v">0</span></button><button class="sw6" data-clk="ce"><span class="n">CE</span><span class="v">1</span></button></div>
+      <div class="grp"><label>clk_div</label><input type="range" min="0" max="23" id="clkdiv" value="0"><span class="hexout" id="clkdv">0</span></div></div></div>`,
+    wire(redraw) {
+      const sync = () => { document.querySelectorAll("[data-clk]").forEach(b => { const v = CLK[b.dataset.clk]; b.classList.toggle("on", !!v); b.querySelector(".v").textContent = v; }); document.getElementById("clkdv").textContent = CLK.div; };
+      document.querySelectorAll("[data-clk]").forEach(b => b.onclick = () => { CLK[b.dataset.clk] ^= 1; redraw(); sync(); });
+      const r = document.getElementById("clkdiv"); r.value = CLK.div; r.oninput = () => { CLK.div = +r.value; redraw(); sync(); };
+      sync();
+    }
+  };
+
+  /* ============================================================================
+     BLOCK-DIAGRAM RENDERER  —  the row/flow layout used by pages without a schematic
+     ========================================================================= */
+  const DW = 1040;
+  function wrapTxt(s, maxc) {
+    const w = String(s).split(" "), out = []; let cur = "";
+    w.forEach(t => { if ((cur + " " + t).trim().length <= maxc) cur = (cur + " " + t).trim(); else { out.push(cur); cur = t; } });
+    if (cur) out.push(cur);
+    return out.slice(0, 2);
+  }
+
+  function renderRows(d) {
+    S = [];
+    let y = 14;
+    const rows = d.rows || [];
+    rows.forEach((row, ri) => {
+      if (row.label) {
+        txt(2, y + 7, row.label.toUpperCase(), { size: 7.4, anchor: "start", fill: C.FAINT, mono: true, ls: .9 });
+        y += 16;
+      }
+      const items = row.items.filter(Boolean);
+      const n = items.length, gap = row.t === "flow" ? 26 : 10;
+      const bw = (DW - gap * (n - 1)) / n, bh = 54;
+      items.forEach(([name, cap2, drill, kind], i) => {
+        const x = i * (bw + gap), k = C[kind || d.k] || C.CLB;
+        rect(x, y, bw, bh, {
+          f: k.f, s: k.s, sw: drill ? 1.6 : 1, rx: 4,
+          dash: kind === "SOFTK" ? "5 3" : null, cls: drill ? "dm" : null
+        });
+        const nl = wrapTxt(name, Math.max(10, Math.floor(bw / 6.1)));
+        const capl = cap2 ? wrapTxt(cap2, Math.max(12, Math.floor(bw / 4.3))) : [];
+        let ty = bh / 2 - (nl.length - 1) * 5.5 - capl.length * 4.6 + 3;
+        nl.forEach(l => { txt(x + bw / 2, y + ty, l, { size: 9.2, w: 640, fill: k.t }); ty += 11; });
+        capl.forEach(l => { txt(x + bw / 2, y + ty + 1, l, { size: 6.9, fill: C.MUTE, mono: true }); ty += 9; });
+        if (drill) {
+          txt(x + bw - 7, y + 12, "▸", { size: 9, anchor: "end", fill: C.HOT, w: 700 });
+          S.push(`<rect class="hit" data-id="${drill}" x="${x}" y="${y}" width="${bw}" height="${bh}" rx="4" fill="transparent" pointer-events="all"/>`);
+        }
+        if (row.t === "flow" && i < n - 1)
+          line(x + bw + 3, y + bh / 2, x + bw + gap - 3, y + bh / 2, { s: "#8e8e86", sw: 1.3, marker: "ah" });
+      });
+      y += bh;
+      if (ri < rows.length - 1) { line(DW / 2, y, DW / 2, y + 14, { s: "#cbcbc3", sw: 1.2 }); y += 14; }
+    });
+    return svg(DW, y + 8, Math.min(DW, 760));
+  }
+
+  /* ============================================================================
+     NAVIGATION
+     ========================================================================= */
+  const ov = document.getElementById("ov");
+  const $ = id => document.getElementById(id);
+  let stack = [];
+
+  function openPage(id) {
+    if (!DET[id]) return;
+    if (stack[stack.length - 1] !== id) stack.push(id);
+    paint();
+  }
+
+  /* redraw only the live schematic — used by the demo controls */
+  function redrawSchem(id) {
+    if (SCHEM[id]) $("dschem").innerHTML = SCHEM[id]();
+  }
+
+  /* a running animation must never outlive the page that owns it, or it would
+     keep repainting #dschem after the user has navigated somewhere else */
+  function stopAnimations() {
+    if (CARRY.timer) { clearInterval(CARRY.timer); CARRY.timer = null; }
+  }
+
+  function paint() {
+    stopAnimations();
+    const id = stack[stack.length - 1], d = DET[id], k = C[d.k] || C.CLB;
+
+    $("dsw").style.background = k.s;
+    $("dtitle").textContent = d.title;
+    $("dsub").textContent = d.sub || "";
+
+    /* schematic + live controls */
+    const sw = $("dschemw");
+    if (SCHEM[id]) {
+      sw.style.display = "";
+      redrawSchem(id);
+      const dem = $("ddemo");
+      if (DEMO[id]) { dem.innerHTML = DEMO[id].html; DEMO[id].wire(() => redrawSchem(id)); }
+      else dem.innerHTML = "";
+    } else { sw.style.display = "none"; $("ddemo").innerHTML = ""; }
+
+    /* block diagram */
+    const rw = $("drowsw");
+    if (d.rows && d.rows.length) {
+      rw.style.display = "";
+      $("drowshdr").textContent = SCHEM[id] ? "The same block, as a signal flow" : "Block diagram";
+      $("ddiag").innerHTML = renderRows(d);
+    } else rw.style.display = "none";
+
+    /* breadcrumb */
+    const cr = $("dcrumb");
+    cr.innerHTML = stack.map((s, i) =>
+      i === stack.length - 1
+        ? `<span style="color:#35353c">${esc(DET[s].title.split(" — ")[0])}</span>`
+        : `<button data-i="${i}">${esc(DET[s].title.split(" — ")[0])}</button><span>›</span>`
+    ).join(" ") + (stack.length > 1 ? `<span style="margin-left:auto;color:#b6b6ae">⌫ back · Esc close</span>` : "");
+    cr.querySelectorAll("button").forEach(b => b.onclick = () => { stack = stack.slice(0, +b.dataset.i + 1); paint(); });
+
+    /* notes */
+    const nw = $("dnotesw");
+    if (d.notes && d.notes.length) {
+      nw.style.display = "";
+      $("dnotes").innerHTML = d.notes.map(n => `<li>${n}</li>`).join("");
+    } else nw.style.display = "none";
+
+    /* sub-blocks */
+    const dw = $("ddrillw");
+    const dr = (d.drill || []).filter(x => DET[x]);
+    if (dr.length) {
+      dw.style.display = "";
+      $("ddrill").innerHTML = dr.map(x =>
+        `<button data-go="${x}">${esc(DET[x].title.split(" — ")[0])} ▸</button>`).join("");
+      $("ddrill").querySelectorAll("button").forEach(b => b.onclick = () => openPage(b.dataset.go));
+    } else dw.style.display = "none";
+
+    const kv = (w, t, rows) => {
+      if (rows && rows.length) { $(w).style.display = ""; $(t).innerHTML = rows.map(([a, b]) => `<tr><td>${a}</td><td>${b}</td></tr>`).join(""); }
+      else $(w).style.display = "none";
+    };
+    kv("dsrcw", "dsrc", d.src); kv("dfilesw", "dfiles", d.files); kv("dtbw", "dtb", d.tb);
+    if (d.why && d.why.length) { $("dwhyw").style.display = ""; $("dwhy").innerHTML = d.why.map(n => `<li>${n}</li>`).join(""); }
+    else $("dwhyw").style.display = "none";
+
+    $("dlnk").innerHTML = d.stage
+      ? `Deeper reading in the repo: <a href="${d.stage}">${d.stage}</a>`
+      : "";
+
+    ov.classList.add("on");
+    ov.scrollTop = 0;
+  }
+
+  function closeOv() { stopAnimations(); ov.classList.remove("on"); stack = []; }
+
+  $("out").addEventListener("click", e => {
+    const t = e.target.closest("[data-id]"); if (t) openPage(t.dataset.id);
+  });
+  ["ddiag", "dschem"].forEach(el => $(el).addEventListener("click", e => {
+    const t = e.target.closest("[data-id]"); if (t) openPage(t.dataset.id);
+  }));
+  $("dx").onclick = closeOv;
+  ov.addEventListener("click", e => { if (e.target === ov) closeOv(); });
+  addEventListener("keydown", e => {
+    if (!ov.classList.contains("on")) return;
+    if (e.key === "Escape") closeOv();
+    if ((e.key === "Backspace" || e.key === "ArrowLeft") && stack.length > 1) { e.preventDefault(); stack.pop(); paint(); }
+  });
+
+  /* ── dev sanity check: every hotspot must land on a page ── */
+  (function audit() {
+    const ids = [...document.querySelectorAll("#out [data-id]")].map(n => n.dataset.id);
+    const missing = [...new Set(ids)].filter(i => !DET[i]);
+    if (missing.length) console.warn("hotspots with no detail page:", missing);
+    const bad = [];
+    Object.entries(DET).forEach(([k, d]) => {
+      (d.drill || []).forEach(x => { if (!DET[x]) bad.push(k + " → " + x); });
+      (d.rows || []).forEach(r => r.items.filter(Boolean).forEach(it => {
+        if (it[2] && !DET[it[2]]) bad.push(k + " row → " + it[2]);
+      }));
+    });
+    if (bad.length) console.warn("dangling drill links:", bad);
+    const noSchem = Object.keys(SCHEM).filter(k => !DET[k]);
+    if (noSchem.length) console.warn("schematics with no page:", noSchem);
+    console.log("pages:", Object.keys(DET).length, "| schematics:", Object.keys(SCHEM).length,
+      "| live demos:", Object.keys(DEMO).length, "| hotspots:", ids.length);
+  })();
+</script>

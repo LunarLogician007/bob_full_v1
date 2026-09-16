@@ -1,0 +1,1752 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (win64) Build 6299465 Fri Nov 14 19:35:11 GMT 2025
+| Date         : Mon Sep 14 05:35:30 2026
+| Host         : SARAVANB423 running 64-bit major release  (build 9200)
+| Command      : report_timing_summary -file E:/bob_full_v1/bob_vivado/out/M1/timing.rpt
+| Design       : fpga4x4_top
+| Device       : 7z020-clg400
+| Speed File   : -1  PRODUCTION 1.12 2019-11-22
+| Design State : Routed
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Timing Summary Report
+
+------------------------------------------------------------------------------------------------
+| Timer Settings
+| --------------
+------------------------------------------------------------------------------------------------
+
+  Enable Multi Corner Analysis               :  Yes
+  Enable Pessimism Removal                   :  Yes
+  Pessimism Removal Resolution               :  Nearest Common Node
+  Enable Input Delay Default Clock           :  No
+  Enable Preset / Clear Arcs                 :  No
+  Disable Flight Delays                      :  No
+  Ignore I/O Paths                           :  No
+  Timing Early Launch at Borrowing Latches   :  No
+  Borrow Time for Max Delay Exceptions       :  Yes
+  Merge Timing Exceptions                    :  Yes
+  Inter-SLR Compensation                     :  Conservative
+
+  Corner  Analyze    Analyze    
+  Name    Max Paths  Min Paths  
+  ------  ---------  ---------  
+  Slow    Yes        Yes        
+  Fast    Yes        Yes        
+
+
+------------------------------------------------------------------------------------------------
+| Report Methodology
+| ------------------
+------------------------------------------------------------------------------------------------
+
+Rule       Severity  Description               Violations  
+---------  --------  ------------------------  ----------  
+TIMING-23  Warning   Combinational loop found  1           
+
+Note: This report is based on the most recent report_methodology run and may not be up-to-date. Run report_methodology on the current design for the latest report.
+
+
+
+check_timing report
+
+Table of Contents
+-----------------
+1. checking no_clock (0)
+2. checking constant_clock (0)
+3. checking pulse_width_clock (0)
+4. checking unconstrained_internal_endpoints (0)
+5. checking no_input_delay (6)
+6. checking no_output_delay (4)
+7. checking multiple_clock (0)
+8. checking generated_clocks (0)
+9. checking loops (889)
+10. checking partial_input_delay (0)
+11. checking partial_output_delay (0)
+12. checking latch_loops (0)
+
+1. checking no_clock (0)
+------------------------
+ There are 0 register/latch pins with no clock.
+
+
+2. checking constant_clock (0)
+------------------------------
+ There are 0 register/latch pins with constant_clock.
+
+
+3. checking pulse_width_clock (0)
+---------------------------------
+ There are 0 register/latch pins which need pulse_width check
+
+
+4. checking unconstrained_internal_endpoints (0)
+------------------------------------------------
+ There are 0 pins that are not constrained for maximum delay.
+
+ There are 0 pins that are not constrained for maximum delay due to constant clock.
+
+
+5. checking no_input_delay (6)
+------------------------------
+ There are 0 input ports with no input delay specified.
+
+ There are 6 input ports with no input delay but user has a false path constraint. (MEDIUM)
+
+
+6. checking no_output_delay (4)
+-------------------------------
+ There are 0 ports with no output delay specified.
+
+ There are 4 ports with no output delay but user has a false path constraint (MEDIUM)
+
+ There are 0 ports with no output delay but with a timing clock defined on it or propagating through it
+
+
+7. checking multiple_clock (0)
+------------------------------
+ There are 0 register/latch pins with multiple clocks.
+
+
+8. checking generated_clocks (0)
+--------------------------------
+ There are 0 generated clocks that are not connected to a clock source.
+
+
+9. checking loops (889)
+-----------------------
+ There are 889 combinational loops in the design. (HIGH)
+
+
+10. checking partial_input_delay (0)
+------------------------------------
+ There are 0 input ports with partial input delay specified.
+
+
+11. checking partial_output_delay (0)
+-------------------------------------
+ There are 0 ports with partial output delay specified.
+
+
+12. checking latch_loops (0)
+----------------------------
+ There are 0 combinational latch loops in the design through latch input
+
+
+
+------------------------------------------------------------------------------------------------
+| Design Timing Summary
+| ---------------------
+------------------------------------------------------------------------------------------------
+
+    WNS(ns)      TNS(ns)  TNS Failing Endpoints  TNS Total Endpoints      WHS(ns)      THS(ns)  THS Failing Endpoints  THS Total Endpoints     WPWS(ns)     TPWS(ns)  TPWS Failing Endpoints  TPWS Total Endpoints  
+    -------      -------  ---------------------  -------------------      -------      -------  ---------------------  -------------------     --------     --------  ----------------------  --------------------  
+     67.290        0.000                      0                11862        0.083        0.000                      0                11862      499.500        0.000                       0                  5911  
+
+
+All user specified timing constraints are met.
+
+
+------------------------------------------------------------------------------------------------
+| Clock Summary
+| -------------
+------------------------------------------------------------------------------------------------
+
+Clock  Waveform(ns)         Period(ns)      Frequency(MHz)
+-----  ------------         ----------      --------------
+tck    {0.000 500.000}      1000.000        1.000           
+
+
+------------------------------------------------------------------------------------------------
+| Intra Clock Table
+| -----------------
+------------------------------------------------------------------------------------------------
+
+Clock             WNS(ns)      TNS(ns)  TNS Failing Endpoints  TNS Total Endpoints      WHS(ns)      THS(ns)  THS Failing Endpoints  THS Total Endpoints     WPWS(ns)     TPWS(ns)  TPWS Failing Endpoints  TPWS Total Endpoints  
+-----             -------      -------  ---------------------  -------------------      -------      -------  ---------------------  -------------------     --------     --------  ----------------------  --------------------  
+tck                67.290        0.000                      0                11862        0.083        0.000                      0                11862      499.500        0.000                       0                  5911  
+
+
+------------------------------------------------------------------------------------------------
+| Inter Clock Table
+| -----------------
+------------------------------------------------------------------------------------------------
+
+From Clock    To Clock          WNS(ns)      TNS(ns)  TNS Failing Endpoints  TNS Total Endpoints      WHS(ns)      THS(ns)  THS Failing Endpoints  THS Total Endpoints  
+----------    --------          -------      -------  ---------------------  -------------------      -------      -------  ---------------------  -------------------  
+
+
+------------------------------------------------------------------------------------------------
+| Other Path Groups Table
+| -----------------------
+------------------------------------------------------------------------------------------------
+
+Path Group    From Clock    To Clock          WNS(ns)      TNS(ns)  TNS Failing Endpoints  TNS Total Endpoints      WHS(ns)      THS(ns)  THS Failing Endpoints  THS Total Endpoints  
+----------    ----------    --------          -------      -------  ---------------------  -------------------      -------      -------  ---------------------  -------------------  
+
+
+------------------------------------------------------------------------------------------------
+| Timing Details
+| --------------
+------------------------------------------------------------------------------------------------
+
+
+---------------------------------------------------------------------------------------------------
+From Clock:  tck
+  To Clock:  tck
+
+Setup :            0  Failing Endpoints,  Worst Slack       67.290ns,  Total Violation        0.000ns
+Hold  :            0  Failing Endpoints,  Worst Slack        0.083ns,  Total Violation        0.000ns
+PW    :            0  Failing Endpoints,  Worst Slack      499.500ns,  Total Violation        0.000ns
+---------------------------------------------------------------------------------------------------
+
+
+Max Delay Paths
+--------------------------------------------------------------------------------------
+Slack (MET) :             67.290ns  (required time - arrival time)
+  Source:                 u_core/u_tap/ir_reg[0]/C
+                            (falling edge-triggered cell FDRE clocked by tck  {rise@0.000ns fall@500.000ns period=1000.000ns})
+  Destination:            u_core/g_bsr[1].u_cell/capture_reg_reg/D
+                            (rising edge-triggered cell FDRE clocked by tck  {rise@0.000ns fall@500.000ns period=1000.000ns})
+  Path Group:             tck
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            500.000ns  (tck rise@1000.000ns - tck fall@500.000ns)
+  Data Path Delay:        432.641ns  (logic 101.815ns (23.533%)  route 330.839ns (76.470%))
+  Logic Levels:           710  (LUT2=2 LUT3=30 LUT4=7 LUT5=246 LUT6=376 MUXF7=49)
+  Clock Path Skew:        -0.064ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    5.129ns = ( 1005.129 - 1000.000 ) 
+    Source Clock Delay      (SCD):    5.587ns = ( 505.587 - 500.000 ) 
+    Clock Pessimism Removal (CPR):    0.394ns
+  Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.000ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock tck fall edge)      500.000   500.000 f  
+    U18                                               0.000   500.000 f  tck (IN)
+                         net (fo=0)                   0.000   500.000    tck
+    U18                  IBUF (Prop_ibuf_I_O)         1.498   501.498 f  tck_IBUF_inst/O
+                         net (fo=1, routed)           2.205   503.703    tck_IBUF
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.101   503.804 f  bufg_tck/O
+                         net (fo=5910, routed)        1.783   505.587    u_core/u_tap/tck_g
+    SLICE_X96Y91         FDRE                                         r  u_core/u_tap/ir_reg[0]/C  (IS_INVERTED)
+  -------------------------------------------------------------------    -------------------
+    SLICE_X96Y91         FDRE (Prop_fdre_C_Q)         0.524   506.111 r  u_core/u_tap/ir_reg[0]/Q
+                         net (fo=16, routed)          0.709   506.820    u_core/u_tap/ir_reg_n_0_[0]
+    SLICE_X99Y90         LUT5 (Prop_lut5_I1_O)        0.124   506.944 f  u_core/u_tap/q_i_23__5/O
+                         net (fo=64, routed)          1.222   508.167    u_core/u_tap/fab_i[2]
+    SLICE_X89Y85         LUT6 (Prop_lut6_I1_O)        0.124   508.291 f  u_core/u_tap/q_i_9__8/O
+                         net (fo=1, routed)           0.263   508.553    u_core/u_tap/q_i_9__8_n_0
+    SLICE_X89Y85         LUT5 (Prop_lut5_I1_O)        0.124   508.677 r  u_core/u_tap/q_i_5__4/O
+                         net (fo=1, routed)           0.393   509.070    u_core/u_tap/q_i_5__4_n_0
+    SLICE_X90Y85         LUT6 (Prop_lut6_I1_O)        0.124   509.194 f  u_core/u_tap/q_i_2__12/O
+                         net (fo=2, routed)           0.344   509.538    u_core/u_tap/q_i_2__12_n_0
+    SLICE_X91Y85         LUT3 (Prop_lut3_I1_O)        0.124   509.662 f  u_core/u_tap/user_dr[16]_i_2/O
+                         net (fo=15, routed)          0.823   510.484    u_core/u_tap/clb_o[12]
+    SLICE_X92Y81         LUT6 (Prop_lut6_I5_O)        0.124   510.608 r  u_core/u_tap/q_i_38__8/O
+                         net (fo=1, routed)           0.403   511.012    u_core/u_tap/q_i_38__8_n_0
+    SLICE_X93Y81         LUT5 (Prop_lut5_I0_O)        0.124   511.136 r  u_core/u_tap/q_i_15__11/O
+                         net (fo=3, routed)           0.424   511.560    u_core/u_tap/q_i_15__11_n_0
+    SLICE_X93Y81         LUT6 (Prop_lut6_I2_O)        0.124   511.684 r  u_core/u_tap/q_i_21__9/O
+                         net (fo=1, routed)           0.303   511.987    u_core/u_tap/q_i_21__9_n_0
+    SLICE_X91Y81         LUT5 (Prop_lut5_I4_O)        0.124   512.111 f  u_core/u_tap/q_i_8__8/O
+                         net (fo=15, routed)          0.459   512.570    u_core/u_tap/q_reg_2
+    SLICE_X91Y79         LUT5 (Prop_lut5_I3_O)        0.124   512.694 f  u_core/u_tap/q_i_98__8/O
+                         net (fo=1, routed)           0.526   513.220    u_core/u_tap/q_i_98__8_n_0
+    SLICE_X90Y79         LUT5 (Prop_lut5_I4_O)        0.124   513.344 f  u_core/u_tap/q_i_73__4/O
+                         net (fo=1, routed)           0.736   514.080    u_core/u_tap/q_i_73__4_n_0
+    SLICE_X90Y73         LUT5 (Prop_lut5_I4_O)        0.124   514.204 f  u_core/u_tap/q_i_41__14/O
+                         net (fo=18, routed)          0.863   515.066    u_core/u_tap/u_fabric/o_e[12]_45[2]
+    SLICE_X89Y66         LUT6 (Prop_lut6_I1_O)        0.124   515.190 f  u_core/u_tap/q_i_91__6/O
+                         net (fo=1, routed)           0.433   515.624    u_core/u_tap/q_i_91__6_n_0
+    SLICE_X89Y66         LUT5 (Prop_lut5_I1_O)        0.124   515.748 r  u_core/u_tap/q_i_63__11/O
+                         net (fo=16, routed)          0.441   516.188    u_core/u_tap/q_i_63__11_n_0
+    SLICE_X87Y65         LUT6 (Prop_lut6_I4_O)        0.124   516.312 f  u_core/u_tap/q_i_54__9/O
+                         net (fo=1, routed)           0.000   516.312    u_core/u_tap/q_i_54__9_n_0
+    SLICE_X87Y65         MUXF7 (Prop_muxf7_I1_O)      0.217   516.529 f  u_core/u_tap/q_reg_i_23__4/O
+                         net (fo=1, routed)           0.433   516.963    u_core/u_tap/q_reg_i_23__4_n_0
+    SLICE_X87Y65         LUT6 (Prop_lut6_I5_O)        0.299   517.262 f  u_core/u_tap/q_i_11__7/O
+                         net (fo=1, routed)           0.298   517.560    u_core/u_tap/q_i_11__7_n_0
+    SLICE_X87Y67         LUT3 (Prop_lut3_I2_O)        0.124   517.684 f  u_core/u_tap/q_i_7__6/O
+                         net (fo=2, routed)           0.418   518.101    u_core/u_tap/u_fabric/g_row[3].g_col[1].u_tile/u_clb/lut_o6
+    SLICE_X87Y68         LUT3 (Prop_lut3_I2_O)        0.124   518.225 f  u_core/u_tap/q_i_4__6/O
+                         net (fo=1, routed)           0.000   518.225    u_core/u_tap/q_i_4__6_n_0
+    SLICE_X87Y68         MUXF7 (Prop_muxf7_I0_O)      0.212   518.437 f  u_core/u_tap/q_reg_i_2/O
+                         net (fo=2, routed)           0.452   518.889    u_core/u_tap/q_reg_i_2_n_0
+    SLICE_X87Y68         LUT3 (Prop_lut3_I1_O)        0.299   519.188 f  u_core/u_tap/user_dr[17]_i_2/O
+                         net (fo=19, routed)          0.848   520.036    u_core/u_tap/clb_o[13]
+    SLICE_X88Y65         LUT6 (Prop_lut6_I5_O)        0.124   520.160 r  u_core/u_tap/q_i_29__12/O
+                         net (fo=1, routed)           0.433   520.594    u_core/u_tap/q_i_29__12_n_0
+    SLICE_X88Y65         LUT5 (Prop_lut5_I0_O)        0.124   520.718 r  u_core/u_tap/q_i_14__12/O
+                         net (fo=3, routed)           0.507   521.225    u_core/u_tap/q_i_14__12_n_0
+    SLICE_X89Y65         LUT6 (Prop_lut6_I2_O)        0.124   521.349 r  u_core/u_tap/q_i_17__8/O
+                         net (fo=1, routed)           0.771   522.120    u_core/u_tap/q_i_17__8_n_0
+    SLICE_X92Y63         LUT5 (Prop_lut5_I4_O)        0.124   522.244 f  u_core/u_tap/q_i_9__11/O
+                         net (fo=20, routed)          0.371   522.615    u_core/u_tap/q_reg_i_2_0
+    SLICE_X92Y63         LUT5 (Prop_lut5_I3_O)        0.124   522.739 f  u_core/u_tap/q_i_94__6/O
+                         net (fo=1, routed)           0.451   523.190    u_core/u_tap/q_i_94__6_n_0
+    SLICE_X93Y63         LUT5 (Prop_lut5_I4_O)        0.124   523.314 f  u_core/u_tap/q_i_60__10/O
+                         net (fo=1, routed)           0.514   523.828    u_core/u_tap/q_i_60__10_n_0
+    SLICE_X94Y63         LUT5 (Prop_lut5_I4_O)        0.124   523.952 f  u_core/u_tap/q_i_24__11/O
+                         net (fo=18, routed)          0.740   524.692    u_core/u_tap/u_fabric/o_e[13]_46[0]
+    SLICE_X101Y65        LUT6 (Prop_lut6_I5_O)        0.124   524.816 f  u_core/u_tap/q_i_9__9/O
+                         net (fo=1, routed)           0.326   525.142    u_core/u_tap/q_i_9__9_n_0
+    SLICE_X102Y65        LUT5 (Prop_lut5_I1_O)        0.124   525.266 r  u_core/u_tap/q_i_5__6/O
+                         net (fo=1, routed)           0.440   525.706    u_core/u_tap/q_i_5__6_n_0
+    SLICE_X103Y69        LUT6 (Prop_lut6_I1_O)        0.124   525.831 f  u_core/u_tap/q_i_2__13/O
+                         net (fo=2, routed)           0.414   526.244    u_core/u_tap/q_i_2__13_n_0
+    SLICE_X103Y69        LUT3 (Prop_lut3_I1_O)        0.124   526.368 f  u_core/u_tap/user_dr[18]_i_2/O
+                         net (fo=19, routed)          0.414   526.782    u_core/u_tap/clb_o[14]
+    SLICE_X102Y69        LUT6 (Prop_lut6_I5_O)        0.124   526.906 r  u_core/u_tap/q_i_37__8/O
+                         net (fo=1, routed)           0.555   527.461    u_core/u_tap/q_i_37__8_n_0
+    SLICE_X101Y68        LUT5 (Prop_lut5_I0_O)        0.124   527.585 r  u_core/u_tap/q_i_15__13/O
+                         net (fo=3, routed)           0.503   528.089    u_core/u_tap/q_i_15__13_n_0
+    SLICE_X101Y69        LUT6 (Prop_lut6_I2_O)        0.124   528.213 r  u_core/u_tap/q_i_20__10/O
+                         net (fo=1, routed)           0.460   528.672    u_core/u_tap/q_i_20__10_n_0
+    SLICE_X103Y70        LUT5 (Prop_lut5_I4_O)        0.124   528.796 f  u_core/u_tap/q_i_8__9/O
+                         net (fo=19, routed)          0.299   529.096    u_core/u_tap/q_reg_1
+    SLICE_X103Y70        LUT5 (Prop_lut5_I3_O)        0.124   529.220 f  u_core/u_tap/q_i_96__7/O
+                         net (fo=1, routed)           0.471   529.691    u_core/u_tap/q_i_96__7_n_0
+    SLICE_X104Y70        LUT5 (Prop_lut5_I4_O)        0.124   529.815 f  u_core/u_tap/q_i_70__8/O
+                         net (fo=1, routed)           0.282   530.097    u_core/u_tap/q_i_70__8_n_0
+    SLICE_X104Y70        LUT5 (Prop_lut5_I4_O)        0.124   530.221 f  u_core/u_tap/q_i_52__13/O
+                         net (fo=14, routed)          0.462   530.683    u_core/u_tap/u_fabric/o_e[14]_47[0]
+    SLICE_X103Y69        LUT6 (Prop_lut6_I5_O)        0.124   530.807 f  u_core/u_tap/q_i_98__9/O
+                         net (fo=1, routed)           0.151   530.959    u_core/u_tap/q_i_98__9_n_0
+    SLICE_X103Y69        LUT6 (Prop_lut6_I0_O)        0.124   531.083 f  u_core/u_tap/q_i_62__12/O
+                         net (fo=18, routed)          0.741   531.824    u_core/u_tap/u_fabric/o_w[15]_48[2]
+    SLICE_X104Y69        LUT6 (Prop_lut6_I1_O)        0.124   531.948 f  u_core/u_tap/q_i_92__7/O
+                         net (fo=1, routed)           0.502   532.449    u_core/u_tap/q_i_92__7_n_0
+    SLICE_X104Y69        LUT3 (Prop_lut3_I1_O)        0.124   532.573 f  u_core/u_tap/q_i_67__8/O
+                         net (fo=1, routed)           0.303   532.877    u_core/u_tap/q_i_67__8_n_0
+    SLICE_X104Y70        LUT6 (Prop_lut6_I3_O)        0.124   533.001 f  u_core/u_tap/q_i_51__14/O
+                         net (fo=14, routed)          0.501   533.502    u_core/u_tap/u_fabric/o_e[14]_47[1]
+    SLICE_X104Y73        LUT6 (Prop_lut6_I3_O)        0.124   533.626 f  u_core/u_tap/q_i_95__9/O
+                         net (fo=1, routed)           0.304   533.929    u_core/u_tap/q_i_95__9_n_0
+    SLICE_X103Y73        LUT6 (Prop_lut6_I0_O)        0.124   534.053 f  u_core/u_tap/q_i_61__12/O
+                         net (fo=18, routed)          0.629   534.682    u_core/u_tap/u_fabric/o_w[15]_48[3]
+    SLICE_X103Y73        LUT6 (Prop_lut6_I0_O)        0.124   534.806 f  u_core/u_tap/q_i_90__9/O
+                         net (fo=1, routed)           0.460   535.266    u_core/u_tap/q_i_90__9_n_0
+    SLICE_X103Y72        LUT5 (Prop_lut5_I2_O)        0.124   535.390 f  u_core/u_tap/q_i_65__9/O
+                         net (fo=1, routed)           0.151   535.541    u_core/u_tap/q_i_65__9_n_0
+    SLICE_X103Y72        LUT5 (Prop_lut5_I4_O)        0.124   535.665 f  u_core/u_tap/q_i_50__13/O
+                         net (fo=14, routed)          0.909   536.574    u_core/u_tap/u_fabric/o_e[14]_47[2]
+    SLICE_X107Y72        LUT6 (Prop_lut6_I1_O)        0.124   536.698 f  u_core/u_tap/q_i_83__6/O
+                         net (fo=1, routed)           0.495   537.193    u_core/u_tap/q_i_83__6_n_0
+    SLICE_X108Y73        LUT6 (Prop_lut6_I2_O)        0.124   537.317 r  u_core/u_tap/q_i_58__13/O
+                         net (fo=16, routed)          0.444   537.761    u_core/u_tap/q_i_58__13_n_0
+    SLICE_X111Y73        LUT6 (Prop_lut6_I4_O)        0.124   537.885 f  u_core/u_tap/q_i_48__12/O
+                         net (fo=1, routed)           0.407   538.292    u_core/u_tap/q_i_48__12_n_0
+    SLICE_X111Y73        LUT6 (Prop_lut6_I5_O)        0.124   538.416 r  u_core/u_tap/q_i_18__13/O
+                         net (fo=1, routed)           0.299   538.716    u_core/u_tap/q_i_18__13_n_0
+    SLICE_X109Y73        LUT5 (Prop_lut5_I4_O)        0.124   538.840 f  u_core/u_tap/q_i_8__10/O
+                         net (fo=16, routed)          0.517   539.357    u_core/u_tap/cfg_out_reg[2803]_0
+    SLICE_X109Y76        LUT6 (Prop_lut6_I5_O)        0.124   539.481 f  u_core/u_tap/q_i_21__10/O
+                         net (fo=1, routed)           0.433   539.914    u_core/u_tap/q_i_21__10_n_0
+    SLICE_X109Y76        LUT6 (Prop_lut6_I5_O)        0.124   540.038 r  u_core/u_tap/q_i_9__10/O
+                         net (fo=1, routed)           0.465   540.503    u_core/u_tap/q_i_9__10_n_0
+    SLICE_X109Y75        LUT5 (Prop_lut5_I1_O)        0.124   540.627 r  u_core/u_tap/q_i_6__9/O
+                         net (fo=1, routed)           0.291   540.919    u_core/u_tap/q_i_6__9_n_0
+    SLICE_X109Y75        LUT5 (Prop_lut5_I4_O)        0.124   541.043 f  u_core/u_tap/q_i_2__11/O
+                         net (fo=2, routed)           0.165   541.208    u_core/u_tap/q_i_2__11_n_0
+    SLICE_X109Y75        LUT3 (Prop_lut3_I1_O)        0.124   541.332 f  u_core/u_tap/user_dr[19]_i_2/O
+                         net (fo=15, routed)          0.681   542.013    u_core/u_tap/clb_o[15]
+    SLICE_X105Y75        LUT5 (Prop_lut5_I2_O)        0.124   542.137 f  u_core/u_tap/q_i_106__8/O
+                         net (fo=1, routed)           0.263   542.400    u_core/u_tap/q_i_106__8_n_0
+    SLICE_X105Y75        LUT6 (Prop_lut6_I5_O)        0.124   542.524 f  u_core/u_tap/q_i_64__11/O
+                         net (fo=18, routed)          0.575   543.099    u_core/u_tap/u_fabric/o_w[15]_48[0]
+    SLICE_X103Y68        LUT6 (Prop_lut6_I5_O)        0.124   543.223 f  u_core/u_tap/q_i_87__8/O
+                         net (fo=1, routed)           0.149   543.372    u_core/u_tap/q_i_87__8_n_0
+    SLICE_X103Y68        LUT5 (Prop_lut5_I2_O)        0.124   543.496 f  u_core/u_tap/q_i_63__10/O
+                         net (fo=1, routed)           0.433   543.929    u_core/u_tap/q_i_63__10_n_0
+    SLICE_X104Y68        LUT5 (Prop_lut5_I4_O)        0.124   544.053 f  u_core/u_tap/q_i_49__14/O
+                         net (fo=14, routed)          0.798   544.851    u_core/u_tap/u_fabric/o_e[14]_47[3]
+    SLICE_X103Y71        LUT6 (Prop_lut6_I0_O)        0.124   544.975 f  u_core/u_tap/q_i_101__9/O
+                         net (fo=1, routed)           0.443   545.418    u_core/u_tap/q_i_101__9_n_0
+    SLICE_X102Y69        LUT6 (Prop_lut6_I0_O)        0.124   545.542 f  u_core/u_tap/q_i_63__12/O
+                         net (fo=18, routed)          0.867   546.409    u_core/u_tap/u_fabric/o_w[15]_48[1]
+    SLICE_X98Y65         LUT6 (Prop_lut6_I3_O)        0.124   546.533 f  u_core/u_tap/q_i_136__4/O
+                         net (fo=1, routed)           0.000   546.533    u_core/u_tap/q_i_136__4_n_0
+    SLICE_X98Y65         MUXF7 (Prop_muxf7_I0_O)      0.209   546.742 f  u_core/u_tap/q_reg_i_112/O
+                         net (fo=1, routed)           0.301   547.044    u_core/u_tap/q_reg_i_112_n_0
+    SLICE_X97Y65         LUT6 (Prop_lut6_I3_O)        0.297   547.341 f  u_core/u_tap/q_i_81__6/O
+                         net (fo=18, routed)          0.517   547.857    u_core/u_tap/u_fabric/o_w[14]_5[0]
+    SLICE_X95Y65         LUT6 (Prop_lut6_I5_O)        0.124   547.982 f  u_core/u_tap/q_i_90__7/O
+                         net (fo=1, routed)           0.154   548.135    u_core/u_tap/q_i_90__7_n_0
+    SLICE_X95Y65         LUT3 (Prop_lut3_I1_O)        0.124   548.259 f  u_core/u_tap/q_i_57__8/O
+                         net (fo=1, routed)           0.403   548.662    u_core/u_tap/q_i_57__8_n_0
+    SLICE_X95Y65         LUT6 (Prop_lut6_I3_O)        0.124   548.786 f  u_core/u_tap/q_i_23__8/O
+                         net (fo=18, routed)          0.616   549.403    u_core/u_tap/u_fabric/o_e[13]_46[1]
+    SLICE_X96Y65         LUT6 (Prop_lut6_I3_O)        0.124   549.527 f  u_core/u_tap/q_i_109__7/O
+                         net (fo=1, routed)           0.429   549.956    u_core/u_tap/q_i_109__7_n_0
+    SLICE_X96Y66         LUT5 (Prop_lut5_I1_O)        0.124   550.080 f  u_core/u_tap/q_i_80__9/O
+                         net (fo=18, routed)          0.695   550.774    u_core/u_tap/u_fabric/o_w[14]_5[1]
+    SLICE_X95Y67         LUT6 (Prop_lut6_I3_O)        0.124   550.898 f  u_core/u_tap/q_i_88__5/O
+                         net (fo=1, routed)           0.154   551.052    u_core/u_tap/q_i_88__5_n_0
+    SLICE_X95Y67         LUT5 (Prop_lut5_I2_O)        0.124   551.176 f  u_core/u_tap/q_i_55__9/O
+                         net (fo=1, routed)           0.263   551.439    u_core/u_tap/q_i_55__9_n_0
+    SLICE_X95Y67         LUT5 (Prop_lut5_I4_O)        0.124   551.563 f  u_core/u_tap/q_i_22__11/O
+                         net (fo=18, routed)          0.845   552.409    u_core/u_tap/u_fabric/o_e[13]_46[2]
+    SLICE_X99Y67         LUT6 (Prop_lut6_I1_O)        0.124   552.533 f  u_core/u_tap/q_i_107__7/O
+                         net (fo=1, routed)           0.433   552.966    u_core/u_tap/q_i_107__7_n_0
+    SLICE_X99Y67         LUT5 (Prop_lut5_I1_O)        0.124   553.090 f  u_core/u_tap/q_i_79__11/O
+                         net (fo=18, routed)          0.513   553.603    u_core/u_tap/u_fabric/o_w[14]_5[2]
+    SLICE_X97Y66         LUT6 (Prop_lut6_I1_O)        0.124   553.727 f  u_core/u_tap/q_i_85__7/O
+                         net (fo=1, routed)           0.422   554.149    u_core/u_tap/q_i_85__7_n_0
+    SLICE_X96Y66         LUT5 (Prop_lut5_I2_O)        0.124   554.273 f  u_core/u_tap/q_i_53__8/O
+                         net (fo=1, routed)           0.162   554.435    u_core/u_tap/q_i_53__8_n_0
+    SLICE_X96Y66         LUT5 (Prop_lut5_I4_O)        0.124   554.559 f  u_core/u_tap/q_i_21__11/O
+                         net (fo=18, routed)          1.006   555.565    u_core/u_tap/u_fabric/o_e[13]_46[3]
+    SLICE_X102Y70        LUT6 (Prop_lut6_I0_O)        0.124   555.689 f  u_core/u_tap/q_i_105__8/O
+                         net (fo=1, routed)           0.429   556.117    u_core/u_tap/q_i_105__8_n_0
+    SLICE_X102Y71        LUT5 (Prop_lut5_I1_O)        0.124   556.242 f  u_core/u_tap/q_i_78__11/O
+                         net (fo=18, routed)          0.992   557.233    u_core/u_tap/u_fabric/o_w[14]_5[3]
+    SLICE_X90Y72         LUT6 (Prop_lut6_I0_O)        0.124   557.357 f  u_core/u_tap/q_i_180__0/O
+                         net (fo=1, routed)           0.000   557.357    u_core/u_tap/q_i_180__0_n_0
+    SLICE_X90Y72         MUXF7 (Prop_muxf7_I0_O)      0.209   557.566 f  u_core/u_tap/q_reg_i_134__0/O
+                         net (fo=1, routed)           0.501   558.067    u_core/u_tap/q_reg_i_134__0_n_0
+    SLICE_X89Y72         LUT6 (Prop_lut6_I3_O)        0.297   558.364 f  u_core/u_tap/q_i_88__6/O
+                         net (fo=22, routed)          0.461   558.825    u_core/u_tap/u_fabric/o_s[13]_2[0]
+    SLICE_X87Y73         LUT6 (Prop_lut6_I5_O)        0.124   558.949 f  u_core/u_tap/q_i_91__4/O
+                         net (fo=1, routed)           0.404   559.353    u_core/u_tap/q_i_91__4_n_0
+    SLICE_X87Y74         LUT6 (Prop_lut6_I0_O)        0.124   559.477 f  u_core/u_tap/q_i_61__6/O
+                         net (fo=1, routed)           0.151   559.628    u_core/u_tap/q_i_61__6_n_0
+    SLICE_X87Y74         LUT6 (Prop_lut6_I4_O)        0.124   559.752 r  u_core/u_tap/q_i_29__8/O
+                         net (fo=7, routed)           0.664   560.417    u_core/u_tap/q_i_29__8_n_0
+    SLICE_X83Y75         MUXF7 (Prop_muxf7_S_O)       0.276   560.693 r  u_core/u_tap/q_reg_i_24__0/O
+                         net (fo=1, routed)           0.455   561.148    u_core/u_tap/q_reg_i_24__0_n_0
+    SLICE_X84Y75         LUT6 (Prop_lut6_I5_O)        0.299   561.447 r  u_core/u_tap/q_i_10__6/O
+                         net (fo=1, routed)           0.488   561.935    u_core/u_tap/q_i_10__6_n_0
+    SLICE_X84Y75         LUT3 (Prop_lut3_I2_O)        0.124   562.059 r  u_core/u_tap/q_i_6__5/O
+                         net (fo=2, routed)           0.173   562.232    u_core/u_tap/q_i_6__5_n_0
+    SLICE_X84Y75         LUT5 (Prop_lut5_I4_O)        0.124   562.356 r  u_core/u_tap/q_i_2__8/O
+                         net (fo=2, routed)           0.649   563.005    u_core/u_tap/q_i_2__8_n_0
+    SLICE_X84Y74         LUT3 (Prop_lut3_I1_O)        0.124   563.130 r  u_core/u_tap/user_dr[13]_i_2/O
+                         net (fo=23, routed)          0.511   563.640    u_core/u_tap/clb_o[9]
+    SLICE_X87Y74         LUT6 (Prop_lut6_I4_O)        0.124   563.764 r  u_core/u_tap/q_i_94__3/O
+                         net (fo=1, routed)           0.517   564.281    u_core/u_tap/q_i_94__3_n_0
+    SLICE_X86Y74         LUT6 (Prop_lut6_I5_O)        0.124   564.405 r  u_core/u_tap/q_i_62__7/O
+                         net (fo=16, routed)          0.486   564.891    u_core/u_tap/q_i_62__7_n_0
+    SLICE_X85Y75         LUT6 (Prop_lut6_I2_O)        0.124   565.016 r  u_core/u_tap/q_i_43__8/O
+                         net (fo=1, routed)           0.537   565.553    u_core/u_tap/q_i_43__8_n_0
+    SLICE_X83Y76         LUT6 (Prop_lut6_I5_O)        0.124   565.677 f  u_core/u_tap/q_i_17__6/O
+                         net (fo=1, routed)           0.433   566.110    u_core/u_tap/q_i_17__6_n_0
+    SLICE_X83Y76         LUT5 (Prop_lut5_I4_O)        0.124   566.234 r  u_core/u_tap/q_i_8__6/O
+                         net (fo=25, routed)          0.835   567.070    u_core/u_tap/cfg_out_reg[1717]_0
+    SLICE_X91Y76         LUT4 (Prop_lut4_I2_O)        0.124   567.194 r  u_core/u_tap/q_i_150__1/O
+                         net (fo=1, routed)           0.420   567.613    u_core/u_tap/q_i_150__1_n_0
+    SLICE_X93Y77         LUT6 (Prop_lut6_I5_O)        0.124   567.737 r  u_core/u_tap/q_i_120__4/O
+                         net (fo=1, routed)           0.687   568.424    u_core/u_tap/q_i_120__4_n_0
+    SLICE_X93Y88         LUT5 (Prop_lut5_I4_O)        0.124   568.548 r  u_core/u_tap/q_i_85__9/O
+                         net (fo=22, routed)          0.903   569.451    u_core/u_tap/u_fabric/o_s[9]_33[1]
+    SLICE_X88Y95         LUT6 (Prop_lut6_I3_O)        0.124   569.575 r  u_core/u_tap/q_i_98__0/O
+                         net (fo=1, routed)           0.280   569.855    u_core/u_tap/q_i_98__0_n_0
+    SLICE_X88Y95         LUT6 (Prop_lut6_I0_O)        0.124   569.979 r  u_core/u_tap/q_i_74__1/O
+                         net (fo=1, routed)           0.489   570.468    u_core/u_tap/q_i_74__1_n_0
+    SLICE_X88Y96         LUT6 (Prop_lut6_I5_O)        0.124   570.592 r  u_core/u_tap/q_i_44__4/O
+                         net (fo=16, routed)          0.496   571.088    u_core/u_tap/q_i_44__4_n_0
+    SLICE_X87Y96         LUT6 (Prop_lut6_I2_O)        0.124   571.212 r  u_core/u_tap/q_i_66__1/O
+                         net (fo=1, routed)           0.000   571.212    u_core/u_tap/q_i_66__1_n_0
+    SLICE_X87Y96         MUXF7 (Prop_muxf7_I1_O)      0.217   571.429 r  u_core/u_tap/q_reg_i_38__0/O
+                         net (fo=1, routed)           0.418   571.847    u_core/u_tap/q_reg_i_38__0_n_0
+    SLICE_X83Y96         LUT3 (Prop_lut3_I2_O)        0.299   572.146 r  u_core/u_tap/q_i_15__4/O
+                         net (fo=1, routed)           0.263   572.409    u_core/u_tap/q_i_15__4_n_0
+    SLICE_X83Y96         LUT5 (Prop_lut5_I4_O)        0.124   572.533 r  u_core/u_tap/q_i_6__2/O
+                         net (fo=2, routed)           0.297   572.830    u_core/u_tap/q_i_6__2_n_0
+    SLICE_X85Y96         LUT5 (Prop_lut5_I4_O)        0.124   572.954 f  u_core/u_tap/q_i_2__4/O
+                         net (fo=2, routed)           0.587   573.541    u_core/u_tap/q_i_2__4_n_0
+    SLICE_X87Y96         LUT3 (Prop_lut3_I1_O)        0.124   573.665 f  u_core/u_tap/user_dr[9]_i_2/O
+                         net (fo=23, routed)          0.611   574.276    u_core/u_tap/clb_o[5]
+    SLICE_X90Y97         LUT6 (Prop_lut6_I4_O)        0.124   574.400 f  u_core/u_tap/q_i_97__2/O
+                         net (fo=1, routed)           0.647   575.047    u_core/u_tap/q_i_97__2_n_0
+    SLICE_X90Y106        LUT6 (Prop_lut6_I5_O)        0.124   575.171 f  u_core/u_tap/q_i_69__3/O
+                         net (fo=18, routed)          0.878   576.049    u_core/u_tap/u_fabric/o_s[5]_18[2]
+    SLICE_X87Y107        LUT6 (Prop_lut6_I1_O)        0.124   576.173 f  u_core/u_tap/q_i_73/O
+                         net (fo=1, routed)           0.263   576.436    u_core/u_tap/q_i_73_n_0
+    SLICE_X87Y107        LUT6 (Prop_lut6_I0_O)        0.124   576.560 f  u_core/u_tap/q_i_50__0/O
+                         net (fo=1, routed)           0.151   576.711    u_core/u_tap/q_i_50__0_n_0
+    SLICE_X87Y107        LUT6 (Prop_lut6_I5_O)        0.124   576.835 r  u_core/u_tap/q_i_19__0/O
+                         net (fo=5, routed)           0.481   577.316    u_core/u_tap/q_i_19__0_n_0
+    SLICE_X85Y107        LUT6 (Prop_lut6_I4_O)        0.124   577.440 r  u_core/u_tap/q_i_18__0/O
+                         net (fo=1, routed)           0.000   577.440    u_core/u_tap/q_i_18__0_n_0
+    SLICE_X85Y107        MUXF7 (Prop_muxf7_I1_O)      0.245   577.685 r  u_core/u_tap/q_reg_i_8/O
+                         net (fo=1, routed)           0.432   578.117    u_core/u_tap/q_reg_i_8_n_0
+    SLICE_X89Y106        LUT3 (Prop_lut3_I1_O)        0.298   578.415 r  u_core/u_tap/q_i_5/O
+                         net (fo=2, routed)           0.311   578.727    u_core/u_tap/u_fabric/g_row[0].g_col[1].u_tile/u_clb/lut_o6
+    SLICE_X88Y105        LUT5 (Prop_lut5_I4_O)        0.124   578.851 r  u_core/u_tap/q_i_2__0/O
+                         net (fo=2, routed)           0.619   579.470    u_core/u_tap/q_i_2__0_n_0
+    SLICE_X88Y105        LUT3 (Prop_lut3_I1_O)        0.124   579.594 r  u_core/u_tap/user_dr[5]_i_2/O
+                         net (fo=19, routed)          0.869   580.462    u_core/u_tap/clb_o[1]
+    SLICE_X93Y101        LUT6 (Prop_lut6_I3_O)        0.124   580.586 r  u_core/u_tap/q_i_91/O
+                         net (fo=1, routed)           0.000   580.586    u_core/u_tap/q_i_91_n_0
+    SLICE_X93Y101        MUXF7 (Prop_muxf7_I0_O)      0.212   580.798 r  u_core/u_tap/q_reg_i_73/O
+                         net (fo=1, routed)           0.296   581.094    u_core/u_tap/q_reg_i_73_n_0
+    SLICE_X93Y100        LUT5 (Prop_lut5_I4_O)        0.299   581.393 r  u_core/u_tap/q_i_56__9/O
+                         net (fo=14, routed)          0.334   581.727    u_core/u_tap/u_fabric/o_w[1]_8[0]
+    SLICE_X93Y98         LUT6 (Prop_lut6_I5_O)        0.124   581.851 r  u_core/u_tap/q_i_83__0/O
+                         net (fo=1, routed)           0.667   582.518    u_core/u_tap/q_i_83__0_n_0
+    SLICE_X93Y98         LUT6 (Prop_lut6_I5_O)        0.124   582.642 r  u_core/u_tap/q_i_64/O
+                         net (fo=1, routed)           0.454   583.096    u_core/u_tap/q_i_64_n_0
+    SLICE_X94Y98         LUT6 (Prop_lut6_I3_O)        0.124   583.220 r  u_core/u_tap/q_i_48/O
+                         net (fo=16, routed)          0.471   583.691    u_core/u_tap/q_i_48_n_0
+    SLICE_X95Y94         LUT6 (Prop_lut6_I5_O)        0.124   583.815 f  u_core/u_tap/q_i_34/O
+                         net (fo=1, routed)           0.151   583.967    u_core/u_tap/q_i_34_n_0
+    SLICE_X95Y94         LUT6 (Prop_lut6_I5_O)        0.124   584.091 f  u_core/u_tap/q_i_14/O
+                         net (fo=1, routed)           0.154   584.245    u_core/u_tap/q_i_14_n_0
+    SLICE_X95Y94         LUT5 (Prop_lut5_I4_O)        0.124   584.369 r  u_core/u_tap/q_i_7__7/O
+                         net (fo=17, routed)          0.515   584.884    u_core/u_tap/cfg_out_reg[88]_0
+    SLICE_X94Y96         LUT6 (Prop_lut6_I3_O)        0.124   585.008 r  u_core/u_tap/q_i_4/O
+                         net (fo=2, routed)           1.090   586.097    u_core/u_tap/u_fabric/cy[0]_52
+    SLICE_X86Y87         LUT6 (Prop_lut6_I0_O)        0.124   586.221 r  u_core/u_tap/q_i_4__3/O
+                         net (fo=2, routed)           0.800   587.021    u_core/u_tap/u_fabric/cy[4]_56
+    SLICE_X84Y79         LUT5 (Prop_lut5_I0_O)        0.124   587.145 f  u_core/u_tap/q_i_2__7/O
+                         net (fo=2, routed)           0.446   587.591    u_core/u_tap/q_i_2__7_n_0
+    SLICE_X84Y79         LUT3 (Prop_lut3_I1_O)        0.124   587.715 f  u_core/u_tap/user_dr[12]_i_2/O
+                         net (fo=19, routed)          0.554   588.269    u_core/u_tap/clb_o[8]
+    SLICE_X80Y84         LUT4 (Prop_lut4_I1_O)        0.124   588.393 f  u_core/u_tap/q_i_98__5/O
+                         net (fo=1, routed)           0.540   588.932    u_core/u_tap/q_i_98__5_n_0
+    SLICE_X80Y84         LUT6 (Prop_lut6_I5_O)        0.124   589.056 f  u_core/u_tap/q_i_70__3/O
+                         net (fo=1, routed)           0.468   589.525    u_core/u_tap/q_i_70__3_n_0
+    SLICE_X86Y84         LUT5 (Prop_lut5_I4_O)        0.124   589.649 f  u_core/u_tap/q_i_44__14/O
+                         net (fo=22, routed)          0.451   590.099    u_core/u_tap/u_fabric/o_e[8]_30[3]
+    SLICE_X87Y82         LUT6 (Prop_lut6_I0_O)        0.124   590.224 f  u_core/u_tap/q_i_98__6/O
+                         net (fo=1, routed)           0.433   590.657    u_core/u_tap/q_i_98__6_n_0
+    SLICE_X87Y82         LUT5 (Prop_lut5_I0_O)        0.124   590.781 f  u_core/u_tap/q_i_76__8/O
+                         net (fo=18, routed)          0.491   591.272    u_core/u_tap/u_fabric/o_w[9]_32[0]
+    SLICE_X81Y82         LUT6 (Prop_lut6_I5_O)        0.124   591.396 r  u_core/u_tap/q_i_98__4/O
+                         net (fo=1, routed)           0.433   591.829    u_core/u_tap/q_i_98__4_n_0
+    SLICE_X81Y82         LUT6 (Prop_lut6_I1_O)        0.124   591.953 r  u_core/u_tap/q_i_72__3/O
+                         net (fo=1, routed)           0.403   592.356    u_core/u_tap/q_i_72__3_n_0
+    SLICE_X81Y82         LUT5 (Prop_lut5_I4_O)        0.124   592.480 r  u_core/u_tap/q_i_43__12/O
+                         net (fo=25, routed)          0.727   593.207    u_core/u_tap/q_i_43__12_n_0
+    SLICE_X81Y74         LUT6 (Prop_lut6_I4_O)        0.124   593.331 f  u_core/u_tap/q_i_43__7/O
+                         net (fo=1, routed)           0.151   593.482    u_core/u_tap/q_i_43__7_n_0
+    SLICE_X81Y74         LUT6 (Prop_lut6_I5_O)        0.124   593.606 r  u_core/u_tap/q_i_18__7/O
+                         net (fo=1, routed)           0.154   593.760    u_core/u_tap/q_i_18__7_n_0
+    SLICE_X81Y74         LUT5 (Prop_lut5_I4_O)        0.124   593.884 f  u_core/u_tap/q_i_8__5/O
+                         net (fo=22, routed)          0.897   594.781    u_core/u_tap/q_reg_5
+    SLICE_X85Y79         LUT4 (Prop_lut4_I0_O)        0.124   594.905 f  u_core/u_tap/q_i_127__2/O
+                         net (fo=1, routed)           0.291   595.196    u_core/u_tap/q_i_127__2_n_0
+    SLICE_X85Y80         LUT6 (Prop_lut6_I5_O)        0.124   595.320 f  u_core/u_tap/q_i_89__3/O
+                         net (fo=1, routed)           0.433   595.754    u_core/u_tap/q_i_89__3_n_0
+    SLICE_X85Y80         LUT5 (Prop_lut5_I4_O)        0.124   595.878 f  u_core/u_tap/q_i_59__11/O
+                         net (fo=14, routed)          0.431   596.309    u_core/u_tap/u_fabric/o_n[8]_31[0]
+    SLICE_X89Y80         LUT6 (Prop_lut6_I5_O)        0.124   596.433 f  u_core/u_tap/q_i_99__8/O
+                         net (fo=1, routed)           0.661   597.094    u_core/u_tap/q_i_99__8_n_0
+    SLICE_X91Y80         LUT5 (Prop_lut5_I0_O)        0.124   597.218 f  u_core/u_tap/q_i_75__5/O
+                         net (fo=1, routed)           0.263   597.480    u_core/u_tap/q_i_75__5_n_0
+    SLICE_X91Y80         LUT5 (Prop_lut5_I4_O)        0.124   597.604 f  u_core/u_tap/q_i_42__12/O
+                         net (fo=18, routed)          0.953   598.557    u_core/u_tap/u_fabric/o_e[12]_45[1]
+    SLICE_X93Y70         LUT6 (Prop_lut6_I3_O)        0.124   598.681 f  u_core/u_tap/q_i_79__5/O
+                         net (fo=1, routed)           0.151   598.833    u_core/u_tap/q_i_79__5_n_0
+    SLICE_X93Y70         LUT6 (Prop_lut6_I0_O)        0.124   598.957 f  u_core/u_tap/q_i_55__10/O
+                         net (fo=14, routed)          0.704   599.660    u_core/u_tap/u_fabric/o_w[13]_3[0]
+    SLICE_X90Y77         LUT6 (Prop_lut6_I5_O)        0.124   599.784 f  u_core/u_tap/q_i_94__5/O
+                         net (fo=1, routed)           0.497   600.281    u_core/u_tap/q_i_94__5_n_0
+    SLICE_X89Y77         LUT5 (Prop_lut5_I2_O)        0.124   600.406 f  u_core/u_tap/q_i_71__7/O
+                         net (fo=1, routed)           0.263   600.668    u_core/u_tap/q_i_71__7_n_0
+    SLICE_X89Y77         LUT5 (Prop_lut5_I4_O)        0.124   600.792 f  u_core/u_tap/q_i_40__14/O
+                         net (fo=18, routed)          0.820   601.613    u_core/u_tap/u_fabric/o_e[12]_45[3]
+    SLICE_X92Y72         LUT6 (Prop_lut6_I0_O)        0.124   601.737 f  u_core/u_tap/q_i_77__5/O
+                         net (fo=1, routed)           0.493   602.230    u_core/u_tap/q_i_77__5_n_0
+    SLICE_X91Y72         LUT5 (Prop_lut5_I1_O)        0.124   602.354 f  u_core/u_tap/q_i_54__12/O
+                         net (fo=14, routed)          0.804   603.158    u_core/u_tap/u_fabric/o_w[13]_3[1]
+    SLICE_X89Y79         LUT6 (Prop_lut6_I3_O)        0.124   603.282 f  u_core/u_tap/q_i_167__1/O
+                         net (fo=2, routed)           0.000   603.282    u_core/u_tap/q_i_167__1_n_0
+    SLICE_X89Y79         MUXF7 (Prop_muxf7_I0_O)      0.212   603.494 f  u_core/u_tap/q_reg_i_115/O
+                         net (fo=1, routed)           0.302   603.796    u_core/u_tap/q_reg_i_115_n_0
+    SLICE_X86Y79         LUT6 (Prop_lut6_I3_O)        0.299   604.095 f  u_core/u_tap/q_i_84__5/O
+                         net (fo=16, routed)          0.558   604.652    u_core/u_tap/u_fabric/o_s[12]_44[0]
+    SLICE_X85Y85         LUT6 (Prop_lut6_I5_O)        0.124   604.776 f  u_core/u_tap/q_i_125__2/O
+                         net (fo=1, routed)           0.294   605.071    u_core/u_tap/q_i_125__2_n_0
+    SLICE_X85Y86         LUT6 (Prop_lut6_I3_O)        0.124   605.195 f  u_core/u_tap/q_i_94__2/O
+                         net (fo=1, routed)           0.430   605.625    u_core/u_tap/q_i_94__2_n_0
+    SLICE_X83Y86         LUT5 (Prop_lut5_I4_O)        0.124   605.749 f  u_core/u_tap/q_i_75__9/O
+                         net (fo=18, routed)          0.796   606.544    u_core/u_tap/u_fabric/o_s[8]_29[0]
+    SLICE_X81Y94         LUT6 (Prop_lut6_I5_O)        0.124   606.668 f  u_core/u_tap/q_i_99/O
+                         net (fo=1, routed)           0.430   607.098    u_core/u_tap/q_i_99_n_0
+    SLICE_X81Y96         LUT6 (Prop_lut6_I3_O)        0.124   607.222 f  u_core/u_tap/q_i_77__1/O
+                         net (fo=1, routed)           0.472   607.695    u_core/u_tap/q_i_77__1_n_0
+    SLICE_X84Y98         LUT5 (Prop_lut5_I4_O)        0.124   607.819 f  u_core/u_tap/q_i_58__10/O
+                         net (fo=14, routed)          0.805   608.623    u_core/u_tap/u_fabric/o_s[4]_14[2]
+    SLICE_X94Y99         LUT6 (Prop_lut6_I5_O)        0.124   608.747 r  u_core/u_tap/q_i_62/O
+                         net (fo=1, routed)           0.311   609.059    u_core/u_tap/q_i_62_n_0
+    SLICE_X96Y100        LUT6 (Prop_lut6_I0_O)        0.124   609.183 r  u_core/u_tap/q_i_47/O
+                         net (fo=1, routed)           0.483   609.666    u_core/u_tap/q_i_47_n_0
+    SLICE_X96Y99         LUT6 (Prop_lut6_I5_O)        0.124   609.790 r  u_core/u_tap/q_i_20/O
+                         net (fo=5, routed)           0.569   610.358    u_core/u_tap/q_i_20_n_0
+    SLICE_X97Y96         LUT6 (Prop_lut6_I4_O)        0.124   610.482 r  u_core/u_tap/q_i_19/O
+                         net (fo=1, routed)           0.000   610.482    u_core/u_tap/q_i_19_n_0
+    SLICE_X97Y96         MUXF7 (Prop_muxf7_I1_O)      0.245   610.727 r  u_core/u_tap/q_reg_i_9/O
+                         net (fo=1, routed)           0.662   611.389    u_core/g_bsr[2].u_cell/q_i_4_0
+    SLICE_X96Y96         LUT3 (Prop_lut3_I1_O)        0.298   611.687 r  u_core/g_bsr[2].u_cell/q_i_6/O
+                         net (fo=2, routed)           0.512   612.199    u_core/u_tap/q_reg_4
+    SLICE_X96Y97         LUT5 (Prop_lut5_I4_O)        0.124   612.323 r  u_core/u_tap/q_i_2/O
+                         net (fo=2, routed)           0.562   612.885    u_core/u_tap/q_i_2_n_0
+    SLICE_X95Y97         LUT3 (Prop_lut3_I1_O)        0.124   613.009 r  u_core/u_tap/user_dr[4]_i_2/O
+                         net (fo=15, routed)          0.821   613.830    u_core/u_tap/clb_o[0]
+    SLICE_X89Y101        LUT6 (Prop_lut6_I4_O)        0.124   613.954 r  u_core/u_tap/q_i_83/O
+                         net (fo=1, routed)           0.000   613.954    u_core/u_tap/q_i_83_n_0
+    SLICE_X89Y101        MUXF7 (Prop_muxf7_I0_O)      0.212   614.166 r  u_core/u_tap/q_reg_i_63/O
+                         net (fo=1, routed)           0.293   614.459    u_core/u_tap/q_reg_i_63_n_0
+    SLICE_X89Y102        LUT5 (Prop_lut5_I4_O)        0.299   614.758 r  u_core/u_tap/q_i_37__9/O
+                         net (fo=18, routed)          0.633   615.391    u_core/u_tap/u_fabric/o_e[0]_6[0]
+    SLICE_X86Y106        LUT6 (Prop_lut6_I5_O)        0.124   615.515 r  u_core/u_tap/q_i_74/O
+                         net (fo=1, routed)           0.442   615.957    u_core/u_tap/q_i_74_n_0
+    SLICE_X85Y107        LUT6 (Prop_lut6_I1_O)        0.124   616.081 r  u_core/u_tap/q_i_51__0/O
+                         net (fo=16, routed)          0.450   616.531    u_core/u_tap/q_i_51__0_n_0
+    SLICE_X84Y108        LUT6 (Prop_lut6_I2_O)        0.124   616.655 r  u_core/u_tap/q_i_33__0/O
+                         net (fo=1, routed)           0.285   616.940    u_core/u_tap/q_i_33__0_n_0
+    SLICE_X83Y108        LUT6 (Prop_lut6_I5_O)        0.124   617.064 f  u_core/u_tap/q_i_13__0/O
+                         net (fo=1, routed)           0.154   617.218    u_core/u_tap/q_i_13__0_n_0
+    SLICE_X83Y108        LUT5 (Prop_lut5_I4_O)        0.124   617.342 r  u_core/u_tap/q_i_6__10/O
+                         net (fo=21, routed)          0.810   618.152    u_core/u_tap/q_reg
+    SLICE_X90Y100        LUT6 (Prop_lut6_I2_O)        0.124   618.276 r  u_core/u_tap/q_i_89/O
+                         net (fo=1, routed)           0.000   618.276    u_core/u_tap/q_i_89_n_0
+    SLICE_X90Y100        MUXF7 (Prop_muxf7_I0_O)      0.209   618.485 r  u_core/u_tap/q_reg_i_71/O
+                         net (fo=1, routed)           0.469   618.954    u_core/u_tap/q_reg_i_71_n_0
+    SLICE_X90Y100        LUT5 (Prop_lut5_I4_O)        0.297   619.251 r  u_core/u_tap/q_i_55__11/O
+                         net (fo=14, routed)          0.670   619.922    u_core/u_tap/u_fabric/o_w[1]_8[1]
+    SLICE_X89Y99         LUT6 (Prop_lut6_I3_O)        0.124   620.046 r  u_core/u_tap/q_i_158/O
+                         net (fo=1, routed)           0.403   620.449    u_core/u_tap/q_i_158_n_0
+    SLICE_X89Y99         LUT6 (Prop_lut6_I5_O)        0.124   620.573 r  u_core/u_tap/q_i_150/O
+                         net (fo=1, routed)           0.000   620.573    u_core/u_tap/q_i_150_n_0
+    SLICE_X89Y99         MUXF7 (Prop_muxf7_I1_O)      0.217   620.790 r  u_core/u_tap/q_reg_i_110/O
+                         net (fo=1, routed)           0.469   621.259    u_core/u_tap/q_reg_i_110_n_0
+    SLICE_X88Y99         LUT5 (Prop_lut5_I4_O)        0.299   621.558 r  u_core/u_tap/q_i_83__7/O
+                         net (fo=18, routed)          0.657   622.215    u_core/u_tap/u_fabric/o_n[0]_7[0]
+    SLICE_X87Y92         LUT6 (Prop_lut6_I5_O)        0.124   622.339 r  u_core/u_tap/q_i_99__0/O
+                         net (fo=1, routed)           0.151   622.490    u_core/u_tap/q_i_99__0_n_0
+    SLICE_X87Y92         LUT6 (Prop_lut6_I0_O)        0.124   622.614 r  u_core/u_tap/q_i_76__1/O
+                         net (fo=1, routed)           0.452   623.066    u_core/u_tap/q_i_76__1_n_0
+    SLICE_X85Y92         LUT5 (Prop_lut5_I4_O)        0.124   623.190 r  u_core/u_tap/q_i_45__13/O
+                         net (fo=22, routed)          0.445   623.635    u_core/u_tap/u_fabric/o_e[4]_15[3]
+    SLICE_X84Y93         LUT6 (Prop_lut6_I0_O)        0.124   623.759 r  u_core/u_tap/q_i_99__1/O
+                         net (fo=1, routed)           0.433   624.192    u_core/u_tap/q_i_99__1_n_0
+    SLICE_X84Y93         LUT5 (Prop_lut5_I0_O)        0.124   624.316 r  u_core/u_tap/q_i_78__6/O
+                         net (fo=18, routed)          0.707   625.023    u_core/u_tap/u_fabric/o_w[5]_17[1]
+    SLICE_X84Y95         LUT6 (Prop_lut6_I3_O)        0.124   625.147 r  u_core/u_tap/q_i_94/O
+                         net (fo=1, routed)           0.162   625.309    u_core/u_tap/q_i_94_n_0
+    SLICE_X84Y95         LUT6 (Prop_lut6_I1_O)        0.124   625.433 r  u_core/u_tap/q_i_75__1/O
+                         net (fo=1, routed)           0.670   626.103    u_core/u_tap/q_i_75__1_n_0
+    SLICE_X84Y95         LUT5 (Prop_lut5_I4_O)        0.124   626.227 r  u_core/u_tap/q_i_57__10/O
+                         net (fo=14, routed)          0.838   627.065    u_core/u_tap/u_fabric/o_s[4]_14[3]
+    SLICE_X87Y99         LUT6 (Prop_lut6_I0_O)        0.124   627.189 r  u_core/u_tap/q_i_155/O
+                         net (fo=1, routed)           0.151   627.340    u_core/u_tap/q_i_155_n_0
+    SLICE_X87Y99         LUT6 (Prop_lut6_I0_O)        0.124   627.464 r  u_core/u_tap/q_i_147/O
+                         net (fo=1, routed)           0.000   627.464    u_core/u_tap/q_i_147_n_0
+    SLICE_X87Y99         MUXF7 (Prop_muxf7_I0_O)      0.212   627.676 r  u_core/u_tap/q_reg_i_108/O
+                         net (fo=1, routed)           0.364   628.040    u_core/u_tap/q_reg_i_108_n_0
+    SLICE_X86Y99         LUT5 (Prop_lut5_I4_O)        0.299   628.339 r  u_core/u_tap/q_i_82__8/O
+                         net (fo=18, routed)          0.693   629.032    u_core/u_tap/u_fabric/o_n[0]_7[1]
+    SLICE_X83Y92         LUT6 (Prop_lut6_I3_O)        0.124   629.156 r  u_core/u_tap/q_i_85__2/O
+                         net (fo=1, routed)           0.000   629.156    u_core/u_tap/q_i_85__2_n_0
+    SLICE_X83Y92         MUXF7 (Prop_muxf7_I1_O)      0.217   629.373 r  u_core/u_tap/q_reg_i_70__0/O
+                         net (fo=1, routed)           0.354   629.727    u_core/u_tap/q_reg_i_70__0_n_0
+    SLICE_X82Y92         LUT6 (Prop_lut6_I3_O)        0.299   630.026 r  u_core/u_tap/q_i_45__3/O
+                         net (fo=16, routed)          0.540   630.565    u_core/u_tap/q_i_45__3_n_0
+    SLICE_X81Y87         LUT6 (Prop_lut6_I2_O)        0.124   630.690 r  u_core/u_tap/q_i_63__2/O
+                         net (fo=1, routed)           0.000   630.690    u_core/u_tap/q_i_63__2_n_0
+    SLICE_X81Y87         MUXF7 (Prop_muxf7_I1_O)      0.217   630.906 r  u_core/u_tap/q_reg_i_39/O
+                         net (fo=1, routed)           0.437   631.343    u_core/u_tap/q_reg_i_39_n_0
+    SLICE_X82Y87         LUT3 (Prop_lut3_I2_O)        0.299   631.642 r  u_core/u_tap/q_i_15__3/O
+                         net (fo=1, routed)           0.350   631.992    u_core/u_tap/q_i_15__3_n_0
+    SLICE_X82Y88         LUT5 (Prop_lut5_I4_O)        0.124   632.116 r  u_core/u_tap/q_i_6__1/O
+                         net (fo=2, routed)           0.494   632.610    u_core/u_tap/q_i_6__1_n_0
+    SLICE_X83Y88         LUT5 (Prop_lut5_I4_O)        0.124   632.734 r  u_core/u_tap/q_i_2__3/O
+                         net (fo=2, routed)           0.160   632.894    u_core/u_tap/q_i_2__3_n_0
+    SLICE_X83Y88         LUT3 (Prop_lut3_I1_O)        0.124   633.018 r  u_core/u_tap/user_dr[8]_i_2/O
+                         net (fo=19, routed)          0.806   633.823    u_core/u_tap/clb_o[4]
+    SLICE_X85Y93         LUT6 (Prop_lut6_I4_O)        0.124   633.947 r  u_core/u_tap/q_i_82__2/O
+                         net (fo=1, routed)           0.263   634.210    u_core/u_tap/q_i_82__2_n_0
+    SLICE_X85Y93         LUT6 (Prop_lut6_I5_O)        0.124   634.334 r  u_core/u_tap/q_i_60__2/O
+                         net (fo=14, routed)          0.585   634.919    u_core/u_tap/u_fabric/o_s[4]_14[0]
+    SLICE_X86Y100        LUT6 (Prop_lut6_I5_O)        0.124   635.043 r  u_core/u_tap/q_i_153/O
+                         net (fo=1, routed)           0.638   635.681    u_core/u_tap/q_i_153_n_0
+    SLICE_X86Y100        LUT6 (Prop_lut6_I0_O)        0.124   635.805 r  u_core/u_tap/q_i_145/O
+                         net (fo=1, routed)           0.000   635.805    u_core/u_tap/q_i_145_n_0
+    SLICE_X86Y100        MUXF7 (Prop_muxf7_I0_O)      0.209   636.014 r  u_core/u_tap/q_reg_i_106/O
+                         net (fo=1, routed)           0.597   636.611    u_core/u_tap/q_reg_i_106_n_0
+    SLICE_X84Y96         LUT5 (Prop_lut5_I4_O)        0.297   636.908 r  u_core/u_tap/q_i_81__7/O
+                         net (fo=18, routed)          0.789   637.698    u_core/u_tap/u_fabric/o_n[0]_7[2]
+    SLICE_X83Y93         LUT6 (Prop_lut6_I1_O)        0.124   637.822 r  u_core/u_tap/q_i_67__1/O
+                         net (fo=1, routed)           0.000   637.822    u_core/u_tap/q_i_67__1_n_0
+    SLICE_X83Y93         MUXF7 (Prop_muxf7_I1_O)      0.217   638.039 r  u_core/u_tap/q_reg_i_43/O
+                         net (fo=1, routed)           0.433   638.472    u_core/u_tap/q_reg_i_43_n_0
+    SLICE_X83Y93         LUT6 (Prop_lut6_I3_O)        0.299   638.771 r  u_core/u_tap/q_i_18__3/O
+                         net (fo=7, routed)           0.307   639.078    u_core/u_tap/q_i_18__3_n_0
+    SLICE_X83Y91         LUT6 (Prop_lut6_I5_O)        0.124   639.203 r  u_core/u_tap/q_i_12__3/O
+                         net (fo=1, routed)           0.302   639.505    u_core/u_tap/q_i_12__3_n_0
+    SLICE_X82Y90         LUT5 (Prop_lut5_I4_O)        0.124   639.629 r  u_core/u_tap/q_i_5__7/O
+                         net (fo=21, routed)          0.525   640.153    u_core/u_tap/q_i_5__7_n_0
+    SLICE_X82Y90         LUT4 (Prop_lut4_I1_O)        0.124   640.277 f  u_core/u_tap/q_i_157__0/O
+                         net (fo=1, routed)           0.304   640.581    u_core/u_tap/q_i_157__0_n_0
+    SLICE_X81Y90         LUT6 (Prop_lut6_I5_O)        0.124   640.705 f  u_core/u_tap/q_i_107__4/O
+                         net (fo=1, routed)           0.444   641.148    u_core/u_tap/q_i_107__4_n_0
+    SLICE_X80Y88         LUT5 (Prop_lut5_I4_O)        0.124   641.272 f  u_core/u_tap/q_i_80__8/O
+                         net (fo=18, routed)          0.833   642.106    u_core/u_tap/u_fabric/o_n[4]_16[0]
+    SLICE_X66Y82         LUT6 (Prop_lut6_I5_O)        0.124   642.230 f  u_core/u_tap/q_i_99__5/O
+                         net (fo=1, routed)           0.282   642.512    u_core/u_tap/q_i_99__5_n_0
+    SLICE_X66Y82         LUT6 (Prop_lut6_I0_O)        0.124   642.636 f  u_core/u_tap/q_i_72__4/O
+                         net (fo=1, routed)           0.677   643.313    u_core/u_tap/q_i_72__4_n_0
+    SLICE_X83Y82         LUT5 (Prop_lut5_I4_O)        0.124   643.437 f  u_core/u_tap/q_i_45__14/O
+                         net (fo=22, routed)          0.694   644.131    u_core/u_tap/u_fabric/o_e[8]_30[2]
+    SLICE_X87Y79         LUT6 (Prop_lut6_I1_O)        0.124   644.255 f  u_core/u_tap/q_i_96__4/O
+                         net (fo=1, routed)           0.404   644.659    u_core/u_tap/q_i_96__4_n_0
+    SLICE_X87Y78         LUT5 (Prop_lut5_I0_O)        0.124   644.783 f  u_core/u_tap/q_i_75__10/O
+                         net (fo=18, routed)          0.474   645.257    u_core/u_tap/u_fabric/o_w[9]_32[1]
+    SLICE_X86Y81         LUT6 (Prop_lut6_I3_O)        0.124   645.381 f  u_core/u_tap/q_i_121__3/O
+                         net (fo=1, routed)           0.502   645.883    u_core/u_tap/q_i_121__3_n_0
+    SLICE_X86Y81         LUT6 (Prop_lut6_I1_O)        0.124   646.007 f  u_core/u_tap/q_i_87__3/O
+                         net (fo=1, routed)           0.445   646.452    u_core/u_tap/q_i_87__3_n_0
+    SLICE_X86Y80         LUT5 (Prop_lut5_I4_O)        0.124   646.576 f  u_core/u_tap/q_i_58__12/O
+                         net (fo=14, routed)          0.679   647.255    u_core/u_tap/u_fabric/o_n[8]_31[1]
+    SLICE_X87Y80         LUT6 (Prop_lut6_I3_O)        0.124   647.379 f  u_core/u_tap/q_i_164__1/O
+                         net (fo=1, routed)           0.403   647.782    u_core/u_tap/q_i_164__1_n_0
+    SLICE_X87Y80         LUT5 (Prop_lut5_I0_O)        0.124   647.906 f  u_core/u_tap/q_i_113__5/O
+                         net (fo=1, routed)           0.361   648.267    u_core/u_tap/q_i_113__5_n_0
+    SLICE_X86Y80         LUT5 (Prop_lut5_I4_O)        0.124   648.391 f  u_core/u_tap/q_i_83__11/O
+                         net (fo=18, routed)          0.716   649.106    u_core/u_tap/u_fabric/o_s[12]_44[1]
+    SLICE_X86Y85         LUT6 (Prop_lut6_I3_O)        0.124   649.230 f  u_core/u_tap/q_i_121__1/O
+                         net (fo=1, routed)           0.429   649.659    u_core/u_tap/q_i_121__1_n_0
+    SLICE_X84Y85         LUT6 (Prop_lut6_I3_O)        0.124   649.784 f  u_core/u_tap/q_i_92__1/O
+                         net (fo=1, routed)           0.322   650.105    u_core/u_tap/q_i_92__1_n_0
+    SLICE_X82Y86         LUT5 (Prop_lut5_I4_O)        0.124   650.229 f  u_core/u_tap/q_i_74__9/O
+                         net (fo=18, routed)          0.478   650.707    u_core/u_tap/u_fabric/o_s[8]_29[1]
+    SLICE_X81Y88         LUT6 (Prop_lut6_I3_O)        0.124   650.831 f  u_core/u_tap/q_i_152__0/O
+                         net (fo=1, routed)           0.435   651.266    u_core/u_tap/q_i_152__0_n_0
+    SLICE_X81Y89         LUT6 (Prop_lut6_I3_O)        0.124   651.390 f  u_core/u_tap/q_i_105__3/O
+                         net (fo=1, routed)           0.441   651.831    u_core/u_tap/q_i_105__3_n_0
+    SLICE_X83Y87         LUT5 (Prop_lut5_I4_O)        0.124   651.955 f  u_core/u_tap/q_i_79__7/O
+                         net (fo=18, routed)          0.784   652.739    u_core/u_tap/u_fabric/o_n[4]_16[1]
+    SLICE_X85Y85         LUT6 (Prop_lut6_I3_O)        0.124   652.863 f  u_core/u_tap/q_i_116__1/O
+                         net (fo=1, routed)           0.340   653.203    u_core/u_tap/q_i_116__1_n_0
+    SLICE_X85Y84         LUT6 (Prop_lut6_I0_O)        0.124   653.327 f  u_core/u_tap/q_i_85__4/O
+                         net (fo=1, routed)           0.149   653.476    u_core/u_tap/q_i_85__4_n_0
+    SLICE_X85Y84         LUT5 (Prop_lut5_I4_O)        0.124   653.600 f  u_core/u_tap/q_i_57__11/O
+                         net (fo=14, routed)          0.940   654.540    u_core/u_tap/u_fabric/o_n[8]_31[2]
+    SLICE_X89Y82         LUT6 (Prop_lut6_I1_O)        0.124   654.664 f  u_core/u_tap/q_i_161__1/O
+                         net (fo=1, routed)           0.264   654.928    u_core/u_tap/q_i_161__1_n_0
+    SLICE_X89Y82         LUT5 (Prop_lut5_I0_O)        0.124   655.052 f  u_core/u_tap/q_i_111__4/O
+                         net (fo=1, routed)           0.154   655.206    u_core/u_tap/q_i_111__4_n_0
+    SLICE_X89Y82         LUT5 (Prop_lut5_I4_O)        0.124   655.330 f  u_core/u_tap/q_i_82__11/O
+                         net (fo=18, routed)          0.799   656.129    u_core/u_tap/u_fabric/o_s[12]_44[2]
+    SLICE_X66Y83         LUT6 (Prop_lut6_I1_O)        0.124   656.253 f  u_core/u_tap/q_i_117__0/O
+                         net (fo=1, routed)           0.443   656.697    u_core/u_tap/q_i_117__0_n_0
+    SLICE_X66Y84         LUT6 (Prop_lut6_I3_O)        0.124   656.821 f  u_core/u_tap/q_i_90__2/O
+                         net (fo=1, routed)           0.466   657.287    u_core/u_tap/q_i_90__2_n_0
+    SLICE_X66Y84         LUT5 (Prop_lut5_I4_O)        0.124   657.411 f  u_core/u_tap/q_i_73__7/O
+                         net (fo=18, routed)          0.669   658.079    u_core/u_tap/u_fabric/o_s[8]_29[2]
+    SLICE_X82Y88         LUT6 (Prop_lut6_I1_O)        0.124   658.203 f  u_core/u_tap/q_i_148__0/O
+                         net (fo=1, routed)           0.452   658.655    u_core/u_tap/q_i_148__0_n_0
+    SLICE_X82Y88         LUT6 (Prop_lut6_I3_O)        0.124   658.779 f  u_core/u_tap/q_i_103__1/O
+                         net (fo=1, routed)           0.502   659.281    u_core/u_tap/q_i_103__1_n_0
+    SLICE_X82Y88         LUT5 (Prop_lut5_I4_O)        0.124   659.405 f  u_core/u_tap/q_i_78__5/O
+                         net (fo=18, routed)          0.728   660.133    u_core/u_tap/u_fabric/o_n[4]_16[2]
+    SLICE_X83Y85         LUT6 (Prop_lut6_I1_O)        0.124   660.257 f  u_core/u_tap/q_i_112__3/O
+                         net (fo=1, routed)           0.578   660.835    u_core/u_tap/q_i_112__3_n_0
+    SLICE_X84Y83         LUT6 (Prop_lut6_I0_O)        0.124   660.959 f  u_core/u_tap/q_i_83__3/O
+                         net (fo=1, routed)           0.574   661.533    u_core/u_tap/q_i_83__3_n_0
+    SLICE_X85Y83         LUT5 (Prop_lut5_I4_O)        0.124   661.657 f  u_core/u_tap/q_i_56__11/O
+                         net (fo=14, routed)          0.726   662.383    u_core/u_tap/u_fabric/o_n[8]_31[3]
+    SLICE_X86Y82         LUT6 (Prop_lut6_I0_O)        0.124   662.507 f  u_core/u_tap/q_i_158__2/O
+                         net (fo=1, routed)           0.161   662.668    u_core/u_tap/q_i_158__2_n_0
+    SLICE_X86Y82         LUT5 (Prop_lut5_I0_O)        0.124   662.792 f  u_core/u_tap/q_i_109__5/O
+                         net (fo=1, routed)           0.442   663.234    u_core/u_tap/q_i_109__5_n_0
+    SLICE_X85Y83         LUT5 (Prop_lut5_I4_O)        0.124   663.358 f  u_core/u_tap/q_i_81__9/O
+                         net (fo=18, routed)          0.742   664.101    u_core/u_tap/u_fabric/o_s[12]_44[3]
+    SLICE_X67Y85         LUT6 (Prop_lut6_I0_O)        0.124   664.225 f  u_core/u_tap/q_i_113__2/O
+                         net (fo=1, routed)           0.289   664.514    u_core/u_tap/q_i_113__2_n_0
+    SLICE_X67Y86         LUT6 (Prop_lut6_I3_O)        0.124   664.638 f  u_core/u_tap/q_i_88__1/O
+                         net (fo=1, routed)           0.295   664.934    u_core/u_tap/q_i_88__1_n_0
+    SLICE_X67Y87         LUT5 (Prop_lut5_I4_O)        0.124   665.058 f  u_core/u_tap/q_i_72__11/O
+                         net (fo=18, routed)          0.865   665.923    u_core/u_tap/u_fabric/o_s[8]_29[3]
+    SLICE_X84Y89         LUT6 (Prop_lut6_I0_O)        0.124   666.047 f  u_core/u_tap/q_i_144__0/O
+                         net (fo=1, routed)           0.407   666.454    u_core/u_tap/q_i_144__0_n_0
+    SLICE_X85Y89         LUT6 (Prop_lut6_I3_O)        0.124   666.578 f  u_core/u_tap/q_i_101__1/O
+                         net (fo=1, routed)           0.154   666.732    u_core/u_tap/q_i_101__1_n_0
+    SLICE_X85Y89         LUT5 (Prop_lut5_I4_O)        0.124   666.856 f  u_core/u_tap/q_i_77__7/O
+                         net (fo=18, routed)          0.873   667.729    u_core/u_tap/u_fabric/o_n[4]_16[3]
+    SLICE_X84Y84         LUT6 (Prop_lut6_I0_O)        0.124   667.853 f  u_core/u_tap/q_i_107__5/O
+                         net (fo=1, routed)           0.395   668.248    u_core/u_tap/q_i_107__5_n_0
+    SLICE_X83Y84         LUT6 (Prop_lut6_I0_O)        0.124   668.372 f  u_core/u_tap/q_i_76__2/O
+                         net (fo=1, routed)           0.403   668.775    u_core/u_tap/q_i_76__2_n_0
+    SLICE_X83Y83         LUT5 (Prop_lut5_I4_O)        0.124   668.899 f  u_core/u_tap/q_i_47__14/O
+                         net (fo=22, routed)          0.993   669.892    u_core/u_tap/u_fabric/o_e[8]_30[0]
+    SLICE_X90Y77         LUT6 (Prop_lut6_I5_O)        0.124   670.016 f  u_core/u_tap/q_i_94__4/O
+                         net (fo=1, routed)           0.171   670.187    u_core/u_tap/q_i_94__4_n_0
+    SLICE_X90Y77         LUT5 (Prop_lut5_I0_O)        0.124   670.311 f  u_core/u_tap/q_i_74__10/O
+                         net (fo=18, routed)          0.820   671.132    u_core/u_tap/u_fabric/o_w[9]_32[2]
+    SLICE_X89Y77         LUT6 (Prop_lut6_I1_O)        0.124   671.256 f  u_core/u_tap/q_i_104__4/O
+                         net (fo=1, routed)           0.915   672.170    u_core/u_tap/q_i_104__4_n_0
+    SLICE_X82Y83         LUT6 (Prop_lut6_I1_O)        0.124   672.294 f  u_core/u_tap/q_i_74__4/O
+                         net (fo=1, routed)           0.302   672.597    u_core/u_tap/q_i_74__4_n_0
+    SLICE_X81Y83         LUT5 (Prop_lut5_I4_O)        0.124   672.721 f  u_core/u_tap/q_i_46__14/O
+                         net (fo=22, routed)          0.760   673.481    u_core/u_tap/u_fabric/o_e[8]_30[1]
+    SLICE_X88Y83         LUT6 (Prop_lut6_I3_O)        0.124   673.605 f  u_core/u_tap/q_i_121__4/O
+                         net (fo=1, routed)           0.443   674.048    u_core/u_tap/q_i_121__4_n_0
+    SLICE_X88Y80         LUT5 (Prop_lut5_I0_O)        0.124   674.172 f  u_core/u_tap/q_i_86__9/O
+                         net (fo=22, routed)          0.764   674.937    u_core/u_tap/u_fabric/o_s[9]_33[0]
+    SLICE_X88Y93         LUT6 (Prop_lut6_I5_O)        0.124   675.061 f  u_core/u_tap/q_i_95__0/O
+                         net (fo=1, routed)           0.280   675.340    u_core/u_tap/q_i_95__0_n_0
+    SLICE_X88Y93         LUT6 (Prop_lut6_I0_O)        0.124   675.464 r  u_core/u_tap/q_i_53__1/O
+                         net (fo=1, routed)           0.488   675.952    u_core/u_tap/q_i_53__1_n_0
+    SLICE_X88Y94         LUT6 (Prop_lut6_I1_O)        0.124   676.076 f  u_core/u_tap/q_i_27__3/O
+                         net (fo=1, routed)           0.287   676.363    u_core/u_tap/q_i_27__3_n_0
+    SLICE_X87Y94         LUT5 (Prop_lut5_I4_O)        0.124   676.487 r  u_core/u_tap/q_i_11__9/O
+                         net (fo=2, routed)           0.514   677.002    u_core/u_tap/q_i_11__9_n_0
+    SLICE_X86Y94         LUT5 (Prop_lut5_I3_O)        0.124   677.126 f  u_core/u_tap/q_i_5__8/O
+                         net (fo=25, routed)          0.986   678.112    u_core/u_tap/q_i_5__8_n_0
+    SLICE_X94Y91         LUT4 (Prop_lut4_I1_O)        0.124   678.236 r  u_core/u_tap/q_i_158__0/O
+                         net (fo=1, routed)           0.544   678.779    u_core/u_tap/q_i_158__0_n_0
+    SLICE_X94Y91         LUT6 (Prop_lut6_I5_O)        0.124   678.903 r  u_core/u_tap/q_i_120__0/O
+                         net (fo=1, routed)           0.492   679.395    u_core/u_tap/q_i_120__0_n_0
+    SLICE_X94Y91         LUT5 (Prop_lut5_I4_O)        0.124   679.519 r  u_core/u_tap/q_i_81__8/O
+                         net (fo=22, routed)          1.527   681.047    u_core/u_tap/u_fabric/o_n[5]_20[3]
+    SLICE_X89Y72         LUT6 (Prop_lut6_I0_O)        0.124   681.171 r  u_core/u_tap/q_i_150__2/O
+                         net (fo=1, routed)           0.295   681.466    u_core/u_tap/q_i_150__2_n_0
+    SLICE_X89Y71         LUT6 (Prop_lut6_I0_O)        0.124   681.590 r  u_core/u_tap/q_i_121__5/O
+                         net (fo=1, routed)           0.436   682.026    u_core/u_tap/q_i_121__5_n_0
+    SLICE_X89Y69         LUT5 (Prop_lut5_I4_O)        0.124   682.150 r  u_core/u_tap/q_i_85__10/O
+                         net (fo=18, routed)          0.708   682.859    u_core/u_tap/u_fabric/o_n[9]_35[0]
+    SLICE_X93Y68         LUT6 (Prop_lut6_I5_O)        0.124   682.983 r  u_core/u_tap/q_i_177__0/O
+                         net (fo=1, routed)           0.154   683.136    u_core/u_tap/q_i_177__0_n_0
+    SLICE_X93Y68         LUT5 (Prop_lut5_I0_O)        0.124   683.260 r  u_core/u_tap/q_i_132__4/O
+                         net (fo=1, routed)           0.526   683.786    u_core/u_tap/q_i_132__4_n_0
+    SLICE_X92Y68         LUT5 (Prop_lut5_I4_O)        0.124   683.910 r  u_core/u_tap/q_i_87__10/O
+                         net (fo=22, routed)          0.469   684.379    u_core/u_tap/u_fabric/o_s[13]_2[1]
+    SLICE_X90Y68         LUT6 (Prop_lut6_I3_O)        0.124   684.503 r  u_core/u_tap/q_i_148__2/O
+                         net (fo=1, routed)           0.656   685.159    u_core/u_tap/q_i_148__2_n_0
+    SLICE_X89Y70         LUT6 (Prop_lut6_I3_O)        0.124   685.283 r  u_core/u_tap/q_i_119__5/O
+                         net (fo=1, routed)           0.154   685.437    u_core/u_tap/q_i_119__5_n_0
+    SLICE_X89Y70         LUT5 (Prop_lut5_I4_O)        0.124   685.561 r  u_core/u_tap/q_i_84__11/O
+                         net (fo=18, routed)          0.760   686.321    u_core/u_tap/u_fabric/o_n[9]_35[1]
+    SLICE_X94Y68         LUT6 (Prop_lut6_I3_O)        0.124   686.445 r  u_core/u_tap/q_i_174__0/O
+                         net (fo=1, routed)           0.286   686.731    u_core/u_tap/q_i_174__0_n_0
+    SLICE_X94Y68         LUT5 (Prop_lut5_I0_O)        0.124   686.855 r  u_core/u_tap/q_i_130__5/O
+                         net (fo=1, routed)           0.171   687.026    u_core/u_tap/q_i_130__5_n_0
+    SLICE_X94Y68         LUT5 (Prop_lut5_I4_O)        0.124   687.150 r  u_core/u_tap/q_i_86__10/O
+                         net (fo=22, routed)          1.000   688.150    u_core/u_tap/u_fabric/o_s[13]_2[2]
+    SLICE_X93Y78         LUT6 (Prop_lut6_I1_O)        0.124   688.274 r  u_core/u_tap/q_i_145__1/O
+                         net (fo=1, routed)           0.590   688.865    u_core/u_tap/q_i_145__1_n_0
+    SLICE_X93Y79         LUT6 (Prop_lut6_I3_O)        0.124   688.989 r  u_core/u_tap/q_i_118__3/O
+                         net (fo=1, routed)           0.149   689.137    u_core/u_tap/q_i_118__3_n_0
+    SLICE_X93Y79         LUT5 (Prop_lut5_I4_O)        0.124   689.261 r  u_core/u_tap/q_i_84__10/O
+                         net (fo=22, routed)          0.999   690.260    u_core/u_tap/u_fabric/o_s[9]_33[2]
+    SLICE_X91Y89         LUT6 (Prop_lut6_I1_O)        0.124   690.384 r  u_core/u_tap/q_i_169/O
+                         net (fo=1, routed)           0.407   690.791    u_core/u_tap/q_i_169_n_0
+    SLICE_X91Y89         LUT6 (Prop_lut6_I3_O)        0.124   690.915 r  u_core/u_tap/q_i_126/O
+                         net (fo=1, routed)           0.508   691.423    u_core/u_tap/q_i_126_n_0
+    SLICE_X90Y84         LUT5 (Prop_lut5_I4_O)        0.124   691.547 r  u_core/u_tap/q_i_84__9/O
+                         net (fo=22, routed)          0.927   692.474    u_core/u_tap/u_fabric/o_n[5]_20[0]
+    SLICE_X90Y71         LUT6 (Prop_lut6_I5_O)        0.124   692.598 r  u_core/u_tap/q_i_142__3/O
+                         net (fo=1, routed)           0.452   693.050    u_core/u_tap/q_i_142__3_n_0
+    SLICE_X91Y71         LUT6 (Prop_lut6_I0_O)        0.124   693.174 r  u_core/u_tap/q_i_117__3/O
+                         net (fo=1, routed)           0.433   693.608    u_core/u_tap/q_i_117__3_n_0
+    SLICE_X91Y71         LUT5 (Prop_lut5_I4_O)        0.124   693.732 r  u_core/u_tap/q_i_83__10/O
+                         net (fo=18, routed)          0.639   694.371    u_core/u_tap/u_fabric/o_n[9]_35[2]
+    SLICE_X95Y69         LUT6 (Prop_lut6_I1_O)        0.124   694.495 r  u_core/u_tap/q_i_171__0/O
+                         net (fo=1, routed)           0.403   694.898    u_core/u_tap/q_i_171__0_n_0
+    SLICE_X95Y69         LUT5 (Prop_lut5_I0_O)        0.124   695.022 r  u_core/u_tap/q_i_128__5/O
+                         net (fo=1, routed)           0.351   695.373    u_core/u_tap/q_i_128__5_n_0
+    SLICE_X94Y69         LUT5 (Prop_lut5_I4_O)        0.124   695.497 r  u_core/u_tap/q_i_85__11/O
+                         net (fo=22, routed)          0.836   696.333    u_core/u_tap/u_fabric/o_s[13]_2[3]
+    SLICE_X93Y76         LUT6 (Prop_lut6_I0_O)        0.124   696.457 r  u_core/u_tap/q_i_141__2/O
+                         net (fo=1, routed)           0.454   696.911    u_core/u_tap/q_i_141__2_n_0
+    SLICE_X90Y78         LUT6 (Prop_lut6_I3_O)        0.124   697.035 r  u_core/u_tap/q_i_116__2/O
+                         net (fo=1, routed)           0.549   697.584    u_core/u_tap/q_i_116__2_n_0
+    SLICE_X91Y81         LUT5 (Prop_lut5_I4_O)        0.124   697.708 r  u_core/u_tap/q_i_83__9/O
+                         net (fo=22, routed)          1.188   698.896    u_core/u_tap/u_fabric/o_s[9]_33[3]
+    SLICE_X91Y90         LUT6 (Prop_lut6_I0_O)        0.124   699.020 r  u_core/u_tap/q_i_165/O
+                         net (fo=1, routed)           0.453   699.473    u_core/u_tap/q_i_165_n_0
+    SLICE_X92Y90         LUT6 (Prop_lut6_I3_O)        0.124   699.597 r  u_core/u_tap/q_i_124__0/O
+                         net (fo=1, routed)           0.544   700.142    u_core/u_tap/q_i_124__0_n_0
+    SLICE_X93Y87         LUT5 (Prop_lut5_I4_O)        0.124   700.266 r  u_core/u_tap/q_i_83__8/O
+                         net (fo=22, routed)          0.895   701.161    u_core/u_tap/u_fabric/o_n[5]_20[1]
+    SLICE_X93Y73         LUT6 (Prop_lut6_I3_O)        0.124   701.285 r  u_core/u_tap/led_OBUF[2]_inst_i_113/O
+                         net (fo=1, routed)           0.546   701.830    u_core/u_tap/led_OBUF[2]_inst_i_113_n_0
+    SLICE_X93Y74         LUT6 (Prop_lut6_I0_O)        0.124   701.954 r  u_core/u_tap/led_OBUF[2]_inst_i_75/O
+                         net (fo=1, routed)           0.433   702.388    u_core/u_tap/led_OBUF[2]_inst_i_75_n_0
+    SLICE_X93Y74         LUT5 (Prop_lut5_I4_O)        0.124   702.512 r  u_core/u_tap/led_OBUF[2]_inst_i_31/O
+                         net (fo=22, routed)          1.010   703.522    u_core/u_tap/u_fabric/o_e[9]_34[0]
+    SLICE_X100Y81        LUT6 (Prop_lut6_I5_O)        0.124   703.646 r  u_core/u_tap/q_i_68__5/O
+                         net (fo=1, routed)           0.162   703.808    u_core/u_tap/q_i_68__5_n_0
+    SLICE_X100Y81        LUT6 (Prop_lut6_I0_O)        0.124   703.932 r  u_core/u_tap/q_i_58__7/O
+                         net (fo=16, routed)          0.564   704.496    u_core/u_tap/q_i_58__7_n_0
+    SLICE_X101Y84        LUT6 (Prop_lut6_I2_O)        0.124   704.620 r  u_core/u_tap/q_i_54__6/O
+                         net (fo=1, routed)           0.000   704.620    u_core/u_tap/q_i_54__6_n_0
+    SLICE_X101Y84        MUXF7 (Prop_muxf7_I1_O)      0.217   704.837 r  u_core/u_tap/q_reg_i_24__1/O
+                         net (fo=1, routed)           0.436   705.274    u_core/u_tap/q_reg_i_24__1_n_0
+    SLICE_X101Y84        LUT6 (Prop_lut6_I5_O)        0.299   705.573 r  u_core/u_tap/q_i_10__7/O
+                         net (fo=1, routed)           0.263   705.836    u_core/u_tap/q_i_10__7_n_0
+    SLICE_X101Y84        LUT3 (Prop_lut3_I2_O)        0.124   705.960 r  u_core/u_tap/q_i_6__6/O
+                         net (fo=2, routed)           0.470   706.430    u_core/u_tap/q_i_6__6_n_0
+    SLICE_X102Y84        LUT5 (Prop_lut5_I4_O)        0.124   706.554 f  u_core/u_tap/q_i_2__9/O
+                         net (fo=2, routed)           0.435   706.989    u_core/u_tap/q_i_2__9_n_0
+    SLICE_X102Y83        LUT3 (Prop_lut3_I1_O)        0.124   707.113 f  u_core/u_tap/user_dr[14]_i_2/O
+                         net (fo=23, routed)          0.712   707.825    u_core/u_tap/clb_o[10]
+    SLICE_X99Y81         LUT6 (Prop_lut6_I4_O)        0.124   707.949 f  u_core/u_tap/q_i_57__6/O
+                         net (fo=1, routed)           0.263   708.212    u_core/u_tap/q_i_57__6_n_0
+    SLICE_X99Y81         LUT6 (Prop_lut6_I4_O)        0.124   708.336 r  u_core/u_tap/q_i_29__9/O
+                         net (fo=7, routed)           0.363   708.698    u_core/u_tap/q_i_29__9_n_0
+    SLICE_X98Y81         LUT6 (Prop_lut6_I4_O)        0.124   708.823 r  u_core/u_tap/q_i_17__7/O
+                         net (fo=1, routed)           0.466   709.288    u_core/u_tap/q_i_17__7_n_0
+    SLICE_X98Y81         LUT5 (Prop_lut5_I4_O)        0.124   709.412 f  u_core/u_tap/q_i_8__7/O
+                         net (fo=25, routed)          0.700   710.112    u_core/u_tap/cfg_out_reg[1898]_0
+    SLICE_X97Y78         LUT4 (Prop_lut4_I2_O)        0.124   710.236 f  u_core/u_tap/q_i_154__2/O
+                         net (fo=1, routed)           0.303   710.540    u_core/u_tap/q_i_154__2_n_0
+    SLICE_X96Y77         LUT6 (Prop_lut6_I5_O)        0.124   710.664 f  u_core/u_tap/q_i_118__5/O
+                         net (fo=1, routed)           0.312   710.976    u_core/u_tap/q_i_118__5_n_0
+    SLICE_X96Y76         LUT5 (Prop_lut5_I4_O)        0.124   711.100 f  u_core/u_tap/q_i_80__10/O
+                         net (fo=22, routed)          0.705   711.805    u_core/u_tap/u_fabric/o_w[10]_36[0]
+    SLICE_X92Y74         LUT6 (Prop_lut6_I5_O)        0.124   711.929 f  u_core/u_tap/led_OBUF[2]_inst_i_110/O
+                         net (fo=1, routed)           0.299   712.228    u_core/u_tap/led_OBUF[2]_inst_i_110_n_0
+    SLICE_X91Y74         LUT6 (Prop_lut6_I1_O)        0.124   712.352 f  u_core/u_tap/led_OBUF[2]_inst_i_73/O
+                         net (fo=1, routed)           0.433   712.785    u_core/u_tap/led_OBUF[2]_inst_i_73_n_0
+    SLICE_X91Y74         LUT5 (Prop_lut5_I4_O)        0.124   712.909 f  u_core/u_tap/led_OBUF[2]_inst_i_30/O
+                         net (fo=22, routed)          0.800   713.709    u_core/u_tap/u_fabric/o_e[9]_34[1]
+    SLICE_X96Y76         LUT6 (Prop_lut6_I3_O)        0.124   713.833 f  u_core/u_tap/q_i_115__5/O
+                         net (fo=1, routed)           0.161   713.994    u_core/u_tap/q_i_115__5_n_0
+    SLICE_X96Y76         LUT5 (Prop_lut5_I0_O)        0.124   714.118 f  u_core/u_tap/q_i_79__9/O
+                         net (fo=22, routed)          0.498   714.616    u_core/u_tap/u_fabric/o_w[10]_36[1]
+    SLICE_X94Y74         LUT6 (Prop_lut6_I3_O)        0.124   714.740 f  u_core/u_tap/led_OBUF[2]_inst_i_106/O
+                         net (fo=1, routed)           0.586   715.326    u_core/u_tap/led_OBUF[2]_inst_i_106_n_0
+    SLICE_X93Y72         LUT6 (Prop_lut6_I1_O)        0.124   715.450 f  u_core/u_tap/led_OBUF[2]_inst_i_71/O
+                         net (fo=1, routed)           0.154   715.604    u_core/u_tap/led_OBUF[2]_inst_i_71_n_0
+    SLICE_X93Y72         LUT5 (Prop_lut5_I4_O)        0.124   715.728 f  u_core/u_tap/led_OBUF[2]_inst_i_29/O
+                         net (fo=22, routed)          0.607   716.335    u_core/u_tap/u_fabric/o_e[9]_34[2]
+    SLICE_X99Y72         LUT6 (Prop_lut6_I4_O)        0.124   716.459 f  u_core/u_tap/q_i_113__7/O
+                         net (fo=1, routed)           0.436   716.894    u_core/u_tap/q_i_113__7_n_0
+    SLICE_X99Y71         LUT5 (Prop_lut5_I1_O)        0.124   717.018 f  u_core/u_tap/q_i_68__12/O
+                         net (fo=18, routed)          0.662   717.680    u_core/u_tap/u_fabric/o_n[10]_39[0]
+    SLICE_X101Y66        LUT6 (Prop_lut6_I5_O)        0.124   717.804 f  u_core/u_tap/led_OBUF[2]_inst_i_180/O
+                         net (fo=1, routed)           0.000   717.804    u_core/u_tap/led_OBUF[2]_inst_i_180_n_0
+    SLICE_X101Y66        MUXF7 (Prop_muxf7_I1_O)      0.217   718.021 f  u_core/u_tap/led_OBUF[2]_inst_i_140/O
+                         net (fo=1, routed)           0.433   718.455    u_core/u_tap/led_OBUF[2]_inst_i_140_n_0
+    SLICE_X101Y66        LUT6 (Prop_lut6_I3_O)        0.299   718.754 f  u_core/u_tap/led_OBUF[2]_inst_i_87/O
+                         net (fo=22, routed)          1.039   719.792    u_core/u_tap/u_fabric/o_s[14]_4[0]
+    SLICE_X101Y76        LUT6 (Prop_lut6_I5_O)        0.124   719.917 f  u_core/u_tap/q_i_145__3/O
+                         net (fo=1, routed)           0.151   720.068    u_core/u_tap/q_i_145__3_n_0
+    SLICE_X101Y76        LUT6 (Prop_lut6_I3_O)        0.124   720.192 f  u_core/u_tap/q_i_114__5/O
+                         net (fo=1, routed)           0.154   720.346    u_core/u_tap/q_i_114__5_n_0
+    SLICE_X101Y76        LUT5 (Prop_lut5_I4_O)        0.124   720.470 f  u_core/u_tap/q_i_78__8/O
+                         net (fo=22, routed)          0.506   720.975    u_core/u_tap/u_fabric/o_w[10]_36[2]
+    SLICE_X93Y75         LUT6 (Prop_lut6_I1_O)        0.124   721.099 f  u_core/u_tap/led_OBUF[2]_inst_i_102/O
+                         net (fo=1, routed)           0.149   721.248    u_core/u_tap/led_OBUF[2]_inst_i_102_n_0
+    SLICE_X93Y75         LUT6 (Prop_lut6_I1_O)        0.124   721.372 f  u_core/u_tap/led_OBUF[2]_inst_i_69/O
+                         net (fo=1, routed)           0.433   721.806    u_core/u_tap/led_OBUF[2]_inst_i_69_n_0
+    SLICE_X93Y75         LUT5 (Prop_lut5_I4_O)        0.124   721.930 f  u_core/u_tap/led_OBUF[2]_inst_i_28/O
+                         net (fo=22, routed)          0.718   722.648    u_core/u_tap/u_fabric/o_e[9]_34[3]
+    SLICE_X95Y75         LUT6 (Prop_lut6_I3_O)        0.124   722.772 f  u_core/u_tap/q_i_111__7/O
+                         net (fo=1, routed)           0.406   723.178    u_core/u_tap/q_i_111__7_n_0
+    SLICE_X99Y75         LUT5 (Prop_lut5_I1_O)        0.124   723.302 f  u_core/u_tap/q_i_67__12/O
+                         net (fo=18, routed)          0.838   724.140    u_core/u_tap/u_fabric/o_n[10]_39[1]
+    SLICE_X99Y67         LUT6 (Prop_lut6_I3_O)        0.124   724.264 f  u_core/u_tap/led_OBUF[2]_inst_i_176/O
+                         net (fo=1, routed)           0.304   724.568    u_core/u_tap/led_OBUF[2]_inst_i_176_n_0
+    SLICE_X100Y67        LUT5 (Prop_lut5_I0_O)        0.124   724.692 f  u_core/u_tap/led_OBUF[2]_inst_i_138/O
+                         net (fo=1, routed)           0.427   725.120    u_core/u_tap/led_OBUF[2]_inst_i_138_n_0
+    SLICE_X100Y66        LUT5 (Prop_lut5_I4_O)        0.124   725.244 f  u_core/u_tap/led_OBUF[2]_inst_i_86/O
+                         net (fo=22, routed)          0.712   725.956    u_core/u_tap/u_fabric/o_s[14]_4[1]
+    SLICE_X100Y74        LUT6 (Prop_lut6_I3_O)        0.124   726.080 f  u_core/u_tap/q_i_130__3/O
+                         net (fo=1, routed)           0.452   726.532    u_core/u_tap/q_i_130__3_n_0
+    SLICE_X100Y74        LUT6 (Prop_lut6_I3_O)        0.124   726.656 f  u_core/u_tap/q_i_110__4/O
+                         net (fo=1, routed)           0.492   727.147    u_core/u_tap/q_i_110__4_n_0
+    SLICE_X100Y74        LUT5 (Prop_lut5_I4_O)        0.124   727.271 f  u_core/u_tap/q_i_66__12/O
+                         net (fo=18, routed)          1.056   728.327    u_core/u_tap/u_fabric/o_n[10]_39[2]
+    SLICE_X100Y67        LUT6 (Prop_lut6_I1_O)        0.124   728.451 f  u_core/u_tap/led_OBUF[2]_inst_i_173/O
+                         net (fo=1, routed)           0.554   729.005    u_core/u_tap/led_OBUF[2]_inst_i_173_n_0
+    SLICE_X99Y65         LUT5 (Prop_lut5_I0_O)        0.124   729.129 f  u_core/u_tap/led_OBUF[2]_inst_i_136/O
+                         net (fo=1, routed)           0.154   729.283    u_core/u_tap/led_OBUF[2]_inst_i_136_n_0
+    SLICE_X99Y65         LUT5 (Prop_lut5_I4_O)        0.124   729.407 f  u_core/u_tap/led_OBUF[2]_inst_i_85/O
+                         net (fo=22, routed)          0.745   730.152    u_core/u_tap/u_fabric/o_s[14]_4[2]
+    SLICE_X98Y74         LUT6 (Prop_lut6_I1_O)        0.124   730.276 f  u_core/u_tap/q_i_126__5/O
+                         net (fo=1, routed)           0.411   730.687    u_core/u_tap/q_i_126__5_n_0
+    SLICE_X101Y73        LUT6 (Prop_lut6_I3_O)        0.124   730.811 f  u_core/u_tap/q_i_108__4/O
+                         net (fo=1, routed)           0.433   731.244    u_core/u_tap/q_i_108__4_n_0
+    SLICE_X101Y73        LUT5 (Prop_lut5_I4_O)        0.124   731.368 f  u_core/u_tap/q_i_65__13/O
+                         net (fo=18, routed)          0.964   732.332    u_core/u_tap/u_fabric/o_n[10]_39[3]
+    SLICE_X100Y68        LUT6 (Prop_lut6_I0_O)        0.124   732.456 f  u_core/u_tap/led_OBUF[2]_inst_i_170/O
+                         net (fo=1, routed)           0.549   733.005    u_core/u_tap/led_OBUF[2]_inst_i_170_n_0
+    SLICE_X101Y71        LUT5 (Prop_lut5_I0_O)        0.124   733.129 f  u_core/u_tap/led_OBUF[2]_inst_i_134/O
+                         net (fo=1, routed)           0.149   733.278    u_core/u_tap/led_OBUF[2]_inst_i_134_n_0
+    SLICE_X101Y71        LUT5 (Prop_lut5_I4_O)        0.124   733.402 f  u_core/u_tap/led_OBUF[2]_inst_i_84/O
+                         net (fo=22, routed)          0.760   734.162    u_core/u_tap/u_fabric/o_s[14]_4[3]
+    SLICE_X102Y78        LUT6 (Prop_lut6_I0_O)        0.124   734.286 f  u_core/u_tap/led_OBUF[2]_inst_i_46/O
+                         net (fo=1, routed)           0.289   734.575    u_core/u_tap/led_OBUF[2]_inst_i_46_n_0
+    SLICE_X103Y79        LUT6 (Prop_lut6_I3_O)        0.124   734.699 f  u_core/u_tap/led_OBUF[2]_inst_i_19/O
+                         net (fo=1, routed)           0.433   735.132    u_core/u_tap/led_OBUF[2]_inst_i_19_n_0
+    SLICE_X103Y79        LUT5 (Prop_lut5_I4_O)        0.124   735.256 f  u_core/u_tap/led_OBUF[2]_inst_i_8/O
+                         net (fo=19, routed)          0.817   736.074    u_core/u_tap/u_fabric/o_e[10]_38[2]
+    SLICE_X112Y79        LUT6 (Prop_lut6_I5_O)        0.124   736.198 f  u_core/u_tap/q_i_35__8/O
+                         net (fo=1, routed)           0.434   736.631    u_core/u_tap/q_i_35__8_n_0
+    SLICE_X111Y77        LUT5 (Prop_lut5_I1_O)        0.124   736.755 r  u_core/u_tap/q_i_14__11/O
+                         net (fo=2, routed)           0.598   737.353    u_core/u_tap/q_i_14__11_n_0
+    SLICE_X109Y70        MUXF7 (Prop_muxf7_S_O)       0.296   737.649 r  u_core/u_tap/q_reg_i_9__1/O
+                         net (fo=1, routed)           0.552   738.201    u_core/u_tap/q_reg_i_9__1_n_0
+    SLICE_X109Y72        LUT3 (Prop_lut3_I1_O)        0.298   738.499 r  u_core/u_tap/q_i_5__3/O
+                         net (fo=2, routed)           0.306   738.806    u_core/u_tap/q_i_5__3_n_0
+    SLICE_X109Y74        LUT5 (Prop_lut5_I2_O)        0.124   738.930 r  u_core/u_tap/q_i_2__10/O
+                         net (fo=2, routed)           0.587   739.516    u_core/u_tap/q_i_2__10_n_0
+    SLICE_X109Y77        LUT3 (Prop_lut3_I1_O)        0.124   739.640 r  u_core/u_tap/user_dr[15]_i_2/O
+                         net (fo=20, routed)          0.482   740.123    u_core/u_tap/clb_o[11]
+    SLICE_X109Y81        LUT6 (Prop_lut6_I5_O)        0.124   740.247 r  u_core/u_tap/q_i_97__7/O
+                         net (fo=1, routed)           0.154   740.401    u_core/u_tap/q_i_97__7_n_0
+    SLICE_X109Y81        LUT5 (Prop_lut5_I0_O)        0.124   740.525 r  u_core/u_tap/q_i_72__7/O
+                         net (fo=1, routed)           0.263   740.787    u_core/u_tap/q_i_72__7_n_0
+    SLICE_X109Y81        LUT5 (Prop_lut5_I4_O)        0.124   740.911 r  u_core/u_tap/q_i_53__11/O
+                         net (fo=14, routed)          0.534   741.445    u_core/u_tap/u_fabric/o_n[11]_43[3]
+    SLICE_X108Y79        LUT6 (Prop_lut6_I4_O)        0.124   741.569 r  u_core/u_tap/led_OBUF[2]_inst_i_60/O
+                         net (fo=1, routed)           0.162   741.731    u_core/u_tap/led_OBUF[2]_inst_i_60_n_0
+    SLICE_X108Y79        LUT6 (Prop_lut6_I2_O)        0.124   741.855 r  u_core/u_tap/led_OBUF[2]_inst_i_25/O
+                         net (fo=19, routed)          0.528   742.383    u_core/u_tap/u_fabric/o_s[15]_49[3]
+    SLICE_X109Y79        LUT6 (Prop_lut6_I3_O)        0.124   742.507 f  u_core/u_tap/q_i_90__5/O
+                         net (fo=1, routed)           0.298   742.805    u_core/u_tap/q_i_90__5_n_0
+    SLICE_X111Y79        LUT6 (Prop_lut6_I3_O)        0.124   742.929 f  u_core/u_tap/q_i_80__5/O
+                         net (fo=1, routed)           0.000   742.929    u_core/u_tap/q_i_80__5_n_0
+    SLICE_X111Y79        MUXF7 (Prop_muxf7_I0_O)      0.212   743.141 f  u_core/u_tap/q_reg_i_59__0/O
+                         net (fo=18, routed)          0.544   743.685    u_core/u_tap/q_reg_i_59__0_n_0
+    SLICE_X111Y71        LUT2 (Prop_lut2_I1_O)        0.299   743.984 r  u_core/u_tap/q_i_57__7/O
+                         net (fo=16, routed)          0.493   744.478    u_core/u_tap/q_i_57__7_n_0
+    SLICE_X110Y68        LUT6 (Prop_lut6_I5_O)        0.124   744.602 f  u_core/u_tap/q_i_37__4/O
+                         net (fo=1, routed)           0.433   745.035    u_core/u_tap/q_i_37__4_n_0
+    SLICE_X110Y68        LUT5 (Prop_lut5_I1_O)        0.124   745.159 f  u_core/u_tap/q_i_15__10/O
+                         net (fo=1, routed)           0.440   745.600    u_core/u_tap/q_i_15__10_n_0
+    SLICE_X109Y68        LUT5 (Prop_lut5_I4_O)        0.124   745.724 r  u_core/u_tap/q_i_6__13/O
+                         net (fo=22, routed)          1.110   746.834    u_core/u_tap/cfg_out_reg[2081]_0
+    SLICE_X107Y84        LUT6 (Prop_lut6_I5_O)        0.124   746.958 r  u_core/u_tap/led_OBUF[2]_inst_i_164/O
+                         net (fo=1, routed)           0.402   747.360    u_core/u_tap/led_OBUF[2]_inst_i_164_n_0
+    SLICE_X107Y84        LUT5 (Prop_lut5_I0_O)        0.124   747.484 r  u_core/u_tap/led_OBUF[2]_inst_i_130/O
+                         net (fo=1, routed)           0.518   748.002    u_core/u_tap/led_OBUF[2]_inst_i_130_n_0
+    SLICE_X105Y84        LUT5 (Prop_lut5_I4_O)        0.124   748.126 r  u_core/u_tap/led_OBUF[2]_inst_i_82/O
+                         net (fo=22, routed)          0.763   748.889    u_core/u_tap/u_fabric/o_w[11]_41[1]
+    SLICE_X104Y78        LUT6 (Prop_lut6_I3_O)        0.124   749.013 r  u_core/u_tap/led_OBUF[2]_inst_i_41/O
+                         net (fo=1, routed)           0.165   749.178    u_core/u_tap/led_OBUF[2]_inst_i_41_n_0
+    SLICE_X104Y78        LUT6 (Prop_lut6_I1_O)        0.124   749.302 r  u_core/u_tap/led_OBUF[2]_inst_i_17/O
+                         net (fo=1, routed)           0.502   749.803    u_core/u_tap/led_OBUF[2]_inst_i_17_n_0
+    SLICE_X104Y78        LUT5 (Prop_lut5_I4_O)        0.124   749.927 r  u_core/u_tap/led_OBUF[2]_inst_i_7/O
+                         net (fo=19, routed)          0.598   750.525    u_core/u_tap/u_fabric/o_e[10]_38[0]
+    SLICE_X105Y82        LUT6 (Prop_lut6_I3_O)        0.124   750.649 r  u_core/u_tap/led_OBUF[2]_inst_i_127/O
+                         net (fo=1, routed)           0.154   750.803    u_core/u_tap/led_OBUF[2]_inst_i_127_n_0
+    SLICE_X105Y82        LUT5 (Prop_lut5_I2_O)        0.124   750.927 r  u_core/u_tap/led_OBUF[2]_inst_i_81/O
+                         net (fo=22, routed)          0.605   751.533    u_core/u_tap/u_fabric/o_w[11]_41[2]
+    SLICE_X105Y80        LUT6 (Prop_lut6_I1_O)        0.124   751.657 r  u_core/u_tap/led_OBUF[2]_inst_i_37/O
+                         net (fo=1, routed)           0.436   752.093    u_core/u_tap/led_OBUF[2]_inst_i_37_n_0
+    SLICE_X105Y79        LUT6 (Prop_lut6_I1_O)        0.124   752.217 r  u_core/u_tap/led_OBUF[2]_inst_i_15/O
+                         net (fo=1, routed)           0.402   752.619    u_core/u_tap/led_OBUF[2]_inst_i_15_n_0
+    SLICE_X105Y79        LUT5 (Prop_lut5_I4_O)        0.124   752.743 r  u_core/u_tap/led_OBUF[2]_inst_i_6/O
+                         net (fo=19, routed)          0.842   753.585    u_core/u_tap/u_fabric/o_e[10]_38[3]
+    SLICE_X107Y80        LUT6 (Prop_lut6_I3_O)        0.124   753.709 r  u_core/u_tap/q_i_78__10/O
+                         net (fo=1, routed)           0.433   754.142    u_core/u_tap/q_i_78__10_n_0
+    SLICE_X107Y80        LUT5 (Prop_lut5_I2_O)        0.124   754.266 r  u_core/u_tap/q_i_56__12/O
+                         net (fo=14, routed)          0.616   754.883    u_core/u_tap/u_fabric/o_n[11]_43[0]
+    SLICE_X107Y77        LUT6 (Prop_lut6_I5_O)        0.124   755.007 r  u_core/u_tap/led_OBUF[2]_inst_i_66/O
+                         net (fo=1, routed)           0.433   755.440    u_core/u_tap/led_OBUF[2]_inst_i_66_n_0
+    SLICE_X107Y77        LUT6 (Prop_lut6_I3_O)        0.124   755.564 r  u_core/u_tap/led_OBUF[2]_inst_i_27/O
+                         net (fo=19, routed)          0.809   756.372    u_core/u_tap/u_fabric/o_s[15]_49[2]
+    SLICE_X107Y80        LUT6 (Prop_lut6_I5_O)        0.124   756.496 r  u_core/u_tap/q_i_102__6/O
+                         net (fo=1, routed)           0.296   756.792    u_core/u_tap/q_i_102__6_n_0
+    SLICE_X107Y81        LUT5 (Prop_lut5_I1_O)        0.124   756.916 r  u_core/u_tap/q_i_77__3/O
+                         net (fo=1, routed)           0.302   757.219    u_core/u_tap/q_i_77__3_n_0
+    SLICE_X106Y82        LUT5 (Prop_lut5_I4_O)        0.124   757.343 r  u_core/u_tap/q_i_55__12/O
+                         net (fo=14, routed)          0.846   758.189    u_core/u_tap/u_fabric/o_n[11]_43[1]
+    SLICE_X106Y81        LUT6 (Prop_lut6_I3_O)        0.124   758.313 r  u_core/u_tap/led_OBUF[2]_inst_i_63/O
+                         net (fo=1, routed)           0.444   758.757    u_core/u_tap/led_OBUF[2]_inst_i_63_n_0
+    SLICE_X106Y81        LUT6 (Prop_lut6_I3_O)        0.124   758.881 r  u_core/u_tap/led_OBUF[2]_inst_i_26/O
+                         net (fo=19, routed)          0.523   759.404    u_core/u_tap/u_fabric/o_s[15]_49[0]
+    SLICE_X105Y81        LUT6 (Prop_lut6_I3_O)        0.124   759.528 r  u_core/u_tap/q_i_100__7/O
+                         net (fo=1, routed)           0.149   759.677    u_core/u_tap/q_i_100__7_n_0
+    SLICE_X105Y81        LUT6 (Prop_lut6_I5_O)        0.124   759.801 r  u_core/u_tap/q_i_73__10/O
+                         net (fo=2, routed)           0.492   760.293    u_core/u_tap/q_i_73__10_n_0
+    SLICE_X105Y79        LUT6 (Prop_lut6_I0_O)        0.124   760.417 r  u_core/u_tap/q_i_54__8/O
+                         net (fo=13, routed)          0.596   761.013    u_core/u_tap/u_fabric/o_n[11]_43[2]
+    SLICE_X105Y78        LUT6 (Prop_lut6_I1_O)        0.124   761.137 r  u_core/u_tap/led_OBUF[2]_inst_i_57/O
+                         net (fo=1, routed)           0.151   761.288    u_core/u_tap/led_OBUF[2]_inst_i_57_n_0
+    SLICE_X105Y78        LUT6 (Prop_lut6_I3_O)        0.124   761.412 r  u_core/u_tap/led_OBUF[2]_inst_i_24/O
+                         net (fo=19, routed)          1.028   762.441    u_core/u_tap/u_fabric/o_s[15]_49[1]
+    SLICE_X104Y82        LUT6 (Prop_lut6_I0_O)        0.124   762.565 r  u_core/u_tap/led_OBUF[2]_inst_i_168/O
+                         net (fo=1, routed)           0.562   763.127    u_core/u_tap/led_OBUF[2]_inst_i_168_n_0
+    SLICE_X104Y83        LUT5 (Prop_lut5_I1_O)        0.124   763.251 r  u_core/u_tap/led_OBUF[2]_inst_i_132/O
+                         net (fo=1, routed)           0.466   763.717    u_core/u_tap/led_OBUF[2]_inst_i_132_n_0
+    SLICE_X104Y83        LUT5 (Prop_lut5_I4_O)        0.124   763.841 r  u_core/u_tap/led_OBUF[2]_inst_i_83/O
+                         net (fo=22, routed)          0.735   764.576    u_core/u_tap/u_fabric/o_w[11]_41[0]
+    SLICE_X104Y77        LUT6 (Prop_lut6_I5_O)        0.124   764.700 r  u_core/u_tap/led_OBUF[2]_inst_i_33/O
+                         net (fo=1, routed)           0.415   765.115    u_core/u_tap/led_OBUF[2]_inst_i_33_n_0
+    SLICE_X103Y77        LUT6 (Prop_lut6_I1_O)        0.124   765.239 r  u_core/u_tap/led_OBUF[2]_inst_i_13/O
+                         net (fo=1, routed)           0.149   765.388    u_core/u_tap/led_OBUF[2]_inst_i_13_n_0
+    SLICE_X103Y77        LUT5 (Prop_lut5_I4_O)        0.124   765.512 r  u_core/u_tap/led_OBUF[2]_inst_i_5/O
+                         net (fo=19, routed)          0.742   766.254    u_core/u_tap/u_fabric/o_e[10]_38[1]
+    SLICE_X103Y80        LUT6 (Prop_lut6_I0_O)        0.124   766.378 r  u_core/u_tap/led_OBUF[2]_inst_i_125/O
+                         net (fo=1, routed)           0.403   766.782    u_core/u_tap/led_OBUF[2]_inst_i_125_n_0
+    SLICE_X103Y80        LUT5 (Prop_lut5_I2_O)        0.124   766.906 r  u_core/u_tap/led_OBUF[2]_inst_i_80/O
+                         net (fo=22, routed)          0.482   767.388    u_core/u_tap/u_fabric/o_w[11]_41[3]
+    SLICE_X103Y83        LUT6 (Prop_lut6_I0_O)        0.124   767.512 r  u_core/u_tap/led_OBUF[1]_inst_i_181/O
+                         net (fo=1, routed)           0.291   767.803    u_core/u_tap/led_OBUF[1]_inst_i_181_n_0
+    SLICE_X103Y84        LUT6 (Prop_lut6_I1_O)        0.124   767.927 r  u_core/u_tap/led_OBUF[1]_inst_i_143/O
+                         net (fo=1, routed)           0.433   768.360    u_core/u_tap/led_OBUF[1]_inst_i_143_n_0
+    SLICE_X103Y84        LUT5 (Prop_lut5_I4_O)        0.124   768.484 r  u_core/u_tap/led_OBUF[1]_inst_i_83/O
+                         net (fo=22, routed)          0.980   769.464    u_core/u_tap/u_fabric/o_s[10]_37[0]
+    SLICE_X102Y98        LUT6 (Prop_lut6_I5_O)        0.124   769.588 r  u_core/u_tap/q_i_98__3/O
+                         net (fo=1, routed)           0.162   769.750    u_core/u_tap/q_i_98__3_n_0
+    SLICE_X102Y98        LUT6 (Prop_lut6_I0_O)        0.124   769.874 r  u_core/u_tap/q_i_77__2/O
+                         net (fo=1, routed)           0.452   770.326    u_core/u_tap/q_i_77__2_n_0
+    SLICE_X102Y98        LUT6 (Prop_lut6_I5_O)        0.124   770.450 r  u_core/u_tap/q_i_57__2/O
+                         net (fo=18, routed)          0.703   771.153    u_core/u_tap/u_fabric/o_s[6]_22[2]
+    SLICE_X101Y103       LUT6 (Prop_lut6_I1_O)        0.124   771.277 r  u_core/u_tap/q_i_83__1/O
+                         net (fo=1, routed)           0.263   771.540    u_core/u_tap/q_i_83__1_n_0
+    SLICE_X101Y103       LUT6 (Prop_lut6_I0_O)        0.124   771.664 r  u_core/u_tap/q_i_64__1/O
+                         net (fo=1, routed)           0.425   772.090    u_core/u_tap/q_i_64__1_n_0
+    SLICE_X100Y103       LUT6 (Prop_lut6_I5_O)        0.124   772.214 r  u_core/u_tap/q_i_47__1/O
+                         net (fo=16, routed)          0.727   772.941    u_core/u_tap/q_i_47__1_n_0
+    SLICE_X100Y107       LUT6 (Prop_lut6_I2_O)        0.124   773.065 r  u_core/u_tap/q_i_43__1/O
+                         net (fo=1, routed)           0.288   773.353    u_core/u_tap/q_i_43__1_n_0
+    SLICE_X99Y107        LUT6 (Prop_lut6_I5_O)        0.124   773.477 r  u_core/u_tap/q_i_18__1/O
+                         net (fo=1, routed)           0.000   773.477    u_core/u_tap/q_i_18__1_n_0
+    SLICE_X99Y107        MUXF7 (Prop_muxf7_I1_O)      0.217   773.694 r  u_core/u_tap/q_reg_i_8__0/O
+                         net (fo=1, routed)           0.624   774.318    u_core/u_tap/q_reg_i_8__0_n_0
+    SLICE_X99Y103        LUT3 (Prop_lut3_I1_O)        0.299   774.617 r  u_core/u_tap/q_i_5__0/O
+                         net (fo=2, routed)           0.566   775.183    u_core/u_tap/u_fabric/g_row[0].g_col[2].u_tile/u_clb/lut_o6
+    SLICE_X99Y100        LUT6 (Prop_lut6_I4_O)        0.124   775.307 r  u_core/u_tap/q_i_4__1/O
+                         net (fo=2, routed)           0.779   776.087    u_core/u_tap/u_fabric/cy[2]_1
+    SLICE_X98Y92         LUT5 (Prop_lut5_I0_O)        0.124   776.211 r  u_core/u_tap/q_i_2__5/O
+                         net (fo=2, routed)           0.495   776.706    u_core/u_tap/q_i_2__5_n_0
+    SLICE_X97Y88         LUT3 (Prop_lut3_I1_O)        0.124   776.830 r  u_core/u_tap/user_dr[10]_i_2/O
+                         net (fo=23, routed)          0.415   777.244    u_core/u_tap/clb_o[6]
+    SLICE_X96Y88         LUT6 (Prop_lut6_I4_O)        0.124   777.368 r  u_core/u_tap/q_i_70__1/O
+                         net (fo=1, routed)           0.436   777.804    u_core/u_tap/q_i_70__1_n_0
+    SLICE_X95Y88         LUT6 (Prop_lut6_I5_O)        0.124   777.928 r  u_core/u_tap/q_i_44__5/O
+                         net (fo=16, routed)          0.456   778.384    u_core/u_tap/q_i_44__5_n_0
+    SLICE_X93Y88         LUT6 (Prop_lut6_I2_O)        0.124   778.508 f  u_core/u_tap/q_i_31__6/O
+                         net (fo=1, routed)           0.433   778.941    u_core/u_tap/q_i_31__6_n_0
+    SLICE_X93Y88         LUT6 (Prop_lut6_I4_O)        0.124   779.065 r  u_core/u_tap/q_i_12__6/O
+                         net (fo=1, routed)           0.403   779.469    u_core/u_tap/q_i_12__6_n_0
+    SLICE_X93Y88         LUT5 (Prop_lut5_I4_O)        0.124   779.593 r  u_core/u_tap/q_i_5__9/O
+                         net (fo=25, routed)          1.079   780.671    u_core/u_tap/q_i_5__9_n_0
+    SLICE_X100Y96        LUT4 (Prop_lut4_I1_O)        0.124   780.795 f  u_core/u_tap/q_i_170__0/O
+                         net (fo=1, routed)           0.492   781.287    u_core/u_tap/q_i_170__0_n_0
+    SLICE_X100Y96        LUT6 (Prop_lut6_I5_O)        0.124   781.411 f  u_core/u_tap/q_i_130__1/O
+                         net (fo=1, routed)           0.466   781.877    u_core/u_tap/q_i_130__1_n_0
+    SLICE_X100Y96        LUT5 (Prop_lut5_I4_O)        0.124   782.001 f  u_core/u_tap/q_i_90__10/O
+                         net (fo=22, routed)          0.864   782.865    u_core/u_tap/u_fabric/o_w[6]_21[0]
+    SLICE_X91Y93         LUT6 (Prop_lut6_I5_O)        0.124   782.989 f  u_core/u_tap/q_i_140__0/O
+                         net (fo=1, routed)           0.436   783.425    u_core/u_tap/q_i_140__0_n_0
+    SLICE_X90Y93         LUT6 (Prop_lut6_I1_O)        0.124   783.549 f  u_core/u_tap/q_i_102__3/O
+                         net (fo=1, routed)           0.624   784.173    u_core/u_tap/q_i_102__3_n_0
+    SLICE_X89Y93         LUT5 (Prop_lut5_I4_O)        0.124   784.297 f  u_core/u_tap/q_i_79__8/O
+                         net (fo=18, routed)          0.611   784.908    u_core/u_tap/u_fabric/o_w[5]_17[0]
+    SLICE_X86Y92         LUT6 (Prop_lut6_I5_O)        0.124   785.032 f  u_core/u_tap/q_i_112__1/O
+                         net (fo=1, routed)           0.441   785.473    u_core/u_tap/q_i_112__1_n_0
+    SLICE_X85Y91         LUT6 (Prop_lut6_I1_O)        0.124   785.597 f  u_core/u_tap/q_i_82__1/O
+                         net (fo=1, routed)           0.433   786.030    u_core/u_tap/q_i_82__1_n_0
+    SLICE_X85Y91         LUT5 (Prop_lut5_I4_O)        0.124   786.154 f  u_core/u_tap/q_i_48__14/O
+                         net (fo=22, routed)          0.935   787.090    u_core/u_tap/u_fabric/o_e[4]_15[0]
+    SLICE_X91Y97         LUT6 (Prop_lut6_I5_O)        0.124   787.214 f  u_core/u_tap/q_i_98__2/O
+                         net (fo=1, routed)           0.149   787.363    u_core/u_tap/q_i_98__2_n_0
+    SLICE_X91Y97         LUT5 (Prop_lut5_I0_O)        0.124   787.487 f  u_core/u_tap/q_i_70__9/O
+                         net (fo=18, routed)          0.469   787.956    u_core/u_tap/u_fabric/o_s[5]_18[1]
+    SLICE_X91Y101        LUT6 (Prop_lut6_I3_O)        0.124   788.080 f  u_core/u_tap/q_i_185/O
+                         net (fo=1, routed)           0.548   788.628    u_core/u_tap/q_i_185_n_0
+    SLICE_X91Y104        LUT6 (Prop_lut6_I0_O)        0.124   788.752 f  u_core/u_tap/q_i_177/O
+                         net (fo=1, routed)           0.000   788.752    u_core/u_tap/q_i_177_n_0
+    SLICE_X91Y104        MUXF7 (Prop_muxf7_I0_O)      0.212   788.964 f  u_core/u_tap/q_reg_i_138/O
+                         net (fo=1, routed)           0.436   789.400    u_core/u_tap/q_reg_i_138_n_0
+    SLICE_X91Y104        LUT5 (Prop_lut5_I4_O)        0.299   789.699 f  u_core/u_tap/q_i_94__8/O
+                         net (fo=22, routed)          0.789   790.489    u_core/u_tap/u_fabric/o_n[1]_10[0]
+    SLICE_X93Y96         LUT6 (Prop_lut6_I5_O)        0.124   790.613 f  u_core/u_tap/q_i_131__1/O
+                         net (fo=1, routed)           0.422   791.035    u_core/u_tap/q_i_131__1_n_0
+    SLICE_X92Y96         LUT6 (Prop_lut6_I0_O)        0.124   791.159 f  u_core/u_tap/q_i_101__2/O
+                         net (fo=1, routed)           0.466   791.625    u_core/u_tap/q_i_101__2_n_0
+    SLICE_X92Y96         LUT5 (Prop_lut5_I4_O)        0.124   791.749 f  u_core/u_tap/q_i_71__9/O
+                         net (fo=18, routed)          0.749   792.497    u_core/u_tap/u_fabric/o_s[5]_18[0]
+    SLICE_X90Y104        LUT6 (Prop_lut6_I5_O)        0.124   792.621 f  u_core/u_tap/q_i_183/O
+                         net (fo=1, routed)           0.162   792.783    u_core/u_tap/q_i_183_n_0
+    SLICE_X90Y104        LUT6 (Prop_lut6_I0_O)        0.124   792.907 f  u_core/u_tap/q_i_175/O
+                         net (fo=1, routed)           0.000   792.907    u_core/u_tap/q_i_175_n_0
+    SLICE_X90Y104        MUXF7 (Prop_muxf7_I0_O)      0.209   793.116 f  u_core/u_tap/q_reg_i_136/O
+                         net (fo=1, routed)           0.437   793.553    u_core/u_tap/q_reg_i_136_n_0
+    SLICE_X91Y101        LUT5 (Prop_lut5_I4_O)        0.297   793.850 f  u_core/u_tap/q_i_93__8/O
+                         net (fo=22, routed)          0.584   794.434    u_core/u_tap/u_fabric/o_n[1]_10[1]
+    SLICE_X90Y94         LUT6 (Prop_lut6_I3_O)        0.124   794.558 f  u_core/u_tap/q_i_131__0/O
+                         net (fo=1, routed)           0.638   795.196    u_core/u_tap/q_i_131__0_n_0
+    SLICE_X89Y92         LUT6 (Prop_lut6_I0_O)        0.124   795.320 f  u_core/u_tap/q_i_98__1/O
+                         net (fo=1, routed)           0.403   795.723    u_core/u_tap/q_i_98__1_n_0
+    SLICE_X89Y91         LUT5 (Prop_lut5_I4_O)        0.124   795.847 f  u_core/u_tap/q_i_77__8/O
+                         net (fo=18, routed)          0.596   796.443    u_core/u_tap/u_fabric/o_w[5]_17[2]
+    SLICE_X86Y90         LUT6 (Prop_lut6_I1_O)        0.124   796.567 f  u_core/u_tap/q_i_108__2/O
+                         net (fo=1, routed)           0.492   797.059    u_core/u_tap/q_i_108__2_n_0
+    SLICE_X86Y90         LUT6 (Prop_lut6_I1_O)        0.124   797.183 f  u_core/u_tap/q_i_80__1/O
+                         net (fo=1, routed)           0.466   797.649    u_core/u_tap/q_i_80__1_n_0
+    SLICE_X86Y90         LUT5 (Prop_lut5_I4_O)        0.124   797.773 f  u_core/u_tap/q_i_47__13/O
+                         net (fo=22, routed)          0.552   798.325    u_core/u_tap/u_fabric/o_e[4]_15[1]
+    SLICE_X87Y90         LUT6 (Prop_lut6_I3_O)        0.124   798.449 f  u_core/u_tap/q_i_95__1/O
+                         net (fo=1, routed)           0.433   798.882    u_core/u_tap/q_i_95__1_n_0
+    SLICE_X87Y90         LUT5 (Prop_lut5_I0_O)        0.124   799.006 f  u_core/u_tap/q_i_76__6/O
+                         net (fo=18, routed)          0.604   799.610    u_core/u_tap/u_fabric/o_w[5]_17[3]
+    SLICE_X88Y90         LUT6 (Prop_lut6_I0_O)        0.124   799.734 f  u_core/u_tap/q_i_104__2/O
+                         net (fo=1, routed)           0.158   799.892    u_core/u_tap/q_i_104__2_n_0
+    SLICE_X88Y90         LUT6 (Prop_lut6_I1_O)        0.124   800.016 f  u_core/u_tap/q_i_78__1/O
+                         net (fo=1, routed)           0.433   800.450    u_core/u_tap/q_i_78__1_n_0
+    SLICE_X88Y90         LUT5 (Prop_lut5_I4_O)        0.124   800.574 f  u_core/u_tap/q_i_46__13/O
+                         net (fo=22, routed)          0.768   801.341    u_core/u_tap/u_fabric/o_e[4]_15[2]
+    SLICE_X91Y95         LUT6 (Prop_lut6_I1_O)        0.124   801.465 f  u_core/u_tap/q_i_93__0/O
+                         net (fo=1, routed)           0.433   801.899    u_core/u_tap/q_i_93__0_n_0
+    SLICE_X91Y95         LUT5 (Prop_lut5_I0_O)        0.124   802.023 f  u_core/u_tap/q_i_68__9/O
+                         net (fo=18, routed)          0.909   802.931    u_core/u_tap/u_fabric/o_s[5]_18[3]
+    SLICE_X91Y103        LUT6 (Prop_lut6_I0_O)        0.124   803.055 f  u_core/u_tap/q_i_181/O
+                         net (fo=1, routed)           0.151   803.207    u_core/u_tap/q_i_181_n_0
+    SLICE_X91Y103        LUT6 (Prop_lut6_I0_O)        0.124   803.331 f  u_core/u_tap/q_i_173/O
+                         net (fo=1, routed)           0.000   803.331    u_core/u_tap/q_i_173_n_0
+    SLICE_X91Y103        MUXF7 (Prop_muxf7_I0_O)      0.212   803.543 f  u_core/u_tap/q_reg_i_134/O
+                         net (fo=1, routed)           0.436   803.979    u_core/u_tap/q_reg_i_134_n_0
+    SLICE_X91Y103        LUT5 (Prop_lut5_I4_O)        0.299   804.278 f  u_core/u_tap/q_i_92__8/O
+                         net (fo=22, routed)          1.141   805.419    u_core/u_tap/u_fabric/o_n[1]_10[2]
+    SLICE_X94Y94         LUT6 (Prop_lut6_I1_O)        0.124   805.543 f  u_core/u_tap/led_OBUF[1]_inst_i_116/O
+                         net (fo=1, routed)           0.413   805.956    u_core/u_tap/led_OBUF[1]_inst_i_116_n_0
+    SLICE_X95Y93         LUT6 (Prop_lut6_I0_O)        0.124   806.080 f  u_core/u_tap/led_OBUF[1]_inst_i_71/O
+                         net (fo=1, routed)           0.433   806.514    u_core/u_tap/led_OBUF[1]_inst_i_71_n_0
+    SLICE_X95Y93         LUT5 (Prop_lut5_I4_O)        0.124   806.638 f  u_core/u_tap/led_OBUF[1]_inst_i_31/O
+                         net (fo=22, routed)          0.857   807.495    u_core/u_tap/u_fabric/o_e[5]_19[0]
+    SLICE_X102Y96        LUT6 (Prop_lut6_I5_O)        0.124   807.619 f  u_core/u_tap/q_i_80__2/O
+                         net (fo=1, routed)           0.312   807.931    u_core/u_tap/q_i_80__2_n_0
+    SLICE_X102Y97        LUT5 (Prop_lut5_I0_O)        0.124   808.055 f  u_core/u_tap/q_i_59__10/O
+                         net (fo=18, routed)          0.784   808.840    u_core/u_tap/u_fabric/o_s[6]_22[0]
+    SLICE_X101Y101       LUT6 (Prop_lut6_I5_O)        0.124   808.964 r  u_core/u_tap/q_i_63__1/O
+                         net (fo=1, routed)           0.151   809.115    u_core/u_tap/q_i_63__1_n_0
+    SLICE_X101Y101       LUT6 (Prop_lut6_I0_O)        0.124   809.239 r  u_core/u_tap/q_i_39__3/O
+                         net (fo=1, routed)           0.000   809.239    u_core/u_tap/q_i_39__3_n_0
+    SLICE_X101Y101       MUXF7 (Prop_muxf7_I0_O)      0.212   809.451 r  u_core/u_tap/q_reg_i_17__1/O
+                         net (fo=1, routed)           0.319   809.770    u_core/u_tap/q_reg_i_17__1_n_0
+    SLICE_X98Y102        LUT5 (Prop_lut5_I4_O)        0.299   810.069 r  u_core/u_tap/q_i_7__10/O
+                         net (fo=17, routed)          0.856   810.925    u_core/u_tap/q_i_7__10_n_0
+    SLICE_X99Y109        LUT6 (Prop_lut6_I4_O)        0.124   811.049 f  u_core/u_tap/q_i_32__1/O
+                         net (fo=1, routed)           0.650   811.700    u_core/u_tap/q_i_32__1_n_0
+    SLICE_X99Y108        LUT6 (Prop_lut6_I3_O)        0.124   811.824 r  u_core/u_tap/q_i_13__1/O
+                         net (fo=1, routed)           0.303   812.127    u_core/u_tap/q_i_13__1_n_0
+    SLICE_X97Y108        LUT5 (Prop_lut5_I4_O)        0.124   812.251 f  u_core/u_tap/q_i_6__11/O
+                         net (fo=21, routed)          0.617   812.867    u_core/u_tap/q_reg_0
+    SLICE_X97Y106        LUT5 (Prop_lut5_I2_O)        0.124   812.991 f  u_core/u_tap/q_i_2__1/O
+                         net (fo=2, routed)           0.433   813.424    u_core/u_tap/q_i_2__1_n_0
+    SLICE_X96Y106        LUT3 (Prop_lut3_I1_O)        0.124   813.548 f  u_core/u_tap/user_dr[6]_i_2/O
+                         net (fo=19, routed)          0.628   814.176    u_core/u_tap/clb_o[2]
+    SLICE_X96Y105        LUT6 (Prop_lut6_I3_O)        0.124   814.300 f  u_core/u_tap/q_i_118/O
+                         net (fo=1, routed)           0.000   814.300    u_core/u_tap/q_i_118_n_0
+    SLICE_X96Y105        MUXF7 (Prop_muxf7_I0_O)      0.209   814.509 f  u_core/u_tap/q_reg_i_92/O
+                         net (fo=1, routed)           0.469   814.979    u_core/u_tap/q_reg_i_92_n_0
+    SLICE_X96Y105        LUT5 (Prop_lut5_I4_O)        0.297   815.276 f  u_core/u_tap/q_i_67__10/O
+                         net (fo=18, routed)          0.641   815.917    u_core/u_tap/u_fabric/o_w[2]_11[0]
+    SLICE_X93Y104        LUT6 (Prop_lut6_I5_O)        0.124   816.041 f  u_core/u_tap/q_i_180/O
+                         net (fo=1, routed)           0.154   816.195    u_core/u_tap/q_i_180_n_0
+    SLICE_X93Y104        LUT6 (Prop_lut6_I5_O)        0.124   816.319 f  u_core/u_tap/q_i_172/O
+                         net (fo=1, routed)           0.000   816.319    u_core/u_tap/q_i_172_n_0
+    SLICE_X93Y104        MUXF7 (Prop_muxf7_I1_O)      0.217   816.536 f  u_core/u_tap/q_reg_i_132/O
+                         net (fo=1, routed)           0.436   816.972    u_core/u_tap/q_reg_i_132_n_0
+    SLICE_X93Y104        LUT5 (Prop_lut5_I4_O)        0.299   817.271 f  u_core/u_tap/q_i_91__10/O
+                         net (fo=22, routed)          1.216   818.487    u_core/u_tap/u_fabric/o_n[1]_10[3]
+    SLICE_X93Y93         LUT6 (Prop_lut6_I0_O)        0.124   818.611 f  u_core/u_tap/led_OBUF[1]_inst_i_112/O
+                         net (fo=1, routed)           0.479   819.090    u_core/u_tap/led_OBUF[1]_inst_i_112_n_0
+    SLICE_X93Y93         LUT6 (Prop_lut6_I0_O)        0.124   819.214 f  u_core/u_tap/led_OBUF[1]_inst_i_69/O
+                         net (fo=1, routed)           0.466   819.680    u_core/u_tap/led_OBUF[1]_inst_i_69_n_0
+    SLICE_X94Y94         LUT5 (Prop_lut5_I4_O)        0.124   819.804 f  u_core/u_tap/led_OBUF[1]_inst_i_30/O
+                         net (fo=22, routed)          0.529   820.333    u_core/u_tap/u_fabric/o_e[5]_19[1]
+    SLICE_X96Y97         LUT6 (Prop_lut6_I3_O)        0.124   820.457 f  u_core/u_tap/q_i_78__2/O
+                         net (fo=1, routed)           0.459   820.916    u_core/u_tap/q_i_78__2_n_0
+    SLICE_X99Y99         LUT5 (Prop_lut5_I0_O)        0.124   821.040 f  u_core/u_tap/q_i_58__11/O
+                         net (fo=18, routed)          0.628   821.668    u_core/u_tap/u_fabric/o_s[6]_22[1]
+    SLICE_X99Y104        LUT6 (Prop_lut6_I3_O)        0.124   821.792 f  u_core/u_tap/q_i_139/O
+                         net (fo=1, routed)           0.428   822.220    u_core/u_tap/q_i_139_n_0
+    SLICE_X99Y105        LUT6 (Prop_lut6_I0_O)        0.124   822.344 f  u_core/u_tap/q_i_116/O
+                         net (fo=1, routed)           0.000   822.344    u_core/u_tap/q_i_116_n_0
+    SLICE_X99Y105        MUXF7 (Prop_muxf7_I0_O)      0.212   822.556 f  u_core/u_tap/q_reg_i_90/O
+                         net (fo=1, routed)           0.313   822.870    u_core/u_tap/q_reg_i_90_n_0
+    SLICE_X96Y105        LUT5 (Prop_lut5_I4_O)        0.299   823.169 f  u_core/u_tap/q_i_66__10/O
+                         net (fo=18, routed)          0.800   823.969    u_core/u_tap/u_fabric/o_w[2]_11[1]
+    SLICE_X93Y103        LUT6 (Prop_lut6_I3_O)        0.124   824.093 f  u_core/u_tap/q_i_111__0/O
+                         net (fo=1, routed)           0.306   824.399    u_core/u_tap/q_i_111__0_n_0
+    SLICE_X92Y102        LUT6 (Prop_lut6_I5_O)        0.124   824.523 f  u_core/u_tap/q_i_88/O
+                         net (fo=1, routed)           0.000   824.523    u_core/u_tap/q_i_88_n_0
+    SLICE_X92Y102        MUXF7 (Prop_muxf7_I1_O)      0.214   824.737 f  u_core/u_tap/q_reg_i_69/O
+                         net (fo=1, routed)           0.313   825.050    u_core/u_tap/q_reg_i_69_n_0
+    SLICE_X90Y102        LUT5 (Prop_lut5_I4_O)        0.297   825.347 f  u_core/u_tap/q_i_54__11/O
+                         net (fo=14, routed)          0.706   826.053    u_core/u_tap/u_fabric/o_w[1]_8[2]
+    SLICE_X87Y101        LUT6 (Prop_lut6_I1_O)        0.124   826.177 f  u_core/u_tap/q_i_152/O
+                         net (fo=1, routed)           0.403   826.580    u_core/u_tap/q_i_152_n_0
+    SLICE_X87Y101        LUT6 (Prop_lut6_I5_O)        0.124   826.704 f  u_core/u_tap/q_i_144/O
+                         net (fo=1, routed)           0.000   826.704    u_core/u_tap/q_i_144_n_0
+    SLICE_X87Y101        MUXF7 (Prop_muxf7_I1_O)      0.217   826.921 f  u_core/u_tap/q_reg_i_104/O
+                         net (fo=1, routed)           0.364   827.285    u_core/u_tap/q_reg_i_104_n_0
+    SLICE_X86Y101        LUT5 (Prop_lut5_I4_O)        0.299   827.584 f  u_core/u_tap/q_i_80__7/O
+                         net (fo=18, routed)          0.735   828.318    u_core/u_tap/u_fabric/o_n[0]_7[3]
+    SLICE_X86Y95         LUT6 (Prop_lut6_I0_O)        0.124   828.442 f  u_core/u_tap/q_i_101/O
+                         net (fo=1, routed)           0.554   828.996    u_core/u_tap/q_i_101_n_0
+    SLICE_X85Y95         LUT6 (Prop_lut6_I0_O)        0.124   829.120 f  u_core/u_tap/q_i_79__1/O
+                         net (fo=1, routed)           0.433   829.554    u_core/u_tap/q_i_79__1_n_0
+    SLICE_X85Y95         LUT5 (Prop_lut5_I4_O)        0.124   829.678 f  u_core/u_tap/q_i_59__9/O
+                         net (fo=14, routed)          0.555   830.232    u_core/u_tap/u_fabric/o_s[4]_14[1]
+    SLICE_X86Y101        LUT6 (Prop_lut6_I3_O)        0.124   830.356 f  u_core/u_tap/q_i_108/O
+                         net (fo=1, routed)           0.448   830.805    u_core/u_tap/q_i_108_n_0
+    SLICE_X88Y101        LUT6 (Prop_lut6_I0_O)        0.124   830.929 f  u_core/u_tap/q_i_81/O
+                         net (fo=1, routed)           0.000   830.929    u_core/u_tap/q_i_81_n_0
+    SLICE_X88Y101        MUXF7 (Prop_muxf7_I0_O)      0.212   831.141 f  u_core/u_tap/q_reg_i_61/O
+                         net (fo=1, routed)           0.534   831.675    u_core/u_tap/q_reg_i_61_n_0
+    SLICE_X90Y102        LUT5 (Prop_lut5_I4_O)        0.299   831.974 f  u_core/u_tap/q_i_36__11/O
+                         net (fo=18, routed)          0.397   832.371    u_core/u_tap/u_fabric/o_e[0]_6[1]
+    SLICE_X93Y103        LUT6 (Prop_lut6_I3_O)        0.124   832.495 f  u_core/u_tap/q_i_66/O
+                         net (fo=1, routed)           0.654   833.149    u_core/u_tap/q_i_66_n_0
+    SLICE_X89Y102        LUT5 (Prop_lut5_I0_O)        0.124   833.273 f  u_core/u_tap/q_i_53__10/O
+                         net (fo=14, routed)          0.437   833.709    u_core/u_tap/u_fabric/o_w[1]_8[3]
+    SLICE_X89Y102        LUT6 (Prop_lut6_I0_O)        0.124   833.833 f  u_core/u_tap/q_i_107__0/O
+                         net (fo=1, routed)           0.417   834.251    u_core/u_tap/q_i_107__0_n_0
+    SLICE_X88Y103        LUT6 (Prop_lut6_I5_O)        0.124   834.375 f  u_core/u_tap/q_i_80/O
+                         net (fo=1, routed)           0.000   834.375    u_core/u_tap/q_i_80_n_0
+    SLICE_X88Y103        MUXF7 (Prop_muxf7_I1_O)      0.217   834.592 f  u_core/u_tap/q_reg_i_59/O
+                         net (fo=1, routed)           0.456   835.047    u_core/u_tap/q_reg_i_59_n_0
+    SLICE_X89Y103        LUT5 (Prop_lut5_I4_O)        0.299   835.346 f  u_core/u_tap/q_i_35__12/O
+                         net (fo=18, routed)          0.494   835.840    u_core/u_tap/u_fabric/o_e[0]_6[2]
+    SLICE_X88Y103        LUT6 (Prop_lut6_I1_O)        0.124   835.964 f  u_core/u_tap/led_OBUF[0]_inst_i_51/O
+                         net (fo=1, routed)           0.603   836.567    u_core/u_tap/led_OBUF[0]_inst_i_51_n_0
+    SLICE_X94Y104        LUT5 (Prop_lut5_I2_O)        0.124   836.691 f  u_core/u_tap/led_OBUF[0]_inst_i_28/O
+                         net (fo=18, routed)          0.371   837.062    u_core/u_tap/u_fabric/o_e[1]_9[0]
+    SLICE_X96Y104        LUT6 (Prop_lut6_I5_O)        0.124   837.186 f  u_core/u_tap/q_i_87__0/O
+                         net (fo=1, routed)           0.161   837.347    u_core/u_tap/q_i_87__0_n_0
+    SLICE_X96Y104        LUT5 (Prop_lut5_I2_O)        0.124   837.471 f  u_core/u_tap/q_i_65__11/O
+                         net (fo=18, routed)          0.868   838.339    u_core/u_tap/u_fabric/o_w[2]_11[2]
+    SLICE_X92Y107        LUT6 (Prop_lut6_I1_O)        0.124   838.463 f  u_core/u_tap/led_OBUF[0]_inst_i_86/O
+                         net (fo=1, routed)           0.544   839.007    u_core/u_tap/led_OBUF[0]_inst_i_86_n_0
+    SLICE_X92Y107        LUT6 (Prop_lut6_I5_O)        0.124   839.131 f  u_core/u_tap/led_OBUF[0]_inst_i_78/O
+                         net (fo=1, routed)           0.000   839.131    u_core/u_tap/led_OBUF[0]_inst_i_78_n_0
+    SLICE_X92Y107        MUXF7 (Prop_muxf7_I1_O)      0.214   839.345 f  u_core/u_tap/led_OBUF[0]_inst_i_50/O
+                         net (fo=1, routed)           0.440   839.784    u_core/u_tap/led_OBUF[0]_inst_i_50_n_0
+    SLICE_X92Y106        LUT5 (Prop_lut5_I4_O)        0.297   840.081 f  u_core/u_tap/led_OBUF[0]_inst_i_27/O
+                         net (fo=18, routed)          0.653   840.735    u_core/u_tap/u_fabric/o_e[1]_9[1]
+    SLICE_X95Y104        LUT6 (Prop_lut6_I3_O)        0.124   840.859 f  u_core/u_tap/q_i_85__0/O
+                         net (fo=1, routed)           0.154   841.013    u_core/u_tap/q_i_85__0_n_0
+    SLICE_X95Y104        LUT5 (Prop_lut5_I0_O)        0.124   841.137 f  u_core/u_tap/q_i_64__12/O
+                         net (fo=18, routed)          0.566   841.703    u_core/u_tap/u_fabric/o_w[2]_11[3]
+    SLICE_X95Y106        LUT6 (Prop_lut6_I0_O)        0.124   841.827 f  u_core/u_tap/led_OBUF[0]_inst_i_84/O
+                         net (fo=1, routed)           0.282   842.109    u_core/u_tap/led_OBUF[0]_inst_i_84_n_0
+    SLICE_X97Y106        LUT6 (Prop_lut6_I5_O)        0.124   842.233 f  u_core/u_tap/led_OBUF[0]_inst_i_76/O
+                         net (fo=1, routed)           0.000   842.233    u_core/u_tap/led_OBUF[0]_inst_i_76_n_0
+    SLICE_X97Y106        MUXF7 (Prop_muxf7_I1_O)      0.245   842.478 f  u_core/u_tap/led_OBUF[0]_inst_i_48/O
+                         net (fo=1, routed)           0.551   843.029    u_core/u_tap/led_OBUF[0]_inst_i_48_n_0
+    SLICE_X99Y106        LUT5 (Prop_lut5_I4_O)        0.298   843.327 f  u_core/u_tap/led_OBUF[0]_inst_i_26/O
+                         net (fo=18, routed)          0.759   844.087    u_core/u_tap/u_fabric/o_e[1]_9[2]
+    SLICE_X101Y108       LUT6 (Prop_lut6_I1_O)        0.124   844.211 f  u_core/u_tap/led_OBUF[1]_inst_i_126/O
+                         net (fo=1, routed)           0.643   844.853    u_core/u_tap/led_OBUF[1]_inst_i_126_n_0
+    SLICE_X102Y102       LUT5 (Prop_lut5_I2_O)        0.124   844.977 f  u_core/u_tap/led_OBUF[1]_inst_i_75/O
+                         net (fo=22, routed)          0.679   845.657    u_core/u_tap/u_fabric/o_n[2]_13[0]
+    SLICE_X101Y98        LUT6 (Prop_lut6_I5_O)        0.124   845.781 f  u_core/u_tap/q_i_92__0/O
+                         net (fo=1, routed)           0.433   846.214    u_core/u_tap/q_i_92__0_n_0
+    SLICE_X101Y98        LUT6 (Prop_lut6_I0_O)        0.124   846.338 f  u_core/u_tap/q_i_74__2/O
+                         net (fo=1, routed)           0.403   846.741    u_core/u_tap/q_i_74__2_n_0
+    SLICE_X101Y98        LUT5 (Prop_lut5_I4_O)        0.124   846.865 f  u_core/u_tap/q_i_56__10/O
+                         net (fo=18, routed)          0.804   847.669    u_core/u_tap/u_fabric/o_s[6]_22[3]
+    SLICE_X102Y99        LUT6 (Prop_lut6_I0_O)        0.124   847.793 f  u_core/u_tap/led_OBUF[1]_inst_i_188/O
+                         net (fo=1, routed)           0.640   848.433    u_core/u_tap/led_OBUF[1]_inst_i_188_n_0
+    SLICE_X102Y100       LUT6 (Prop_lut6_I0_O)        0.124   848.557 f  u_core/u_tap/led_OBUF[1]_inst_i_152/O
+                         net (fo=1, routed)           0.000   848.557    u_core/u_tap/led_OBUF[1]_inst_i_152_n_0
+    SLICE_X102Y100       MUXF7 (Prop_muxf7_I0_O)      0.209   848.766 f  u_core/u_tap/led_OBUF[1]_inst_i_125/O
+                         net (fo=1, routed)           0.469   849.235    u_core/u_tap/led_OBUF[1]_inst_i_125_n_0
+    SLICE_X102Y100       LUT5 (Prop_lut5_I4_O)        0.297   849.532 f  u_core/u_tap/led_OBUF[1]_inst_i_74/O
+                         net (fo=22, routed)          0.671   850.203    u_core/u_tap/u_fabric/o_n[2]_13[1]
+    SLICE_X100Y94        LUT6 (Prop_lut6_I3_O)        0.124   850.327 f  u_core/u_tap/q_i_163__0/O
+                         net (fo=1, routed)           0.162   850.489    u_core/u_tap/q_i_163__0_n_0
+    SLICE_X100Y94        LUT6 (Prop_lut6_I0_O)        0.124   850.613 f  u_core/u_tap/q_i_128__1/O
+                         net (fo=1, routed)           0.312   850.925    u_core/u_tap/q_i_128__1_n_0
+    SLICE_X100Y93        LUT5 (Prop_lut5_I4_O)        0.124   851.049 f  u_core/u_tap/q_i_89__10/O
+                         net (fo=22, routed)          0.614   851.663    u_core/u_tap/u_fabric/o_w[6]_21[1]
+    SLICE_X96Y92         LUT6 (Prop_lut6_I3_O)        0.124   851.787 f  u_core/u_tap/led_OBUF[1]_inst_i_109/O
+                         net (fo=1, routed)           0.161   851.948    u_core/u_tap/led_OBUF[1]_inst_i_109_n_0
+    SLICE_X96Y92         LUT6 (Prop_lut6_I1_O)        0.124   852.072 f  u_core/u_tap/led_OBUF[1]_inst_i_67/O
+                         net (fo=1, routed)           0.466   852.538    u_core/u_tap/led_OBUF[1]_inst_i_67_n_0
+    SLICE_X96Y92         LUT5 (Prop_lut5_I4_O)        0.124   852.662 f  u_core/u_tap/led_OBUF[1]_inst_i_29/O
+                         net (fo=22, routed)          0.611   853.272    u_core/u_tap/u_fabric/o_e[5]_19[2]
+    SLICE_X95Y95         LUT6 (Prop_lut6_I1_O)        0.124   853.396 f  u_core/u_tap/q_i_125__1/O
+                         net (fo=1, routed)           0.495   853.891    u_core/u_tap/q_i_125__1_n_0
+    SLICE_X94Y95         LUT5 (Prop_lut5_I0_O)        0.124   854.015 f  u_core/u_tap/q_i_88__10/O
+                         net (fo=22, routed)          0.469   854.484    u_core/u_tap/u_fabric/o_w[6]_21[2]
+    SLICE_X93Y94         LUT6 (Prop_lut6_I1_O)        0.124   854.608 f  u_core/u_tap/led_OBUF[1]_inst_i_105/O
+                         net (fo=1, routed)           0.149   854.757    u_core/u_tap/led_OBUF[1]_inst_i_105_n_0
+    SLICE_X93Y94         LUT6 (Prop_lut6_I1_O)        0.124   854.881 f  u_core/u_tap/led_OBUF[1]_inst_i_65/O
+                         net (fo=1, routed)           0.433   855.315    u_core/u_tap/led_OBUF[1]_inst_i_65_n_0
+    SLICE_X93Y94         LUT5 (Prop_lut5_I4_O)        0.124   855.439 f  u_core/u_tap/led_OBUF[1]_inst_i_28/O
+                         net (fo=22, routed)          1.090   856.529    u_core/u_tap/u_fabric/o_e[5]_19[3]
+    SLICE_X96Y90         LUT6 (Prop_lut6_I0_O)        0.124   856.653 f  u_core/u_tap/led_OBUF[2]_inst_i_123/O
+                         net (fo=1, routed)           0.449   857.101    u_core/u_tap/led_OBUF[2]_inst_i_123_n_0
+    SLICE_X96Y87         LUT5 (Prop_lut5_I0_O)        0.124   857.225 f  u_core/u_tap/led_OBUF[2]_inst_i_79/O
+                         net (fo=22, routed)          0.686   857.911    u_core/u_tap/u_fabric/o_n[6]_24[0]
+    SLICE_X103Y82        LUT6 (Prop_lut6_I5_O)        0.124   858.035 f  u_core/u_tap/led_OBUF[1]_inst_i_176/O
+                         net (fo=1, routed)           0.433   858.468    u_core/u_tap/led_OBUF[1]_inst_i_176_n_0
+    SLICE_X103Y82        LUT6 (Prop_lut6_I0_O)        0.124   858.592 f  u_core/u_tap/led_OBUF[1]_inst_i_141/O
+                         net (fo=1, routed)           0.456   859.048    u_core/u_tap/led_OBUF[1]_inst_i_141_n_0
+    SLICE_X99Y82         LUT5 (Prop_lut5_I4_O)        0.124   859.172 f  u_core/u_tap/led_OBUF[1]_inst_i_82/O
+                         net (fo=22, routed)          0.636   859.809    u_core/u_tap/u_fabric/o_s[10]_37[1]
+    SLICE_X98Y86         LUT6 (Prop_lut6_I3_O)        0.124   859.933 f  u_core/u_tap/led_OBUF[2]_inst_i_152/O
+                         net (fo=1, routed)           0.282   860.215    u_core/u_tap/led_OBUF[2]_inst_i_152_n_0
+    SLICE_X98Y86         LUT6 (Prop_lut6_I3_O)        0.124   860.339 f  u_core/u_tap/led_OBUF[2]_inst_i_122/O
+                         net (fo=1, routed)           0.451   860.790    u_core/u_tap/led_OBUF[2]_inst_i_122_n_0
+    SLICE_X99Y86         LUT5 (Prop_lut5_I4_O)        0.124   860.914 f  u_core/u_tap/led_OBUF[2]_inst_i_78/O
+                         net (fo=22, routed)          0.601   861.515    u_core/u_tap/u_fabric/o_n[6]_24[1]
+    SLICE_X100Y83        LUT6 (Prop_lut6_I3_O)        0.124   861.639 f  u_core/u_tap/led_OBUF[1]_inst_i_172/O
+                         net (fo=1, routed)           0.452   862.091    u_core/u_tap/led_OBUF[1]_inst_i_172_n_0
+    SLICE_X100Y83        LUT6 (Prop_lut6_I0_O)        0.124   862.215 f  u_core/u_tap/led_OBUF[1]_inst_i_139/O
+                         net (fo=1, routed)           0.344   862.559    u_core/u_tap/led_OBUF[1]_inst_i_139_n_0
+    SLICE_X101Y83        LUT5 (Prop_lut5_I4_O)        0.124   862.683 f  u_core/u_tap/led_OBUF[1]_inst_i_81/O
+                         net (fo=22, routed)          0.501   863.184    u_core/u_tap/u_fabric/o_s[10]_37[2]
+    SLICE_X100Y86        LUT6 (Prop_lut6_I1_O)        0.124   863.308 f  u_core/u_tap/led_OBUF[2]_inst_i_148/O
+                         net (fo=1, routed)           0.303   863.611    u_core/u_tap/led_OBUF[2]_inst_i_148_n_0
+    SLICE_X100Y87        LUT6 (Prop_lut6_I3_O)        0.124   863.735 f  u_core/u_tap/led_OBUF[2]_inst_i_120/O
+                         net (fo=1, routed)           0.171   863.906    u_core/u_tap/led_OBUF[2]_inst_i_120_n_0
+    SLICE_X100Y87        LUT5 (Prop_lut5_I4_O)        0.124   864.030 f  u_core/u_tap/led_OBUF[2]_inst_i_77/O
+                         net (fo=22, routed)          0.641   864.671    u_core/u_tap/u_fabric/o_n[6]_24[2]
+    SLICE_X101Y82        LUT6 (Prop_lut6_I1_O)        0.124   864.795 f  u_core/u_tap/led_OBUF[1]_inst_i_168/O
+                         net (fo=1, routed)           0.151   864.946    u_core/u_tap/led_OBUF[1]_inst_i_168_n_0
+    SLICE_X101Y82        LUT6 (Prop_lut6_I0_O)        0.124   865.070 f  u_core/u_tap/led_OBUF[1]_inst_i_137/O
+                         net (fo=1, routed)           0.154   865.224    u_core/u_tap/led_OBUF[1]_inst_i_137_n_0
+    SLICE_X101Y82        LUT5 (Prop_lut5_I4_O)        0.124   865.348 f  u_core/u_tap/led_OBUF[1]_inst_i_80/O
+                         net (fo=22, routed)          0.844   866.192    u_core/u_tap/u_fabric/o_s[10]_37[3]
+    SLICE_X103Y90        LUT6 (Prop_lut6_I0_O)        0.124   866.316 f  u_core/u_tap/led_OBUF[1]_inst_i_46/O
+                         net (fo=1, routed)           0.151   866.467    u_core/u_tap/led_OBUF[1]_inst_i_46_n_0
+    SLICE_X103Y90        LUT6 (Prop_lut6_I3_O)        0.124   866.591 f  u_core/u_tap/led_OBUF[1]_inst_i_19/O
+                         net (fo=1, routed)           0.454   867.046    u_core/u_tap/led_OBUF[1]_inst_i_19_n_0
+    SLICE_X105Y90        LUT5 (Prop_lut5_I4_O)        0.124   867.170 f  u_core/u_tap/led_OBUF[1]_inst_i_8/O
+                         net (fo=19, routed)          0.723   867.893    u_core/u_tap/u_fabric/o_e[6]_23[2]
+    SLICE_X111Y89        LUT6 (Prop_lut6_I5_O)        0.124   868.017 f  u_core/u_tap/q_i_36__2/O
+                         net (fo=1, routed)           0.433   868.450    u_core/u_tap/q_i_36__2_n_0
+    SLICE_X111Y89        LUT5 (Prop_lut5_I1_O)        0.124   868.574 r  u_core/u_tap/q_i_14__7/O
+                         net (fo=2, routed)           0.397   868.971    u_core/u_tap/q_i_14__7_n_0
+    SLICE_X110Y90        MUXF7 (Prop_muxf7_S_O)       0.276   869.247 r  u_core/u_tap/q_reg_i_9__0/O
+                         net (fo=1, routed)           0.574   869.820    u_core/u_tap/q_reg_i_9__0_n_0
+    SLICE_X112Y90        LUT3 (Prop_lut3_I1_O)        0.299   870.120 r  u_core/u_tap/q_i_5__2/O
+                         net (fo=2, routed)           0.556   870.676    u_core/u_tap/q_i_5__2_n_0
+    SLICE_X109Y90        LUT5 (Prop_lut5_I2_O)        0.124   870.800 r  u_core/u_tap/q_i_2__6/O
+                         net (fo=2, routed)           0.432   871.232    u_core/u_tap/q_i_2__6_n_0
+    SLICE_X110Y90        LUT3 (Prop_lut3_I1_O)        0.124   871.356 r  u_core/u_tap/user_dr[11]_i_2/O
+                         net (fo=20, routed)          0.367   871.722    u_core/u_tap/clb_o[7]
+    SLICE_X111Y90        LUT6 (Prop_lut6_I5_O)        0.124   871.846 f  u_core/u_tap/q_i_85__3/O
+                         net (fo=1, routed)           0.151   871.998    u_core/u_tap/q_i_85__3_n_0
+    SLICE_X111Y90        LUT5 (Prop_lut5_I0_O)        0.124   872.122 f  u_core/u_tap/q_i_79__3/O
+                         net (fo=1, routed)           0.000   872.122    u_core/u_tap/q_i_79__3_n_0
+    SLICE_X111Y90        MUXF7 (Prop_muxf7_I0_O)      0.212   872.334 f  u_core/u_tap/q_reg_i_57__0/O
+                         net (fo=18, routed)          0.486   872.820    u_core/u_tap/q_reg_i_57__0_n_0
+    SLICE_X111Y93        LUT2 (Prop_lut2_I1_O)        0.299   873.119 r  u_core/u_tap/q_i_55__3/O
+                         net (fo=16, routed)          0.375   873.493    u_core/u_tap/q_i_55__3_n_0
+    SLICE_X110Y93        LUT6 (Prop_lut6_I5_O)        0.124   873.617 f  u_core/u_tap/q_i_38__3/O
+                         net (fo=1, routed)           0.279   873.896    u_core/u_tap/q_i_38__3_n_0
+    SLICE_X110Y93        LUT5 (Prop_lut5_I1_O)        0.124   874.020 f  u_core/u_tap/q_i_15__6/O
+                         net (fo=1, routed)           0.158   874.178    u_core/u_tap/q_i_15__6_n_0
+    SLICE_X110Y93        LUT5 (Prop_lut5_I4_O)        0.124   874.302 r  u_core/u_tap/q_i_6__12/O
+                         net (fo=22, routed)          0.585   874.887    u_core/u_tap/cfg_out_reg[1357]_0
+    SLICE_X109Y87        LUT6 (Prop_lut6_I5_O)        0.124   875.011 r  u_core/u_tap/led_OBUF[2]_inst_i_97/O
+                         net (fo=1, routed)           0.433   875.444    u_core/u_tap/led_OBUF[2]_inst_i_97_n_0
+    SLICE_X109Y87        LUT5 (Prop_lut5_I0_O)        0.124   875.568 r  u_core/u_tap/led_OBUF[2]_inst_i_55/O
+                         net (fo=1, routed)           0.462   876.031    u_core/u_tap/led_OBUF[2]_inst_i_55_n_0
+    SLICE_X109Y86        LUT5 (Prop_lut5_I4_O)        0.124   876.155 r  u_core/u_tap/led_OBUF[2]_inst_i_23/O
+                         net (fo=19, routed)          0.364   876.519    u_core/u_tap/u_fabric/o_n[7]_28[2]
+    SLICE_X110Y85        LUT6 (Prop_lut6_I5_O)        0.124   876.643 r  u_core/u_tap/led_OBUF[1]_inst_i_98/O
+                         net (fo=1, routed)           0.159   876.802    u_core/u_tap/led_OBUF[1]_inst_i_98_n_0
+    SLICE_X110Y85        LUT6 (Prop_lut6_I2_O)        0.124   876.926 r  u_core/u_tap/led_OBUF[1]_inst_i_61/O
+                         net (fo=1, routed)           0.579   877.505    u_core/u_tap/led_OBUF[1]_inst_i_61_n_0
+    SLICE_X111Y85        LUT5 (Prop_lut5_I4_O)        0.124   877.629 r  u_core/u_tap/led_OBUF[1]_inst_i_26/O
+                         net (fo=19, routed)          0.484   878.112    u_core/u_tap/u_fabric/o_s[11]_42[0]
+    SLICE_X112Y86        LUT6 (Prop_lut6_I3_O)        0.124   878.237 r  u_core/u_tap/led_OBUF[2]_inst_i_95/O
+                         net (fo=1, routed)           0.171   878.407    u_core/u_tap/led_OBUF[2]_inst_i_95_n_0
+    SLICE_X112Y86        LUT5 (Prop_lut5_I1_O)        0.124   878.531 r  u_core/u_tap/led_OBUF[2]_inst_i_53/O
+                         net (fo=1, routed)           0.282   878.814    u_core/u_tap/led_OBUF[2]_inst_i_53_n_0
+    SLICE_X112Y86        LUT5 (Prop_lut5_I4_O)        0.124   878.938 r  u_core/u_tap/led_OBUF[2]_inst_i_22/O
+                         net (fo=19, routed)          0.600   879.537    u_core/u_tap/u_fabric/o_n[7]_28[0]
+    SLICE_X109Y85        LUT6 (Prop_lut6_I3_O)        0.124   879.661 r  u_core/u_tap/led_OBUF[1]_inst_i_97/O
+                         net (fo=1, routed)           0.433   880.095    u_core/u_tap/led_OBUF[1]_inst_i_97_n_0
+    SLICE_X109Y85        LUT5 (Prop_lut5_I2_O)        0.124   880.219 r  u_core/u_tap/led_OBUF[1]_inst_i_59/O
+                         net (fo=1, routed)           0.425   880.643    u_core/u_tap/led_OBUF[1]_inst_i_59_n_0
+    SLICE_X107Y85        LUT5 (Prop_lut5_I4_O)        0.124   880.768 r  u_core/u_tap/led_OBUF[1]_inst_i_25/O
+                         net (fo=19, routed)          0.608   881.376    u_core/u_tap/u_fabric/o_s[11]_42[3]
+    SLICE_X107Y87        LUT6 (Prop_lut6_I1_O)        0.124   881.500 r  u_core/u_tap/led_OBUF[2]_inst_i_92/O
+                         net (fo=1, routed)           0.154   881.654    u_core/u_tap/led_OBUF[2]_inst_i_92_n_0
+    SLICE_X107Y87        LUT5 (Prop_lut5_I1_O)        0.124   881.778 r  u_core/u_tap/led_OBUF[2]_inst_i_51/O
+                         net (fo=1, routed)           0.403   882.181    u_core/u_tap/led_OBUF[2]_inst_i_51_n_0
+    SLICE_X107Y85        LUT5 (Prop_lut5_I4_O)        0.124   882.305 r  u_core/u_tap/led_OBUF[2]_inst_i_21/O
+                         net (fo=19, routed)          0.452   882.757    u_core/u_tap/u_fabric/o_n[7]_28[3]
+    SLICE_X111Y85        LUT6 (Prop_lut6_I1_O)        0.124   882.881 r  u_core/u_tap/led_OBUF[1]_inst_i_94/O
+                         net (fo=1, routed)           0.436   883.317    u_core/u_tap/led_OBUF[1]_inst_i_94_n_0
+    SLICE_X111Y84        LUT5 (Prop_lut5_I2_O)        0.124   883.441 r  u_core/u_tap/led_OBUF[1]_inst_i_57/O
+                         net (fo=1, routed)           0.263   883.704    u_core/u_tap/led_OBUF[1]_inst_i_57_n_0
+    SLICE_X111Y84        LUT5 (Prop_lut5_I4_O)        0.124   883.828 r  u_core/u_tap/led_OBUF[1]_inst_i_24/O
+                         net (fo=19, routed)          0.754   884.582    u_core/u_tap/u_fabric/o_s[11]_42[1]
+    SLICE_X111Y86        LUT6 (Prop_lut6_I0_O)        0.124   884.706 r  u_core/u_tap/led_OBUF[2]_inst_i_89/O
+                         net (fo=1, routed)           0.154   884.860    u_core/u_tap/led_OBUF[2]_inst_i_89_n_0
+    SLICE_X111Y86        LUT5 (Prop_lut5_I1_O)        0.124   884.984 r  u_core/u_tap/led_OBUF[2]_inst_i_49/O
+                         net (fo=1, routed)           0.263   885.247    u_core/u_tap/led_OBUF[2]_inst_i_49_n_0
+    SLICE_X111Y86        LUT5 (Prop_lut5_I4_O)        0.124   885.371 r  u_core/u_tap/led_OBUF[2]_inst_i_20/O
+                         net (fo=19, routed)          0.611   885.982    u_core/u_tap/u_fabric/o_n[7]_28[1]
+    SLICE_X110Y85        LUT6 (Prop_lut6_I0_O)        0.124   886.106 r  u_core/u_tap/led_OBUF[1]_inst_i_103/O
+                         net (fo=1, routed)           0.448   886.554    u_core/u_tap/led_OBUF[1]_inst_i_103_n_0
+    SLICE_X108Y85        LUT5 (Prop_lut5_I2_O)        0.124   886.678 r  u_core/u_tap/led_OBUF[1]_inst_i_63/O
+                         net (fo=1, routed)           0.312   886.990    u_core/u_tap/led_OBUF[1]_inst_i_63_n_0
+    SLICE_X108Y86        LUT5 (Prop_lut5_I4_O)        0.124   887.114 r  u_core/u_tap/led_OBUF[1]_inst_i_27/O
+                         net (fo=19, routed)          1.117   888.231    u_core/u_tap/u_fabric/o_s[11]_42[2]
+    SLICE_X103Y87        LUT6 (Prop_lut6_I5_O)        0.124   888.355 r  u_core/u_tap/led_OBUF[1]_inst_i_166/O
+                         net (fo=1, routed)           0.294   888.650    u_core/u_tap/led_OBUF[1]_inst_i_166_n_0
+    SLICE_X103Y88        LUT5 (Prop_lut5_I1_O)        0.124   888.774 r  u_core/u_tap/led_OBUF[1]_inst_i_135/O
+                         net (fo=1, routed)           0.312   889.086    u_core/u_tap/led_OBUF[1]_inst_i_135_n_0
+    SLICE_X102Y89        LUT5 (Prop_lut5_I4_O)        0.124   889.210 r  u_core/u_tap/led_OBUF[1]_inst_i_79/O
+                         net (fo=22, routed)          0.470   889.679    u_core/u_tap/u_fabric/o_w[7]_26[0]
+    SLICE_X101Y89        LUT6 (Prop_lut6_I5_O)        0.124   889.803 r  u_core/u_tap/led_OBUF[1]_inst_i_41/O
+                         net (fo=1, routed)           0.575   890.378    u_core/u_tap/led_OBUF[1]_inst_i_41_n_0
+    SLICE_X101Y90        LUT6 (Prop_lut6_I1_O)        0.124   890.502 r  u_core/u_tap/led_OBUF[1]_inst_i_17/O
+                         net (fo=1, routed)           0.264   890.767    u_core/u_tap/led_OBUF[1]_inst_i_17_n_0
+    SLICE_X101Y90        LUT5 (Prop_lut5_I4_O)        0.124   890.891 r  u_core/u_tap/led_OBUF[1]_inst_i_7/O
+                         net (fo=19, routed)          0.519   891.410    u_core/u_tap/u_fabric/o_e[6]_23[0]
+    SLICE_X103Y89        LUT6 (Prop_lut6_I3_O)        0.124   891.534 r  u_core/u_tap/led_OBUF[1]_inst_i_132/O
+                         net (fo=1, routed)           0.570   892.103    u_core/u_tap/led_OBUF[1]_inst_i_132_n_0
+    SLICE_X102Y92        LUT5 (Prop_lut5_I2_O)        0.124   892.227 r  u_core/u_tap/led_OBUF[1]_inst_i_78/O
+                         net (fo=22, routed)          0.429   892.657    u_core/u_tap/u_fabric/o_w[7]_26[1]
+    SLICE_X103Y94        LUT6 (Prop_lut6_I3_O)        0.124   892.781 r  u_core/u_tap/led_OBUF[1]_inst_i_37/O
+                         net (fo=1, routed)           0.154   892.935    u_core/u_tap/led_OBUF[1]_inst_i_37_n_0
+    SLICE_X103Y94        LUT6 (Prop_lut6_I1_O)        0.124   893.059 r  u_core/u_tap/led_OBUF[1]_inst_i_15/O
+                         net (fo=1, routed)           0.340   893.399    u_core/u_tap/led_OBUF[1]_inst_i_15_n_0
+    SLICE_X103Y93        LUT5 (Prop_lut5_I4_O)        0.124   893.523 r  u_core/u_tap/led_OBUF[1]_inst_i_6/O
+                         net (fo=19, routed)          0.782   894.305    u_core/u_tap/u_fabric/o_e[6]_23[3]
+    SLICE_X102Y90        LUT6 (Prop_lut6_I1_O)        0.124   894.429 r  u_core/u_tap/led_OBUF[1]_inst_i_130/O
+                         net (fo=1, routed)           0.161   894.590    u_core/u_tap/led_OBUF[1]_inst_i_130_n_0
+    SLICE_X102Y90        LUT5 (Prop_lut5_I2_O)        0.124   894.714 r  u_core/u_tap/led_OBUF[1]_inst_i_77/O
+                         net (fo=22, routed)          0.318   895.032    u_core/u_tap/u_fabric/o_w[7]_26[2]
+    SLICE_X103Y91        LUT6 (Prop_lut6_I1_O)        0.124   895.156 r  u_core/u_tap/led_OBUF[1]_inst_i_33/O
+                         net (fo=1, routed)           0.443   895.599    u_core/u_tap/led_OBUF[1]_inst_i_33_n_0
+    SLICE_X100Y92        LUT6 (Prop_lut6_I1_O)        0.124   895.723 r  u_core/u_tap/led_OBUF[1]_inst_i_13/O
+                         net (fo=1, routed)           0.440   896.163    u_core/u_tap/led_OBUF[1]_inst_i_13_n_0
+    SLICE_X102Y92        LUT5 (Prop_lut5_I4_O)        0.124   896.287 r  u_core/u_tap/led_OBUF[1]_inst_i_5/O
+                         net (fo=19, routed)          0.846   897.134    u_core/u_tap/u_fabric/o_e[6]_23[1]
+    SLICE_X107Y91        LUT6 (Prop_lut6_I0_O)        0.124   897.258 r  u_core/u_tap/led_OBUF[0]_inst_i_43/O
+                         net (fo=1, routed)           0.407   897.665    u_core/u_tap/led_OBUF[0]_inst_i_43_n_0
+    SLICE_X107Y91        LUT5 (Prop_lut5_I2_O)        0.124   897.789 r  u_core/u_tap/led_OBUF[0]_inst_i_24/O
+                         net (fo=15, routed)          0.494   898.283    u_core/u_tap/u_fabric/o_s[7]_27[0]
+    SLICE_X108Y91        LUT6 (Prop_lut6_I5_O)        0.124   898.407 r  u_core/u_tap/q_i_69/O
+                         net (fo=1, routed)           0.497   898.904    u_core/u_tap/q_i_69_n_0
+    SLICE_X111Y97        LUT6 (Prop_lut6_I0_O)        0.124   899.028 r  u_core/u_tap/q_i_41__4/O
+                         net (fo=1, routed)           0.000   899.028    u_core/u_tap/q_i_41__4_n_0
+    SLICE_X111Y97        MUXF7 (Prop_muxf7_I0_O)      0.212   899.240 r  u_core/u_tap/q_reg_i_17__2/O
+                         net (fo=1, routed)           0.293   899.532    u_core/u_tap/q_reg_i_17__2_n_0
+    SLICE_X111Y98        LUT5 (Prop_lut5_I4_O)        0.299   899.831 r  u_core/u_tap/q_i_7__14/O
+                         net (fo=17, routed)          0.343   900.174    u_core/u_tap/u_fabric/g_row[0].g_col[3].u_tile/lut_i[0]
+    SLICE_X111Y99        LUT6 (Prop_lut6_I4_O)        0.124   900.298 r  u_core/u_tap/q_i_36__1/O
+                         net (fo=1, routed)           0.151   900.450    u_core/u_tap/u_fabric/g_row[0].g_col[3].u_tile/s1_8
+    SLICE_X111Y99        LUT6 (Prop_lut6_I5_O)        0.124   900.574 r  u_core/u_tap/q_i_12__2/O
+                         net (fo=1, routed)           0.301   900.875    u_core/u_tap/u_fabric/g_row[0].g_col[3].u_tile/s3_2
+    SLICE_X111Y98        LUT5 (Prop_lut5_I2_O)        0.124   900.999 r  u_core/u_tap/q_i_5__1/O
+                         net (fo=2, routed)           0.309   901.308    u_core/u_tap/u_fabric/g_row[0].g_col[3].u_tile/u_clb/lut_o6
+    SLICE_X110Y97        LUT5 (Prop_lut5_I4_O)        0.124   901.432 r  u_core/u_tap/q_i_2__2/O
+                         net (fo=2, routed)           0.446   901.878    u_core/u_tap/u_fabric/g_row[0].g_col[3].u_tile/u_clb/comb__1
+    SLICE_X110Y97        LUT3 (Prop_lut3_I1_O)        0.124   902.002 r  u_core/u_tap/user_dr[7]_i_2/O
+                         net (fo=16, routed)          0.699   902.700    u_core/u_tap/clb_o[3]
+    SLICE_X108Y101       LUT6 (Prop_lut6_I3_O)        0.124   902.824 r  u_core/u_tap/q_i_90__0/O
+                         net (fo=1, routed)           0.000   902.824    u_core/u_tap/q_i_90__0_n_0
+    SLICE_X108Y101       MUXF7 (Prop_muxf7_I0_O)      0.241   903.065 r  u_core/u_tap/q_reg_i_72/O
+                         net (fo=1, routed)           0.456   903.522    u_core/u_tap/q_reg_i_72_n_0
+    SLICE_X108Y102       LUT5 (Prop_lut5_I4_O)        0.298   903.820 r  u_core/u_tap/q_i_55__13/O
+                         net (fo=18, routed)          0.688   904.508    u_core/u_tap/u_fabric/o_w[3]_51[0]
+    SLICE_X104Y103       LUT6 (Prop_lut6_I5_O)        0.124   904.632 r  u_core/u_tap/led_OBUF[0]_inst_i_60/O
+                         net (fo=1, routed)           0.165   904.797    u_core/u_tap/led_OBUF[0]_inst_i_60_n_0
+    SLICE_X104Y103       LUT6 (Prop_lut6_I5_O)        0.124   904.921 r  u_core/u_tap/led_OBUF[0]_inst_i_36/O
+                         net (fo=1, routed)           0.000   904.921    u_core/u_tap/led_OBUF[0]_inst_i_36_n_0
+    SLICE_X104Y103       MUXF7 (Prop_muxf7_I1_O)      0.214   905.135 r  u_core/u_tap/led_OBUF[0]_inst_i_20/O
+                         net (fo=1, routed)           0.661   905.797    u_core/u_tap/led_OBUF[0]_inst_i_20_n_0
+    SLICE_X105Y103       LUT5 (Prop_lut5_I4_O)        0.297   906.094 r  u_core/u_tap/led_OBUF[0]_inst_i_9/O
+                         net (fo=15, routed)          0.613   906.706    u_core/u_tap/u_fabric/o_e[2]_12[0]
+    SLICE_X106Y103       LUT6 (Prop_lut6_I5_O)        0.124   906.830 r  u_core/u_tap/q_i_69__0/O
+                         net (fo=1, routed)           0.158   906.989    u_core/u_tap/q_i_69__0_n_0
+    SLICE_X106Y103       LUT5 (Prop_lut5_I1_O)        0.124   907.113 r  u_core/u_tap/q_i_54__13/O
+                         net (fo=18, routed)          0.503   907.615    u_core/u_tap/u_fabric/o_w[3]_51[1]
+    SLICE_X106Y104       LUT6 (Prop_lut6_I3_O)        0.124   907.739 r  u_core/u_tap/led_OBUF[0]_inst_i_58/O
+                         net (fo=1, routed)           0.497   908.236    u_core/u_tap/led_OBUF[0]_inst_i_58_n_0
+    SLICE_X105Y104       LUT6 (Prop_lut6_I5_O)        0.124   908.360 r  u_core/u_tap/led_OBUF[0]_inst_i_34/O
+                         net (fo=1, routed)           0.000   908.360    u_core/u_tap/led_OBUF[0]_inst_i_34_n_0
+    SLICE_X105Y104       MUXF7 (Prop_muxf7_I1_O)      0.217   908.577 r  u_core/u_tap/led_OBUF[0]_inst_i_18/O
+                         net (fo=1, routed)           0.436   909.013    u_core/u_tap/led_OBUF[0]_inst_i_18_n_0
+    SLICE_X105Y104       LUT5 (Prop_lut5_I4_O)        0.299   909.312 r  u_core/u_tap/led_OBUF[0]_inst_i_8/O
+                         net (fo=15, routed)          0.542   909.854    u_core/u_tap/u_fabric/o_e[2]_12[1]
+    SLICE_X107Y104       LUT6 (Prop_lut6_I3_O)        0.124   909.978 r  u_core/u_tap/q_i_67__0/O
+                         net (fo=1, routed)           0.433   910.411    u_core/u_tap/q_i_67__0_n_0
+    SLICE_X107Y104       LUT5 (Prop_lut5_I1_O)        0.124   910.535 r  u_core/u_tap/q_i_53__13/O
+                         net (fo=18, routed)          0.583   911.118    u_core/u_tap/u_fabric/o_w[3]_51[2]
+    SLICE_X106Y106       LUT6 (Prop_lut6_I1_O)        0.124   911.242 r  u_core/u_tap/led_OBUF[0]_inst_i_56/O
+                         net (fo=1, routed)           0.497   911.739    u_core/u_tap/led_OBUF[0]_inst_i_56_n_0
+    SLICE_X105Y106       LUT6 (Prop_lut6_I5_O)        0.124   911.863 r  u_core/u_tap/led_OBUF[0]_inst_i_32/O
+                         net (fo=1, routed)           0.000   911.863    u_core/u_tap/led_OBUF[0]_inst_i_32_n_0
+    SLICE_X105Y106       MUXF7 (Prop_muxf7_I1_O)      0.217   912.080 r  u_core/u_tap/led_OBUF[0]_inst_i_16/O
+                         net (fo=1, routed)           0.558   912.638    u_core/u_tap/led_OBUF[0]_inst_i_16_n_0
+    SLICE_X105Y103       LUT5 (Prop_lut5_I4_O)        0.299   912.937 r  u_core/u_tap/led_OBUF[0]_inst_i_7/O
+                         net (fo=15, routed)          0.483   913.420    u_core/u_tap/u_fabric/o_e[2]_12[2]
+    SLICE_X105Y100       LUT6 (Prop_lut6_I1_O)        0.124   913.544 r  u_core/u_tap/q_i_65__1/O
+                         net (fo=1, routed)           0.154   913.698    u_core/u_tap/q_i_65__1_n_0
+    SLICE_X105Y100       LUT5 (Prop_lut5_I1_O)        0.124   913.822 r  u_core/u_tap/q_i_52__12/O
+                         net (fo=18, routed)          1.007   914.829    u_core/u_tap/u_fabric/o_w[3]_51[3]
+    SLICE_X104Y106       LUT6 (Prop_lut6_I0_O)        0.124   914.953 r  u_core/u_tap/led_OBUF[0]_inst_i_54/O
+                         net (fo=1, routed)           0.306   915.259    u_core/u_tap/led_OBUF[0]_inst_i_54_n_0
+    SLICE_X104Y107       LUT6 (Prop_lut6_I5_O)        0.124   915.383 r  u_core/u_tap/led_OBUF[0]_inst_i_30/O
+                         net (fo=1, routed)           0.000   915.383    u_core/u_tap/led_OBUF[0]_inst_i_30_n_0
+    SLICE_X104Y107       MUXF7 (Prop_muxf7_I1_O)      0.214   915.597 r  u_core/u_tap/led_OBUF[0]_inst_i_14/O
+                         net (fo=1, routed)           0.469   916.066    u_core/u_tap/led_OBUF[0]_inst_i_14_n_0
+    SLICE_X104Y107       LUT5 (Prop_lut5_I4_O)        0.297   916.363 r  u_core/u_tap/led_OBUF[0]_inst_i_6/O
+                         net (fo=15, routed)          1.150   917.513    u_core/u_tap/u_fabric/o_e[2]_12[3]
+    SLICE_X107Y100       LUT6 (Prop_lut6_I0_O)        0.124   917.637 r  u_core/u_tap/q_i_48__2/O
+                         net (fo=1, routed)           0.294   917.931    u_core/u_tap/q_i_48__2_n_0
+    SLICE_X108Y100       LUT6 (Prop_lut6_I1_O)        0.124   918.055 r  u_core/u_tap/q_i_43__2/O
+                         net (fo=16, routed)          0.369   918.425    u_core/u_tap/u_fabric/g_row[0].g_col[3].u_tile/lut_i[1]
+    SLICE_X110Y101       LUT6 (Prop_lut6_I2_O)        0.124   918.549 r  u_core/u_tap/q_i_25__2/O
+                         net (fo=1, routed)           0.787   919.336    u_core/u_tap/u_fabric/g_row[0].g_col[3].u_tile/s1_7__0
+    SLICE_X112Y101       LUT6 (Prop_lut6_I0_O)        0.124   919.460 r  u_core/u_tap/q_i_10__2/O
+                         net (fo=1, routed)           0.171   919.631    u_core/u_tap/u_fabric/g_row[0].g_col[3].u_tile/s3_1__0
+    SLICE_X112Y101       LUT5 (Prop_lut5_I4_O)        0.124   919.755 r  u_core/u_tap/q_i_4__8/O
+                         net (fo=18, routed)          0.699   920.454    u_core/u_tap/q_i_4__8_n_0
+    SLICE_X107Y99        LUT6 (Prop_lut6_I2_O)        0.124   920.578 r  u_core/u_tap/led_OBUF[1]_inst_i_90/O
+                         net (fo=1, routed)           0.000   920.578    u_core/u_tap/led_OBUF[1]_inst_i_90_n_0
+    SLICE_X107Y99        MUXF7 (Prop_muxf7_I0_O)      0.212   920.790 r  u_core/u_tap/led_OBUF[1]_inst_i_55/O
+                         net (fo=1, routed)           1.161   921.951    u_core/u_tap/led_OBUF[1]_inst_i_55_n_0
+    SLICE_X107Y95        LUT5 (Prop_lut5_I4_O)        0.299   922.250 r  u_core/u_tap/led_OBUF[1]_inst_i_23/O
+                         net (fo=19, routed)          0.453   922.703    u_core/u_tap/u_fabric/o_n[3]_50[2]
+    SLICE_X106Y93        LUT6 (Prop_lut6_I5_O)        0.124   922.827 r  u_core/u_tap/led_OBUF[0]_inst_i_69/O
+                         net (fo=1, routed)           0.416   923.244    u_core/u_tap/led_OBUF[0]_inst_i_69_n_0
+    SLICE_X106Y91        LUT5 (Prop_lut5_I2_O)        0.124   923.368 r  u_core/u_tap/led_OBUF[0]_inst_i_42/O
+                         net (fo=1, routed)           0.280   923.647    u_core/u_tap/led_OBUF[0]_inst_i_42_n_0
+    SLICE_X106Y91        LUT5 (Prop_lut5_I4_O)        0.124   923.771 r  u_core/u_tap/led_OBUF[0]_inst_i_23/O
+                         net (fo=15, routed)          0.906   924.677    u_core/u_tap/u_fabric/o_s[7]_27[1]
+    SLICE_X107Y96        LUT6 (Prop_lut6_I3_O)        0.124   924.801 r  u_core/u_tap/led_OBUF[1]_inst_i_146/O
+                         net (fo=1, routed)           0.459   925.261    u_core/u_tap/led_OBUF[1]_inst_i_146_n_0
+    SLICE_X108Y96        LUT6 (Prop_lut6_I0_O)        0.124   925.385 r  u_core/u_tap/led_OBUF[1]_inst_i_88/O
+                         net (fo=1, routed)           0.000   925.385    u_core/u_tap/led_OBUF[1]_inst_i_88_n_0
+    SLICE_X108Y96        MUXF7 (Prop_muxf7_I0_O)      0.209   925.594 r  u_core/u_tap/led_OBUF[1]_inst_i_53/O
+                         net (fo=1, routed)           0.809   926.402    u_core/u_tap/led_OBUF[1]_inst_i_53_n_0
+    SLICE_X108Y95        LUT5 (Prop_lut5_I4_O)        0.297   926.699 r  u_core/u_tap/led_OBUF[1]_inst_i_22/O
+                         net (fo=19, routed)          0.552   927.252    u_core/u_tap/u_fabric/o_n[3]_50[0]
+    SLICE_X107Y89        LUT6 (Prop_lut6_I3_O)        0.124   927.376 r  u_core/u_tap/led_OBUF[0]_inst_i_66/O
+                         net (fo=1, routed)           0.415   927.791    u_core/u_tap/led_OBUF[0]_inst_i_66_n_0
+    SLICE_X106Y89        LUT5 (Prop_lut5_I2_O)        0.124   927.915 r  u_core/u_tap/led_OBUF[0]_inst_i_40/O
+                         net (fo=1, routed)           0.280   928.194    u_core/u_tap/led_OBUF[0]_inst_i_40_n_0
+    SLICE_X106Y89        LUT5 (Prop_lut5_I4_O)        0.124   928.318 r  u_core/u_tap/led_OBUF[0]_inst_i_22/O
+                         net (fo=15, routed)          0.963   929.281    u_core/u_tap/u_fabric/o_s[7]_27[2]
+    SLICE_X106Y95        LUT6 (Prop_lut6_I1_O)        0.124   929.405 r  u_core/u_tap/led_OBUF[1]_inst_i_145/O
+                         net (fo=1, routed)           0.387   929.791    u_core/u_tap/led_OBUF[1]_inst_i_145_n_0
+    SLICE_X105Y95        LUT6 (Prop_lut6_I0_O)        0.124   929.915 r  u_core/u_tap/led_OBUF[1]_inst_i_86/O
+                         net (fo=1, routed)           0.000   929.915    u_core/u_tap/led_OBUF[1]_inst_i_86_n_0
+    SLICE_X105Y95        MUXF7 (Prop_muxf7_I0_O)      0.212   930.127 r  u_core/u_tap/led_OBUF[1]_inst_i_51/O
+                         net (fo=1, routed)           0.864   930.991    u_core/u_tap/led_OBUF[1]_inst_i_51_n_0
+    SLICE_X105Y95        LUT5 (Prop_lut5_I4_O)        0.299   931.290 r  u_core/u_tap/led_OBUF[1]_inst_i_21/O
+                         net (fo=19, routed)          0.705   931.995    u_core/u_tap/u_fabric/o_n[3]_50[3]
+    SLICE_X106Y95        LUT6 (Prop_lut6_I1_O)        0.124   932.119 r  u_core/u_tap/led_OBUF[0]_inst_i_63/O
+                         net (fo=1, routed)           0.464   932.583    u_core/u_tap/led_OBUF[0]_inst_i_63_n_0
+    SLICE_X106Y95        LUT5 (Prop_lut5_I2_O)        0.124   932.708 r  u_core/u_tap/led_OBUF[0]_inst_i_38/O
+                         net (fo=1, routed)           0.291   932.999    u_core/u_tap/led_OBUF[0]_inst_i_38_n_0
+    SLICE_X107Y95        LUT5 (Prop_lut5_I4_O)        0.124   933.123 r  u_core/u_tap/led_OBUF[0]_inst_i_21/O
+                         net (fo=15, routed)          0.606   933.729    u_core/u_tap/u_fabric/o_s[7]_27[3]
+    SLICE_X108Y95        LUT6 (Prop_lut6_I0_O)        0.124   933.853 r  u_core/u_tap/led_OBUF[1]_inst_i_144/O
+                         net (fo=1, routed)           0.480   934.333    u_core/u_tap/led_OBUF[1]_inst_i_144_n_0
+    SLICE_X109Y95        LUT6 (Prop_lut6_I0_O)        0.124   934.457 r  u_core/u_tap/led_OBUF[1]_inst_i_84/O
+                         net (fo=1, routed)           0.000   934.457    u_core/u_tap/led_OBUF[1]_inst_i_84_n_0
+    SLICE_X109Y95        MUXF7 (Prop_muxf7_I0_O)      0.212   934.669 r  u_core/u_tap/led_OBUF[1]_inst_i_49/O
+                         net (fo=1, routed)           0.864   935.533    u_core/u_tap/led_OBUF[1]_inst_i_49_n_0
+    SLICE_X109Y95        LUT5 (Prop_lut5_I4_O)        0.299   935.832 r  u_core/u_tap/led_OBUF[1]_inst_i_20/O
+                         net (fo=19, routed)          0.949   936.780    u_core/u_tap/u_fabric/o_n[3]_50[1]
+    SLICE_X105Y87        LUT6 (Prop_lut6_I0_O)        0.124   936.904 r  u_core/u_tap/led_OBUF[1]_inst_i_9/O
+                         net (fo=1, routed)           0.263   937.167    u_core/u_tap/led_OBUF[1]_inst_i_9_n_0
+    SLICE_X105Y87        LUT6 (Prop_lut6_I2_O)        0.124   937.291 r  u_core/u_tap/led_OBUF[1]_inst_i_4/O
+                         net (fo=1, routed)           0.361   937.652    u_core/u_tap/led_OBUF[1]_inst_i_4_n_0
+    SLICE_X104Y87        LUT5 (Prop_lut5_I4_O)        0.124   937.776 r  u_core/u_tap/led_OBUF[1]_inst_i_2/O
+                         net (fo=2, routed)           0.355   938.131    u_core/u_tap/east_out[4]
+    SLICE_X105Y87        LUT3 (Prop_lut3_I0_O)        0.124   938.255 r  u_core/u_tap/capture_reg_i_1__6/O
+                         net (fo=1, routed)           0.000   938.255    u_core/g_bsr[1].u_cell/capture_reg1_in
+    SLICE_X105Y87        FDRE                                         r  u_core/g_bsr[1].u_cell/capture_reg_reg/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock tck rise edge)     1000.000  1000.000 r  
+    U18                                               0.000  1000.000 r  tck (IN)
+                         net (fo=0)                   0.000  1000.000    tck
+    U18                  IBUF (Prop_ibuf_I_O)         1.428  1001.428 r  tck_IBUF_inst/O
+                         net (fo=1, routed)           2.006  1003.434    tck_IBUF
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.091  1003.525 r  bufg_tck/O
+                         net (fo=5910, routed)        1.605  1005.129    u_core/g_bsr[1].u_cell/tck_g
+    SLICE_X105Y87        FDRE                                         r  u_core/g_bsr[1].u_cell/capture_reg_reg/C
+                         clock pessimism              0.394  1005.523    
+                         clock uncertainty           -0.035  1005.488    
+    SLICE_X105Y87        FDRE (Setup_fdre_C_D)        0.031  1005.519    u_core/g_bsr[1].u_cell/capture_reg_reg
+  -------------------------------------------------------------------
+                         required time                       1005.519    
+                         arrival time                        -938.229    
+  -------------------------------------------------------------------
+                         slack                                 67.290    
+
+
+
+
+
+Min Delay Paths
+--------------------------------------------------------------------------------------
+Slack (MET) :             0.083ns  (arrival time - required time)
+  Source:                 u_core/u_tap/cfg_dr_reg[938]/C
+                            (rising edge-triggered cell FDRE clocked by tck  {rise@0.000ns fall@500.000ns period=1000.000ns})
+  Destination:            u_core/u_tap/cfg_dr_reg[937]/D
+                            (rising edge-triggered cell FDRE clocked by tck  {rise@0.000ns fall@500.000ns period=1000.000ns})
+  Path Group:             tck
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (tck rise@0.000ns - tck rise@0.000ns)
+  Data Path Delay:        0.396ns  (logic 0.185ns (46.707%)  route 0.211ns (53.293%))
+  Logic Levels:           1  (LUT3=1)
+  Clock Path Skew:        0.182ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    2.067ns
+    Source Clock Delay      (SCD):    1.632ns
+    Clock Pessimism Removal (CPR):    0.253ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock tck rise edge)        0.000     0.000 r  
+    U18                                               0.000     0.000 r  tck (IN)
+                         net (fo=0)                   0.000     0.000    tck
+    U18                  IBUF (Prop_ibuf_I_O)         0.266     0.266 r  tck_IBUF_inst/O
+                         net (fo=1, routed)           0.674     0.940    tck_IBUF
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026     0.966 r  bufg_tck/O
+                         net (fo=5910, routed)        0.666     1.632    u_core/u_tap/tck_g
+    SLICE_X80Y100        FDRE                                         r  u_core/u_tap/cfg_dr_reg[938]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X80Y100        FDRE (Prop_fdre_C_Q)         0.141     1.773 r  u_core/u_tap/cfg_dr_reg[938]/Q
+                         net (fo=2, routed)           0.211     1.984    u_core/u_tap/cfg_dr_reg_n_0_[938]
+    SLICE_X82Y99         LUT3 (Prop_lut3_I2_O)        0.044     2.028 r  u_core/u_tap/cfg_dr[937]_i_1/O
+                         net (fo=1, routed)           0.000     2.028    u_core/u_tap/cfg_dr[937]
+    SLICE_X82Y99         FDRE                                         r  u_core/u_tap/cfg_dr_reg[937]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock tck rise edge)        0.000     0.000 r  
+    U18                                               0.000     0.000 r  tck (IN)
+                         net (fo=0)                   0.000     0.000    tck
+    U18                  IBUF (Prop_ibuf_I_O)         0.454     0.454 r  tck_IBUF_inst/O
+                         net (fo=1, routed)           0.731     1.185    tck_IBUF
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029     1.214 r  bufg_tck/O
+                         net (fo=5910, routed)        0.853     2.067    u_core/u_tap/tck_g
+    SLICE_X82Y99         FDRE                                         r  u_core/u_tap/cfg_dr_reg[937]/C
+                         clock pessimism             -0.253     1.814    
+    SLICE_X82Y99         FDRE (Hold_fdre_C_D)         0.131     1.945    u_core/u_tap/cfg_dr_reg[937]
+  -------------------------------------------------------------------
+                         required time                         -1.945    
+                         arrival time                           2.028    
+  -------------------------------------------------------------------
+                         slack                                  0.083    
+
+
+
+
+
+Pulse Width Checks
+--------------------------------------------------------------------------------------
+Clock Name:         tck
+Waveform(ns):       { 0.000 500.000 }
+Period(ns):         1000.000
+Sources:            { tck }
+
+Check Type        Corner  Lib Pin  Reference Pin  Required(ns)  Actual(ns)  Slack(ns)  Location        Pin
+Min Period        n/a     BUFG/I   n/a            2.155         1000.000    997.845    BUFGCTRL_X0Y16  bufg_tck/I
+Low Pulse Width   Slow    FDRE/C   n/a            0.500         500.000     499.500    SLICE_X104Y92   u_core/g_bsr[0].u_cell/capture_reg_reg/C
+High Pulse Width  Slow    FDRE/C   n/a            0.500         500.000     499.500    SLICE_X104Y92   u_core/g_bsr[0].u_cell/capture_reg_reg/C
+
+
+

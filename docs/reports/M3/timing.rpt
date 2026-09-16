@@ -1,0 +1,1740 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (win64) Build 6299465 Fri Nov 14 19:35:11 GMT 2025
+| Date         : Mon Sep 14 06:54:16 2026
+| Host         : SARAVANB423 running 64-bit major release  (build 9200)
+| Command      : report_timing_summary -file E:/bob_full_v1/bob_vivado/out/M3/timing.rpt
+| Design       : fpga4x4_top
+| Device       : 7z020-clg400
+| Speed File   : -1  PRODUCTION 1.12 2019-11-22
+| Design State : Routed
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Timing Summary Report
+
+------------------------------------------------------------------------------------------------
+| Timer Settings
+| --------------
+------------------------------------------------------------------------------------------------
+
+  Enable Multi Corner Analysis               :  Yes
+  Enable Pessimism Removal                   :  Yes
+  Pessimism Removal Resolution               :  Nearest Common Node
+  Enable Input Delay Default Clock           :  No
+  Enable Preset / Clear Arcs                 :  No
+  Disable Flight Delays                      :  No
+  Ignore I/O Paths                           :  No
+  Timing Early Launch at Borrowing Latches   :  No
+  Borrow Time for Max Delay Exceptions       :  Yes
+  Merge Timing Exceptions                    :  Yes
+  Inter-SLR Compensation                     :  Conservative
+
+  Corner  Analyze    Analyze    
+  Name    Max Paths  Min Paths  
+  ------  ---------  ---------  
+  Slow    Yes        Yes        
+  Fast    Yes        Yes        
+
+
+------------------------------------------------------------------------------------------------
+| Report Methodology
+| ------------------
+------------------------------------------------------------------------------------------------
+
+Rule       Severity  Description               Violations  
+---------  --------  ------------------------  ----------  
+TIMING-23  Warning   Combinational loop found  1           
+
+Note: This report is based on the most recent report_methodology run and may not be up-to-date. Run report_methodology on the current design for the latest report.
+
+
+
+check_timing report
+
+Table of Contents
+-----------------
+1. checking no_clock (0)
+2. checking constant_clock (0)
+3. checking pulse_width_clock (0)
+4. checking unconstrained_internal_endpoints (0)
+5. checking no_input_delay (6)
+6. checking no_output_delay (4)
+7. checking multiple_clock (0)
+8. checking generated_clocks (0)
+9. checking loops (866)
+10. checking partial_input_delay (0)
+11. checking partial_output_delay (0)
+12. checking latch_loops (0)
+
+1. checking no_clock (0)
+------------------------
+ There are 0 register/latch pins with no clock.
+
+
+2. checking constant_clock (0)
+------------------------------
+ There are 0 register/latch pins with constant_clock.
+
+
+3. checking pulse_width_clock (0)
+---------------------------------
+ There are 0 register/latch pins which need pulse_width check
+
+
+4. checking unconstrained_internal_endpoints (0)
+------------------------------------------------
+ There are 0 pins that are not constrained for maximum delay.
+
+ There are 0 pins that are not constrained for maximum delay due to constant clock.
+
+
+5. checking no_input_delay (6)
+------------------------------
+ There are 0 input ports with no input delay specified.
+
+ There are 6 input ports with no input delay but user has a false path constraint. (MEDIUM)
+
+
+6. checking no_output_delay (4)
+-------------------------------
+ There are 0 ports with no output delay specified.
+
+ There are 4 ports with no output delay but user has a false path constraint (MEDIUM)
+
+ There are 0 ports with no output delay but with a timing clock defined on it or propagating through it
+
+
+7. checking multiple_clock (0)
+------------------------------
+ There are 0 register/latch pins with multiple clocks.
+
+
+8. checking generated_clocks (0)
+--------------------------------
+ There are 0 generated clocks that are not connected to a clock source.
+
+
+9. checking loops (866)
+-----------------------
+ There are 866 combinational loops in the design. (HIGH)
+
+
+10. checking partial_input_delay (0)
+------------------------------------
+ There are 0 input ports with partial input delay specified.
+
+
+11. checking partial_output_delay (0)
+-------------------------------------
+ There are 0 ports with partial output delay specified.
+
+
+12. checking latch_loops (0)
+----------------------------
+ There are 0 combinational latch loops in the design through latch input
+
+
+
+------------------------------------------------------------------------------------------------
+| Design Timing Summary
+| ---------------------
+------------------------------------------------------------------------------------------------
+
+    WNS(ns)      TNS(ns)  TNS Failing Endpoints  TNS Total Endpoints      WHS(ns)      THS(ns)  THS Failing Endpoints  THS Total Endpoints     WPWS(ns)     TPWS(ns)  TPWS Failing Endpoints  TPWS Total Endpoints  
+    -------      -------  ---------------------  -------------------      -------      -------  ---------------------  -------------------     --------     --------  ----------------------  --------------------  
+     63.874        0.000                      0                15258        0.082        0.000                      0                15258      499.020        0.000                       0                  6118  
+
+
+All user specified timing constraints are met.
+
+
+------------------------------------------------------------------------------------------------
+| Clock Summary
+| -------------
+------------------------------------------------------------------------------------------------
+
+Clock  Waveform(ns)         Period(ns)      Frequency(MHz)
+-----  ------------         ----------      --------------
+tck    {0.000 500.000}      1000.000        1.000           
+
+
+------------------------------------------------------------------------------------------------
+| Intra Clock Table
+| -----------------
+------------------------------------------------------------------------------------------------
+
+Clock             WNS(ns)      TNS(ns)  TNS Failing Endpoints  TNS Total Endpoints      WHS(ns)      THS(ns)  THS Failing Endpoints  THS Total Endpoints     WPWS(ns)     TPWS(ns)  TPWS Failing Endpoints  TPWS Total Endpoints  
+-----             -------      -------  ---------------------  -------------------      -------      -------  ---------------------  -------------------     --------     --------  ----------------------  --------------------  
+tck                63.874        0.000                      0                15258        0.082        0.000                      0                15258      499.020        0.000                       0                  6118  
+
+
+------------------------------------------------------------------------------------------------
+| Inter Clock Table
+| -----------------
+------------------------------------------------------------------------------------------------
+
+From Clock    To Clock          WNS(ns)      TNS(ns)  TNS Failing Endpoints  TNS Total Endpoints      WHS(ns)      THS(ns)  THS Failing Endpoints  THS Total Endpoints  
+----------    --------          -------      -------  ---------------------  -------------------      -------      -------  ---------------------  -------------------  
+
+
+------------------------------------------------------------------------------------------------
+| Other Path Groups Table
+| -----------------------
+------------------------------------------------------------------------------------------------
+
+Path Group    From Clock    To Clock          WNS(ns)      TNS(ns)  TNS Failing Endpoints  TNS Total Endpoints      WHS(ns)      THS(ns)  THS Failing Endpoints  THS Total Endpoints  
+----------    ----------    --------          -------      -------  ---------------------  -------------------      -------      -------  ---------------------  -------------------  
+
+
+------------------------------------------------------------------------------------------------
+| Timing Details
+| --------------
+------------------------------------------------------------------------------------------------
+
+
+---------------------------------------------------------------------------------------------------
+From Clock:  tck
+  To Clock:  tck
+
+Setup :            0  Failing Endpoints,  Worst Slack       63.874ns,  Total Violation        0.000ns
+Hold  :            0  Failing Endpoints,  Worst Slack        0.082ns,  Total Violation        0.000ns
+PW    :            0  Failing Endpoints,  Worst Slack      499.020ns,  Total Violation        0.000ns
+---------------------------------------------------------------------------------------------------
+
+
+Max Delay Paths
+--------------------------------------------------------------------------------------
+Slack (MET) :             63.874ns  (required time - arrival time)
+  Source:                 u_core/u_tap/ir_reg[4]/C
+                            (falling edge-triggered cell FDRE clocked by tck  {rise@0.000ns fall@500.000ns period=1000.000ns})
+  Destination:            u_core/g_bsr[1].u_cell/capture_reg_reg/D
+                            (rising edge-triggered cell FDRE clocked by tck  {rise@0.000ns fall@500.000ns period=1000.000ns})
+  Path Group:             tck
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            500.000ns  (tck rise@1000.000ns - tck fall@500.000ns)
+  Data Path Delay:        435.996ns  (logic 98.753ns (22.650%)  route 337.255ns (77.353%))
+  Logic Levels:           704  (LUT3=28 LUT4=6 LUT5=252 LUT6=378 MUXF7=40)
+  Clock Path Skew:        -0.127ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    5.078ns = ( 1005.078 - 1000.000 ) 
+    Source Clock Delay      (SCD):    5.599ns = ( 505.599 - 500.000 ) 
+    Clock Pessimism Removal (CPR):    0.394ns
+  Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.000ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock tck fall edge)      500.000   500.000 f  
+    U18                                               0.000   500.000 f  tck (IN)
+                         net (fo=0)                   0.000   500.000    tck
+    U18                  IBUF (Prop_ibuf_I_O)         1.498   501.498 f  tck_IBUF_inst/O
+                         net (fo=1, routed)           2.205   503.703    tck_IBUF
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.101   503.804 f  bufg_tck/O
+                         net (fo=6117, routed)        1.795   505.599    u_core/u_tap/tck_g
+    SLICE_X93Y35         FDRE                                         r  u_core/u_tap/ir_reg[4]/C  (IS_INVERTED)
+  -------------------------------------------------------------------    -------------------
+    SLICE_X93Y35         FDRE (Prop_fdre_C_Q)         0.422   506.021 r  u_core/u_tap/ir_reg[4]/Q
+                         net (fo=36, routed)          0.796   506.817    u_core/u_tap/ir[4]
+    SLICE_X93Y34         LUT6 (Prop_lut6_I3_O)        0.296   507.113 r  u_core/u_tap/led_OBUF[2]_inst_i_3/O
+                         net (fo=11, routed)          0.459   507.572    u_core/u_tap/ir_reg[1]_2
+    SLICE_X92Y35         LUT3 (Prop_lut3_I1_O)        0.116   507.688 f  u_core/u_tap/q_i_38__9/O
+                         net (fo=64, routed)          1.427   509.116    u_core/u_tap/fab_i[1]
+    SLICE_X74Y28         LUT6 (Prop_lut6_I3_O)        0.328   509.444 f  u_core/u_tap/q_i_99__3/O
+                         net (fo=1, routed)           0.158   509.602    u_core/u_mem/g_tile[8].u_tile/q_i_147__0_1
+    SLICE_X74Y28         LUT5 (Prop_lut5_I0_O)        0.124   509.726 f  u_core/u_mem/g_tile[8].u_tile/q_i_82__8/O
+                         net (fo=18, routed)          0.951   510.677    u_core/u_mem/g_tile[8].u_tile/o_s[8]_17[1]
+    SLICE_X88Y22         LUT6 (Prop_lut6_I3_O)        0.124   510.801 r  u_core/u_mem/g_tile[8].u_tile/q_i_94__2/O
+                         net (fo=1, routed)           0.500   511.301    u_core/u_mem/g_tile[4].u_tile/q_i_45__2_0
+    SLICE_X89Y22         LUT6 (Prop_lut6_I0_O)        0.124   511.425 r  u_core/u_mem/g_tile[4].u_tile/q_i_79/O
+                         net (fo=1, routed)           0.151   511.576    u_core/u_mem/g_tile[4].u_tile/q_i_79_n_0
+    SLICE_X89Y22         LUT6 (Prop_lut6_I5_O)        0.124   511.700 r  u_core/u_mem/g_tile[4].u_tile/q_i_45__2/O
+                         net (fo=12, routed)          0.608   512.308    u_core/u_mem/g_tile[4].u_tile/q_i_45__2_n_0
+    SLICE_X89Y18         LUT6 (Prop_lut6_I4_O)        0.124   512.432 r  u_core/u_mem/g_tile[4].u_tile/q_i_39__1/O
+                         net (fo=1, routed)           0.303   512.735    u_core/u_mem/g_tile[4].u_tile/q_i_39__1_n_0
+    SLICE_X88Y17         LUT6 (Prop_lut6_I5_O)        0.124   512.859 r  u_core/u_mem/g_tile[4].u_tile/q_i_15__2/O
+                         net (fo=2, routed)           0.783   513.642    u_core/u_mem/g_tile[4].u_tile/q_i_15__2_n_0
+    SLICE_X87Y25         LUT3 (Prop_lut3_I2_O)        0.124   513.766 r  u_core/u_mem/g_tile[4].u_tile/q_i_7__1/O
+                         net (fo=2, routed)           0.554   514.319    u_core/u_mem/g_tile[4].u_tile/lut_o6
+    SLICE_X87Y27         LUT5 (Prop_lut5_I4_O)        0.124   514.443 r  u_core/u_mem/g_tile[4].u_tile/q_i_3__2/O
+                         net (fo=2, routed)           0.582   515.025    u_core/u_mem/g_tile[4].u_tile/q_i_3__2_n_0
+    SLICE_X87Y24         LUT3 (Prop_lut3_I1_O)        0.124   515.149 r  u_core/u_mem/g_tile[4].u_tile/user_dr[8]_i_2/O
+                         net (fo=20, routed)          0.788   515.937    u_core/u_mem/g_tile[4].u_tile/cfg_reg[64]_0
+    SLICE_X84Y18         LUT6 (Prop_lut6_I3_O)        0.124   516.061 r  u_core/u_mem/g_tile[4].u_tile/q_i_83/O
+                         net (fo=1, routed)           0.159   516.220    u_core/u_mem/g_tile[4].u_tile/q_i_83_n_0
+    SLICE_X84Y18         LUT6 (Prop_lut6_I5_O)        0.124   516.344 r  u_core/u_mem/g_tile[4].u_tile/q_i_63__2/O
+                         net (fo=14, routed)          0.778   517.122    u_core/u_mem/g_tile[4].u_tile/o_s[4]_3[0]
+    SLICE_X90Y22         LUT6 (Prop_lut6_I5_O)        0.124   517.246 r  u_core/u_mem/g_tile[4].u_tile/q_i_89/O
+                         net (fo=1, routed)           0.452   517.698    u_core/u_mem/g_tile[0].u_tile/q_i_53_0
+    SLICE_X90Y22         LUT6 (Prop_lut6_I0_O)        0.124   517.822 r  u_core/u_mem/g_tile[0].u_tile/q_i_70/O
+                         net (fo=1, routed)           0.498   518.320    u_core/u_mem/g_tile[0].u_tile/q_i_70_n_0
+    SLICE_X91Y22         LUT6 (Prop_lut6_I5_O)        0.124   518.444 r  u_core/u_mem/g_tile[0].u_tile/q_i_53/O
+                         net (fo=16, routed)          0.695   519.139    u_core/u_mem/g_tile[0].u_tile/q_i_53_n_0
+    SLICE_X96Y24         LUT6 (Prop_lut6_I2_O)        0.124   519.263 r  u_core/u_mem/g_tile[0].u_tile/q_i_49/O
+                         net (fo=1, routed)           0.544   519.807    u_core/u_mem/g_tile[0].u_tile/q_i_49_n_0
+    SLICE_X96Y24         LUT6 (Prop_lut6_I5_O)        0.124   519.931 r  u_core/u_mem/g_tile[0].u_tile/q_i_20/O
+                         net (fo=1, routed)           0.000   519.931    u_core/u_mem/g_tile[0].u_tile/q_i_20_n_0
+    SLICE_X96Y24         MUXF7 (Prop_muxf7_I1_O)      0.214   520.145 r  u_core/u_mem/g_tile[0].u_tile/q_reg_i_10/O
+                         net (fo=1, routed)           0.452   520.597    u_core/u_mem/g_tile[0].u_tile/q_reg_i_10_n_0
+    SLICE_X96Y24         LUT3 (Prop_lut3_I1_O)        0.297   520.894 r  u_core/u_mem/g_tile[0].u_tile/q_i_6/O
+                         net (fo=2, routed)           0.520   521.415    u_core/u_mem/g_tile[0].u_tile/q_i_6_n_0
+    SLICE_X92Y25         LUT5 (Prop_lut5_I4_O)        0.124   521.539 f  u_core/u_mem/g_tile[0].u_tile/q_i_3/O
+                         net (fo=2, routed)           0.448   521.987    u_core/u_mem/g_tile[0].u_tile/q_i_3_n_0
+    SLICE_X93Y28         LUT3 (Prop_lut3_I1_O)        0.124   522.111 f  u_core/u_mem/g_tile[0].u_tile/user_dr[4]_i_2/O
+                         net (fo=16, routed)          0.748   522.859    u_core/u_mem/g_tile[0].u_tile/cfg_reg[64]_0
+    SLICE_X90Y24         LUT6 (Prop_lut6_I5_O)        0.124   522.983 r  u_core/u_mem/g_tile[0].u_tile/q_i_40__0/O
+                         net (fo=1, routed)           0.000   522.983    u_core/u_mem/g_tile[0].u_tile/q_i_40__0_n_0
+    SLICE_X90Y24         MUXF7 (Prop_muxf7_I0_O)      0.209   523.192 r  u_core/u_mem/g_tile[0].u_tile/q_reg_i_17/O
+                         net (fo=1, routed)           0.600   523.792    u_core/u_mem/g_tile[0].u_tile/q_reg_i_17_n_0
+    SLICE_X90Y24         LUT5 (Prop_lut5_I4_O)        0.297   524.089 r  u_core/u_mem/g_tile[0].u_tile/q_i_8__9/O
+                         net (fo=17, routed)          0.548   524.637    u_core/u_mem/g_tile[0].u_tile/q_i_8__9_n_0
+    SLICE_X92Y25         LUT6 (Prop_lut6_I5_O)        0.124   524.761 f  u_core/u_mem/g_tile[0].u_tile/q_i_5/O
+                         net (fo=3, routed)           0.845   525.606    u_core/u_mem/g_tile[0].u_tile/cy[0]_49
+    SLICE_X87Y27         LUT6 (Prop_lut6_I0_O)        0.124   525.730 r  u_core/u_mem/g_tile[0].u_tile/q_i_5__7/O
+                         net (fo=1, routed)           1.191   526.921    u_core/u_mem/g_tile[12].u_tile/q_reg
+    SLICE_X68Y40         LUT6 (Prop_lut6_I0_O)        0.124   527.045 r  u_core/u_mem/g_tile[12].u_tile/q_i_3__10/O
+                         net (fo=2, routed)           0.439   527.484    u_core/u_mem/g_tile[12].u_tile/u_fabric/g_row[3].g_col[0].u_tile/u_clb/comb__1
+    SLICE_X66Y41         LUT3 (Prop_lut3_I1_O)        0.124   527.608 r  u_core/u_mem/g_tile[12].u_tile/user_dr[16]_i_2/O
+                         net (fo=16, routed)          0.734   528.341    u_core/u_mem/g_tile[12].u_tile/cfg_reg[64]_0
+    SLICE_X67Y42         LUT5 (Prop_lut5_I2_O)        0.124   528.466 r  u_core/u_mem/g_tile[12].u_tile/q_i_80__3/O
+                         net (fo=1, routed)           0.291   528.757    u_core/u_mem/g_tile[12].u_tile/q_i_80__3_n_0
+    SLICE_X67Y42         LUT5 (Prop_lut5_I4_O)        0.124   528.881 r  u_core/u_mem/g_tile[12].u_tile/q_i_67__8/O
+                         net (fo=1, routed)           0.361   529.241    u_core/u_mem/g_tile[12].u_tile/q_i_67__8_n_0
+    SLICE_X66Y42         LUT5 (Prop_lut5_I4_O)        0.124   529.365 r  u_core/u_mem/g_tile[12].u_tile/q_i_50__14/O
+                         net (fo=16, routed)          0.626   529.991    u_core/u_mem/g_tile[12].u_tile/u_fabric/g_row[3].g_col[0].u_tile/lut_i__1[0]
+    SLICE_X65Y49         LUT6 (Prop_lut6_I4_O)        0.124   530.115 f  u_core/u_mem/g_tile[12].u_tile/q_i_32__9/O
+                         net (fo=1, routed)           0.348   530.463    u_core/u_mem/g_tile[12].u_tile/u_fabric/g_row[3].g_col[0].u_tile/s1_4__0
+    SLICE_X64Y49         LUT6 (Prop_lut6_I5_O)        0.124   530.587 f  u_core/u_mem/g_tile[12].u_tile/q_i_13__10/O
+                         net (fo=1, routed)           0.452   531.039    u_core/u_mem/g_tile[12].u_tile/u_fabric/g_row[3].g_col[0].u_tile/s3_1__0
+    SLICE_X66Y49         LUT5 (Prop_lut5_I4_O)        0.124   531.163 f  u_core/u_mem/g_tile[12].u_tile/q_i_6__11/O
+                         net (fo=16, routed)          0.596   531.759    u_core/u_mem/g_tile[12].u_tile/q_i_6__11_n_0
+    SLICE_X67Y44         LUT5 (Prop_lut5_I3_O)        0.124   531.883 f  u_core/u_mem/g_tile[12].u_tile/q_i_125__5/O
+                         net (fo=1, routed)           0.446   532.329    u_core/u_mem/g_tile[12].u_tile/q_i_125__5_n_0
+    SLICE_X67Y43         LUT5 (Prop_lut5_I4_O)        0.124   532.453 f  u_core/u_mem/g_tile[12].u_tile/q_i_88__3/O
+                         net (fo=1, routed)           0.526   532.979    u_core/u_mem/g_tile[12].u_tile/q_i_88__3_n_0
+    SLICE_X66Y43         LUT5 (Prop_lut5_I4_O)        0.124   533.103 f  u_core/u_mem/g_tile[12].u_tile/q_i_57__13/O
+                         net (fo=18, routed)          0.643   533.746    u_core/u_mem/g_tile[12].u_tile/o_e[12]_40[0]
+    SLICE_X60Y43         LUT6 (Prop_lut6_I5_O)        0.124   533.870 f  u_core/u_mem/g_tile[12].u_tile/q_i_87__6/O
+                         net (fo=1, routed)           0.158   534.028    u_core/u_mem/g_tile[13].u_tile/q_i_113__6_2
+    SLICE_X60Y43         LUT6 (Prop_lut6_I1_O)        0.124   534.152 f  u_core/u_mem/g_tile[13].u_tile/q_i_71__8/O
+                         net (fo=14, routed)          0.323   534.475    u_core/u_mem/g_tile[13].u_tile/o_w[13]_44[0]
+    SLICE_X62Y42         LUT6 (Prop_lut6_I5_O)        0.124   534.599 f  u_core/u_mem/g_tile[13].u_tile/q_i_121__6/O
+                         net (fo=1, routed)           0.161   534.760    u_core/u_mem/g_tile[12].u_tile/q_i_56__14_0
+    SLICE_X62Y42         LUT5 (Prop_lut5_I2_O)        0.124   534.884 f  u_core/u_mem/g_tile[12].u_tile/q_i_86__4/O
+                         net (fo=1, routed)           0.583   535.467    u_core/u_mem/g_tile[12].u_tile/q_i_86__4_n_0
+    SLICE_X63Y42         LUT5 (Prop_lut5_I4_O)        0.124   535.591 f  u_core/u_mem/g_tile[12].u_tile/q_i_56__14/O
+                         net (fo=18, routed)          0.480   536.070    u_core/u_mem/g_tile[12].u_tile/o_e[12]_40[1]
+    SLICE_X63Y44         LUT6 (Prop_lut6_I3_O)        0.124   536.194 f  u_core/u_mem/g_tile[12].u_tile/q_i_85__5/O
+                         net (fo=1, routed)           0.149   536.343    u_core/u_mem/g_tile[13].u_tile/q_i_113__6
+    SLICE_X63Y44         LUT5 (Prop_lut5_I1_O)        0.124   536.467 f  u_core/u_mem/g_tile[13].u_tile/q_i_70__12/O
+                         net (fo=14, routed)          0.513   536.980    u_core/u_mem/g_tile[13].u_tile/o_w[13]_44[1]
+    SLICE_X65Y41         LUT6 (Prop_lut6_I3_O)        0.124   537.104 f  u_core/u_mem/g_tile[13].u_tile/q_i_119__5/O
+                         net (fo=1, routed)           0.412   537.516    u_core/u_mem/g_tile[12].u_tile/q_i_73__8_1
+    SLICE_X65Y40         LUT5 (Prop_lut5_I2_O)        0.124   537.640 f  u_core/u_mem/g_tile[12].u_tile/q_i_92__8/O
+                         net (fo=1, routed)           0.263   537.903    u_core/u_mem/g_tile[12].u_tile/q_i_92__8_n_0
+    SLICE_X65Y40         LUT5 (Prop_lut5_I4_O)        0.124   538.027 f  u_core/u_mem/g_tile[12].u_tile/q_i_73__8/O
+                         net (fo=18, routed)          0.891   538.918    u_core/u_mem/g_tile[12].u_tile/o_s[12]_41[0]
+    SLICE_X67Y29         LUT6 (Prop_lut6_I5_O)        0.124   539.042 r  u_core/u_mem/g_tile[12].u_tile/q_i_84__2/O
+                         net (fo=1, routed)           0.433   539.475    u_core/u_mem/g_tile[8].u_tile/q_i_49__7_0
+    SLICE_X67Y29         LUT6 (Prop_lut6_I0_O)        0.124   539.599 r  u_core/u_mem/g_tile[8].u_tile/q_i_69__5/O
+                         net (fo=1, routed)           0.517   540.116    u_core/u_mem/g_tile[8].u_tile/q_i_69__5_n_0
+    SLICE_X66Y29         LUT6 (Prop_lut6_I5_O)        0.124   540.240 r  u_core/u_mem/g_tile[8].u_tile/q_i_49__7/O
+                         net (fo=16, routed)          0.735   540.976    u_core/u_mem/g_tile[8].u_tile/q_i_49__7_n_0
+    SLICE_X75Y29         LUT6 (Prop_lut6_I2_O)        0.124   541.100 r  u_core/u_mem/g_tile[8].u_tile/q_i_43__5/O
+                         net (fo=1, routed)           0.423   541.523    u_core/u_mem/g_tile[8].u_tile/q_i_43__5_n_0
+    SLICE_X72Y29         LUT6 (Prop_lut6_I5_O)        0.124   541.647 r  u_core/u_mem/g_tile[8].u_tile/q_i_16__7/O
+                         net (fo=1, routed)           0.279   541.926    u_core/u_mem/g_tile[8].u_tile/q_i_16__7_n_0
+    SLICE_X72Y29         LUT5 (Prop_lut5_I4_O)        0.124   542.050 r  u_core/u_mem/g_tile[8].u_tile/q_i_7__4/O
+                         net (fo=2, routed)           0.580   542.630    u_core/u_mem/g_tile[8].u_tile/lut_o6
+    SLICE_X78Y28         LUT5 (Prop_lut5_I4_O)        0.124   542.754 f  u_core/u_mem/g_tile[8].u_tile/q_i_3__6/O
+                         net (fo=2, routed)           0.574   543.328    u_core/u_mem/g_tile[8].u_tile/q_i_3__6_n_0
+    SLICE_X80Y25         LUT3 (Prop_lut3_I1_O)        0.124   543.452 f  u_core/u_mem/g_tile[8].u_tile/user_dr[12]_i_2/O
+                         net (fo=20, routed)          0.724   544.176    u_core/u_mem/g_tile[8].u_tile/cfg_reg[64]_0
+    SLICE_X69Y29         LUT6 (Prop_lut6_I3_O)        0.124   544.300 r  u_core/u_mem/g_tile[8].u_tile/q_i_27__13/O
+                         net (fo=1, routed)           0.263   544.563    u_core/u_mem/g_tile[8].u_tile/q_i_27__13_n_0
+    SLICE_X69Y29         LUT6 (Prop_lut6_I1_O)        0.124   544.687 r  u_core/u_mem/g_tile[8].u_tile/q_i_12__4/O
+                         net (fo=2, routed)           0.458   545.145    u_core/u_mem/g_tile[8].u_tile/q_i_12__4_n_0
+    SLICE_X72Y31         LUT5 (Prop_lut5_I3_O)        0.124   545.269 r  u_core/u_mem/g_tile[8].u_tile/q_i_6__8/O
+                         net (fo=21, routed)          0.904   546.174    u_core/u_mem/g_tile[8].u_tile/q_i_6__8_n_0
+    SLICE_X67Y33         LUT4 (Prop_lut4_I0_O)        0.124   546.298 f  u_core/u_mem/g_tile[8].u_tile/q_i_167__0/O
+                         net (fo=1, routed)           0.350   546.647    u_core/u_mem/g_tile[8].u_tile/q_i_167__0_n_0
+    SLICE_X66Y33         LUT6 (Prop_lut6_I5_O)        0.124   546.771 f  u_core/u_mem/g_tile[8].u_tile/q_i_105__5/O
+                         net (fo=1, routed)           0.466   547.237    u_core/u_mem/g_tile[8].u_tile/q_i_105__5_n_0
+    SLICE_X66Y33         LUT5 (Prop_lut5_I4_O)        0.124   547.361 f  u_core/u_mem/g_tile[8].u_tile/q_i_58__12/O
+                         net (fo=22, routed)          0.633   547.994    u_core/u_mem/g_tile[8].u_tile/o_e[8]_18[0]
+    SLICE_X63Y32         LUT6 (Prop_lut6_I5_O)        0.124   548.118 f  u_core/u_mem/g_tile[8].u_tile/q_i_99__4/O
+                         net (fo=1, routed)           0.427   548.545    u_core/u_mem/g_tile[9].u_tile/q_i_114__3_2
+    SLICE_X64Y32         LUT5 (Prop_lut5_I0_O)        0.124   548.669 f  u_core/u_mem/g_tile[9].u_tile/q_i_77__7/O
+                         net (fo=18, routed)          0.613   549.282    u_core/u_mem/g_tile[9].u_tile/o_w[9]_20[0]
+    SLICE_X69Y32         LUT6 (Prop_lut6_I5_O)        0.124   549.406 f  u_core/u_mem/g_tile[9].u_tile/q_i_157__1/O
+                         net (fo=1, routed)           0.151   549.557    u_core/u_mem/g_tile[8].u_tile/q_i_56__13_1
+    SLICE_X69Y32         LUT6 (Prop_lut6_I1_O)        0.124   549.681 f  u_core/u_mem/g_tile[8].u_tile/q_i_101__3/O
+                         net (fo=1, routed)           0.303   549.984    u_core/u_mem/g_tile[8].u_tile/q_i_101__3_n_0
+    SLICE_X68Y33         LUT5 (Prop_lut5_I4_O)        0.124   550.109 f  u_core/u_mem/g_tile[8].u_tile/q_i_56__13/O
+                         net (fo=22, routed)          0.776   550.885    u_core/u_mem/g_tile[8].u_tile/o_e[8]_18[2]
+    SLICE_X64Y33         LUT6 (Prop_lut6_I1_O)        0.124   551.009 f  u_core/u_mem/g_tile[8].u_tile/q_i_97__5/O
+                         net (fo=1, routed)           0.161   551.170    u_core/u_mem/g_tile[9].u_tile/q_i_114__3_1
+    SLICE_X64Y33         LUT5 (Prop_lut5_I0_O)        0.124   551.294 f  u_core/u_mem/g_tile[9].u_tile/q_i_76__8/O
+                         net (fo=18, routed)          0.456   551.750    u_core/u_mem/g_tile[9].u_tile/o_w[9]_20[1]
+    SLICE_X65Y31         LUT6 (Prop_lut6_I3_O)        0.124   551.874 f  u_core/u_mem/g_tile[9].u_tile/q_i_153__1/O
+                         net (fo=1, routed)           0.430   552.304    u_core/u_mem/g_tile[8].u_tile/q_i_55__12_1
+    SLICE_X64Y31         LUT6 (Prop_lut6_I1_O)        0.124   552.428 f  u_core/u_mem/g_tile[8].u_tile/q_i_99__2/O
+                         net (fo=1, routed)           0.161   552.589    u_core/u_mem/g_tile[8].u_tile/q_i_99__2_n_0
+    SLICE_X64Y31         LUT5 (Prop_lut5_I4_O)        0.124   552.713 f  u_core/u_mem/g_tile[8].u_tile/q_i_55__12/O
+                         net (fo=22, routed)          0.649   553.362    u_core/u_mem/g_tile[8].u_tile/o_e[8]_18[3]
+    SLICE_X64Y33         LUT6 (Prop_lut6_I0_O)        0.124   553.486 f  u_core/u_mem/g_tile[8].u_tile/q_i_95__6/O
+                         net (fo=1, routed)           0.416   553.903    u_core/u_mem/g_tile[9].u_tile/q_i_114__3_0
+    SLICE_X64Y34         LUT5 (Prop_lut5_I0_O)        0.124   554.027 f  u_core/u_mem/g_tile[9].u_tile/q_i_75__8/O
+                         net (fo=18, routed)          0.647   554.674    u_core/u_mem/g_tile[9].u_tile/o_w[9]_20[2]
+    SLICE_X71Y29         LUT6 (Prop_lut6_I1_O)        0.124   554.798 f  u_core/u_mem/g_tile[9].u_tile/q_i_132__2/O
+                         net (fo=1, routed)           0.321   555.119    u_core/u_mem/g_tile[8].u_tile/q_i_83__8_0
+    SLICE_X72Y28         LUT6 (Prop_lut6_I1_O)        0.124   555.243 f  u_core/u_mem/g_tile[8].u_tile/q_i_102__3/O
+                         net (fo=1, routed)           0.161   555.404    u_core/u_mem/g_tile[8].u_tile/q_i_102__3_n_0
+    SLICE_X72Y28         LUT5 (Prop_lut5_I4_O)        0.124   555.528 f  u_core/u_mem/g_tile[8].u_tile/q_i_83__8/O
+                         net (fo=18, routed)          1.102   556.630    u_core/u_mem/g_tile[8].u_tile/o_s[8]_17[0]
+    SLICE_X87Y19         LUT6 (Prop_lut6_I5_O)        0.124   556.754 r  u_core/u_mem/g_tile[8].u_tile/q_i_76__1/O
+                         net (fo=1, routed)           0.526   557.280    u_core/u_mem/g_tile[4].u_tile/q_i_18__3_0
+    SLICE_X86Y19         LUT6 (Prop_lut6_I0_O)        0.124   557.404 r  u_core/u_mem/g_tile[4].u_tile/q_i_44__2/O
+                         net (fo=1, routed)           0.282   557.686    u_core/u_mem/g_tile[4].u_tile/q_i_44__2_n_0
+    SLICE_X86Y19         LUT6 (Prop_lut6_I5_O)        0.124   557.810 r  u_core/u_mem/g_tile[4].u_tile/q_i_18__3/O
+                         net (fo=7, routed)           0.628   558.438    u_core/u_mem/g_tile[4].u_tile/q_i_18__3_n_0
+    SLICE_X88Y14         LUT6 (Prop_lut6_I4_O)        0.124   558.562 r  u_core/u_mem/g_tile[4].u_tile/q_i_13__2/O
+                         net (fo=1, routed)           0.294   558.856    u_core/u_mem/g_tile[4].u_tile/q_i_13__2_n_0
+    SLICE_X86Y14         LUT5 (Prop_lut5_I4_O)        0.124   558.980 r  u_core/u_mem/g_tile[4].u_tile/q_i_6__5/O
+                         net (fo=22, routed)          1.020   560.000    u_core/u_mem/g_tile[4].u_tile/q_i_6__5_n_0
+    SLICE_X86Y27         LUT4 (Prop_lut4_I0_O)        0.124   560.124 f  u_core/u_mem/g_tile[4].u_tile/q_i_152__1/O
+                         net (fo=1, routed)           0.317   560.441    u_core/u_mem/g_tile[4].u_tile/q_i_152__1_n_0
+    SLICE_X85Y28         LUT6 (Prop_lut6_I5_O)        0.124   560.565 f  u_core/u_mem/g_tile[4].u_tile/q_i_108__1/O
+                         net (fo=1, routed)           0.469   561.034    u_core/u_mem/g_tile[4].u_tile/q_i_108__1_n_0
+    SLICE_X84Y28         LUT5 (Prop_lut5_I4_O)        0.124   561.158 f  u_core/u_mem/g_tile[4].u_tile/q_i_81__6/O
+                         net (fo=18, routed)          0.965   562.123    u_core/u_mem/g_tile[4].u_tile/o_n[4]_5[0]
+    SLICE_X67Y32         LUT6 (Prop_lut6_I5_O)        0.124   562.247 f  u_core/u_mem/g_tile[4].u_tile/q_i_160__1/O
+                         net (fo=1, routed)           0.149   562.396    u_core/u_mem/g_tile[8].u_tile/q_i_57__11_0
+    SLICE_X67Y32         LUT6 (Prop_lut6_I0_O)        0.124   562.520 f  u_core/u_mem/g_tile[8].u_tile/q_i_103__4/O
+                         net (fo=1, routed)           0.476   562.996    u_core/u_mem/g_tile[8].u_tile/q_i_103__4_n_0
+    SLICE_X66Y32         LUT5 (Prop_lut5_I4_O)        0.124   563.120 f  u_core/u_mem/g_tile[8].u_tile/q_i_57__11/O
+                         net (fo=22, routed)          0.638   563.758    u_core/u_mem/g_tile[8].u_tile/o_e[8]_18[1]
+    SLICE_X65Y34         LUT6 (Prop_lut6_I3_O)        0.124   563.882 f  u_core/u_mem/g_tile[8].u_tile/q_i_93__5/O
+                         net (fo=1, routed)           0.433   564.316    u_core/u_mem/g_tile[9].u_tile/q_i_114__3
+    SLICE_X65Y34         LUT5 (Prop_lut5_I0_O)        0.124   564.440 f  u_core/u_mem/g_tile[9].u_tile/q_i_74__9/O
+                         net (fo=18, routed)          0.819   565.258    u_core/u_mem/g_tile[9].u_tile/o_w[9]_20[3]
+    SLICE_X74Y29         LUT6 (Prop_lut6_I0_O)        0.124   565.382 f  u_core/u_mem/g_tile[9].u_tile/q_i_124__2/O
+                         net (fo=1, routed)           0.296   565.678    u_core/u_mem/g_tile[8].u_tile/q_i_81__8_1
+    SLICE_X77Y29         LUT6 (Prop_lut6_I1_O)        0.124   565.802 f  u_core/u_mem/g_tile[8].u_tile/q_i_98__3/O
+                         net (fo=1, routed)           0.154   565.956    u_core/u_mem/g_tile[8].u_tile/q_i_98__3_n_0
+    SLICE_X77Y29         LUT5 (Prop_lut5_I4_O)        0.124   566.080 f  u_core/u_mem/g_tile[8].u_tile/q_i_81__8/O
+                         net (fo=18, routed)          0.842   566.922    u_core/u_mem/g_tile[8].u_tile/o_s[8]_17[2]
+    SLICE_X82Y25         LUT6 (Prop_lut6_I1_O)        0.124   567.046 f  u_core/u_mem/g_tile[8].u_tile/q_i_139__0/O
+                         net (fo=1, routed)           0.452   567.498    u_core/u_mem/g_tile[4].u_tile/q_i_78__3_2
+    SLICE_X82Y25         LUT6 (Prop_lut6_I3_O)        0.124   567.622 f  u_core/u_mem/g_tile[4].u_tile/q_i_102__0/O
+                         net (fo=1, routed)           0.492   568.114    u_core/u_mem/g_tile[4].u_tile/q_i_102__0_n_0
+    SLICE_X82Y25         LUT5 (Prop_lut5_I4_O)        0.124   568.238 f  u_core/u_mem/g_tile[4].u_tile/q_i_78__3/O
+                         net (fo=18, routed)          0.866   569.104    u_core/u_mem/g_tile[4].u_tile/o_n[4]_5[3]
+    SLICE_X74Y33         LUT6 (Prop_lut6_I0_O)        0.124   569.228 f  u_core/u_mem/g_tile[4].u_tile/q_i_121__2/O
+                         net (fo=1, routed)           0.584   569.812    u_core/u_mem/g_tile[8].u_tile/q_i_75__7_0
+    SLICE_X73Y33         LUT6 (Prop_lut6_I0_O)        0.124   569.936 f  u_core/u_mem/g_tile[8].u_tile/q_i_97__3/O
+                         net (fo=1, routed)           0.495   570.431    u_core/u_mem/g_tile[8].u_tile/q_i_97__3_n_0
+    SLICE_X72Y33         LUT5 (Prop_lut5_I4_O)        0.124   570.555 f  u_core/u_mem/g_tile[8].u_tile/q_i_75__7/O
+                         net (fo=14, routed)          0.706   571.261    u_core/u_mem/g_tile[8].u_tile/o_n[8]_19[0]
+    SLICE_X63Y41         LUT6 (Prop_lut6_I5_O)        0.124   571.385 f  u_core/u_mem/g_tile[8].u_tile/q_i_117__5/O
+                         net (fo=1, routed)           0.404   571.789    u_core/u_mem/g_tile[12].u_tile/q_i_55__14_0
+    SLICE_X63Y42         LUT5 (Prop_lut5_I0_O)        0.124   571.913 f  u_core/u_mem/g_tile[12].u_tile/q_i_84__5/O
+                         net (fo=1, routed)           0.561   572.474    u_core/u_mem/g_tile[12].u_tile/q_i_84__5_n_0
+    SLICE_X64Y42         LUT5 (Prop_lut5_I4_O)        0.124   572.599 f  u_core/u_mem/g_tile[12].u_tile/q_i_55__14/O
+                         net (fo=18, routed)          1.060   573.658    u_core/u_mem/g_tile[12].u_tile/o_e[12]_40[2]
+    SLICE_X64Y47         LUT6 (Prop_lut6_I1_O)        0.124   573.782 f  u_core/u_mem/g_tile[12].u_tile/q_i_83__5/O
+                         net (fo=1, routed)           0.279   574.061    u_core/u_mem/g_tile[13].u_tile/q_i_113__6_0
+    SLICE_X64Y47         LUT5 (Prop_lut5_I1_O)        0.124   574.185 f  u_core/u_mem/g_tile[13].u_tile/q_i_69__11/O
+                         net (fo=14, routed)          0.692   574.877    u_core/u_mem/g_tile[13].u_tile/o_w[13]_44[2]
+    SLICE_X62Y41         LUT6 (Prop_lut6_I1_O)        0.124   575.001 f  u_core/u_mem/g_tile[13].u_tile/q_i_115__5/O
+                         net (fo=1, routed)           0.171   575.172    u_core/u_mem/g_tile[12].u_tile/q_i_54__13_1
+    SLICE_X62Y41         LUT5 (Prop_lut5_I2_O)        0.124   575.296 f  u_core/u_mem/g_tile[12].u_tile/q_i_82__4/O
+                         net (fo=1, routed)           0.306   575.603    u_core/u_mem/g_tile[12].u_tile/q_i_82__4_n_0
+    SLICE_X64Y41         LUT5 (Prop_lut5_I4_O)        0.124   575.727 f  u_core/u_mem/g_tile[12].u_tile/q_i_54__13/O
+                         net (fo=18, routed)          1.144   576.871    u_core/u_mem/g_tile[12].u_tile/o_e[12]_40[3]
+    SLICE_X68Y44         LUT6 (Prop_lut6_I0_O)        0.124   576.995 f  u_core/u_mem/g_tile[12].u_tile/q_i_81__3/O
+                         net (fo=1, routed)           0.303   577.297    u_core/u_mem/g_tile[13].u_tile/q_i_113__6_1
+    SLICE_X68Y45         LUT5 (Prop_lut5_I1_O)        0.124   577.421 f  u_core/u_mem/g_tile[13].u_tile/q_i_68__12/O
+                         net (fo=14, routed)          0.793   578.215    u_core/u_mem/g_tile[13].u_tile/o_w[13]_44[3]
+    SLICE_X67Y41         LUT6 (Prop_lut6_I0_O)        0.124   578.339 f  u_core/u_mem/g_tile[13].u_tile/q_i_110__7/O
+                         net (fo=1, routed)           0.154   578.493    u_core/u_mem/g_tile[12].u_tile/q_i_70__11_1
+    SLICE_X67Y41         LUT5 (Prop_lut5_I2_O)        0.124   578.617 f  u_core/u_mem/g_tile[12].u_tile/q_i_86__5/O
+                         net (fo=1, routed)           0.403   579.020    u_core/u_mem/g_tile[12].u_tile/q_i_86__5_n_0
+    SLICE_X67Y40         LUT5 (Prop_lut5_I4_O)        0.124   579.144 f  u_core/u_mem/g_tile[12].u_tile/q_i_70__11/O
+                         net (fo=18, routed)          0.824   579.968    u_core/u_mem/g_tile[12].u_tile/o_s[12]_41[3]
+    SLICE_X75Y30         LUT6 (Prop_lut6_I0_O)        0.124   580.092 f  u_core/u_mem/g_tile[12].u_tile/q_i_121__1/O
+                         net (fo=1, routed)           0.411   580.503    u_core/u_mem/g_tile[8].u_tile/q_i_80__6_2
+    SLICE_X77Y30         LUT6 (Prop_lut6_I3_O)        0.124   580.627 f  u_core/u_mem/g_tile[8].u_tile/q_i_96__4/O
+                         net (fo=1, routed)           0.154   580.781    u_core/u_mem/g_tile[8].u_tile/q_i_96__4_n_0
+    SLICE_X77Y30         LUT5 (Prop_lut5_I4_O)        0.124   580.905 f  u_core/u_mem/g_tile[8].u_tile/q_i_80__6/O
+                         net (fo=18, routed)          0.916   581.821    u_core/u_mem/g_tile[8].u_tile/o_s[8]_17[3]
+    SLICE_X83Y23         LUT6 (Prop_lut6_I0_O)        0.124   581.945 f  u_core/u_mem/g_tile[8].u_tile/q_i_115__2/O
+                         net (fo=1, routed)           0.154   582.099    u_core/u_mem/g_tile[4].u_tile/q_i_48__12_2
+    SLICE_X83Y23         LUT6 (Prop_lut6_I3_O)        0.124   582.223 f  u_core/u_mem/g_tile[4].u_tile/q_i_82/O
+                         net (fo=1, routed)           0.360   582.583    u_core/u_mem/g_tile[4].u_tile/q_i_82_n_0
+    SLICE_X82Y23         LUT5 (Prop_lut5_I4_O)        0.124   582.707 f  u_core/u_mem/g_tile[4].u_tile/q_i_48__12/O
+                         net (fo=22, routed)          1.096   583.803    u_core/u_mem/g_tile[4].u_tile/o_e[4]_4[0]
+    SLICE_X59Y20         LUT6 (Prop_lut6_I5_O)        0.124   583.927 f  u_core/u_mem/g_tile[4].u_tile/q_i_92__3/O
+                         net (fo=1, routed)           0.313   584.240    u_core/u_mem/g_tile[5].u_tile/q_i_153__2_0
+    SLICE_X58Y21         LUT5 (Prop_lut5_I0_O)        0.124   584.364 f  u_core/u_mem/g_tile[5].u_tile/q_i_52__12/O
+                         net (fo=22, routed)          1.286   585.650    u_core/u_mem/g_tile[5].u_tile/o_n[5]_9[2]
+    SLICE_X58Y38         LUT6 (Prop_lut6_I1_O)        0.124   585.774 r  u_core/u_mem/g_tile[5].u_tile/q_i_68__5/O
+                         net (fo=1, routed)           0.000   585.774    u_core/u_mem/g_tile[9].u_tile/q_i_15__8_1
+    SLICE_X58Y38         MUXF7 (Prop_muxf7_I1_O)      0.214   585.988 r  u_core/u_mem/g_tile[9].u_tile/q_reg_i_36__1/O
+                         net (fo=1, routed)           0.596   586.584    u_core/u_mem/g_tile[9].u_tile/q_reg_i_36__1_n_0
+    SLICE_X59Y38         LUT6 (Prop_lut6_I3_O)        0.297   586.881 r  u_core/u_mem/g_tile[9].u_tile/q_i_15__8/O
+                         net (fo=1, routed)           0.492   587.373    u_core/u_mem/g_tile[9].u_tile/q_i_15__8_n_0
+    SLICE_X58Y36         LUT6 (Prop_lut6_I3_O)        0.124   587.497 r  u_core/u_mem/g_tile[9].u_tile/q_i_7__14/O
+                         net (fo=2, routed)           0.457   587.954    u_core/u_mem/g_tile[9].u_tile/lut_o6
+    SLICE_X60Y35         LUT5 (Prop_lut5_I4_O)        0.124   588.078 f  u_core/u_mem/g_tile[9].u_tile/q_i_3__7/O
+                         net (fo=2, routed)           0.556   588.634    u_core/u_mem/g_tile[9].u_tile/q_i_3__7_n_0
+    SLICE_X61Y37         LUT3 (Prop_lut3_I1_O)        0.124   588.758 f  u_core/u_mem/g_tile[9].u_tile/user_dr[13]_i_2/O
+                         net (fo=24, routed)          0.561   589.319    u_core/u_mem/g_tile[9].u_tile/cfg_reg[64]_0
+    SLICE_X59Y35         LUT6 (Prop_lut6_I2_O)        0.124   589.443 r  u_core/u_mem/g_tile[9].u_tile/q_i_61__7/O
+                         net (fo=1, routed)           0.526   589.969    u_core/u_mem/g_tile[9].u_tile/q_i_61__7_n_0
+    SLICE_X58Y35         LUT6 (Prop_lut6_I5_O)        0.124   590.093 r  u_core/u_mem/g_tile[9].u_tile/q_i_24__6/O
+                         net (fo=7, routed)           0.446   590.539    u_core/u_mem/g_tile[9].u_tile/q_i_24__6_n_0
+    SLICE_X56Y36         LUT6 (Prop_lut6_I4_O)        0.124   590.663 r  u_core/u_mem/g_tile[9].u_tile/q_i_14__8/O
+                         net (fo=1, routed)           0.161   590.824    u_core/u_mem/g_tile[9].u_tile/q_i_14__8_n_0
+    SLICE_X56Y36         LUT6 (Prop_lut6_I5_O)        0.124   590.948 r  u_core/u_mem/g_tile[9].u_tile/q_i_6__9/O
+                         net (fo=25, routed)          0.665   591.613    u_core/u_mem/g_tile[9].u_tile/q_i_6__9_n_0
+    SLICE_X59Y33         LUT4 (Prop_lut4_I3_O)        0.124   591.737 r  u_core/u_mem/g_tile[9].u_tile/q_i_65__6/O
+                         net (fo=1, routed)           0.263   592.000    u_core/u_mem/g_tile[9].u_tile/q_i_65__6_n_0
+    SLICE_X59Y33         LUT6 (Prop_lut6_I5_O)        0.124   592.124 r  u_core/u_mem/g_tile[9].u_tile/q_i_46__6/O
+                         net (fo=1, routed)           0.361   592.485    u_core/u_mem/g_tile[9].u_tile/q_i_46__6_n_0
+    SLICE_X58Y33         LUT5 (Prop_lut5_I4_O)        0.124   592.609 r  u_core/u_mem/g_tile[9].u_tile/q_i_18__13/O
+                         net (fo=17, routed)          0.479   593.088    u_core/u_mem/g_tile[9].u_tile/q_i_18__13_n_0
+    SLICE_X60Y35         LUT3 (Prop_lut3_I2_O)        0.124   593.212 r  u_core/u_mem/g_tile[9].u_tile/q_i_9__9/O
+                         net (fo=1, routed)           0.558   593.770    u_core/u_mem/g_tile[5].u_tile/q_i_3__11
+    SLICE_X60Y33         LUT6 (Prop_lut6_I5_O)        0.124   593.894 r  u_core/u_mem/g_tile[5].u_tile/q_i_5__8/O
+                         net (fo=1, routed)           0.617   594.510    u_core/u_mem/g_tile[13].u_tile/q_reg
+    SLICE_X60Y40         LUT6 (Prop_lut6_I0_O)        0.124   594.634 r  u_core/u_mem/g_tile[13].u_tile/q_i_3__11/O
+                         net (fo=2, routed)           0.476   595.111    u_core/u_mem/g_tile[13].u_tile/u_fabric/g_row[3].g_col[1].u_tile/u_clb/comb__1
+    SLICE_X59Y40         LUT3 (Prop_lut3_I1_O)        0.124   595.235 r  u_core/u_mem/g_tile[13].u_tile/user_dr[17]_i_2/O
+                         net (fo=20, routed)          0.800   596.035    u_core/u_mem/g_tile[13].u_tile/cfg_reg[64]_0
+    SLICE_X59Y44         LUT5 (Prop_lut5_I2_O)        0.124   596.159 r  u_core/u_mem/g_tile[13].u_tile/q_i_93__9/O
+                         net (fo=1, routed)           0.263   596.422    u_core/u_mem/g_tile[13].u_tile/q_i_93__9_n_0
+    SLICE_X59Y44         LUT5 (Prop_lut5_I4_O)        0.124   596.546 r  u_core/u_mem/g_tile[13].u_tile/q_i_72__6/O
+                         net (fo=1, routed)           0.462   597.008    u_core/u_mem/g_tile[13].u_tile/q_i_72__6_n_0
+    SLICE_X60Y44         LUT5 (Prop_lut5_I4_O)        0.124   597.132 r  u_core/u_mem/g_tile[13].u_tile/q_i_51__13/O
+                         net (fo=16, routed)          0.691   597.822    u_core/u_mem/g_tile[13].u_tile/u_fabric/g_row[3].g_col[1].u_tile/lut_i[0]
+    SLICE_X59Y50         LUT6 (Prop_lut6_I4_O)        0.124   597.946 f  u_core/u_mem/g_tile[13].u_tile/q_i_33__9/O
+                         net (fo=1, routed)           0.486   598.432    u_core/u_mem/g_tile[13].u_tile/u_fabric/g_row[3].g_col[1].u_tile/s1_4__0
+    SLICE_X59Y48         LUT6 (Prop_lut6_I5_O)        0.124   598.556 f  u_core/u_mem/g_tile[13].u_tile/q_i_14__10/O
+                         net (fo=1, routed)           0.439   598.995    u_core/u_mem/g_tile[13].u_tile/u_fabric/g_row[3].g_col[1].u_tile/s3_1__0
+    SLICE_X61Y48         LUT5 (Prop_lut5_I4_O)        0.124   599.119 f  u_core/u_mem/g_tile[13].u_tile/q_i_6__12/O
+                         net (fo=20, routed)          0.639   599.759    u_core/u_mem/g_tile[13].u_tile/q_i_6__12_n_0
+    SLICE_X63Y43         LUT5 (Prop_lut5_I3_O)        0.124   599.883 f  u_core/u_mem/g_tile[13].u_tile/q_i_182__0/O
+                         net (fo=1, routed)           0.361   600.243    u_core/u_mem/g_tile[13].u_tile/q_i_182__0_n_0
+    SLICE_X62Y43         LUT5 (Prop_lut5_I4_O)        0.124   600.367 f  u_core/u_mem/g_tile[13].u_tile/q_i_119__6/O
+                         net (fo=1, routed)           0.296   600.663    u_core/u_mem/g_tile[13].u_tile/q_i_119__6_n_0
+    SLICE_X63Y43         LUT5 (Prop_lut5_I4_O)        0.124   600.787 f  u_core/u_mem/g_tile[13].u_tile/q_i_81__11/O
+                         net (fo=22, routed)          0.943   601.730    u_core/u_mem/g_tile[13].u_tile/o_s[13]_43[0]
+    SLICE_X62Y33         LUT6 (Prop_lut6_I5_O)        0.124   601.854 f  u_core/u_mem/g_tile[13].u_tile/q_i_155__1/O
+                         net (fo=1, routed)           0.286   602.141    u_core/u_mem/g_tile[9].u_tile/q_i_86__11_1
+    SLICE_X62Y33         LUT6 (Prop_lut6_I3_O)        0.124   602.265 f  u_core/u_mem/g_tile[9].u_tile/q_i_124__4/O
+                         net (fo=1, routed)           0.161   602.426    u_core/u_mem/g_tile[9].u_tile/q_i_124__4_n_0
+    SLICE_X62Y33         LUT5 (Prop_lut5_I4_O)        0.124   602.550 f  u_core/u_mem/g_tile[9].u_tile/q_i_86__11/O
+                         net (fo=22, routed)          0.959   603.509    u_core/u_mem/g_tile[9].u_tile/o_s[9]_21[0]
+    SLICE_X59Y22         LUT6 (Prop_lut6_I5_O)        0.124   603.633 f  u_core/u_mem/g_tile[9].u_tile/q_i_95__3/O
+                         net (fo=1, routed)           0.517   604.150    u_core/u_mem/g_tile[5].u_tile/q_i_27__3_0
+    SLICE_X58Y22         LUT6 (Prop_lut6_I0_O)        0.124   604.274 r  u_core/u_mem/g_tile[5].u_tile/q_i_53__4/O
+                         net (fo=1, routed)           0.162   604.436    u_core/u_mem/g_tile[5].u_tile/q_i_53__4_n_0
+    SLICE_X58Y22         LUT6 (Prop_lut6_I1_O)        0.124   604.560 f  u_core/u_mem/g_tile[5].u_tile/q_i_27__3/O
+                         net (fo=1, routed)           0.171   604.731    u_core/u_mem/g_tile[5].u_tile/q_i_27__3_n_0
+    SLICE_X58Y22         LUT5 (Prop_lut5_I4_O)        0.124   604.855 r  u_core/u_mem/g_tile[5].u_tile/q_i_12__11/O
+                         net (fo=2, routed)           0.734   605.588    u_core/u_mem/g_tile[5].u_tile/q_i_12__11_n_0
+    SLICE_X59Y28         LUT5 (Prop_lut5_I3_O)        0.124   605.712 r  u_core/u_mem/g_tile[5].u_tile/q_i_7__2/O
+                         net (fo=3, routed)           0.456   606.168    u_core/u_mem/g_tile[5].u_tile/q_i_7__2_n_0
+    SLICE_X62Y29         LUT5 (Prop_lut5_I4_O)        0.124   606.292 r  u_core/u_mem/g_tile[5].u_tile/q_i_3__3/O
+                         net (fo=2, routed)           0.463   606.755    u_core/u_mem/g_tile[5].u_tile/q_i_3__3_n_0
+    SLICE_X63Y29         LUT3 (Prop_lut3_I1_O)        0.124   606.879 r  u_core/u_mem/g_tile[5].u_tile/user_dr[9]_i_2/O
+                         net (fo=24, routed)          0.642   607.521    u_core/u_mem/g_tile[5].u_tile/cfg_reg[64]_0
+    SLICE_X63Y23         LUT6 (Prop_lut6_I4_O)        0.124   607.645 r  u_core/u_mem/g_tile[5].u_tile/q_i_74__2/O
+                         net (fo=1, routed)           0.151   607.796    u_core/u_mem/g_tile[5].u_tile/q_i_74__2_n_0
+    SLICE_X63Y23         LUT6 (Prop_lut6_I5_O)        0.124   607.920 r  u_core/u_mem/g_tile[5].u_tile/q_i_44__4/O
+                         net (fo=16, routed)          0.726   608.647    u_core/u_mem/g_tile[5].u_tile/q_i_44__4_n_0
+    SLICE_X56Y30         LUT6 (Prop_lut6_I2_O)        0.124   608.771 f  u_core/u_mem/g_tile[5].u_tile/q_i_31__4/O
+                         net (fo=1, routed)           0.291   609.062    u_core/u_mem/g_tile[5].u_tile/q_i_31__4_n_0
+    SLICE_X57Y30         LUT6 (Prop_lut6_I4_O)        0.124   609.186 r  u_core/u_mem/g_tile[5].u_tile/q_i_13__3/O
+                         net (fo=1, routed)           0.444   609.629    u_core/u_mem/g_tile[5].u_tile/q_i_13__3_n_0
+    SLICE_X59Y30         LUT5 (Prop_lut5_I4_O)        0.124   609.753 r  u_core/u_mem/g_tile[5].u_tile/q_i_6__6/O
+                         net (fo=26, routed)          1.055   610.808    u_core/u_mem/g_tile[5].u_tile/q_i_6__6_n_0
+    SLICE_X73Y21         LUT4 (Prop_lut4_I1_O)        0.124   610.932 f  u_core/u_mem/g_tile[5].u_tile/q_i_150__2/O
+                         net (fo=1, routed)           0.149   611.081    u_core/u_mem/g_tile[5].u_tile/q_i_150__2_n_0
+    SLICE_X73Y21         LUT6 (Prop_lut6_I5_O)        0.124   611.205 f  u_core/u_mem/g_tile[5].u_tile/q_i_110__1/O
+                         net (fo=1, routed)           0.433   611.638    u_core/u_mem/g_tile[5].u_tile/q_i_110__1_n_0
+    SLICE_X73Y21         LUT5 (Prop_lut5_I4_O)        0.124   611.762 f  u_core/u_mem/g_tile[5].u_tile/q_i_87__8/O
+                         net (fo=18, routed)          0.818   612.580    u_core/u_mem/g_tile[5].u_tile/o_w[5]_6[0]
+    SLICE_X84Y19         LUT6 (Prop_lut6_I5_O)        0.124   612.704 f  u_core/u_mem/g_tile[5].u_tile/q_i_99__0/O
+                         net (fo=1, routed)           0.300   613.004    u_core/u_mem/g_tile[4].u_tile/q_i_62__13_0
+    SLICE_X84Y20         LUT6 (Prop_lut6_I1_O)        0.124   613.128 f  u_core/u_mem/g_tile[4].u_tile/q_i_80/O
+                         net (fo=1, routed)           0.579   613.707    u_core/u_mem/g_tile[4].u_tile/q_i_80_n_0
+    SLICE_X85Y20         LUT5 (Prop_lut5_I4_O)        0.124   613.831 f  u_core/u_mem/g_tile[4].u_tile/q_i_62__13/O
+                         net (fo=14, routed)          0.958   614.789    u_core/u_mem/g_tile[4].u_tile/o_s[4]_3[1]
+    SLICE_X94Y23         LUT6 (Prop_lut6_I3_O)        0.124   614.913 f  u_core/u_mem/g_tile[4].u_tile/q_i_67/O
+                         net (fo=1, routed)           0.282   615.195    u_core/u_mem/g_tile[0].u_tile/q_i_21_0
+    SLICE_X94Y23         LUT6 (Prop_lut6_I0_O)        0.124   615.319 r  u_core/u_mem/g_tile[0].u_tile/q_i_52/O
+                         net (fo=1, routed)           0.468   615.788    u_core/u_mem/g_tile[0].u_tile/q_i_52_n_0
+    SLICE_X97Y25         LUT6 (Prop_lut6_I5_O)        0.124   615.912 r  u_core/u_mem/g_tile[0].u_tile/q_i_21/O
+                         net (fo=5, routed)           0.430   616.342    u_core/u_mem/g_tile[0].u_tile/q_i_21_n_0
+    SLICE_X95Y25         LUT3 (Prop_lut3_I0_O)        0.124   616.466 r  u_core/u_mem/g_tile[0].u_tile/q_i_11/O
+                         net (fo=1, routed)           0.618   617.083    u_core/u_mem/g_tile[0].u_tile/q_i_11_n_0
+    SLICE_X94Y24         LUT5 (Prop_lut5_I0_O)        0.124   617.207 r  u_core/u_mem/g_tile[0].u_tile/q_i_8__8/O
+                         net (fo=17, routed)          0.795   618.002    u_core/u_mem/g_tile[0].u_tile/cfg_reg[88]_0
+    SLICE_X91Y19         LUT6 (Prop_lut6_I2_O)        0.124   618.126 r  u_core/u_mem/g_tile[0].u_tile/q_i_94/O
+                         net (fo=1, routed)           0.000   618.126    u_core/u_mem/g_tile[0].u_tile/q_i_94_n_0
+    SLICE_X91Y19         MUXF7 (Prop_muxf7_I0_O)      0.212   618.338 r  u_core/u_mem/g_tile[0].u_tile/q_reg_i_75/O
+                         net (fo=1, routed)           0.580   618.918    u_core/u_mem/g_tile[0].u_tile/q_reg_i_75_n_0
+    SLICE_X91Y19         LUT5 (Prop_lut5_I4_O)        0.299   619.217 r  u_core/u_mem/g_tile[0].u_tile/q_i_47__10/O
+                         net (fo=18, routed)          0.818   620.035    u_core/u_mem/g_tile[0].u_tile/o_e[0]_1[0]
+    SLICE_X81Y14         LUT6 (Prop_lut6_I5_O)        0.124   620.159 r  u_core/u_mem/g_tile[0].u_tile/q_i_78/O
+                         net (fo=1, routed)           0.434   620.594    u_core/u_mem/g_tile[1].u_tile/led_OBUF[0]_inst_i_30
+    SLICE_X81Y13         LUT5 (Prop_lut5_I1_O)        0.124   620.718 r  u_core/u_mem/g_tile[1].u_tile/q_i_43__11/O
+                         net (fo=18, routed)          0.750   621.467    u_core/u_mem/g_tile[1].u_tile/o_e[1]_33[0]
+    SLICE_X78Y17         LUT6 (Prop_lut6_I5_O)        0.124   621.591 r  u_core/u_mem/g_tile[1].u_tile/q_i_98__0/O
+                         net (fo=1, routed)           0.433   622.025    u_core/u_mem/g_tile[2].u_tile/q_i_121_1
+    SLICE_X78Y17         LUT5 (Prop_lut5_I1_O)        0.124   622.149 r  u_core/u_mem/g_tile[2].u_tile/q_i_77__10/O
+                         net (fo=18, routed)          0.630   622.779    u_core/u_mem/g_tile[2].u_tile/o_w[2]_37[2]
+    SLICE_X78Y13         LUT6 (Prop_lut6_I1_O)        0.124   622.903 r  u_core/u_mem/g_tile[2].u_tile/q_i_97/O
+                         net (fo=1, routed)           0.162   623.065    u_core/u_mem/g_tile[1].u_tile/q_reg_i_40_1
+    SLICE_X78Y13         LUT6 (Prop_lut6_I5_O)        0.124   623.189 r  u_core/u_mem/g_tile[1].u_tile/q_i_68__1/O
+                         net (fo=1, routed)           0.000   623.189    u_core/u_mem/g_tile[1].u_tile/q_i_68__1_n_0
+    SLICE_X78Y13         MUXF7 (Prop_muxf7_I1_O)      0.217   623.406 r  u_core/u_mem/g_tile[1].u_tile/q_reg_i_40/O
+                         net (fo=1, routed)           0.418   623.824    u_core/u_mem/g_tile[1].u_tile/q_reg_i_40_n_0
+    SLICE_X75Y13         LUT5 (Prop_lut5_I4_O)        0.299   624.123 r  u_core/u_mem/g_tile[1].u_tile/q_i_17__12/O
+                         net (fo=25, routed)          0.571   624.694    u_core/u_mem/g_tile[1].u_tile/u_fabric/g_row[0].g_col[1].u_tile/lut_i[0]
+    SLICE_X69Y13         LUT6 (Prop_lut6_I4_O)        0.124   624.818 r  u_core/u_mem/g_tile[1].u_tile/q_i_57__0/O
+                         net (fo=1, routed)           0.430   625.248    u_core/u_mem/g_tile[1].u_tile/u_fabric/g_row[0].g_col[1].u_tile/s1_4__0
+    SLICE_X71Y14         LUT6 (Prop_lut6_I5_O)        0.124   625.372 r  u_core/u_mem/g_tile[1].u_tile/q_i_19__0/O
+                         net (fo=1, routed)           0.462   625.835    u_core/u_mem/g_tile[1].u_tile/u_fabric/g_row[0].g_col[1].u_tile/s3_1__0
+    SLICE_X71Y13         LUT5 (Prop_lut5_I4_O)        0.124   625.959 r  u_core/u_mem/g_tile[1].u_tile/q_i_7__11/O
+                         net (fo=21, routed)          1.018   626.977    u_core/u_mem/g_tile[1].u_tile/q_i_7__11_n_0
+    SLICE_X82Y12         LUT6 (Prop_lut6_I2_O)        0.124   627.101 r  u_core/u_mem/g_tile[1].u_tile/q_i_97__0/O
+                         net (fo=1, routed)           0.000   627.101    u_core/u_mem/g_tile[1].u_tile/q_i_97__0_n_0
+    SLICE_X82Y12         MUXF7 (Prop_muxf7_I0_O)      0.209   627.310 r  u_core/u_mem/g_tile[1].u_tile/q_reg_i_77/O
+                         net (fo=1, routed)           0.306   627.616    u_core/u_mem/g_tile[1].u_tile/q_reg_i_77_n_0
+    SLICE_X81Y12         LUT5 (Prop_lut5_I4_O)        0.297   627.913 r  u_core/u_mem/g_tile[1].u_tile/q_i_42__11/O
+                         net (fo=18, routed)          0.519   628.431    u_core/u_mem/g_tile[1].u_tile/o_e[1]_33[1]
+    SLICE_X77Y17         LUT6 (Prop_lut6_I3_O)        0.124   628.555 r  u_core/u_mem/g_tile[1].u_tile/q_i_96__2/O
+                         net (fo=1, routed)           0.416   628.971    u_core/u_mem/g_tile[2].u_tile/q_i_121_2
+    SLICE_X76Y18         LUT5 (Prop_lut5_I1_O)        0.124   629.095 r  u_core/u_mem/g_tile[2].u_tile/q_i_76__9/O
+                         net (fo=18, routed)          0.714   629.809    u_core/u_mem/g_tile[2].u_tile/o_w[2]_37[3]
+    SLICE_X78Y11         LUT6 (Prop_lut6_I0_O)        0.124   629.933 r  u_core/u_mem/g_tile[2].u_tile/q_i_86/O
+                         net (fo=1, routed)           0.159   630.092    u_core/u_mem/g_tile[1].u_tile/q_i_24__0_1
+    SLICE_X78Y11         LUT6 (Prop_lut6_I5_O)        0.124   630.216 r  u_core/u_mem/g_tile[1].u_tile/q_i_62/O
+                         net (fo=1, routed)           0.303   630.519    u_core/u_mem/g_tile[1].u_tile/q_i_62_n_0
+    SLICE_X78Y12         LUT6 (Prop_lut6_I3_O)        0.124   630.643 r  u_core/u_mem/g_tile[1].u_tile/q_i_24__0/O
+                         net (fo=12, routed)          0.747   631.391    u_core/u_mem/g_tile[1].u_tile/u_fabric/g_row[0].g_col[1].u_tile/lut_i[1]
+    SLICE_X73Y13         LUT6 (Prop_lut6_I4_O)        0.124   631.515 r  u_core/u_mem/g_tile[1].u_tile/q_i_9__0/O
+                         net (fo=1, routed)           0.263   631.778    u_core/u_mem/g_tile[1].u_tile/u_fabric/g_row[0].g_col[1].u_tile/s2_6
+    SLICE_X73Y13         LUT6 (Prop_lut6_I1_O)        0.124   631.902 r  u_core/u_mem/g_tile[1].u_tile/q_i_5__1/O
+                         net (fo=2, routed)           0.439   632.341    u_core/u_mem/g_tile[1].u_tile/u_fabric/g_row[0].g_col[1].u_tile/s4_1
+    SLICE_X73Y15         LUT6 (Prop_lut6_I0_O)        0.124   632.465 r  u_core/u_mem/g_tile[1].u_tile/q_i_3__14/O
+                         net (fo=2, routed)           0.633   633.098    u_core/u_mem/g_tile[1].u_tile/u_fabric/g_row[0].g_col[1].u_tile/u_clb/comb__1
+    SLICE_X79Y20         LUT3 (Prop_lut3_I1_O)        0.124   633.222 r  u_core/u_mem/g_tile[1].u_tile/user_dr[5]_i_2/O
+                         net (fo=20, routed)          1.016   634.238    u_core/u_mem/g_tile[1].u_tile/cfg_reg[64]_0
+    SLICE_X84Y13         LUT6 (Prop_lut6_I3_O)        0.124   634.362 r  u_core/u_mem/g_tile[1].u_tile/q_i_96__1/O
+                         net (fo=1, routed)           0.000   634.362    u_core/u_mem/g_tile[1].u_tile/q_i_96__1_n_0
+    SLICE_X84Y13         MUXF7 (Prop_muxf7_I0_O)      0.212   634.574 r  u_core/u_mem/g_tile[1].u_tile/q_reg_i_78/O
+                         net (fo=1, routed)           0.436   635.010    u_core/u_mem/g_tile[1].u_tile/q_reg_i_78_n_0
+    SLICE_X84Y13         LUT5 (Prop_lut5_I4_O)        0.299   635.309 r  u_core/u_mem/g_tile[1].u_tile/q_i_61__14/O
+                         net (fo=14, routed)          0.921   636.230    u_core/u_mem/g_tile[1].u_tile/o_w[1]_34[2]
+    SLICE_X95Y19         LUT6 (Prop_lut6_I1_O)        0.124   636.354 r  u_core/u_mem/g_tile[1].u_tile/q_i_166/O
+                         net (fo=1, routed)           0.464   636.819    u_core/u_mem/g_tile[0].u_tile/q_reg_i_118_1
+    SLICE_X94Y19         LUT6 (Prop_lut6_I5_O)        0.124   636.943 r  u_core/u_mem/g_tile[0].u_tile/q_i_158/O
+                         net (fo=1, routed)           0.000   636.943    u_core/u_mem/g_tile[0].u_tile/q_i_158_n_0
+    SLICE_X94Y19         MUXF7 (Prop_muxf7_I1_O)      0.214   637.157 r  u_core/u_mem/g_tile[0].u_tile/q_reg_i_118/O
+                         net (fo=1, routed)           0.600   637.757    u_core/u_mem/g_tile[0].u_tile/q_reg_i_118_n_0
+    SLICE_X94Y19         LUT5 (Prop_lut5_I4_O)        0.297   638.054 r  u_core/u_mem/g_tile[0].u_tile/q_i_91__10/O
+                         net (fo=18, routed)          0.922   638.976    u_core/u_mem/g_tile[0].u_tile/o_n[0]_2[0]
+    SLICE_X83Y21         LUT6 (Prop_lut6_I5_O)        0.124   639.100 r  u_core/u_mem/g_tile[0].u_tile/q_i_109__0/O
+                         net (fo=1, routed)           0.460   639.560    u_core/u_mem/g_tile[4].u_tile/q_i_47__11_0
+    SLICE_X83Y20         LUT6 (Prop_lut6_I0_O)        0.124   639.684 r  u_core/u_mem/g_tile[4].u_tile/q_i_80__0/O
+                         net (fo=1, routed)           0.361   640.044    u_core/u_mem/g_tile[4].u_tile/q_i_80__0_n_0
+    SLICE_X82Y20         LUT5 (Prop_lut5_I4_O)        0.124   640.169 r  u_core/u_mem/g_tile[4].u_tile/q_i_47__11/O
+                         net (fo=22, routed)          1.116   641.284    u_core/u_mem/g_tile[4].u_tile/o_e[4]_4[1]
+    SLICE_X65Y21         LUT6 (Prop_lut6_I3_O)        0.124   641.408 r  u_core/u_mem/g_tile[4].u_tile/q_i_90__2/O
+                         net (fo=1, routed)           0.264   641.673    u_core/u_mem/g_tile[5].u_tile/q_i_153__2
+    SLICE_X65Y21         LUT5 (Prop_lut5_I0_O)        0.124   641.797 r  u_core/u_mem/g_tile[5].u_tile/q_i_51__11/O
+                         net (fo=22, routed)          1.044   642.841    u_core/u_mem/g_tile[5].u_tile/o_n[5]_9[3]
+    SLICE_X62Y39         LUT6 (Prop_lut6_I0_O)        0.124   642.965 r  u_core/u_mem/g_tile[5].u_tile/q_i_146__5/O
+                         net (fo=1, routed)           0.283   643.248    u_core/u_mem/g_tile[9].u_tile/q_i_80__7_0
+    SLICE_X61Y39         LUT6 (Prop_lut6_I0_O)        0.124   643.372 r  u_core/u_mem/g_tile[9].u_tile/q_i_113__5/O
+                         net (fo=1, routed)           0.351   643.723    u_core/u_mem/g_tile[9].u_tile/q_i_113__5_n_0
+    SLICE_X60Y39         LUT5 (Prop_lut5_I4_O)        0.124   643.847 r  u_core/u_mem/g_tile[9].u_tile/q_i_80__7/O
+                         net (fo=18, routed)          0.814   644.661    u_core/u_mem/g_tile[9].u_tile/o_n[9]_23[0]
+    SLICE_X67Y46         LUT6 (Prop_lut6_I5_O)        0.124   644.785 r  u_core/u_mem/g_tile[9].u_tile/q_i_99__6/O
+                         net (fo=1, routed)           0.154   644.939    u_core/u_mem/g_tile[13].u_tile/q_i_31__13_0
+    SLICE_X67Y46         LUT5 (Prop_lut5_I0_O)        0.124   645.063 r  u_core/u_mem/g_tile[13].u_tile/q_i_71__7/O
+                         net (fo=1, routed)           0.291   645.354    u_core/u_mem/g_tile[13].u_tile/q_i_71__7_n_0
+    SLICE_X67Y46         LUT5 (Prop_lut5_I4_O)        0.124   645.478 r  u_core/u_mem/g_tile[13].u_tile/q_i_31__13/O
+                         net (fo=18, routed)          0.667   646.145    u_core/u_mem/g_tile[13].u_tile/o_e[13]_42[3]
+    SLICE_X79Y44         LUT6 (Prop_lut6_I0_O)        0.124   646.269 r  u_core/u_mem/g_tile[13].u_tile/q_i_97__7/O
+                         net (fo=1, routed)           0.149   646.418    u_core/u_mem/g_tile[14].u_tile/q_i_105__8_1
+    SLICE_X79Y44         LUT6 (Prop_lut6_I1_O)        0.124   646.542 r  u_core/u_mem/g_tile[14].u_tile/q_i_74__11/O
+                         net (fo=18, routed)          0.847   647.389    u_core/u_mem/g_tile[14].u_tile/o_w[14]_47[2]
+    SLICE_X61Y42         LUT6 (Prop_lut6_I1_O)        0.124   647.513 r  u_core/u_mem/g_tile[14].u_tile/q_i_178__0/O
+                         net (fo=1, routed)           0.149   647.662    u_core/u_mem/g_tile[13].u_tile/q_i_80__11_0
+    SLICE_X61Y42         LUT5 (Prop_lut5_I2_O)        0.124   647.786 r  u_core/u_mem/g_tile[13].u_tile/q_i_117__6/O
+                         net (fo=1, routed)           0.351   648.137    u_core/u_mem/g_tile[13].u_tile/q_i_117__6_n_0
+    SLICE_X60Y42         LUT5 (Prop_lut5_I4_O)        0.124   648.261 r  u_core/u_mem/g_tile[13].u_tile/q_i_80__11/O
+                         net (fo=22, routed)          0.922   649.183    u_core/u_mem/g_tile[13].u_tile/o_s[13]_43[1]
+    SLICE_X60Y32         LUT6 (Prop_lut6_I3_O)        0.124   649.307 r  u_core/u_mem/g_tile[13].u_tile/q_i_151__4/O
+                         net (fo=1, routed)           0.619   649.926    u_core/u_mem/g_tile[9].u_tile/q_i_85__10_1
+    SLICE_X61Y32         LUT6 (Prop_lut6_I3_O)        0.124   650.050 r  u_core/u_mem/g_tile[9].u_tile/q_i_122__3/O
+                         net (fo=1, routed)           0.433   650.483    u_core/u_mem/g_tile[9].u_tile/q_i_122__3_n_0
+    SLICE_X61Y32         LUT5 (Prop_lut5_I4_O)        0.124   650.607 r  u_core/u_mem/g_tile[9].u_tile/q_i_85__10/O
+                         net (fo=22, routed)          0.995   651.603    u_core/u_mem/g_tile[9].u_tile/o_s[9]_21[1]
+    SLICE_X59Y21         LUT6 (Prop_lut6_I3_O)        0.124   651.727 r  u_core/u_mem/g_tile[9].u_tile/q_i_150__3/O
+                         net (fo=1, routed)           0.433   652.159    u_core/u_mem/g_tile[5].u_tile/q_i_54__11_2
+    SLICE_X59Y21         LUT6 (Prop_lut6_I3_O)        0.124   652.284 r  u_core/u_mem/g_tile[5].u_tile/q_i_97__2/O
+                         net (fo=1, routed)           0.403   652.687    u_core/u_mem/g_tile[5].u_tile/q_i_97__2_n_0
+    SLICE_X59Y21         LUT5 (Prop_lut5_I4_O)        0.124   652.811 r  u_core/u_mem/g_tile[5].u_tile/q_i_54__11/O
+                         net (fo=22, routed)          0.773   653.584    u_core/u_mem/g_tile[5].u_tile/o_n[5]_9[0]
+    SLICE_X57Y32         LUT6 (Prop_lut6_I5_O)        0.124   653.708 r  u_core/u_mem/g_tile[5].u_tile/q_i_145__5/O
+                         net (fo=1, routed)           0.149   653.857    u_core/u_mem/g_tile[9].u_tile/q_i_84__10_0
+    SLICE_X57Y32         LUT6 (Prop_lut6_I0_O)        0.124   653.981 r  u_core/u_mem/g_tile[9].u_tile/q_i_120__4/O
+                         net (fo=1, routed)           0.418   654.400    u_core/u_mem/g_tile[9].u_tile/q_i_120__4_n_0
+    SLICE_X58Y32         LUT5 (Prop_lut5_I4_O)        0.124   654.524 r  u_core/u_mem/g_tile[9].u_tile/q_i_84__10/O
+                         net (fo=22, routed)          1.047   655.570    u_core/u_mem/g_tile[9].u_tile/o_s[9]_21[2]
+    SLICE_X57Y21         LUT6 (Prop_lut6_I1_O)        0.124   655.695 r  u_core/u_mem/g_tile[9].u_tile/q_i_146__2/O
+                         net (fo=1, routed)           0.420   656.114    u_core/u_mem/g_tile[5].u_tile/q_i_53__12_2
+    SLICE_X56Y21         LUT6 (Prop_lut6_I3_O)        0.124   656.238 r  u_core/u_mem/g_tile[5].u_tile/q_i_95__2/O
+                         net (fo=1, routed)           0.433   656.671    u_core/u_mem/g_tile[5].u_tile/q_i_95__2_n_0
+    SLICE_X56Y21         LUT5 (Prop_lut5_I4_O)        0.124   656.795 r  u_core/u_mem/g_tile[5].u_tile/q_i_53__12/O
+                         net (fo=22, routed)          1.142   657.937    u_core/u_mem/g_tile[5].u_tile/o_n[5]_9[1]
+    SLICE_X56Y39         LUT6 (Prop_lut6_I3_O)        0.124   658.061 r  u_core/u_mem/g_tile[5].u_tile/q_i_142__5/O
+                         net (fo=1, routed)           0.338   658.399    u_core/u_mem/g_tile[9].u_tile/q_i_79__5_0
+    SLICE_X57Y39         LUT6 (Prop_lut6_I0_O)        0.124   658.523 r  u_core/u_mem/g_tile[9].u_tile/q_i_111__5/O
+                         net (fo=1, routed)           0.433   658.956    u_core/u_mem/g_tile[9].u_tile/q_i_111__5_n_0
+    SLICE_X57Y39         LUT5 (Prop_lut5_I4_O)        0.124   659.080 r  u_core/u_mem/g_tile[9].u_tile/q_i_79__5/O
+                         net (fo=18, routed)          0.715   659.795    u_core/u_mem/g_tile[9].u_tile/o_n[9]_23[1]
+    SLICE_X59Y42         LUT6 (Prop_lut6_I3_O)        0.124   659.919 r  u_core/u_mem/g_tile[9].u_tile/q_i_174__0/O
+                         net (fo=1, routed)           0.149   660.068    u_core/u_mem/g_tile[13].u_tile/q_i_79__9_0
+    SLICE_X59Y42         LUT5 (Prop_lut5_I0_O)        0.124   660.192 r  u_core/u_mem/g_tile[13].u_tile/q_i_115__7/O
+                         net (fo=1, routed)           0.292   660.484    u_core/u_mem/g_tile[13].u_tile/q_i_115__7_n_0
+    SLICE_X59Y41         LUT5 (Prop_lut5_I4_O)        0.124   660.609 r  u_core/u_mem/g_tile[13].u_tile/q_i_79__9/O
+                         net (fo=22, routed)          0.775   661.384    u_core/u_mem/g_tile[13].u_tile/o_s[13]_43[2]
+    SLICE_X62Y32         LUT6 (Prop_lut6_I1_O)        0.124   661.508 r  u_core/u_mem/g_tile[13].u_tile/q_i_143__4/O
+                         net (fo=1, routed)           0.612   662.120    u_core/u_mem/g_tile[9].u_tile/q_i_83__9_2
+    SLICE_X63Y32         LUT6 (Prop_lut6_I3_O)        0.124   662.244 r  u_core/u_mem/g_tile[9].u_tile/q_i_118__3/O
+                         net (fo=1, routed)           0.404   662.648    u_core/u_mem/g_tile[9].u_tile/q_i_118__3_n_0
+    SLICE_X63Y31         LUT5 (Prop_lut5_I4_O)        0.124   662.772 r  u_core/u_mem/g_tile[9].u_tile/q_i_83__9/O
+                         net (fo=22, routed)          1.148   663.920    u_core/u_mem/g_tile[9].u_tile/o_s[9]_21[3]
+    SLICE_X69Y16         LUT6 (Prop_lut6_I0_O)        0.124   664.044 r  u_core/u_mem/g_tile[9].u_tile/q_i_142__1/O
+                         net (fo=1, routed)           0.348   664.391    u_core/u_mem/g_tile[5].u_tile/q_i_83__7_1
+    SLICE_X68Y16         LUT6 (Prop_lut6_I3_O)        0.124   664.515 r  u_core/u_mem/g_tile[5].u_tile/q_i_111__2/O
+                         net (fo=1, routed)           0.161   664.677    u_core/u_mem/g_tile[5].u_tile/q_i_111__2_n_0
+    SLICE_X68Y16         LUT5 (Prop_lut5_I4_O)        0.124   664.801 r  u_core/u_mem/g_tile[5].u_tile/q_i_83__7/O
+                         net (fo=18, routed)          0.617   665.418    u_core/u_mem/g_tile[5].u_tile/o_s[5]_7[0]
+    SLICE_X74Y14         LUT6 (Prop_lut6_I5_O)        0.124   665.542 r  u_core/u_mem/g_tile[5].u_tile/q_i_187/O
+                         net (fo=1, routed)           0.537   666.079    u_core/u_mem/g_tile[1].u_tile/q_reg_i_140_0
+    SLICE_X74Y14         LUT6 (Prop_lut6_I0_O)        0.124   666.203 r  u_core/u_mem/g_tile[1].u_tile/q_i_179/O
+                         net (fo=1, routed)           0.000   666.203    u_core/u_mem/g_tile[1].u_tile/q_i_179_n_0
+    SLICE_X74Y14         MUXF7 (Prop_muxf7_I0_O)      0.212   666.415 r  u_core/u_mem/g_tile[1].u_tile/q_reg_i_140/O
+                         net (fo=1, routed)           0.495   666.910    u_core/u_mem/g_tile[1].u_tile/q_reg_i_140_n_0
+    SLICE_X74Y15         LUT5 (Prop_lut5_I4_O)        0.299   667.209 r  u_core/u_mem/g_tile[1].u_tile/q_i_94__9/O
+                         net (fo=22, routed)          0.777   667.986    u_core/u_mem/g_tile[1].u_tile/o_n[1]_32[0]
+    SLICE_X74Y20         LUT6 (Prop_lut6_I5_O)        0.124   668.110 r  u_core/u_mem/g_tile[1].u_tile/q_i_143__1/O
+                         net (fo=1, routed)           0.158   668.268    u_core/u_mem/g_tile[5].u_tile/q_i_86__9_0
+    SLICE_X74Y20         LUT6 (Prop_lut6_I0_O)        0.124   668.392 r  u_core/u_mem/g_tile[5].u_tile/q_i_108__2/O
+                         net (fo=1, routed)           0.453   668.845    u_core/u_mem/g_tile[5].u_tile/q_i_108__2_n_0
+    SLICE_X75Y20         LUT5 (Prop_lut5_I4_O)        0.124   668.969 r  u_core/u_mem/g_tile[5].u_tile/q_i_86__9/O
+                         net (fo=18, routed)          0.723   669.691    u_core/u_mem/g_tile[5].u_tile/o_w[5]_6[1]
+    SLICE_X87Y21         LUT6 (Prop_lut6_I3_O)        0.124   669.815 r  u_core/u_mem/g_tile[5].u_tile/q_i_110/O
+                         net (fo=1, routed)           0.433   670.248    u_core/u_mem/g_tile[4].u_tile/q_i_65__11_1
+    SLICE_X87Y21         LUT6 (Prop_lut6_I1_O)        0.124   670.372 r  u_core/u_mem/g_tile[4].u_tile/q_i_87__0/O
+                         net (fo=1, routed)           0.402   670.775    u_core/u_mem/g_tile[4].u_tile/q_i_87__0_n_0
+    SLICE_X87Y21         LUT5 (Prop_lut5_I4_O)        0.124   670.899 r  u_core/u_mem/g_tile[4].u_tile/q_i_65__11/O
+                         net (fo=14, routed)          0.800   671.699    u_core/u_mem/g_tile[4].u_tile/o_s[4]_3[2]
+    SLICE_X88Y19         LUT6 (Prop_lut6_I1_O)        0.124   671.823 r  u_core/u_mem/g_tile[4].u_tile/q_i_163/O
+                         net (fo=1, routed)           0.159   671.981    u_core/u_mem/g_tile[0].u_tile/q_reg_i_116_0
+    SLICE_X88Y19         LUT6 (Prop_lut6_I0_O)        0.124   672.105 r  u_core/u_mem/g_tile[0].u_tile/q_i_155/O
+                         net (fo=1, routed)           0.000   672.105    u_core/u_mem/g_tile[0].u_tile/q_i_155_n_0
+    SLICE_X88Y19         MUXF7 (Prop_muxf7_I0_O)      0.212   672.317 r  u_core/u_mem/g_tile[0].u_tile/q_reg_i_116/O
+                         net (fo=1, routed)           0.436   672.754    u_core/u_mem/g_tile[0].u_tile/q_reg_i_116_n_0
+    SLICE_X88Y19         LUT5 (Prop_lut5_I4_O)        0.299   673.053 r  u_core/u_mem/g_tile[0].u_tile/q_i_90__10/O
+                         net (fo=18, routed)          0.951   674.004    u_core/u_mem/g_tile[0].u_tile/o_n[0]_2[1]
+    SLICE_X82Y21         LUT6 (Prop_lut6_I3_O)        0.124   674.128 r  u_core/u_mem/g_tile[0].u_tile/q_i_105__1/O
+                         net (fo=1, routed)           0.411   674.539    u_core/u_mem/g_tile[4].u_tile/q_i_46__13_0
+    SLICE_X81Y21         LUT6 (Prop_lut6_I0_O)        0.124   674.663 r  u_core/u_mem/g_tile[4].u_tile/q_i_78__0/O
+                         net (fo=1, routed)           0.351   675.014    u_core/u_mem/g_tile[4].u_tile/q_i_78__0_n_0
+    SLICE_X80Y21         LUT5 (Prop_lut5_I4_O)        0.124   675.138 r  u_core/u_mem/g_tile[4].u_tile/q_i_46__13/O
+                         net (fo=22, routed)          0.847   675.986    u_core/u_mem/g_tile[4].u_tile/o_e[4]_4[2]
+    SLICE_X70Y17         LUT6 (Prop_lut6_I1_O)        0.124   676.110 r  u_core/u_mem/g_tile[4].u_tile/q_i_108__3/O
+                         net (fo=1, routed)           0.303   676.412    u_core/u_mem/g_tile[5].u_tile/q_i_119__1_1
+    SLICE_X70Y16         LUT5 (Prop_lut5_I0_O)        0.124   676.536 r  u_core/u_mem/g_tile[5].u_tile/q_i_82__7/O
+                         net (fo=18, routed)          0.453   676.990    u_core/u_mem/g_tile[5].u_tile/o_s[5]_7[1]
+    SLICE_X74Y16         LUT6 (Prop_lut6_I3_O)        0.124   677.114 r  u_core/u_mem/g_tile[5].u_tile/q_i_185/O
+                         net (fo=1, routed)           0.340   677.454    u_core/u_mem/g_tile[1].u_tile/q_reg_i_138_0
+    SLICE_X75Y16         LUT6 (Prop_lut6_I0_O)        0.124   677.578 r  u_core/u_mem/g_tile[1].u_tile/q_i_177/O
+                         net (fo=1, routed)           0.000   677.578    u_core/u_mem/g_tile[1].u_tile/q_i_177_n_0
+    SLICE_X75Y16         MUXF7 (Prop_muxf7_I0_O)      0.212   677.790 r  u_core/u_mem/g_tile[1].u_tile/q_reg_i_138/O
+                         net (fo=1, routed)           0.436   678.226    u_core/u_mem/g_tile[1].u_tile/q_reg_i_138_n_0
+    SLICE_X75Y16         LUT5 (Prop_lut5_I4_O)        0.299   678.525 r  u_core/u_mem/g_tile[1].u_tile/q_i_93__10/O
+                         net (fo=22, routed)          0.752   679.277    u_core/u_mem/g_tile[1].u_tile/o_n[1]_32[1]
+    SLICE_X71Y21         LUT6 (Prop_lut6_I3_O)        0.124   679.401 r  u_core/u_mem/g_tile[1].u_tile/q_i_139__2/O
+                         net (fo=1, routed)           0.438   679.839    u_core/u_mem/g_tile[5].u_tile/q_i_85__8_0
+    SLICE_X72Y21         LUT6 (Prop_lut6_I0_O)        0.124   679.963 r  u_core/u_mem/g_tile[5].u_tile/q_i_106__2/O
+                         net (fo=1, routed)           0.407   680.370    u_core/u_mem/g_tile[5].u_tile/q_i_106__2_n_0
+    SLICE_X74Y21         LUT5 (Prop_lut5_I4_O)        0.124   680.494 r  u_core/u_mem/g_tile[5].u_tile/q_i_85__8/O
+                         net (fo=18, routed)          0.791   681.286    u_core/u_mem/g_tile[5].u_tile/o_w[5]_6[2]
+    SLICE_X86Y23         LUT6 (Prop_lut6_I1_O)        0.124   681.410 r  u_core/u_mem/g_tile[5].u_tile/q_i_106__0/O
+                         net (fo=1, routed)           0.303   681.713    u_core/u_mem/g_tile[4].u_tile/q_i_64__10_1
+    SLICE_X86Y24         LUT6 (Prop_lut6_I1_O)        0.124   681.837 r  u_core/u_mem/g_tile[4].u_tile/q_i_85__0/O
+                         net (fo=1, routed)           0.161   681.998    u_core/u_mem/g_tile[4].u_tile/q_i_85__0_n_0
+    SLICE_X86Y24         LUT5 (Prop_lut5_I4_O)        0.124   682.122 r  u_core/u_mem/g_tile[4].u_tile/q_i_64__10/O
+                         net (fo=14, routed)          0.871   682.993    u_core/u_mem/g_tile[4].u_tile/o_s[4]_3[3]
+    SLICE_X88Y18         LUT6 (Prop_lut6_I0_O)        0.124   683.117 r  u_core/u_mem/g_tile[4].u_tile/q_i_161/O
+                         net (fo=1, routed)           0.490   683.607    u_core/u_mem/g_tile[0].u_tile/q_reg_i_114_0
+    SLICE_X88Y18         LUT6 (Prop_lut6_I0_O)        0.124   683.731 r  u_core/u_mem/g_tile[0].u_tile/q_i_153/O
+                         net (fo=1, routed)           0.000   683.731    u_core/u_mem/g_tile[0].u_tile/q_i_153_n_0
+    SLICE_X88Y18         MUXF7 (Prop_muxf7_I0_O)      0.212   683.943 r  u_core/u_mem/g_tile[0].u_tile/q_reg_i_114/O
+                         net (fo=1, routed)           0.291   684.233    u_core/u_mem/g_tile[0].u_tile/q_reg_i_114_n_0
+    SLICE_X87Y18         LUT5 (Prop_lut5_I4_O)        0.299   684.532 r  u_core/u_mem/g_tile[0].u_tile/q_i_89__9/O
+                         net (fo=18, routed)          0.652   685.184    u_core/u_mem/g_tile[0].u_tile/o_n[0]_2[2]
+    SLICE_X82Y20         LUT6 (Prop_lut6_I1_O)        0.124   685.308 r  u_core/u_mem/g_tile[0].u_tile/q_i_101__1/O
+                         net (fo=1, routed)           0.307   685.615    u_core/u_mem/g_tile[4].u_tile/q_i_45__13_0
+    SLICE_X80Y20         LUT6 (Prop_lut6_I0_O)        0.124   685.739 r  u_core/u_mem/g_tile[4].u_tile/q_i_76__0/O
+                         net (fo=1, routed)           0.161   685.900    u_core/u_mem/g_tile[4].u_tile/q_i_76__0_n_0
+    SLICE_X80Y20         LUT5 (Prop_lut5_I4_O)        0.124   686.024 r  u_core/u_mem/g_tile[4].u_tile/q_i_45__13/O
+                         net (fo=22, routed)          0.949   686.973    u_core/u_mem/g_tile[4].u_tile/o_e[4]_4[3]
+    SLICE_X72Y18         LUT6 (Prop_lut6_I0_O)        0.124   687.097 r  u_core/u_mem/g_tile[4].u_tile/q_i_106__3/O
+                         net (fo=1, routed)           0.279   687.376    u_core/u_mem/g_tile[5].u_tile/q_i_119__1_0
+    SLICE_X72Y18         LUT5 (Prop_lut5_I0_O)        0.124   687.500 r  u_core/u_mem/g_tile[5].u_tile/q_i_81__7/O
+                         net (fo=18, routed)          0.509   688.010    u_core/u_mem/g_tile[5].u_tile/o_s[5]_7[2]
+    SLICE_X76Y17         LUT6 (Prop_lut6_I1_O)        0.124   688.134 r  u_core/u_mem/g_tile[5].u_tile/q_i_183/O
+                         net (fo=1, routed)           0.537   688.670    u_core/u_mem/g_tile[1].u_tile/q_reg_i_136_0
+    SLICE_X76Y17         LUT6 (Prop_lut6_I0_O)        0.124   688.794 r  u_core/u_mem/g_tile[1].u_tile/q_i_175/O
+                         net (fo=1, routed)           0.000   688.794    u_core/u_mem/g_tile[1].u_tile/q_i_175_n_0
+    SLICE_X76Y17         MUXF7 (Prop_muxf7_I0_O)      0.212   689.006 r  u_core/u_mem/g_tile[1].u_tile/q_reg_i_136/O
+                         net (fo=1, routed)           0.429   689.435    u_core/u_mem/g_tile[1].u_tile/q_reg_i_136_n_0
+    SLICE_X76Y16         LUT5 (Prop_lut5_I4_O)        0.299   689.734 r  u_core/u_mem/g_tile[1].u_tile/q_i_92__11/O
+                         net (fo=22, routed)          0.508   690.242    u_core/u_mem/g_tile[1].u_tile/o_n[1]_32[2]
+    SLICE_X75Y18         LUT6 (Prop_lut6_I1_O)        0.124   690.366 r  u_core/u_mem/g_tile[1].u_tile/q_i_128__0/O
+                         net (fo=1, routed)           0.505   690.872    u_core/u_mem/g_tile[5].u_tile/q_i_80__5_0
+    SLICE_X74Y18         LUT6 (Prop_lut6_I0_O)        0.124   690.996 r  u_core/u_mem/g_tile[5].u_tile/q_i_105__3/O
+                         net (fo=1, routed)           0.488   691.484    u_core/u_mem/g_tile[5].u_tile/q_i_105__3_n_0
+    SLICE_X74Y18         LUT5 (Prop_lut5_I4_O)        0.124   691.608 r  u_core/u_mem/g_tile[5].u_tile/q_i_80__5/O
+                         net (fo=18, routed)          0.840   692.447    u_core/u_mem/g_tile[5].u_tile/o_s[5]_7[3]
+    SLICE_X81Y11         LUT6 (Prop_lut6_I0_O)        0.124   692.571 r  u_core/u_mem/g_tile[5].u_tile/q_i_181/O
+                         net (fo=1, routed)           0.407   692.978    u_core/u_mem/g_tile[1].u_tile/q_reg_i_134_0
+    SLICE_X81Y11         LUT6 (Prop_lut6_I0_O)        0.124   693.102 r  u_core/u_mem/g_tile[1].u_tile/q_i_173/O
+                         net (fo=1, routed)           0.000   693.102    u_core/u_mem/g_tile[1].u_tile/q_i_173_n_0
+    SLICE_X81Y11         MUXF7 (Prop_muxf7_I0_O)      0.212   693.314 r  u_core/u_mem/g_tile[1].u_tile/q_reg_i_134/O
+                         net (fo=1, routed)           0.494   693.809    u_core/u_mem/g_tile[1].u_tile/q_reg_i_134_n_0
+    SLICE_X80Y12         LUT5 (Prop_lut5_I4_O)        0.299   694.108 r  u_core/u_mem/g_tile[1].u_tile/q_i_91__11/O
+                         net (fo=22, routed)          1.430   695.538    u_core/u_mem/g_tile[1].u_tile/o_n[1]_32[3]
+    SLICE_X64Y18         LUT6 (Prop_lut6_I0_O)        0.124   695.662 r  u_core/u_mem/g_tile[1].u_tile/led_OBUF[1]_inst_i_120/O
+                         net (fo=1, routed)           0.492   696.155    u_core/u_mem/g_tile[5].u_tile/led_OBUF[1]_inst_i_47_0
+    SLICE_X65Y18         LUT6 (Prop_lut6_I0_O)        0.124   696.279 r  u_core/u_mem/g_tile[5].u_tile/led_OBUF[1]_inst_i_91/O
+                         net (fo=1, routed)           0.402   696.681    u_core/u_mem/g_tile[5].u_tile/led_OBUF[1]_inst_i_91_n_0
+    SLICE_X65Y18         LUT5 (Prop_lut5_I4_O)        0.124   696.805 r  u_core/u_mem/g_tile[5].u_tile/led_OBUF[1]_inst_i_47/O
+                         net (fo=22, routed)          1.148   697.953    u_core/u_mem/g_tile[5].u_tile/o_e[5]_8[0]
+    SLICE_X79Y30         LUT6 (Prop_lut6_I5_O)        0.124   698.077 r  u_core/u_mem/g_tile[5].u_tile/q_i_69__4/O
+                         net (fo=1, routed)           0.433   698.510    u_core/u_mem/g_tile[6].u_tile/q_i_20__4_0
+    SLICE_X79Y30         LUT6 (Prop_lut6_I0_O)        0.124   698.634 r  u_core/u_mem/g_tile[6].u_tile/q_i_45__5/O
+                         net (fo=16, routed)          0.621   699.255    u_core/u_mem/g_tile[6].u_tile/q_i_45__5_n_0
+    SLICE_X85Y31         LUT6 (Prop_lut6_I2_O)        0.124   699.379 r  u_core/u_mem/g_tile[6].u_tile/q_i_63__6/O
+                         net (fo=1, routed)           0.000   699.379    u_core/u_mem/g_tile[6].u_tile/q_i_63__6_n_0
+    SLICE_X85Y31         MUXF7 (Prop_muxf7_I1_O)      0.217   699.596 r  u_core/u_mem/g_tile[6].u_tile/q_reg_i_39__0/O
+                         net (fo=1, routed)           0.291   699.887    u_core/u_mem/g_tile[6].u_tile/q_reg_i_39__0_n_0
+    SLICE_X83Y31         LUT3 (Prop_lut3_I2_O)        0.299   700.186 r  u_core/u_mem/g_tile[6].u_tile/q_i_16__5/O
+                         net (fo=1, routed)           0.430   700.616    u_core/u_mem/g_tile[6].u_tile/q_i_16__5_n_0
+    SLICE_X85Y31         LUT5 (Prop_lut5_I4_O)        0.124   700.740 r  u_core/u_mem/g_tile[6].u_tile/q_i_7__3/O
+                         net (fo=4, routed)           0.518   701.258    u_core/u_mem/g_tile[6].u_tile/cfg_reg[98]_0
+    SLICE_X84Y31         LUT5 (Prop_lut5_I4_O)        0.124   701.382 r  u_core/u_mem/g_tile[6].u_tile/q_i_3__4/O
+                         net (fo=2, routed)           0.612   701.994    u_core/u_mem/g_tile[6].u_tile/q_i_3__4_n_0
+    SLICE_X79Y31         LUT3 (Prop_lut3_I1_O)        0.124   702.118 r  u_core/u_mem/g_tile[6].u_tile/user_dr[10]_i_2/O
+                         net (fo=24, routed)          0.666   702.784    u_core/u_mem/g_tile[6].u_tile/cfg_reg[64]_0
+    SLICE_X82Y29         LUT6 (Prop_lut6_I4_O)        0.124   702.908 r  u_core/u_mem/g_tile[6].u_tile/q_i_44__6/O
+                         net (fo=1, routed)           0.282   703.190    u_core/u_mem/g_tile[6].u_tile/q_i_44__6_n_0
+    SLICE_X82Y29         LUT6 (Prop_lut6_I5_O)        0.124   703.314 r  u_core/u_mem/g_tile[6].u_tile/q_i_19__5/O
+                         net (fo=7, routed)           0.455   703.769    u_core/u_mem/g_tile[6].u_tile/q_i_19__5_n_0
+    SLICE_X83Y32         LUT6 (Prop_lut6_I5_O)        0.124   703.893 f  u_core/u_mem/g_tile[6].u_tile/q_i_13__4/O
+                         net (fo=1, routed)           0.154   704.047    u_core/u_mem/g_tile[6].u_tile/q_i_13__4_n_0
+    SLICE_X83Y32         LUT5 (Prop_lut5_I4_O)        0.124   704.171 f  u_core/u_mem/g_tile[6].u_tile/q_i_6__7/O
+                         net (fo=26, routed)          0.456   704.627    u_core/u_mem/g_tile[6].u_tile/q_i_6__7_n_0
+    SLICE_X85Y31         LUT6 (Prop_lut6_I3_O)        0.124   704.751 r  u_core/u_mem/g_tile[6].u_tile/q_i_5__5/O
+                         net (fo=1, routed)           0.505   705.256    u_core/u_mem/g_tile[10].u_tile/cy[6]_55
+    SLICE_X85Y36         LUT5 (Prop_lut5_I0_O)        0.124   705.380 f  u_core/u_mem/g_tile[10].u_tile/q_i_3__8/O
+                         net (fo=2, routed)           0.517   705.896    u_core/u_mem/g_tile[10].u_tile/q_i_3__8_n_0
+    SLICE_X84Y36         LUT3 (Prop_lut3_I1_O)        0.124   706.021 f  u_core/u_mem/g_tile[10].u_tile/user_dr[14]_i_2/O
+                         net (fo=24, routed)          0.706   706.727    u_core/u_mem/g_tile[10].u_tile/cfg_reg[64]_0
+    SLICE_X76Y36         LUT6 (Prop_lut6_I5_O)        0.124   706.851 r  u_core/u_mem/g_tile[10].u_tile/q_i_45__9/O
+                         net (fo=1, routed)           0.280   707.131    u_core/u_mem/g_tile[10].u_tile/q_i_45__9_n_0
+    SLICE_X76Y36         LUT6 (Prop_lut6_I5_O)        0.124   707.255 r  u_core/u_mem/g_tile[10].u_tile/q_i_21__10/O
+                         net (fo=3, routed)           0.619   707.874    u_core/u_mem/g_tile[10].u_tile/q_i_21__10_n_0
+    SLICE_X83Y35         LUT6 (Prop_lut6_I5_O)        0.124   707.998 r  u_core/u_mem/g_tile[10].u_tile/q_i_9__12/O
+                         net (fo=1, routed)           0.425   708.423    u_core/u_mem/g_tile[10].u_tile/u_fabric/g_row[2].g_col[2].u_tile/s3_0__0
+    SLICE_X82Y35         LUT3 (Prop_lut3_I0_O)        0.124   708.547 f  u_core/u_mem/g_tile[10].u_tile/q_i_6__10/O
+                         net (fo=25, routed)          0.509   709.056    u_core/u_mem/g_tile[10].u_tile/q_i_6__10_n_0
+    SLICE_X85Y36         LUT3 (Prop_lut3_I2_O)        0.124   709.180 r  u_core/u_mem/g_tile[10].u_tile/q_i_7__5/O
+                         net (fo=2, routed)           0.416   709.596    u_core/u_mem/g_tile[10].u_tile/q_i_7__5_n_0
+    SLICE_X85Y36         LUT5 (Prop_lut5_I3_O)        0.124   709.720 r  u_core/u_mem/g_tile[10].u_tile/q_i_5__9/O
+                         net (fo=1, routed)           0.291   710.011    u_core/u_mem/g_tile[14].u_tile/cy[10]_56
+    SLICE_X85Y38         LUT6 (Prop_lut6_I0_O)        0.124   710.135 f  u_core/u_mem/g_tile[14].u_tile/q_i_3__12/O
+                         net (fo=2, routed)           0.446   710.581    u_core/u_mem/g_tile[14].u_tile/u_fabric/g_row[3].g_col[2].u_tile/u_clb/comb__1
+    SLICE_X86Y38         LUT3 (Prop_lut3_I1_O)        0.124   710.705 f  u_core/u_mem/g_tile[14].u_tile/user_dr[18]_i_2/O
+                         net (fo=20, routed)          0.856   711.561    u_core/u_mem/g_tile[14].u_tile/cfg_reg[64]_0
+    SLICE_X80Y45         LUT5 (Prop_lut5_I2_O)        0.124   711.685 f  u_core/u_mem/g_tile[14].u_tile/q_i_98__8/O
+                         net (fo=1, routed)           0.280   711.965    u_core/u_mem/g_tile[14].u_tile/q_i_98__8_n_0
+    SLICE_X80Y45         LUT5 (Prop_lut5_I4_O)        0.124   712.089 f  u_core/u_mem/g_tile[14].u_tile/q_i_71__9/O
+                         net (fo=1, routed)           0.159   712.247    u_core/u_mem/g_tile[14].u_tile/q_i_71__9_n_0
+    SLICE_X80Y45         LUT5 (Prop_lut5_I4_O)        0.124   712.371 f  u_core/u_mem/g_tile[14].u_tile/q_i_54__14/O
+                         net (fo=14, routed)          0.937   713.309    u_core/u_mem/g_tile[14].u_tile/o_e[14]_45[0]
+    SLICE_X90Y41         LUT6 (Prop_lut6_I5_O)        0.124   713.433 f  u_core/u_mem/g_tile[14].u_tile/q_i_84__7/O
+                         net (fo=1, routed)           0.161   713.594    u_core/u_mem/g_tile[15].u_tile/q_i_46__10_2
+    SLICE_X90Y41         LUT6 (Prop_lut6_I1_O)        0.124   713.718 r  u_core/u_mem/g_tile[15].u_tile/q_i_60__12/O
+                         net (fo=16, routed)          0.650   714.367    u_core/u_mem/g_tile[15].u_tile/q_i_60__12_n_0
+    SLICE_X93Y45         LUT6 (Prop_lut6_I4_O)        0.124   714.491 f  u_core/u_mem/g_tile[15].u_tile/q_i_50__12/O
+                         net (fo=1, routed)           0.433   714.924    u_core/u_mem/g_tile[15].u_tile/q_i_50__12_n_0
+    SLICE_X93Y44         LUT6 (Prop_lut6_I5_O)        0.124   715.049 r  u_core/u_mem/g_tile[15].u_tile/q_i_20__13/O
+                         net (fo=1, routed)           0.452   715.501    u_core/u_mem/g_tile[15].u_tile/q_i_20__13_n_0
+    SLICE_X91Y44         LUT5 (Prop_lut5_I4_O)        0.124   715.625 f  u_core/u_mem/g_tile[15].u_tile/q_i_10__11/O
+                         net (fo=16, routed)          0.880   716.504    u_core/u_mem/g_tile[15].u_tile/cfg_reg[88]_0
+    SLICE_X88Y43         LUT6 (Prop_lut6_I3_O)        0.124   716.628 r  u_core/u_mem/g_tile[15].u_tile/q_i_61__13/O
+                         net (fo=1, routed)           0.280   716.908    u_core/u_mem/g_tile[15].u_tile/q_i_61__13_n_0
+    SLICE_X88Y43         LUT6 (Prop_lut6_I0_O)        0.124   717.032 r  u_core/u_mem/g_tile[15].u_tile/q_i_27__11/O
+                         net (fo=5, routed)           0.740   717.772    u_core/u_mem/g_tile[15].u_tile/q_i_27__11_n_0
+    SLICE_X94Y42         LUT6 (Prop_lut6_I4_O)        0.124   717.896 r  u_core/u_mem/g_tile[15].u_tile/q_i_14__11/O
+                         net (fo=1, routed)           0.452   718.348    u_core/u_mem/g_tile[15].u_tile/q_i_14__11_n_0
+    SLICE_X92Y42         LUT5 (Prop_lut5_I4_O)        0.124   718.472 r  u_core/u_mem/g_tile[15].u_tile/q_i_7__9/O
+                         net (fo=1, routed)           0.442   718.914    u_core/u_mem/g_tile[15].u_tile/u_fabric/g_row[3].g_col[3].u_tile/u_clb/lut_o6
+    SLICE_X92Y41         LUT6 (Prop_lut6_I5_O)        0.124   719.038 r  u_core/u_mem/g_tile[15].u_tile/q_i_3__13/O
+                         net (fo=2, routed)           0.575   719.613    u_core/u_mem/g_tile[15].u_tile/q_i_3__13_n_0
+    SLICE_X92Y40         LUT3 (Prop_lut3_I1_O)        0.124   719.737 r  u_core/u_mem/g_tile[15].u_tile/user_dr[19]_i_3/O
+                         net (fo=16, routed)          0.937   720.673    u_core/u_mem/g_tile[15].u_tile/cfg_reg[64]_0
+    SLICE_X79Y42         LUT5 (Prop_lut5_I2_O)        0.124   720.797 r  u_core/u_mem/g_tile[15].u_tile/q_i_122__6/O
+                         net (fo=1, routed)           0.263   721.060    u_core/u_mem/g_tile[15].u_tile/q_i_122__6_n_0
+    SLICE_X79Y42         LUT6 (Prop_lut6_I5_O)        0.124   721.184 r  u_core/u_mem/g_tile[15].u_tile/q_i_81__4/O
+                         net (fo=18, routed)          0.542   721.726    u_core/u_mem/g_tile[15].u_tile/o_w[15]_0[0]
+    SLICE_X82Y43         LUT6 (Prop_lut6_I5_O)        0.124   721.850 r  u_core/u_mem/g_tile[15].u_tile/q_i_91__8/O
+                         net (fo=1, routed)           0.161   722.011    u_core/u_mem/g_tile[14].u_tile/q_i_52__14_0
+    SLICE_X82Y43         LUT5 (Prop_lut5_I2_O)        0.124   722.135 r  u_core/u_mem/g_tile[14].u_tile/q_i_67__10/O
+                         net (fo=1, routed)           0.302   722.438    u_core/u_mem/g_tile[14].u_tile/q_i_67__10_n_0
+    SLICE_X81Y43         LUT5 (Prop_lut5_I4_O)        0.124   722.562 r  u_core/u_mem/g_tile[14].u_tile/q_i_52__14/O
+                         net (fo=14, routed)          0.613   723.175    u_core/u_mem/g_tile[14].u_tile/o_e[14]_45[2]
+    SLICE_X80Y44         LUT6 (Prop_lut6_I1_O)        0.124   723.299 r  u_core/u_mem/g_tile[14].u_tile/q_i_117__7/O
+                         net (fo=1, routed)           0.492   723.791    u_core/u_mem/g_tile[15].u_tile/q_i_132__5_1
+    SLICE_X80Y42         LUT6 (Prop_lut6_I1_O)        0.124   723.915 r  u_core/u_mem/g_tile[15].u_tile/q_i_80__9/O
+                         net (fo=18, routed)          0.761   724.677    u_core/u_mem/g_tile[15].u_tile/o_w[15]_0[1]
+    SLICE_X84Y45         LUT6 (Prop_lut6_I3_O)        0.124   724.801 r  u_core/u_mem/g_tile[15].u_tile/q_i_90__7/O
+                         net (fo=1, routed)           0.000   724.801    u_core/u_mem/g_tile[14].u_tile/q_i_19__13_0
+    SLICE_X84Y45         MUXF7 (Prop_muxf7_I0_O)      0.212   725.013 r  u_core/u_mem/g_tile[14].u_tile/q_reg_i_41__0/O
+                         net (fo=1, routed)           0.304   725.316    u_core/u_mem/g_tile[14].u_tile/q_reg_i_41__0_n_0
+    SLICE_X87Y45         LUT6 (Prop_lut6_I2_O)        0.299   725.615 r  u_core/u_mem/g_tile[14].u_tile/q_i_19__13/O
+                         net (fo=4, routed)           0.469   726.084    u_core/u_mem/g_tile[14].u_tile/u_fabric/g_row[3].g_col[2].u_tile/lut_i[3]
+    SLICE_X86Y44         LUT6 (Prop_lut6_I2_O)        0.124   726.208 f  u_core/u_mem/g_tile[14].u_tile/q_i_21__12/O
+                         net (fo=1, routed)           0.496   726.705    u_core/u_mem/g_tile[14].u_tile/u_fabric/g_row[3].g_col[2].u_tile/s3_1__0
+    SLICE_X79Y45         LUT5 (Prop_lut5_I4_O)        0.124   726.829 f  u_core/u_mem/g_tile[14].u_tile/q_i_8__13/O
+                         net (fo=19, routed)          0.341   727.169    u_core/u_mem/g_tile[14].u_tile/q_i_8__13_n_0
+    SLICE_X79Y45         LUT5 (Prop_lut5_I3_O)        0.124   727.294 f  u_core/u_mem/g_tile[14].u_tile/q_i_95__9/O
+                         net (fo=1, routed)           0.151   727.445    u_core/u_mem/g_tile[14].u_tile/q_i_95__9_n_0
+    SLICE_X79Y45         LUT6 (Prop_lut6_I3_O)        0.124   727.569 f  u_core/u_mem/g_tile[14].u_tile/q_i_73__9/O
+                         net (fo=18, routed)          1.089   728.657    u_core/u_mem/g_tile[14].u_tile/o_w[14]_47[3]
+    SLICE_X59Y43         LUT6 (Prop_lut6_I0_O)        0.124   728.781 f  u_core/u_mem/g_tile[14].u_tile/q_i_172__0/O
+                         net (fo=1, routed)           0.351   729.132    u_core/u_mem/g_tile[13].u_tile/q_i_78__8_1
+    SLICE_X58Y43         LUT5 (Prop_lut5_I2_O)        0.124   729.256 f  u_core/u_mem/g_tile[13].u_tile/q_i_113__7/O
+                         net (fo=1, routed)           0.432   729.688    u_core/u_mem/g_tile[13].u_tile/q_i_113__7_n_0
+    SLICE_X56Y42         LUT5 (Prop_lut5_I4_O)        0.124   729.812 f  u_core/u_mem/g_tile[13].u_tile/q_i_78__8/O
+                         net (fo=22, routed)          0.623   730.436    u_core/u_mem/g_tile[13].u_tile/o_s[13]_43[3]
+    SLICE_X57Y41         LUT6 (Prop_lut6_I0_O)        0.124   730.560 f  u_core/u_mem/g_tile[13].u_tile/q_i_140__4/O
+                         net (fo=1, routed)           0.555   731.115    u_core/u_mem/g_tile[9].u_tile/q_i_78__5_2
+    SLICE_X58Y38         LUT6 (Prop_lut6_I3_O)        0.124   731.239 f  u_core/u_mem/g_tile[9].u_tile/q_i_109__5/O
+                         net (fo=1, routed)           0.451   731.690    u_core/u_mem/g_tile[9].u_tile/q_i_109__5_n_0
+    SLICE_X59Y38         LUT5 (Prop_lut5_I4_O)        0.124   731.814 f  u_core/u_mem/g_tile[9].u_tile/q_i_78__5/O
+                         net (fo=18, routed)          0.846   732.660    u_core/u_mem/g_tile[9].u_tile/o_n[9]_23[2]
+    SLICE_X71Y46         LUT6 (Prop_lut6_I1_O)        0.124   732.784 f  u_core/u_mem/g_tile[9].u_tile/q_i_108__7/O
+                         net (fo=1, routed)           0.430   733.214    u_core/u_mem/g_tile[13].u_tile/q_i_34__11_0
+    SLICE_X69Y46         LUT5 (Prop_lut5_I0_O)        0.124   733.338 f  u_core/u_mem/g_tile[13].u_tile/q_i_77__5/O
+                         net (fo=1, routed)           0.263   733.601    u_core/u_mem/g_tile[13].u_tile/q_i_77__5_n_0
+    SLICE_X69Y46         LUT5 (Prop_lut5_I4_O)        0.124   733.725 f  u_core/u_mem/g_tile[13].u_tile/q_i_34__11/O
+                         net (fo=18, routed)          0.867   734.593    u_core/u_mem/g_tile[13].u_tile/o_e[13]_42[0]
+    SLICE_X82Y44         LUT6 (Prop_lut6_I5_O)        0.124   734.717 f  u_core/u_mem/g_tile[13].u_tile/q_i_68__9/O
+                         net (fo=1, routed)           0.171   734.888    u_core/u_mem/g_tile[14].u_tile/q_i_21__13_0
+    SLICE_X82Y44         LUT5 (Prop_lut5_I1_O)        0.124   735.012 f  u_core/u_mem/g_tile[14].u_tile/q_i_53__14/O
+                         net (fo=14, routed)          0.486   735.498    u_core/u_mem/g_tile[14].u_tile/o_e[14]_45[1]
+    SLICE_X81Y43         LUT6 (Prop_lut6_I3_O)        0.124   735.622 f  u_core/u_mem/g_tile[14].u_tile/q_i_114__6/O
+                         net (fo=1, routed)           0.149   735.771    u_core/u_mem/g_tile[15].u_tile/q_i_94__7_1
+    SLICE_X81Y43         LUT6 (Prop_lut6_I1_O)        0.124   735.895 f  u_core/u_mem/g_tile[15].u_tile/q_i_79__10/O
+                         net (fo=18, routed)          0.666   736.560    u_core/u_mem/g_tile[15].u_tile/o_w[15]_0[2]
+    SLICE_X84Y42         LUT6 (Prop_lut6_I1_O)        0.124   736.684 f  u_core/u_mem/g_tile[15].u_tile/q_i_88__5/O
+                         net (fo=1, routed)           0.158   736.843    u_core/u_mem/g_tile[14].u_tile/q_i_51__14_1
+    SLICE_X84Y42         LUT5 (Prop_lut5_I2_O)        0.124   736.967 f  u_core/u_mem/g_tile[14].u_tile/q_i_65__8/O
+                         net (fo=1, routed)           0.428   737.395    u_core/u_mem/g_tile[14].u_tile/q_i_65__8_n_0
+    SLICE_X83Y41         LUT5 (Prop_lut5_I4_O)        0.124   737.519 f  u_core/u_mem/g_tile[14].u_tile/q_i_51__14/O
+                         net (fo=14, routed)          0.807   738.326    u_core/u_mem/g_tile[14].u_tile/o_e[14]_45[3]
+    SLICE_X85Y41         LUT6 (Prop_lut6_I0_O)        0.124   738.450 f  u_core/u_mem/g_tile[14].u_tile/q_i_111__7/O
+                         net (fo=1, routed)           0.149   738.599    u_core/u_mem/g_tile[15].u_tile/q_i_94__7
+    SLICE_X85Y41         LUT6 (Prop_lut6_I1_O)        0.124   738.723 f  u_core/u_mem/g_tile[15].u_tile/q_i_78__9/O
+                         net (fo=18, routed)          0.607   739.330    u_core/u_mem/g_tile[15].u_tile/o_w[15]_0[3]
+    SLICE_X80Y41         LUT6 (Prop_lut6_I0_O)        0.124   739.454 f  u_core/u_mem/g_tile[15].u_tile/q_i_130__6/O
+                         net (fo=1, routed)           0.000   739.454    u_core/u_mem/g_tile[14].u_tile/q_i_75__10_0
+    SLICE_X80Y41         MUXF7 (Prop_muxf7_I0_O)      0.212   739.666 f  u_core/u_mem/g_tile[14].u_tile/q_reg_i_102__0/O
+                         net (fo=1, routed)           0.441   740.106    u_core/u_mem/g_tile[14].u_tile/q_reg_i_102__0_n_0
+    SLICE_X80Y41         LUT6 (Prop_lut6_I4_O)        0.299   740.405 f  u_core/u_mem/g_tile[14].u_tile/q_i_75__10/O
+                         net (fo=18, routed)          0.707   741.112    u_core/u_mem/g_tile[14].u_tile/o_w[14]_47[1]
+    SLICE_X70Y45         LUT6 (Prop_lut6_I3_O)        0.124   741.236 f  u_core/u_mem/g_tile[14].u_tile/q_i_106__7/O
+                         net (fo=1, routed)           0.491   741.727    u_core/u_mem/g_tile[13].u_tile/q_i_33__12_1
+    SLICE_X70Y45         LUT5 (Prop_lut5_I2_O)        0.124   741.851 f  u_core/u_mem/g_tile[13].u_tile/q_i_75__5/O
+                         net (fo=1, routed)           0.280   742.130    u_core/u_mem/g_tile[13].u_tile/q_i_75__5_n_0
+    SLICE_X70Y45         LUT5 (Prop_lut5_I4_O)        0.124   742.255 f  u_core/u_mem/g_tile[13].u_tile/q_i_33__12/O
+                         net (fo=18, routed)          0.779   743.034    u_core/u_mem/g_tile[13].u_tile/o_e[13]_42[1]
+    SLICE_X79Y40         LUT6 (Prop_lut6_I3_O)        0.124   743.158 f  u_core/u_mem/g_tile[13].u_tile/q_i_103__6/O
+                         net (fo=1, routed)           0.289   743.447    u_core/u_mem/g_tile[14].u_tile/q_i_105__8
+    SLICE_X79Y41         LUT6 (Prop_lut6_I1_O)        0.124   743.571 f  u_core/u_mem/g_tile[14].u_tile/q_i_76__10/O
+                         net (fo=18, routed)          0.516   744.087    u_core/u_mem/g_tile[14].u_tile/o_w[14]_47[0]
+    SLICE_X72Y46         LUT6 (Prop_lut6_I5_O)        0.124   744.211 f  u_core/u_mem/g_tile[14].u_tile/q_i_103__5/O
+                         net (fo=1, routed)           0.491   744.702    u_core/u_mem/g_tile[13].u_tile/q_i_32__14_1
+    SLICE_X72Y46         LUT5 (Prop_lut5_I2_O)        0.124   744.826 f  u_core/u_mem/g_tile[13].u_tile/q_i_73__5/O
+                         net (fo=1, routed)           0.280   745.106    u_core/u_mem/g_tile[13].u_tile/q_i_73__5_n_0
+    SLICE_X72Y46         LUT5 (Prop_lut5_I4_O)        0.124   745.230 f  u_core/u_mem/g_tile[13].u_tile/q_i_32__14/O
+                         net (fo=18, routed)          0.961   746.191    u_core/u_mem/g_tile[13].u_tile/o_e[13]_42[2]
+    SLICE_X80Y40         LUT6 (Prop_lut6_I1_O)        0.124   746.315 f  u_core/u_mem/g_tile[13].u_tile/led_OBUF[2]_inst_i_139/O
+                         net (fo=1, routed)           0.433   746.749    u_core/u_mem/g_tile[14].u_tile/q_i_69__7
+    SLICE_X80Y40         LUT5 (Prop_lut5_I1_O)        0.124   746.873 f  u_core/u_mem/g_tile[14].u_tile/led_OBUF[2]_inst_i_100/O
+                         net (fo=22, routed)          0.699   747.572    u_core/u_mem/g_tile[14].u_tile/o_s[14]_46[0]
+    SLICE_X82Y35         LUT6 (Prop_lut6_I5_O)        0.124   747.696 f  u_core/u_mem/g_tile[14].u_tile/q_i_153__3/O
+                         net (fo=1, routed)           0.291   747.987    u_core/u_mem/g_tile[10].u_tile/q_i_85__11_2
+    SLICE_X84Y35         LUT6 (Prop_lut6_I3_O)        0.124   748.112 f  u_core/u_mem/g_tile[10].u_tile/q_i_130__5/O
+                         net (fo=1, routed)           0.433   748.545    u_core/u_mem/g_tile[10].u_tile/q_i_130__5_n_0
+    SLICE_X84Y35         LUT5 (Prop_lut5_I4_O)        0.124   748.669 f  u_core/u_mem/g_tile[10].u_tile/q_i_85__11/O
+                         net (fo=18, routed)          0.648   749.317    u_core/u_mem/g_tile[10].u_tile/o_n[10]_27[0]
+    SLICE_X83Y40         LUT6 (Prop_lut6_I5_O)        0.124   749.441 f  u_core/u_mem/g_tile[10].u_tile/led_OBUF[2]_inst_i_175/O
+                         net (fo=1, routed)           0.414   749.854    u_core/u_mem/g_tile[14].u_tile/led_OBUF[2]_inst_i_99_0
+    SLICE_X84Y40         LUT5 (Prop_lut5_I0_O)        0.124   749.978 f  u_core/u_mem/g_tile[14].u_tile/led_OBUF[2]_inst_i_138/O
+                         net (fo=1, routed)           0.161   750.140    u_core/u_mem/g_tile[14].u_tile/led_OBUF[2]_inst_i_138_n_0
+    SLICE_X84Y40         LUT5 (Prop_lut5_I4_O)        0.124   750.264 f  u_core/u_mem/g_tile[14].u_tile/led_OBUF[2]_inst_i_99/O
+                         net (fo=22, routed)          0.670   750.934    u_core/u_mem/g_tile[14].u_tile/o_s[14]_46[1]
+    SLICE_X83Y38         LUT6 (Prop_lut6_I3_O)        0.124   751.058 f  u_core/u_mem/g_tile[14].u_tile/q_i_149__6/O
+                         net (fo=1, routed)           0.403   751.461    u_core/u_mem/g_tile[10].u_tile/q_i_84__11_1
+    SLICE_X83Y38         LUT6 (Prop_lut6_I3_O)        0.124   751.585 f  u_core/u_mem/g_tile[10].u_tile/q_i_128__4/O
+                         net (fo=1, routed)           0.292   751.877    u_core/u_mem/g_tile[10].u_tile/q_i_128__4_n_0
+    SLICE_X84Y38         LUT5 (Prop_lut5_I4_O)        0.124   752.001 f  u_core/u_mem/g_tile[10].u_tile/q_i_84__11/O
+                         net (fo=18, routed)          0.454   752.454    u_core/u_mem/g_tile[10].u_tile/o_n[10]_27[1]
+    SLICE_X85Y39         LUT6 (Prop_lut6_I3_O)        0.124   752.578 f  u_core/u_mem/g_tile[10].u_tile/led_OBUF[2]_inst_i_172/O
+                         net (fo=1, routed)           0.149   752.727    u_core/u_mem/g_tile[14].u_tile/led_OBUF[2]_inst_i_98_0
+    SLICE_X85Y39         LUT5 (Prop_lut5_I0_O)        0.124   752.851 f  u_core/u_mem/g_tile[14].u_tile/led_OBUF[2]_inst_i_136/O
+                         net (fo=1, routed)           0.433   753.284    u_core/u_mem/g_tile[14].u_tile/led_OBUF[2]_inst_i_136_n_0
+    SLICE_X85Y39         LUT5 (Prop_lut5_I4_O)        0.124   753.409 f  u_core/u_mem/g_tile[14].u_tile/led_OBUF[2]_inst_i_98/O
+                         net (fo=22, routed)          0.861   754.269    u_core/u_mem/g_tile[14].u_tile/o_s[14]_46[2]
+    SLICE_X82Y39         LUT6 (Prop_lut6_I1_O)        0.124   754.393 f  u_core/u_mem/g_tile[14].u_tile/q_i_145__6/O
+                         net (fo=1, routed)           0.452   754.845    u_core/u_mem/g_tile[10].u_tile/q_i_83__10_2
+    SLICE_X82Y39         LUT6 (Prop_lut6_I3_O)        0.124   754.969 f  u_core/u_mem/g_tile[10].u_tile/q_i_126__5/O
+                         net (fo=1, routed)           0.502   755.471    u_core/u_mem/g_tile[10].u_tile/q_i_126__5_n_0
+    SLICE_X82Y39         LUT5 (Prop_lut5_I4_O)        0.124   755.595 f  u_core/u_mem/g_tile[10].u_tile/q_i_83__10/O
+                         net (fo=18, routed)          0.340   755.935    u_core/u_mem/g_tile[10].u_tile/o_n[10]_27[2]
+    SLICE_X81Y39         LUT6 (Prop_lut6_I1_O)        0.124   756.059 f  u_core/u_mem/g_tile[10].u_tile/led_OBUF[2]_inst_i_169/O
+                         net (fo=1, routed)           0.264   756.323    u_core/u_mem/g_tile[14].u_tile/led_OBUF[2]_inst_i_97_0
+    SLICE_X81Y39         LUT5 (Prop_lut5_I0_O)        0.124   756.447 f  u_core/u_mem/g_tile[14].u_tile/led_OBUF[2]_inst_i_134/O
+                         net (fo=1, routed)           0.154   756.601    u_core/u_mem/g_tile[14].u_tile/led_OBUF[2]_inst_i_134_n_0
+    SLICE_X81Y39         LUT5 (Prop_lut5_I4_O)        0.124   756.725 f  u_core/u_mem/g_tile[14].u_tile/led_OBUF[2]_inst_i_97/O
+                         net (fo=22, routed)          0.863   757.588    u_core/u_mem/g_tile[14].u_tile/o_s[14]_46[3]
+    SLICE_X74Y34         LUT6 (Prop_lut6_I0_O)        0.124   757.712 f  u_core/u_mem/g_tile[14].u_tile/q_i_134__4/O
+                         net (fo=1, routed)           0.159   757.870    u_core/u_mem/g_tile[10].u_tile/q_i_50__13_2
+    SLICE_X74Y34         LUT6 (Prop_lut6_I3_O)        0.124   757.995 f  u_core/u_mem/g_tile[10].u_tile/q_i_89__3/O
+                         net (fo=1, routed)           0.431   758.426    u_core/u_mem/g_tile[10].u_tile/q_i_89__3_n_0
+    SLICE_X73Y34         LUT5 (Prop_lut5_I4_O)        0.124   758.550 f  u_core/u_mem/g_tile[10].u_tile/q_i_50__13/O
+                         net (fo=22, routed)          0.665   759.214    u_core/u_mem/g_tile[10].u_tile/o_w[10]_24[0]
+    SLICE_X67Y39         LUT6 (Prop_lut6_I5_O)        0.124   759.338 f  u_core/u_mem/g_tile[10].u_tile/led_OBUF[2]_inst_i_114/O
+                         net (fo=1, routed)           0.350   759.688    u_core/u_mem/g_tile[9].u_tile/led_OBUF[2]_inst_i_52_1
+    SLICE_X66Y39         LUT6 (Prop_lut6_I1_O)        0.124   759.812 f  u_core/u_mem/g_tile[9].u_tile/led_OBUF[2]_inst_i_88/O
+                         net (fo=1, routed)           0.343   760.155    u_core/u_mem/g_tile[9].u_tile/led_OBUF[2]_inst_i_88_n_0
+    SLICE_X67Y39         LUT5 (Prop_lut5_I4_O)        0.124   760.279 f  u_core/u_mem/g_tile[9].u_tile/led_OBUF[2]_inst_i_52/O
+                         net (fo=22, routed)          0.565   760.844    u_core/u_mem/g_tile[9].u_tile/o_e[9]_22[0]
+    SLICE_X72Y35         LUT6 (Prop_lut6_I5_O)        0.124   760.968 f  u_core/u_mem/g_tile[9].u_tile/q_i_86__2/O
+                         net (fo=1, routed)           0.424   761.392    u_core/u_mem/g_tile[10].u_tile/q_i_67__6_1
+    SLICE_X70Y35         LUT5 (Prop_lut5_I0_O)        0.124   761.516 f  u_core/u_mem/g_tile[10].u_tile/q_i_49__14/O
+                         net (fo=22, routed)          0.488   762.004    u_core/u_mem/g_tile[10].u_tile/o_w[10]_24[1]
+    SLICE_X67Y36         LUT6 (Prop_lut6_I3_O)        0.124   762.128 f  u_core/u_mem/g_tile[10].u_tile/led_OBUF[2]_inst_i_110/O
+                         net (fo=1, routed)           0.154   762.282    u_core/u_mem/g_tile[9].u_tile/led_OBUF[2]_inst_i_51_1
+    SLICE_X67Y36         LUT6 (Prop_lut6_I1_O)        0.124   762.406 f  u_core/u_mem/g_tile[9].u_tile/led_OBUF[2]_inst_i_86/O
+                         net (fo=1, routed)           0.308   762.714    u_core/u_mem/g_tile[9].u_tile/led_OBUF[2]_inst_i_86_n_0
+    SLICE_X68Y36         LUT5 (Prop_lut5_I4_O)        0.124   762.838 f  u_core/u_mem/g_tile[9].u_tile/led_OBUF[2]_inst_i_51/O
+                         net (fo=22, routed)          0.322   763.160    u_core/u_mem/g_tile[9].u_tile/o_e[9]_22[1]
+    SLICE_X69Y36         LUT6 (Prop_lut6_I3_O)        0.124   763.284 f  u_core/u_mem/g_tile[9].u_tile/q_i_84__3/O
+                         net (fo=1, routed)           0.433   763.717    u_core/u_mem/g_tile[10].u_tile/q_i_67__6_0
+    SLICE_X69Y36         LUT5 (Prop_lut5_I0_O)        0.124   763.841 f  u_core/u_mem/g_tile[10].u_tile/q_i_48__13/O
+                         net (fo=22, routed)          0.462   764.304    u_core/u_mem/g_tile[10].u_tile/o_w[10]_24[2]
+    SLICE_X65Y36         LUT6 (Prop_lut6_I1_O)        0.124   764.428 f  u_core/u_mem/g_tile[10].u_tile/led_OBUF[2]_inst_i_106/O
+                         net (fo=1, routed)           0.403   764.831    u_core/u_mem/g_tile[9].u_tile/led_OBUF[2]_inst_i_50_1
+    SLICE_X65Y36         LUT6 (Prop_lut6_I1_O)        0.124   764.955 f  u_core/u_mem/g_tile[9].u_tile/led_OBUF[2]_inst_i_84/O
+                         net (fo=1, routed)           0.351   765.306    u_core/u_mem/g_tile[9].u_tile/led_OBUF[2]_inst_i_84_n_0
+    SLICE_X64Y36         LUT5 (Prop_lut5_I4_O)        0.124   765.430 f  u_core/u_mem/g_tile[9].u_tile/led_OBUF[2]_inst_i_50/O
+                         net (fo=22, routed)          0.649   766.079    u_core/u_mem/g_tile[9].u_tile/o_e[9]_22[2]
+    SLICE_X74Y37         LUT6 (Prop_lut6_I4_O)        0.124   766.203 f  u_core/u_mem/g_tile[9].u_tile/led_OBUF[2]_inst_i_27/O
+                         net (fo=1, routed)           0.161   766.364    u_core/u_mem/g_tile[10].u_tile/q_i_88__6
+    SLICE_X74Y37         LUT5 (Prop_lut5_I1_O)        0.124   766.488 f  u_core/u_mem/g_tile[10].u_tile/led_OBUF[2]_inst_i_12/O
+                         net (fo=19, routed)          0.702   767.190    u_core/u_mem/g_tile[10].u_tile/o_e[10]_26[2]
+    SLICE_X73Y43         LUT6 (Prop_lut6_I5_O)        0.124   767.314 f  u_core/u_mem/g_tile[10].u_tile/q_i_49__10/O
+                         net (fo=1, routed)           0.154   767.468    u_core/u_mem/g_tile[11].u_tile/q_i_19__9_0
+    SLICE_X73Y43         LUT4 (Prop_lut4_I2_O)        0.124   767.592 r  u_core/u_mem/g_tile[11].u_tile/q_i_25__9/O
+                         net (fo=4, routed)           0.482   768.074    u_core/u_mem/g_tile[11].u_tile/q_i_25__9_n_0
+    SLICE_X74Y45         LUT5 (Prop_lut5_I3_O)        0.124   768.198 f  u_core/u_mem/g_tile[11].u_tile/q_i_27__8/O
+                         net (fo=1, routed)           0.285   768.483    u_core/u_mem/g_tile[11].u_tile/q_i_27__8_n_0
+    SLICE_X73Y45         LUT5 (Prop_lut5_I4_O)        0.124   768.607 r  u_core/u_mem/g_tile[11].u_tile/q_i_14__13/O
+                         net (fo=22, routed)          0.753   769.360    u_core/u_mem/g_tile[11].u_tile/cfg_reg[90]_0
+    SLICE_X69Y38         LUT6 (Prop_lut6_I5_O)        0.124   769.484 r  u_core/u_mem/g_tile[11].u_tile/led_OBUF[2]_inst_i_163/O
+                         net (fo=1, routed)           0.154   769.638    u_core/u_mem/g_tile[11].u_tile/led_OBUF[2]_inst_i_163_n_0
+    SLICE_X69Y38         LUT5 (Prop_lut5_I0_O)        0.124   769.762 r  u_core/u_mem/g_tile[11].u_tile/led_OBUF[2]_inst_i_130/O
+                         net (fo=1, routed)           0.294   770.056    u_core/u_mem/g_tile[11].u_tile/led_OBUF[2]_inst_i_130_n_0
+    SLICE_X70Y38         LUT5 (Prop_lut5_I4_O)        0.124   770.180 r  u_core/u_mem/g_tile[11].u_tile/led_OBUF[2]_inst_i_95/O
+                         net (fo=22, routed)          0.560   770.740    u_core/u_mem/g_tile[11].u_tile/o_w[11]_28[1]
+    SLICE_X71Y36         LUT6 (Prop_lut6_I3_O)        0.124   770.864 r  u_core/u_mem/g_tile[11].u_tile/q_i_121__5/O
+                         net (fo=1, routed)           0.648   771.512    u_core/u_mem/g_tile[10].u_tile/q_i_47__12_1
+    SLICE_X71Y36         LUT6 (Prop_lut6_I1_O)        0.124   771.636 r  u_core/u_mem/g_tile[10].u_tile/q_i_83__2/O
+                         net (fo=1, routed)           0.415   772.051    u_core/u_mem/g_tile[10].u_tile/q_i_83__2_n_0
+    SLICE_X70Y36         LUT5 (Prop_lut5_I4_O)        0.124   772.175 r  u_core/u_mem/g_tile[10].u_tile/q_i_47__12/O
+                         net (fo=22, routed)          0.748   772.924    u_core/u_mem/g_tile[10].u_tile/o_w[10]_24[3]
+    SLICE_X65Y35         LUT6 (Prop_lut6_I0_O)        0.124   773.048 r  u_core/u_mem/g_tile[10].u_tile/led_OBUF[2]_inst_i_102/O
+                         net (fo=1, routed)           0.420   773.467    u_core/u_mem/g_tile[9].u_tile/led_OBUF[2]_inst_i_49_1
+    SLICE_X64Y35         LUT6 (Prop_lut6_I1_O)        0.124   773.591 r  u_core/u_mem/g_tile[9].u_tile/led_OBUF[2]_inst_i_82/O
+                         net (fo=1, routed)           0.433   774.025    u_core/u_mem/g_tile[9].u_tile/led_OBUF[2]_inst_i_82_n_0
+    SLICE_X64Y35         LUT5 (Prop_lut5_I4_O)        0.124   774.149 r  u_core/u_mem/g_tile[9].u_tile/led_OBUF[2]_inst_i_49/O
+                         net (fo=22, routed)          0.885   775.034    u_core/u_mem/g_tile[9].u_tile/o_e[9]_22[3]
+    SLICE_X74Y37         LUT6 (Prop_lut6_I3_O)        0.124   775.158 r  u_core/u_mem/g_tile[9].u_tile/led_OBUF[2]_inst_i_23/O
+                         net (fo=1, routed)           0.488   775.645    u_core/u_mem/g_tile[10].u_tile/q_i_74__5_0
+    SLICE_X74Y37         LUT5 (Prop_lut5_I1_O)        0.124   775.769 r  u_core/u_mem/g_tile[10].u_tile/led_OBUF[2]_inst_i_10/O
+                         net (fo=19, routed)          0.758   776.527    u_core/u_mem/g_tile[10].u_tile/o_e[10]_26[3]
+    SLICE_X75Y41         LUT6 (Prop_lut6_I3_O)        0.124   776.651 r  u_core/u_mem/g_tile[10].u_tile/q_i_79__6/O
+                         net (fo=1, routed)           0.154   776.805    u_core/u_mem/g_tile[11].u_tile/q_i_118__7_1
+    SLICE_X75Y41         LUT5 (Prop_lut5_I2_O)        0.124   776.929 r  u_core/u_mem/g_tile[11].u_tile/q_i_58__13/O
+                         net (fo=14, routed)          0.476   777.405    u_core/u_mem/g_tile[11].u_tile/o_n[11]_30[0]
+    SLICE_X78Y42         LUT6 (Prop_lut6_I5_O)        0.124   777.529 r  u_core/u_mem/g_tile[11].u_tile/led_OBUF[2]_inst_i_47/O
+                         net (fo=1, routed)           0.161   777.690    u_core/u_mem/g_tile[15].u_tile/led_OBUF[1]_inst_i_79_2
+    SLICE_X78Y42         LUT6 (Prop_lut6_I3_O)        0.124   777.814 r  u_core/u_mem/g_tile[15].u_tile/led_OBUF[2]_inst_i_20/O
+                         net (fo=19, routed)          0.502   778.316    u_core/u_mem/g_tile[15].u_tile/o_s[15]_31[2]
+    SLICE_X74Y42         LUT6 (Prop_lut6_I5_O)        0.124   778.440 r  u_core/u_mem/g_tile[15].u_tile/q_i_37__8/O
+                         net (fo=1, routed)           0.444   778.884    u_core/u_mem/g_tile[11].u_tile/q_i_80__8_0
+    SLICE_X74Y42         LUT6 (Prop_lut6_I1_O)        0.124   779.008 f  u_core/u_mem/g_tile[11].u_tile/q_i_15__10/O
+                         net (fo=19, routed)          0.641   779.649    u_core/u_mem/g_tile[11].u_tile/q_i_15__10_n_0
+    SLICE_X78Y47         LUT5 (Prop_lut5_I0_O)        0.124   779.773 r  u_core/u_mem/g_tile[11].u_tile/q_i_71__11/O
+                         net (fo=1, routed)           0.285   780.058    u_core/u_mem/g_tile[11].u_tile/q_i_71__11_n_0
+    SLICE_X77Y47         LUT6 (Prop_lut6_I0_O)        0.124   780.182 r  u_core/u_mem/g_tile[11].u_tile/q_i_42__7/O
+                         net (fo=1, routed)           0.460   780.642    u_core/u_mem/g_tile[11].u_tile/q_i_42__7_n_0
+    SLICE_X74Y45         LUT5 (Prop_lut5_I4_O)        0.124   780.766 r  u_core/u_mem/g_tile[11].u_tile/q_i_19__9/O
+                         net (fo=1, routed)           0.000   780.766    u_core/u_mem/g_tile[11].u_tile/q_i_19__9_n_0
+    SLICE_X74Y45         MUXF7 (Prop_muxf7_I1_O)      0.217   780.983 r  u_core/u_mem/g_tile[11].u_tile/q_reg_i_10__1/O
+                         net (fo=1, routed)           0.299   781.282    u_core/u_mem/g_tile[11].u_tile/q_reg_i_10__1_n_0
+    SLICE_X77Y45         LUT3 (Prop_lut3_I1_O)        0.299   781.581 r  u_core/u_mem/g_tile[11].u_tile/q_i_5__11/O
+                         net (fo=4, routed)           0.680   782.261    u_core/u_mem/g_tile[11].u_tile/cfg_reg[100]_0
+    SLICE_X69Y40         LUT4 (Prop_lut4_I2_O)        0.124   782.385 r  u_core/u_mem/g_tile[11].u_tile/q_i_8__7/O
+                         net (fo=1, routed)           0.294   782.679    u_core/u_mem/g_tile[7].u_tile/q_reg_6
+    SLICE_X70Y40         LUT6 (Prop_lut6_I5_O)        0.124   782.803 r  u_core/u_mem/g_tile[7].u_tile/q_i_3__9/O
+                         net (fo=2, routed)           0.432   783.236    u_core/u_mem/g_tile[11].u_tile/q_reg
+    SLICE_X68Y39         LUT3 (Prop_lut3_I1_O)        0.124   783.360 r  u_core/u_mem/g_tile[11].u_tile/user_dr[15]_i_2/O
+                         net (fo=21, routed)          0.693   784.053    u_core/u_mem/g_tile[11].u_tile/cfg_reg[64]_0
+    SLICE_X77Y38         LUT6 (Prop_lut6_I5_O)        0.124   784.177 r  u_core/u_mem/g_tile[11].u_tile/q_i_99__5/O
+                         net (fo=1, routed)           0.402   784.579    u_core/u_mem/g_tile[11].u_tile/q_i_99__5_n_0
+    SLICE_X77Y38         LUT5 (Prop_lut5_I0_O)        0.124   784.703 r  u_core/u_mem/g_tile[11].u_tile/q_i_73__4/O
+                         net (fo=1, routed)           0.403   785.106    u_core/u_mem/g_tile[11].u_tile/q_i_73__4_n_0
+    SLICE_X77Y39         LUT5 (Prop_lut5_I4_O)        0.124   785.230 r  u_core/u_mem/g_tile[11].u_tile/q_i_55__13/O
+                         net (fo=14, routed)          0.778   786.008    u_core/u_mem/g_tile[11].u_tile/o_n[11]_30[3]
+    SLICE_X79Y43         LUT6 (Prop_lut6_I0_O)        0.124   786.132 r  u_core/u_mem/g_tile[11].u_tile/led_OBUF[2]_inst_i_44/O
+                         net (fo=1, routed)           0.579   786.711    u_core/u_mem/g_tile[15].u_tile/led_OBUF[1]_inst_i_79_6
+    SLICE_X78Y44         LUT6 (Prop_lut6_I3_O)        0.124   786.835 r  u_core/u_mem/g_tile[15].u_tile/led_OBUF[2]_inst_i_19/O
+                         net (fo=19, routed)          0.640   787.475    u_core/u_mem/g_tile[15].u_tile/o_s[15]_31[0]
+    SLICE_X75Y41         LUT6 (Prop_lut6_I3_O)        0.124   787.599 r  u_core/u_mem/g_tile[15].u_tile/q_i_106__6/O
+                         net (fo=1, routed)           0.422   788.021    u_core/u_mem/g_tile[11].u_tile/q_i_57__12_0
+    SLICE_X76Y41         LUT5 (Prop_lut5_I1_O)        0.124   788.145 r  u_core/u_mem/g_tile[11].u_tile/q_i_78__1/O
+                         net (fo=1, routed)           0.280   788.425    u_core/u_mem/g_tile[11].u_tile/q_i_78__1_n_0
+    SLICE_X76Y41         LUT5 (Prop_lut5_I4_O)        0.124   788.549 r  u_core/u_mem/g_tile[11].u_tile/q_i_57__12/O
+                         net (fo=14, routed)          0.589   789.137    u_core/u_mem/g_tile[11].u_tile/o_n[11]_30[1]
+    SLICE_X76Y42         LUT6 (Prop_lut6_I3_O)        0.124   789.261 r  u_core/u_mem/g_tile[11].u_tile/led_OBUF[2]_inst_i_41/O
+                         net (fo=1, routed)           0.433   789.695    u_core/u_mem/g_tile[15].u_tile/led_OBUF[1]_inst_i_79_0
+    SLICE_X76Y42         LUT6 (Prop_lut6_I3_O)        0.124   789.819 r  u_core/u_mem/g_tile[15].u_tile/led_OBUF[2]_inst_i_18/O
+                         net (fo=19, routed)          0.691   790.510    u_core/u_mem/g_tile[15].u_tile/o_s[15]_31[3]
+    SLICE_X68Y38         LUT6 (Prop_lut6_I1_O)        0.124   790.634 r  u_core/u_mem/g_tile[15].u_tile/led_OBUF[2]_inst_i_167/O
+                         net (fo=1, routed)           0.626   791.260    u_core/u_mem/g_tile[11].u_tile/led_OBUF[2]_inst_i_96_0
+    SLICE_X66Y38         LUT5 (Prop_lut5_I1_O)        0.124   791.384 r  u_core/u_mem/g_tile[11].u_tile/led_OBUF[2]_inst_i_132/O
+                         net (fo=1, routed)           0.308   791.693    u_core/u_mem/g_tile[11].u_tile/led_OBUF[2]_inst_i_132_n_0
+    SLICE_X68Y38         LUT5 (Prop_lut5_I4_O)        0.124   791.817 r  u_core/u_mem/g_tile[11].u_tile/led_OBUF[2]_inst_i_96/O
+                         net (fo=22, routed)          0.667   792.484    u_core/u_mem/g_tile[11].u_tile/o_w[11]_28[0]
+    SLICE_X74Y35         LUT6 (Prop_lut6_I5_O)        0.124   792.608 r  u_core/u_mem/g_tile[11].u_tile/led_OBUF[1]_inst_i_181/O
+                         net (fo=1, routed)           0.483   793.091    u_core/u_mem/g_tile[10].u_tile/led_OBUF[1]_inst_i_103_1
+    SLICE_X75Y35         LUT6 (Prop_lut6_I1_O)        0.124   793.215 r  u_core/u_mem/g_tile[10].u_tile/led_OBUF[1]_inst_i_147/O
+                         net (fo=1, routed)           0.350   793.565    u_core/u_mem/g_tile[10].u_tile/led_OBUF[1]_inst_i_147_n_0
+    SLICE_X74Y35         LUT5 (Prop_lut5_I4_O)        0.124   793.689 r  u_core/u_mem/g_tile[10].u_tile/led_OBUF[1]_inst_i_103/O
+                         net (fo=22, routed)          0.928   794.617    u_core/u_mem/g_tile[10].u_tile/o_s[10]_25[0]
+    SLICE_X77Y24         LUT6 (Prop_lut6_I5_O)        0.124   794.741 r  u_core/u_mem/g_tile[10].u_tile/q_i_167/O
+                         net (fo=1, routed)           0.293   795.034    u_core/u_mem/g_tile[6].u_tile/q_i_89__10_2
+    SLICE_X77Y22         LUT6 (Prop_lut6_I3_O)        0.124   795.158 r  u_core/u_mem/g_tile[6].u_tile/q_i_130__1/O
+                         net (fo=1, routed)           0.303   795.461    u_core/u_mem/g_tile[6].u_tile/q_i_130__1_n_0
+    SLICE_X75Y22         LUT5 (Prop_lut5_I4_O)        0.124   795.585 r  u_core/u_mem/g_tile[6].u_tile/q_i_89__10/O
+                         net (fo=22, routed)          0.723   796.308    u_core/u_mem/g_tile[6].u_tile/o_w[6]_10[1]
+    SLICE_X69Y18         LUT6 (Prop_lut6_I3_O)        0.124   796.432 r  u_core/u_mem/g_tile[6].u_tile/led_OBUF[1]_inst_i_113/O
+                         net (fo=1, routed)           0.151   796.583    u_core/u_mem/g_tile[5].u_tile/led_OBUF[1]_inst_i_45_1
+    SLICE_X69Y18         LUT6 (Prop_lut6_I1_O)        0.124   796.707 r  u_core/u_mem/g_tile[5].u_tile/led_OBUF[1]_inst_i_87/O
+                         net (fo=1, routed)           0.296   797.003    u_core/u_mem/g_tile[5].u_tile/led_OBUF[1]_inst_i_87_n_0
+    SLICE_X69Y19         LUT5 (Prop_lut5_I4_O)        0.124   797.127 r  u_core/u_mem/g_tile[5].u_tile/led_OBUF[1]_inst_i_45/O
+                         net (fo=22, routed)          0.732   797.859    u_core/u_mem/g_tile[5].u_tile/o_e[5]_8[2]
+    SLICE_X76Y21         LUT6 (Prop_lut6_I1_O)        0.124   797.983 r  u_core/u_mem/g_tile[5].u_tile/q_i_131__1/O
+                         net (fo=1, routed)           0.416   798.400    u_core/u_mem/g_tile[6].u_tile/q_i_54__4_2
+    SLICE_X76Y22         LUT5 (Prop_lut5_I0_O)        0.124   798.524 r  u_core/u_mem/g_tile[6].u_tile/q_i_90__11/O
+                         net (fo=22, routed)          0.698   799.222    u_core/u_mem/g_tile[6].u_tile/o_w[6]_10[0]
+    SLICE_X68Y18         LUT6 (Prop_lut6_I5_O)        0.124   799.346 r  u_core/u_mem/g_tile[6].u_tile/led_OBUF[1]_inst_i_109/O
+                         net (fo=1, routed)           0.473   799.819    u_core/u_mem/g_tile[5].u_tile/led_OBUF[1]_inst_i_44_1
+    SLICE_X67Y18         LUT6 (Prop_lut6_I1_O)        0.124   799.943 r  u_core/u_mem/g_tile[5].u_tile/led_OBUF[1]_inst_i_85/O
+                         net (fo=1, routed)           0.403   800.346    u_core/u_mem/g_tile[5].u_tile/led_OBUF[1]_inst_i_85_n_0
+    SLICE_X67Y18         LUT5 (Prop_lut5_I4_O)        0.124   800.470 r  u_core/u_mem/g_tile[5].u_tile/led_OBUF[1]_inst_i_44/O
+                         net (fo=22, routed)          0.610   801.080    u_core/u_mem/g_tile[5].u_tile/o_e[5]_8[3]
+    SLICE_X71Y22         LUT6 (Prop_lut6_I0_O)        0.124   801.204 r  u_core/u_mem/g_tile[5].u_tile/q_i_127__1/O
+                         net (fo=1, routed)           0.149   801.353    u_core/u_mem/g_tile[6].u_tile/q_i_54__4_0
+    SLICE_X71Y22         LUT5 (Prop_lut5_I0_O)        0.124   801.477 r  u_core/u_mem/g_tile[6].u_tile/q_i_88__9/O
+                         net (fo=22, routed)          0.891   802.368    u_core/u_mem/g_tile[5].u_tile/o_w[6]_10[2]
+    SLICE_X68Y19         LUT6 (Prop_lut6_I1_O)        0.124   802.492 r  u_core/u_mem/g_tile[5].u_tile/led_OBUF[1]_inst_i_117/O
+                         net (fo=1, routed)           0.279   802.771    u_core/u_mem/g_tile[5].u_tile/led_OBUF[1]_inst_i_117_n_0
+    SLICE_X68Y19         LUT6 (Prop_lut6_I1_O)        0.124   802.895 r  u_core/u_mem/g_tile[5].u_tile/led_OBUF[1]_inst_i_89/O
+                         net (fo=1, routed)           0.161   803.057    u_core/u_mem/g_tile[5].u_tile/led_OBUF[1]_inst_i_89_n_0
+    SLICE_X68Y19         LUT5 (Prop_lut5_I4_O)        0.124   803.181 r  u_core/u_mem/g_tile[5].u_tile/led_OBUF[1]_inst_i_46/O
+                         net (fo=22, routed)          0.726   803.906    u_core/u_mem/g_tile[5].u_tile/o_e[5]_8[1]
+    SLICE_X76Y24         LUT6 (Prop_lut6_I3_O)        0.124   804.030 r  u_core/u_mem/g_tile[5].u_tile/q_i_115__3/O
+                         net (fo=1, routed)           0.433   804.464    u_core/u_mem/g_tile[6].u_tile/q_i_88__1_2
+    SLICE_X76Y24         LUT5 (Prop_lut5_I0_O)        0.124   804.588 r  u_core/u_mem/g_tile[6].u_tile/q_i_87__10/O
+                         net (fo=18, routed)          0.850   805.437    u_core/u_mem/g_tile[6].u_tile/o_s[6]_11[0]
+    SLICE_X88Y23         LUT6 (Prop_lut6_I5_O)        0.124   805.561 r  u_core/u_mem/g_tile[6].u_tile/q_i_65__1/O
+                         net (fo=1, routed)           0.159   805.720    u_core/u_mem/g_tile[2].u_tile/q_i_14__1_0
+    SLICE_X88Y23         LUT6 (Prop_lut6_I0_O)        0.124   805.844 r  u_core/u_mem/g_tile[2].u_tile/q_i_36__0/O
+                         net (fo=1, routed)           0.577   806.421    u_core/u_mem/g_tile[2].u_tile/q_i_36__0_n_0
+    SLICE_X89Y23         LUT6 (Prop_lut6_I5_O)        0.124   806.545 r  u_core/u_mem/g_tile[2].u_tile/q_i_14__1/O
+                         net (fo=1, routed)           0.619   807.164    u_core/u_mem/g_tile[2].u_tile/u_fabric/g_row[0].g_col[2].u_tile/lut_i[5]
+    SLICE_X90Y29         LUT5 (Prop_lut5_I3_O)        0.124   807.288 r  u_core/u_mem/g_tile[2].u_tile/q_i_6__1/O
+                         net (fo=3, routed)           0.543   807.832    u_core/u_mem/g_tile[2].u_tile/u_fabric/g_row[0].g_col[2].u_tile/u_clb/lut_o6
+    SLICE_X89Y31         LUT5 (Prop_lut5_I4_O)        0.124   807.956 r  u_core/u_mem/g_tile[2].u_tile/q_i_3__0/O
+                         net (fo=2, routed)           0.440   808.395    u_core/u_mem/g_tile[2].u_tile/u_fabric/g_row[0].g_col[2].u_tile/u_clb/comb__1
+    SLICE_X89Y30         LUT3 (Prop_lut3_I1_O)        0.124   808.519 r  u_core/u_mem/g_tile[2].u_tile/user_dr[6]_i_2/O
+                         net (fo=20, routed)          0.709   809.228    u_core/u_mem/g_tile[2].u_tile/cfg_reg[64]_0
+    SLICE_X88Y28         LUT6 (Prop_lut6_I3_O)        0.124   809.352 r  u_core/u_mem/g_tile[2].u_tile/q_i_91__1/O
+                         net (fo=1, routed)           0.159   809.511    u_core/u_mem/g_tile[2].u_tile/q_i_91__1_n_0
+    SLICE_X88Y28         LUT6 (Prop_lut6_I5_O)        0.124   809.635 r  u_core/u_mem/g_tile[2].u_tile/q_i_70__1/O
+                         net (fo=1, routed)           0.000   809.635    u_core/u_mem/g_tile[2].u_tile/q_i_70__1_n_0
+    SLICE_X88Y28         MUXF7 (Prop_muxf7_I0_O)      0.212   809.847 r  u_core/u_mem/g_tile[2].u_tile/q_reg_i_39/O
+                         net (fo=12, routed)          0.584   810.431    u_core/u_mem/g_tile[2].u_tile/u_fabric/g_row[0].g_col[2].u_tile/lut_i[1]
+    SLICE_X92Y28         LUT6 (Prop_lut6_I2_O)        0.299   810.730 r  u_core/u_mem/g_tile[2].u_tile/q_i_29__1/O
+                         net (fo=1, routed)           0.426   811.156    u_core/u_mem/g_tile[2].u_tile/u_fabric/g_row[0].g_col[2].u_tile/s1_4__0
+    SLICE_X91Y27         LUT6 (Prop_lut6_I5_O)        0.124   811.281 r  u_core/u_mem/g_tile[2].u_tile/q_i_11__1/O
+                         net (fo=1, routed)           0.361   811.641    u_core/u_mem/g_tile[2].u_tile/u_fabric/g_row[0].g_col[2].u_tile/s3_1__0
+    SLICE_X90Y27         LUT5 (Prop_lut5_I4_O)        0.124   811.765 r  u_core/u_mem/g_tile[2].u_tile/q_i_5__12/O
+                         net (fo=22, routed)          1.119   812.884    u_core/u_mem/g_tile[2].u_tile/q_i_5__12_n_0
+    SLICE_X82Y18         LUT6 (Prop_lut6_I2_O)        0.124   813.008 r  u_core/u_mem/g_tile[2].u_tile/q_i_126/O
+                         net (fo=1, routed)           0.000   813.008    u_core/u_mem/g_tile[2].u_tile/q_i_126_n_0
+    SLICE_X82Y18         MUXF7 (Prop_muxf7_I0_O)      0.209   813.217 r  u_core/u_mem/g_tile[2].u_tile/q_reg_i_103/O
+                         net (fo=1, routed)           0.469   813.687    u_core/u_mem/g_tile[2].u_tile/q_reg_i_103_n_0
+    SLICE_X82Y18         LUT5 (Prop_lut5_I4_O)        0.297   813.984 r  u_core/u_mem/g_tile[2].u_tile/q_i_79__8/O
+                         net (fo=18, routed)          0.627   814.610    u_core/u_mem/g_tile[2].u_tile/o_w[2]_37[0]
+    SLICE_X81Y16         LUT6 (Prop_lut6_I5_O)        0.124   814.734 r  u_core/u_mem/g_tile[2].u_tile/q_i_119__0/O
+                         net (fo=1, routed)           0.426   815.160    u_core/u_mem/g_tile[1].u_tile/q_reg_i_73__0_1
+    SLICE_X80Y16         LUT6 (Prop_lut6_I5_O)        0.124   815.284 r  u_core/u_mem/g_tile[1].u_tile/q_i_94__0/O
+                         net (fo=1, routed)           0.000   815.284    u_core/u_mem/g_tile[1].u_tile/q_i_94__0_n_0
+    SLICE_X80Y16         MUXF7 (Prop_muxf7_I1_O)      0.217   815.501 r  u_core/u_mem/g_tile[1].u_tile/q_reg_i_73__0/O
+                         net (fo=1, routed)           0.436   815.938    u_core/u_mem/g_tile[1].u_tile/q_reg_i_73__0_n_0
+    SLICE_X80Y16         LUT5 (Prop_lut5_I4_O)        0.299   816.237 r  u_core/u_mem/g_tile[1].u_tile/q_i_40__11/O
+                         net (fo=18, routed)          0.371   816.608    u_core/u_mem/g_tile[1].u_tile/o_e[1]_33[3]
+    SLICE_X80Y17         LUT6 (Prop_lut6_I0_O)        0.124   816.732 r  u_core/u_mem/g_tile[1].u_tile/q_i_100__0/O
+                         net (fo=1, routed)           0.433   817.166    u_core/u_mem/g_tile[2].u_tile/q_i_121_0
+    SLICE_X80Y17         LUT5 (Prop_lut5_I1_O)        0.124   817.290 r  u_core/u_mem/g_tile[2].u_tile/q_i_78__7/O
+                         net (fo=18, routed)          0.641   817.930    u_core/u_mem/g_tile[2].u_tile/o_w[2]_37[1]
+    SLICE_X82Y15         LUT6 (Prop_lut6_I3_O)        0.124   818.054 r  u_core/u_mem/g_tile[2].u_tile/q_i_118__1/O
+                         net (fo=1, routed)           0.165   818.219    u_core/u_mem/g_tile[1].u_tile/q_reg_i_76_1
+    SLICE_X82Y15         LUT6 (Prop_lut6_I5_O)        0.124   818.343 r  u_core/u_mem/g_tile[1].u_tile/q_i_95__1/O
+                         net (fo=1, routed)           0.000   818.343    u_core/u_mem/g_tile[1].u_tile/q_i_95__1_n_0
+    SLICE_X82Y15         MUXF7 (Prop_muxf7_I1_O)      0.214   818.557 r  u_core/u_mem/g_tile[1].u_tile/q_reg_i_76/O
+                         net (fo=1, routed)           0.469   819.026    u_core/u_mem/g_tile[1].u_tile/q_reg_i_76_n_0
+    SLICE_X82Y15         LUT5 (Prop_lut5_I4_O)        0.297   819.323 r  u_core/u_mem/g_tile[1].u_tile/q_i_60__13/O
+                         net (fo=14, routed)          0.608   819.931    u_core/u_mem/g_tile[1].u_tile/o_w[1]_34[3]
+    SLICE_X86Y17         LUT6 (Prop_lut6_I0_O)        0.124   820.055 r  u_core/u_mem/g_tile[1].u_tile/q_i_117/O
+                         net (fo=1, routed)           0.544   820.599    u_core/u_mem/g_tile[0].u_tile/q_reg_i_73_0
+    SLICE_X86Y17         LUT6 (Prop_lut6_I5_O)        0.124   820.723 r  u_core/u_mem/g_tile[0].u_tile/q_i_93/O
+                         net (fo=1, routed)           0.000   820.723    u_core/u_mem/g_tile[0].u_tile/q_i_93_n_0
+    SLICE_X86Y17         MUXF7 (Prop_muxf7_I1_O)      0.214   820.937 r  u_core/u_mem/g_tile[0].u_tile/q_reg_i_73/O
+                         net (fo=1, routed)           0.436   821.372    u_core/u_mem/g_tile[0].u_tile/q_reg_i_73_n_0
+    SLICE_X86Y16         LUT5 (Prop_lut5_I4_O)        0.297   821.669 r  u_core/u_mem/g_tile[0].u_tile/q_i_46__12/O
+                         net (fo=18, routed)          0.612   822.281    u_core/u_mem/g_tile[0].u_tile/o_e[0]_1[1]
+    SLICE_X84Y12         LUT6 (Prop_lut6_I3_O)        0.124   822.406 r  u_core/u_mem/g_tile[0].u_tile/q_i_73__0/O
+                         net (fo=1, routed)           0.161   822.567    u_core/u_mem/g_tile[1].u_tile/q_i_115
+    SLICE_X84Y12         LUT5 (Prop_lut5_I1_O)        0.124   822.691 r  u_core/u_mem/g_tile[1].u_tile/q_i_59__14/O
+                         net (fo=14, routed)          0.675   823.365    u_core/u_mem/g_tile[1].u_tile/o_w[1]_34[0]
+    SLICE_X85Y18         LUT6 (Prop_lut6_I5_O)        0.124   823.489 r  u_core/u_mem/g_tile[1].u_tile/q_i_113/O
+                         net (fo=1, routed)           0.402   823.892    u_core/u_mem/g_tile[0].u_tile/q_reg_i_69_0
+    SLICE_X85Y19         LUT6 (Prop_lut6_I5_O)        0.124   824.016 r  u_core/u_mem/g_tile[0].u_tile/q_i_89__0/O
+                         net (fo=1, routed)           0.000   824.016    u_core/u_mem/g_tile[0].u_tile/q_i_89__0_n_0
+    SLICE_X85Y19         MUXF7 (Prop_muxf7_I1_O)      0.217   824.233 r  u_core/u_mem/g_tile[0].u_tile/q_reg_i_69/O
+                         net (fo=1, routed)           0.291   824.523    u_core/u_mem/g_tile[0].u_tile/q_reg_i_69_n_0
+    SLICE_X83Y19         LUT5 (Prop_lut5_I4_O)        0.299   824.823 r  u_core/u_mem/g_tile[0].u_tile/q_i_44__11/O
+                         net (fo=18, routed)          0.662   825.484    u_core/u_mem/g_tile[0].u_tile/o_e[0]_1[3]
+    SLICE_X83Y13         LUT6 (Prop_lut6_I0_O)        0.124   825.608 r  u_core/u_mem/g_tile[0].u_tile/q_i_71/O
+                         net (fo=1, routed)           0.431   826.040    u_core/u_mem/g_tile[1].u_tile/q_i_115_0
+    SLICE_X84Y14         LUT5 (Prop_lut5_I1_O)        0.124   826.164 r  u_core/u_mem/g_tile[1].u_tile/q_i_58__14/O
+                         net (fo=14, routed)          0.301   826.465    u_core/u_mem/g_tile[0].u_tile/o_w[1]_34[1]
+    SLICE_X85Y16         LUT6 (Prop_lut6_I3_O)        0.124   826.589 r  u_core/u_mem/g_tile[0].u_tile/q_i_115/O
+                         net (fo=1, routed)           0.154   826.743    u_core/u_mem/g_tile[0].u_tile/q_i_115_n_0
+    SLICE_X85Y16         LUT6 (Prop_lut6_I5_O)        0.124   826.867 r  u_core/u_mem/g_tile[0].u_tile/q_i_91/O
+                         net (fo=1, routed)           0.000   826.867    u_core/u_mem/g_tile[0].u_tile/q_i_91_n_0
+    SLICE_X85Y16         MUXF7 (Prop_muxf7_I1_O)      0.217   827.084 r  u_core/u_mem/g_tile[0].u_tile/q_reg_i_71/O
+                         net (fo=1, routed)           0.436   827.521    u_core/u_mem/g_tile[0].u_tile/q_reg_i_71_n_0
+    SLICE_X85Y16         LUT5 (Prop_lut5_I4_O)        0.299   827.820 r  u_core/u_mem/g_tile[0].u_tile/q_i_45__12/O
+                         net (fo=18, routed)          0.985   828.805    u_core/u_mem/g_tile[0].u_tile/o_e[0]_1[2]
+    SLICE_X79Y15         LUT6 (Prop_lut6_I1_O)        0.124   828.929 r  u_core/u_mem/g_tile[0].u_tile/q_i_74__0/O
+                         net (fo=1, routed)           0.264   829.193    u_core/u_mem/g_tile[1].u_tile/led_OBUF[0]_inst_i_30_0
+    SLICE_X79Y15         LUT5 (Prop_lut5_I1_O)        0.124   829.317 r  u_core/u_mem/g_tile[1].u_tile/q_i_41__12/O
+                         net (fo=18, routed)          0.878   830.195    u_core/u_mem/g_tile[1].u_tile/o_e[1]_33[2]
+    SLICE_X84Y23         LUT6 (Prop_lut6_I1_O)        0.124   830.319 r  u_core/u_mem/g_tile[1].u_tile/led_OBUF[1]_inst_i_130/O
+                         net (fo=1, routed)           0.491   830.811    u_core/u_mem/g_tile[2].u_tile/q_i_142__3
+    SLICE_X84Y24         LUT5 (Prop_lut5_I1_O)        0.124   830.935 r  u_core/u_mem/g_tile[2].u_tile/led_OBUF[1]_inst_i_95/O
+                         net (fo=22, routed)          0.553   831.488    u_core/u_mem/g_tile[2].u_tile/o_n[2]_35[0]
+    SLICE_X81Y24         LUT6 (Prop_lut6_I5_O)        0.124   831.612 r  u_core/u_mem/g_tile[2].u_tile/q_i_138__3/O
+                         net (fo=1, routed)           0.149   831.761    u_core/u_mem/g_tile[6].u_tile/q_i_85__9_0
+    SLICE_X81Y24         LUT6 (Prop_lut6_I0_O)        0.124   831.885 r  u_core/u_mem/g_tile[6].u_tile/q_i_112__2/O
+                         net (fo=1, routed)           0.433   832.318    u_core/u_mem/g_tile[6].u_tile/q_i_112__2_n_0
+    SLICE_X81Y24         LUT5 (Prop_lut5_I4_O)        0.124   832.442 r  u_core/u_mem/g_tile[6].u_tile/q_i_85__9/O
+                         net (fo=18, routed)          0.362   832.804    u_core/u_mem/g_tile[6].u_tile/o_s[6]_11[2]
+    SLICE_X82Y24         LUT6 (Prop_lut6_I1_O)        0.124   832.928 r  u_core/u_mem/g_tile[6].u_tile/led_OBUF[1]_inst_i_188/O
+                         net (fo=1, routed)           0.541   833.469    u_core/u_mem/g_tile[2].u_tile/led_OBUF[1]_inst_i_129_0
+    SLICE_X82Y24         LUT6 (Prop_lut6_I0_O)        0.124   833.593 r  u_core/u_mem/g_tile[2].u_tile/led_OBUF[1]_inst_i_152/O
+                         net (fo=1, routed)           0.000   833.593    u_core/u_mem/g_tile[2].u_tile/led_OBUF[1]_inst_i_152_n_0
+    SLICE_X82Y24         MUXF7 (Prop_muxf7_I0_O)      0.209   833.802 r  u_core/u_mem/g_tile[2].u_tile/led_OBUF[1]_inst_i_129/O
+                         net (fo=1, routed)           0.661   834.463    u_core/u_mem/g_tile[2].u_tile/led_OBUF[1]_inst_i_129_n_0
+    SLICE_X83Y24         LUT5 (Prop_lut5_I4_O)        0.297   834.760 r  u_core/u_mem/g_tile[2].u_tile/led_OBUF[1]_inst_i_94/O
+                         net (fo=22, routed)          0.670   835.430    u_core/u_mem/g_tile[2].u_tile/o_n[2]_35[1]
+    SLICE_X78Y24         LUT6 (Prop_lut6_I3_O)        0.124   835.554 r  u_core/u_mem/g_tile[2].u_tile/q_i_134__0/O
+                         net (fo=1, routed)           0.421   835.975    u_core/u_mem/g_tile[6].u_tile/q_i_84__9_0
+    SLICE_X78Y23         LUT6 (Prop_lut6_I0_O)        0.124   836.099 r  u_core/u_mem/g_tile[6].u_tile/q_i_110__3/O
+                         net (fo=1, routed)           0.433   836.532    u_core/u_mem/g_tile[6].u_tile/q_i_110__3_n_0
+    SLICE_X78Y23         LUT5 (Prop_lut5_I4_O)        0.124   836.656 r  u_core/u_mem/g_tile[6].u_tile/q_i_84__9/O
+                         net (fo=18, routed)          0.640   837.296    u_core/u_mem/g_tile[6].u_tile/o_s[6]_11[3]
+    SLICE_X81Y22         LUT6 (Prop_lut6_I0_O)        0.124   837.420 r  u_core/u_mem/g_tile[6].u_tile/led_OBUF[1]_inst_i_186/O
+                         net (fo=1, routed)           0.407   837.827    u_core/u_mem/g_tile[2].u_tile/led_OBUF[1]_inst_i_127_0
+    SLICE_X81Y22         LUT6 (Prop_lut6_I0_O)        0.124   837.951 r  u_core/u_mem/g_tile[2].u_tile/led_OBUF[1]_inst_i_150/O
+                         net (fo=1, routed)           0.000   837.951    u_core/u_mem/g_tile[2].u_tile/led_OBUF[1]_inst_i_150_n_0
+    SLICE_X81Y22         MUXF7 (Prop_muxf7_I0_O)      0.212   838.163 r  u_core/u_mem/g_tile[2].u_tile/led_OBUF[1]_inst_i_127/O
+                         net (fo=1, routed)           0.661   838.825    u_core/u_mem/g_tile[2].u_tile/led_OBUF[1]_inst_i_127_n_0
+    SLICE_X80Y22         LUT5 (Prop_lut5_I4_O)        0.299   839.124 r  u_core/u_mem/g_tile[2].u_tile/led_OBUF[1]_inst_i_93/O
+                         net (fo=22, routed)          1.262   840.386    u_core/u_mem/g_tile[2].u_tile/o_n[2]_35[2]
+    SLICE_X76Y29         LUT6 (Prop_lut6_I1_O)        0.124   840.510 r  u_core/u_mem/g_tile[2].u_tile/led_OBUF[2]_inst_i_153/O
+                         net (fo=1, routed)           0.158   840.668    u_core/u_mem/g_tile[6].u_tile/led_OBUF[2]_inst_i_92_0
+    SLICE_X76Y29         LUT6 (Prop_lut6_I0_O)        0.124   840.792 r  u_core/u_mem/g_tile[6].u_tile/led_OBUF[2]_inst_i_124/O
+                         net (fo=1, routed)           0.579   841.371    u_core/u_mem/g_tile[6].u_tile/led_OBUF[2]_inst_i_124_n_0
+    SLICE_X76Y30         LUT5 (Prop_lut5_I4_O)        0.124   841.495 r  u_core/u_mem/g_tile[6].u_tile/led_OBUF[2]_inst_i_92/O
+                         net (fo=22, routed)          0.684   842.179    u_core/u_mem/g_tile[6].u_tile/o_n[6]_13[0]
+    SLICE_X77Y38         LUT6 (Prop_lut6_I5_O)        0.124   842.303 r  u_core/u_mem/g_tile[6].u_tile/led_OBUF[2]_inst_i_61/O
+                         net (fo=1, routed)           0.308   842.611    u_core/u_mem/g_tile[10].u_tile/led_OBUF[2]_inst_i_11_0
+    SLICE_X78Y39         LUT6 (Prop_lut6_I0_O)        0.124   842.735 r  u_core/u_mem/g_tile[10].u_tile/led_OBUF[2]_inst_i_26/O
+                         net (fo=1, routed)           0.161   842.896    u_core/u_mem/g_tile[10].u_tile/led_OBUF[2]_inst_i_26_n_0
+    SLICE_X78Y39         LUT5 (Prop_lut5_I4_O)        0.124   843.020 r  u_core/u_mem/g_tile[10].u_tile/led_OBUF[2]_inst_i_11/O
+                         net (fo=19, routed)          0.665   843.685    u_core/u_mem/g_tile[10].u_tile/o_e[10]_26[0]
+    SLICE_X71Y38         LUT6 (Prop_lut6_I3_O)        0.124   843.809 r  u_core/u_mem/g_tile[10].u_tile/led_OBUF[2]_inst_i_127/O
+                         net (fo=1, routed)           0.433   844.243    u_core/u_mem/g_tile[11].u_tile/led_OBUF[2]_inst_i_62_0
+    SLICE_X71Y38         LUT5 (Prop_lut5_I2_O)        0.124   844.367 r  u_core/u_mem/g_tile[11].u_tile/led_OBUF[2]_inst_i_94/O
+                         net (fo=22, routed)          0.917   845.283    u_core/u_mem/g_tile[11].u_tile/o_w[11]_28[2]
+    SLICE_X75Y34         LUT6 (Prop_lut6_I1_O)        0.124   845.407 r  u_core/u_mem/g_tile[11].u_tile/led_OBUF[1]_inst_i_177/O
+                         net (fo=1, routed)           0.401   845.809    u_core/u_mem/g_tile[10].u_tile/led_OBUF[1]_inst_i_102_1
+    SLICE_X75Y33         LUT6 (Prop_lut6_I1_O)        0.124   845.933 r  u_core/u_mem/g_tile[10].u_tile/led_OBUF[1]_inst_i_145/O
+                         net (fo=1, routed)           0.402   846.335    u_core/u_mem/g_tile[10].u_tile/led_OBUF[1]_inst_i_145_n_0
+    SLICE_X75Y33         LUT5 (Prop_lut5_I4_O)        0.124   846.459 r  u_core/u_mem/g_tile[10].u_tile/led_OBUF[1]_inst_i_102/O
+                         net (fo=22, routed)          0.890   847.349    u_core/u_mem/g_tile[10].u_tile/o_s[10]_25[1]
+    SLICE_X80Y26         LUT6 (Prop_lut6_I3_O)        0.124   847.473 r  u_core/u_mem/g_tile[10].u_tile/q_i_144__3/O
+                         net (fo=1, routed)           0.556   848.029    u_core/u_mem/g_tile[6].u_tile/q_i_86__10_1
+    SLICE_X81Y26         LUT6 (Prop_lut6_I3_O)        0.124   848.153 r  u_core/u_mem/g_tile[6].u_tile/q_i_114__2/O
+                         net (fo=1, routed)           0.415   848.568    u_core/u_mem/g_tile[6].u_tile/q_i_114__2_n_0
+    SLICE_X80Y26         LUT5 (Prop_lut5_I4_O)        0.124   848.692 r  u_core/u_mem/g_tile[6].u_tile/q_i_86__10/O
+                         net (fo=18, routed)          0.859   849.551    u_core/u_mem/g_tile[6].u_tile/o_s[6]_11[1]
+    SLICE_X78Y19         LUT6 (Prop_lut6_I3_O)        0.124   849.675 r  u_core/u_mem/g_tile[6].u_tile/led_OBUF[0]_inst_i_60/O
+                         net (fo=1, routed)           0.481   850.155    u_core/u_mem/g_tile[2].u_tile/led_OBUF[0]_inst_i_33_0
+    SLICE_X79Y19         LUT6 (Prop_lut6_I0_O)        0.124   850.279 r  u_core/u_mem/g_tile[2].u_tile/led_OBUF[0]_inst_i_52/O
+                         net (fo=1, routed)           0.000   850.279    u_core/u_mem/g_tile[2].u_tile/led_OBUF[0]_inst_i_52_n_0
+    SLICE_X79Y19         MUXF7 (Prop_muxf7_I0_O)      0.212   850.491 r  u_core/u_mem/g_tile[2].u_tile/led_OBUF[0]_inst_i_33/O
+                         net (fo=1, routed)           0.688   851.179    u_core/u_mem/g_tile[2].u_tile/led_OBUF[0]_inst_i_33_n_0
+    SLICE_X79Y19         LUT5 (Prop_lut5_I4_O)        0.299   851.478 r  u_core/u_mem/g_tile[2].u_tile/led_OBUF[0]_inst_i_17/O
+                         net (fo=15, routed)          0.672   852.150    u_core/u_mem/g_tile[2].u_tile/o_e[2]_36[0]
+    SLICE_X71Y20         LUT6 (Prop_lut6_I5_O)        0.124   852.274 r  u_core/u_mem/g_tile[2].u_tile/q_i_60__1/O
+                         net (fo=1, routed)           0.488   852.762    u_core/u_mem/g_tile[3].u_tile/q_i_20__1_0
+    SLICE_X70Y20         LUT6 (Prop_lut6_I1_O)        0.124   852.886 r  u_core/u_mem/g_tile[3].u_tile/q_i_39__0/O
+                         net (fo=12, routed)          0.543   853.429    u_core/u_mem/g_tile[3].u_tile/u_fabric/g_row[0].g_col[3].u_tile/lut_i[1]
+    SLICE_X64Y17         LUT6 (Prop_lut6_I4_O)        0.124   853.553 r  u_core/u_mem/g_tile[3].u_tile/q_i_32__2/O
+                         net (fo=1, routed)           0.443   853.996    u_core/u_mem/g_tile[3].u_tile/u_fabric/g_row[0].g_col[3].u_tile/s2_4
+    SLICE_X64Y19         LUT6 (Prop_lut6_I5_O)        0.124   854.120 r  u_core/u_mem/g_tile[3].u_tile/q_i_12__1/O
+                         net (fo=2, routed)           0.571   854.691    u_core/u_mem/g_tile[3].u_tile/u_fabric/g_row[0].g_col[3].u_tile/s4_1
+    SLICE_X66Y22         LUT3 (Prop_lut3_I0_O)        0.124   854.815 r  u_core/u_mem/g_tile[3].u_tile/q_i_6__2/O
+                         net (fo=3, routed)           0.305   855.120    u_core/u_mem/g_tile[3].u_tile/u_fabric/g_row[0].g_col[3].u_tile/u_clb/lut_o6
+    SLICE_X67Y22         LUT5 (Prop_lut5_I4_O)        0.124   855.244 r  u_core/u_mem/g_tile[3].u_tile/q_i_3__1/O
+                         net (fo=2, routed)           0.166   855.410    u_core/u_mem/g_tile[3].u_tile/u_fabric/g_row[0].g_col[3].u_tile/u_clb/comb__1
+    SLICE_X67Y22         LUT3 (Prop_lut3_I1_O)        0.124   855.534 r  u_core/u_mem/g_tile[3].u_tile/user_dr[7]_i_2/O
+                         net (fo=17, routed)          0.390   855.924    u_core/u_mem/g_tile[3].u_tile/cfg_reg[64]_0
+    SLICE_X68Y22         LUT6 (Prop_lut6_I3_O)        0.124   856.048 r  u_core/u_mem/g_tile[3].u_tile/q_i_69__1/O
+                         net (fo=1, routed)           0.000   856.048    u_core/u_mem/g_tile[3].u_tile/q_i_69__1_n_0
+    SLICE_X68Y22         MUXF7 (Prop_muxf7_I0_O)      0.212   856.260 r  u_core/u_mem/g_tile[3].u_tile/q_reg_i_42/O
+                         net (fo=1, routed)           0.433   856.693    u_core/u_mem/g_tile[3].u_tile/q_reg_i_42_n_0
+    SLICE_X68Y21         LUT5 (Prop_lut5_I4_O)        0.299   856.992 r  u_core/u_mem/g_tile[3].u_tile/q_i_17__13/O
+                         net (fo=25, routed)          1.208   858.200    u_core/u_mem/g_tile[3].u_tile/u_fabric/g_row[0].g_col[3].u_tile/lut_i[0]
+    SLICE_X64Y15         LUT6 (Prop_lut6_I4_O)        0.124   858.324 f  u_core/u_mem/g_tile[3].u_tile/q_i_27__2/O
+                         net (fo=1, routed)           0.403   858.727    u_core/u_mem/g_tile[3].u_tile/u_fabric/g_row[0].g_col[3].u_tile/s1_5__0
+    SLICE_X65Y16         LUT6 (Prop_lut6_I3_O)        0.124   858.852 f  u_core/u_mem/g_tile[3].u_tile/q_i_11__2/O
+                         net (fo=1, routed)           0.442   859.294    u_core/u_mem/g_tile[3].u_tile/u_fabric/g_row[0].g_col[3].u_tile/s3_1__0
+    SLICE_X64Y19         LUT5 (Prop_lut5_I4_O)        0.124   859.418 f  u_core/u_mem/g_tile[3].u_tile/q_i_5__13/O
+                         net (fo=19, routed)          1.131   860.549    u_core/u_mem/g_tile[3].u_tile/q_i_5__13_n_0
+    SLICE_X80Y27         LUT6 (Prop_lut6_I2_O)        0.124   860.673 f  u_core/u_mem/g_tile[3].u_tile/q_i_132/O
+                         net (fo=1, routed)           0.000   860.673    u_core/u_mem/g_tile[3].u_tile/q_i_132_n_0
+    SLICE_X80Y27         MUXF7 (Prop_muxf7_I0_O)      0.212   860.885 f  u_core/u_mem/g_tile[3].u_tile/q_reg_i_108/O
+                         net (fo=1, routed)           0.436   861.322    u_core/u_mem/g_tile[3].u_tile/q_reg_i_108_n_0
+    SLICE_X80Y27         LUT5 (Prop_lut5_I4_O)        0.299   861.621 f  u_core/u_mem/g_tile[3].u_tile/q_i_83__11/O
+                         net (fo=18, routed)          0.704   862.325    u_core/u_mem/g_tile[3].u_tile/o_w[3]_39[0]
+    SLICE_X83Y22         LUT6 (Prop_lut6_I5_O)        0.124   862.449 f  u_core/u_mem/g_tile[3].u_tile/led_OBUF[1]_inst_i_185/O
+                         net (fo=1, routed)           0.403   862.852    u_core/u_mem/g_tile[2].u_tile/led_OBUF[1]_inst_i_125_0
+    SLICE_X83Y22         LUT6 (Prop_lut6_I5_O)        0.124   862.976 f  u_core/u_mem/g_tile[2].u_tile/led_OBUF[1]_inst_i_149/O
+                         net (fo=1, routed)           0.000   862.976    u_core/u_mem/g_tile[2].u_tile/led_OBUF[1]_inst_i_149_n_0
+    SLICE_X83Y22         MUXF7 (Prop_muxf7_I1_O)      0.217   863.193 f  u_core/u_mem/g_tile[2].u_tile/led_OBUF[1]_inst_i_125/O
+                         net (fo=1, routed)           0.364   863.557    u_core/u_mem/g_tile[2].u_tile/led_OBUF[1]_inst_i_125_n_0
+    SLICE_X82Y22         LUT5 (Prop_lut5_I4_O)        0.299   863.856 f  u_core/u_mem/g_tile[2].u_tile/led_OBUF[1]_inst_i_92/O
+                         net (fo=22, routed)          1.129   864.985    u_core/u_mem/g_tile[2].u_tile/o_n[2]_35[3]
+    SLICE_X79Y29         LUT6 (Prop_lut6_I0_O)        0.124   865.109 f  u_core/u_mem/g_tile[2].u_tile/led_OBUF[2]_inst_i_149/O
+                         net (fo=1, routed)           0.315   865.424    u_core/u_mem/g_tile[6].u_tile/led_OBUF[2]_inst_i_91_0
+    SLICE_X80Y29         LUT6 (Prop_lut6_I0_O)        0.124   865.548 f  u_core/u_mem/g_tile[6].u_tile/led_OBUF[2]_inst_i_122/O
+                         net (fo=1, routed)           0.422   865.969    u_core/u_mem/g_tile[6].u_tile/led_OBUF[2]_inst_i_122_n_0
+    SLICE_X79Y29         LUT5 (Prop_lut5_I4_O)        0.124   866.094 f  u_core/u_mem/g_tile[6].u_tile/led_OBUF[2]_inst_i_91/O
+                         net (fo=22, routed)          0.798   866.891    u_core/u_mem/g_tile[6].u_tile/o_n[6]_13[1]
+    SLICE_X79Y38         LUT6 (Prop_lut6_I3_O)        0.124   867.015 f  u_core/u_mem/g_tile[6].u_tile/led_OBUF[2]_inst_i_53/O
+                         net (fo=1, routed)           0.348   867.363    u_core/u_mem/g_tile[10].u_tile/led_OBUF[2]_inst_i_9_0
+    SLICE_X78Y38         LUT6 (Prop_lut6_I0_O)        0.124   867.487 f  u_core/u_mem/g_tile[10].u_tile/led_OBUF[2]_inst_i_22/O
+                         net (fo=1, routed)           0.161   867.648    u_core/u_mem/g_tile[10].u_tile/led_OBUF[2]_inst_i_22_n_0
+    SLICE_X78Y38         LUT5 (Prop_lut5_I4_O)        0.124   867.772 f  u_core/u_mem/g_tile[10].u_tile/led_OBUF[2]_inst_i_9/O
+                         net (fo=19, routed)          0.844   868.617    u_core/u_mem/g_tile[10].u_tile/o_e[10]_26[1]
+    SLICE_X77Y40         LUT6 (Prop_lut6_I0_O)        0.124   868.741 f  u_core/u_mem/g_tile[10].u_tile/q_i_75__9/O
+                         net (fo=2, routed)           0.516   869.257    u_core/u_mem/g_tile[11].u_tile/q_i_138__5_0
+    SLICE_X78Y40         LUT6 (Prop_lut6_I1_O)        0.124   869.381 f  u_core/u_mem/g_tile[11].u_tile/q_i_56__9/O
+                         net (fo=13, routed)          0.759   870.140    u_core/u_mem/g_tile[11].u_tile/o_n[11]_30[2]
+    SLICE_X78Y43         LUT6 (Prop_lut6_I1_O)        0.124   870.264 f  u_core/u_mem/g_tile[11].u_tile/led_OBUF[2]_inst_i_38/O
+                         net (fo=1, routed)           0.626   870.890    u_core/u_mem/g_tile[15].u_tile/led_OBUF[1]_inst_i_79_4
+    SLICE_X78Y43         LUT6 (Prop_lut6_I3_O)        0.124   871.014 f  u_core/u_mem/g_tile[15].u_tile/led_OBUF[2]_inst_i_17/O
+                         net (fo=19, routed)          0.679   871.693    u_core/u_mem/g_tile[15].u_tile/o_s[15]_31[1]
+    SLICE_X71Y40         LUT6 (Prop_lut6_I0_O)        0.124   871.817 f  u_core/u_mem/g_tile[15].u_tile/led_OBUF[2]_inst_i_158/O
+                         net (fo=1, routed)           0.404   872.221    u_core/u_mem/g_tile[11].u_tile/led_OBUF[2]_inst_i_93_0
+    SLICE_X71Y39         LUT5 (Prop_lut5_I1_O)        0.124   872.345 f  u_core/u_mem/g_tile[11].u_tile/led_OBUF[2]_inst_i_126/O
+                         net (fo=1, routed)           0.433   872.779    u_core/u_mem/g_tile[11].u_tile/led_OBUF[2]_inst_i_126_n_0
+    SLICE_X71Y39         LUT5 (Prop_lut5_I4_O)        0.124   872.903 f  u_core/u_mem/g_tile[11].u_tile/led_OBUF[2]_inst_i_93/O
+                         net (fo=22, routed)          0.809   873.712    u_core/u_mem/g_tile[11].u_tile/o_w[11]_28[3]
+    SLICE_X79Y34         LUT6 (Prop_lut6_I0_O)        0.124   873.836 f  u_core/u_mem/g_tile[11].u_tile/led_OBUF[1]_inst_i_173/O
+                         net (fo=1, routed)           0.151   873.987    u_core/u_mem/g_tile[10].u_tile/led_OBUF[1]_inst_i_101_1
+    SLICE_X79Y34         LUT6 (Prop_lut6_I1_O)        0.124   874.111 f  u_core/u_mem/g_tile[10].u_tile/led_OBUF[1]_inst_i_143/O
+                         net (fo=1, routed)           0.436   874.547    u_core/u_mem/g_tile[10].u_tile/led_OBUF[1]_inst_i_143_n_0
+    SLICE_X77Y34         LUT5 (Prop_lut5_I4_O)        0.124   874.671 f  u_core/u_mem/g_tile[10].u_tile/led_OBUF[1]_inst_i_101/O
+                         net (fo=22, routed)          0.875   875.546    u_core/u_mem/g_tile[10].u_tile/o_s[10]_25[2]
+    SLICE_X76Y28         LUT6 (Prop_lut6_I1_O)        0.124   875.670 f  u_core/u_mem/g_tile[10].u_tile/led_OBUF[2]_inst_i_147/O
+                         net (fo=1, routed)           0.279   875.949    u_core/u_mem/g_tile[6].u_tile/led_OBUF[2]_inst_i_90_2
+    SLICE_X76Y28         LUT6 (Prop_lut6_I3_O)        0.124   876.073 f  u_core/u_mem/g_tile[6].u_tile/led_OBUF[2]_inst_i_120/O
+                         net (fo=1, routed)           0.158   876.231    u_core/u_mem/g_tile[6].u_tile/led_OBUF[2]_inst_i_120_n_0
+    SLICE_X76Y28         LUT5 (Prop_lut5_I4_O)        0.124   876.355 f  u_core/u_mem/g_tile[6].u_tile/led_OBUF[2]_inst_i_90/O
+                         net (fo=22, routed)          0.518   876.874    u_core/u_mem/g_tile[6].u_tile/o_n[6]_13[2]
+    SLICE_X77Y35         LUT6 (Prop_lut6_I1_O)        0.124   876.998 f  u_core/u_mem/g_tile[6].u_tile/led_OBUF[1]_inst_i_168/O
+                         net (fo=1, routed)           0.263   877.261    u_core/u_mem/g_tile[10].u_tile/led_OBUF[1]_inst_i_100_0
+    SLICE_X77Y35         LUT6 (Prop_lut6_I0_O)        0.124   877.385 f  u_core/u_mem/g_tile[10].u_tile/led_OBUF[1]_inst_i_141/O
+                         net (fo=1, routed)           0.351   877.736    u_core/u_mem/g_tile[10].u_tile/led_OBUF[1]_inst_i_141_n_0
+    SLICE_X76Y35         LUT5 (Prop_lut5_I4_O)        0.124   877.860 f  u_core/u_mem/g_tile[10].u_tile/led_OBUF[1]_inst_i_100/O
+                         net (fo=22, routed)          0.836   878.695    u_core/u_mem/g_tile[10].u_tile/o_s[10]_25[3]
+    SLICE_X74Y27         LUT6 (Prop_lut6_I0_O)        0.124   878.820 f  u_core/u_mem/g_tile[10].u_tile/led_OBUF[1]_inst_i_58/O
+                         net (fo=1, routed)           0.291   879.111    u_core/u_mem/g_tile[6].u_tile/led_OBUF[1]_inst_i_10_2
+    SLICE_X72Y27         LUT6 (Prop_lut6_I3_O)        0.124   879.235 f  u_core/u_mem/g_tile[6].u_tile/led_OBUF[1]_inst_i_25/O
+                         net (fo=1, routed)           0.161   879.396    u_core/u_mem/g_tile[6].u_tile/led_OBUF[1]_inst_i_25_n_0
+    SLICE_X72Y27         LUT5 (Prop_lut5_I4_O)        0.124   879.520 f  u_core/u_mem/g_tile[6].u_tile/led_OBUF[1]_inst_i_10/O
+                         net (fo=19, routed)          0.799   880.319    u_core/u_mem/g_tile[6].u_tile/o_e[6]_12[0]
+    SLICE_X62Y26         LUT6 (Prop_lut6_I3_O)        0.124   880.443 f  u_core/u_mem/g_tile[6].u_tile/q_i_36__4/O
+                         net (fo=1, routed)           0.436   880.879    u_core/u_mem/g_tile[7].u_tile/q_reg_i_10__0_0
+    SLICE_X61Y26         LUT5 (Prop_lut5_I1_O)        0.124   881.003 r  u_core/u_mem/g_tile[7].u_tile/q_i_15__6/O
+                         net (fo=2, routed)           0.354   881.357    u_core/u_mem/g_tile[7].u_tile/q_i_15__6_n_0
+    SLICE_X57Y27         MUXF7 (Prop_muxf7_S_O)       0.276   881.633 r  u_core/u_mem/g_tile[7].u_tile/q_reg_i_10__0/O
+                         net (fo=1, routed)           0.287   881.920    u_core/g_bsr[2].u_cell/q_i_5__10_0
+    SLICE_X59Y27         LUT3 (Prop_lut3_I1_O)        0.299   882.219 r  u_core/g_bsr[2].u_cell/q_i_6__4/O
+                         net (fo=5, routed)           0.485   882.704    u_core/u_mem/g_tile[3].u_tile/q_i_3__5
+    SLICE_X66Y27         LUT6 (Prop_lut6_I5_O)        0.124   882.828 f  u_core/u_mem/g_tile[3].u_tile/q_i_5__6/O
+                         net (fo=1, routed)           0.308   883.135    u_core/u_mem/g_tile[7].u_tile/q_reg_3
+    SLICE_X63Y27         LUT5 (Prop_lut5_I0_O)        0.124   883.260 f  u_core/u_mem/g_tile[7].u_tile/q_i_3__5/O
+                         net (fo=2, routed)           0.465   883.724    u_core/u_mem/g_tile[7].u_tile/q_i_3__5_n_0
+    SLICE_X62Y29         LUT3 (Prop_lut3_I1_O)        0.124   883.848 f  u_core/u_mem/g_tile[7].u_tile/user_dr[11]_i_2/O
+                         net (fo=21, routed)          0.979   884.827    u_core/u_mem/g_tile[7].u_tile/cfg_reg[64]_0
+    SLICE_X60Y23         LUT6 (Prop_lut6_I5_O)        0.124   884.951 r  u_core/u_mem/g_tile[7].u_tile/q_i_87__1/O
+                         net (fo=1, routed)           0.159   885.110    u_core/u_mem/g_tile[7].u_tile/q_i_87__1_n_0
+    SLICE_X60Y23         LUT5 (Prop_lut5_I0_O)        0.124   885.234 r  u_core/u_mem/g_tile[7].u_tile/q_i_80__1/O
+                         net (fo=1, routed)           0.000   885.234    u_core/u_mem/g_tile[7].u_tile/q_i_80__1_n_0
+    SLICE_X60Y23         MUXF7 (Prop_muxf7_I0_O)      0.212   885.446 r  u_core/u_mem/g_tile[7].u_tile/q_reg_i_57/O
+                         net (fo=18, routed)          0.602   886.048    u_core/u_mem/g_tile[7].u_tile/q_reg_i_57_n_0
+    SLICE_X55Y24         LUT5 (Prop_lut5_I2_O)        0.299   886.347 r  u_core/u_mem/g_tile[7].u_tile/q_i_68__10/O
+                         net (fo=1, routed)           0.263   886.610    u_core/u_mem/g_tile[7].u_tile/q_i_68__10_n_0
+    SLICE_X55Y24         LUT6 (Prop_lut6_I0_O)        0.124   886.734 f  u_core/u_mem/g_tile[7].u_tile/q_i_40__4/O
+                         net (fo=1, routed)           0.322   887.056    u_core/u_mem/g_tile[7].u_tile/q_i_40__4_n_0
+    SLICE_X55Y25         LUT5 (Prop_lut5_I4_O)        0.124   887.180 f  u_core/u_mem/g_tile[7].u_tile/q_i_16__6/O
+                         net (fo=1, routed)           0.305   887.485    u_core/u_mem/g_tile[7].u_tile/q_i_16__6_n_0
+    SLICE_X56Y25         LUT5 (Prop_lut5_I4_O)        0.124   887.609 r  u_core/u_mem/g_tile[7].u_tile/q_i_7__12/O
+                         net (fo=22, routed)          0.736   888.345    u_core/u_mem/g_tile[7].u_tile/cfg_reg[90]_0
+    SLICE_X64Y27         LUT6 (Prop_lut6_I5_O)        0.124   888.469 r  u_core/u_mem/g_tile[7].u_tile/led_OBUF[2]_inst_i_78/O
+                         net (fo=1, routed)           0.161   888.631    u_core/u_mem/g_tile[7].u_tile/led_OBUF[2]_inst_i_78_n_0
+    SLICE_X64Y27         LUT5 (Prop_lut5_I0_O)        0.124   888.755 r  u_core/u_mem/g_tile[7].u_tile/led_OBUF[2]_inst_i_36/O
+                         net (fo=1, routed)           0.280   889.034    u_core/u_mem/g_tile[7].u_tile/led_OBUF[2]_inst_i_36_n_0
+    SLICE_X64Y27         LUT5 (Prop_lut5_I4_O)        0.124   889.158 r  u_core/u_mem/g_tile[7].u_tile/led_OBUF[2]_inst_i_16/O
+                         net (fo=19, routed)          0.836   889.994    u_core/u_mem/g_tile[7].u_tile/o_n[7]_16[2]
+    SLICE_X66Y37         LUT6 (Prop_lut6_I5_O)        0.124   890.118 r  u_core/u_mem/g_tile[7].u_tile/led_OBUF[1]_inst_i_83/O
+                         net (fo=1, routed)           0.171   890.289    u_core/u_mem/g_tile[11].u_tile/led_OBUF[1]_inst_i_19_0
+    SLICE_X66Y37         LUT5 (Prop_lut5_I2_O)        0.124   890.413 r  u_core/u_mem/g_tile[11].u_tile/led_OBUF[1]_inst_i_43/O
+                         net (fo=1, routed)           0.487   890.900    u_core/u_mem/g_tile[11].u_tile/led_OBUF[1]_inst_i_43_n_0
+    SLICE_X63Y33         LUT5 (Prop_lut5_I4_O)        0.124   891.024 r  u_core/u_mem/g_tile[11].u_tile/led_OBUF[1]_inst_i_19/O
+                         net (fo=19, routed)          0.334   891.358    u_core/u_mem/g_tile[11].u_tile/o_s[11]_29[2]
+    SLICE_X63Y31         LUT6 (Prop_lut6_I5_O)        0.124   891.482 r  u_core/u_mem/g_tile[11].u_tile/led_OBUF[2]_inst_i_76/O
+                         net (fo=1, routed)           0.449   891.931    u_core/u_mem/g_tile[7].u_tile/led_OBUF[2]_inst_i_15_0
+    SLICE_X62Y27         LUT5 (Prop_lut5_I1_O)        0.124   892.055 r  u_core/u_mem/g_tile[7].u_tile/led_OBUF[2]_inst_i_34/O
+                         net (fo=1, routed)           0.452   892.507    u_core/u_mem/g_tile[7].u_tile/led_OBUF[2]_inst_i_34_n_0
+    SLICE_X63Y27         LUT5 (Prop_lut5_I4_O)        0.124   892.631 r  u_core/u_mem/g_tile[7].u_tile/led_OBUF[2]_inst_i_15/O
+                         net (fo=19, routed)          1.049   893.680    u_core/u_mem/g_tile[7].u_tile/o_n[7]_16[0]
+    SLICE_X72Y39         LUT6 (Prop_lut6_I3_O)        0.124   893.804 r  u_core/u_mem/g_tile[7].u_tile/led_OBUF[1]_inst_i_78/O
+                         net (fo=1, routed)           0.162   893.966    u_core/u_mem/g_tile[11].u_tile/led_OBUF[1]_inst_i_18_0
+    SLICE_X72Y39         LUT6 (Prop_lut6_I2_O)        0.124   894.090 r  u_core/u_mem/g_tile[11].u_tile/led_OBUF[1]_inst_i_41/O
+                         net (fo=1, routed)           0.606   894.696    u_core/u_mem/g_tile[11].u_tile/led_OBUF[1]_inst_i_41_n_0
+    SLICE_X72Y39         LUT5 (Prop_lut5_I4_O)        0.124   894.820 r  u_core/u_mem/g_tile[11].u_tile/led_OBUF[1]_inst_i_18/O
+                         net (fo=19, routed)          0.910   895.729    u_core/u_mem/g_tile[11].u_tile/o_s[11]_29[0]
+    SLICE_X68Y28         LUT6 (Prop_lut6_I3_O)        0.124   895.853 r  u_core/u_mem/g_tile[11].u_tile/led_OBUF[2]_inst_i_73/O
+                         net (fo=1, routed)           0.161   896.015    u_core/u_mem/g_tile[7].u_tile/led_OBUF[2]_inst_i_14_0
+    SLICE_X68Y28         LUT5 (Prop_lut5_I1_O)        0.124   896.139 r  u_core/u_mem/g_tile[7].u_tile/led_OBUF[2]_inst_i_32/O
+                         net (fo=1, routed)           0.583   896.722    u_core/u_mem/g_tile[7].u_tile/led_OBUF[2]_inst_i_32_n_0
+    SLICE_X68Y32         LUT5 (Prop_lut5_I4_O)        0.124   896.846 r  u_core/u_mem/g_tile[7].u_tile/led_OBUF[2]_inst_i_14/O
+                         net (fo=19, routed)          0.638   897.484    u_core/u_mem/g_tile[7].u_tile/o_n[7]_16[3]
+    SLICE_X68Y35         LUT6 (Prop_lut6_I1_O)        0.124   897.608 r  u_core/u_mem/g_tile[7].u_tile/led_OBUF[1]_inst_i_77/O
+                         net (fo=1, routed)           0.305   897.913    u_core/u_mem/g_tile[11].u_tile/led_OBUF[1]_inst_i_17_1
+    SLICE_X67Y35         LUT5 (Prop_lut5_I2_O)        0.124   898.037 r  u_core/u_mem/g_tile[11].u_tile/led_OBUF[1]_inst_i_39/O
+                         net (fo=1, routed)           0.354   898.391    u_core/u_mem/g_tile[11].u_tile/led_OBUF[1]_inst_i_39_n_0
+    SLICE_X66Y35         LUT5 (Prop_lut5_I4_O)        0.124   898.515 r  u_core/u_mem/g_tile[11].u_tile/led_OBUF[1]_inst_i_17/O
+                         net (fo=19, routed)          0.834   899.348    u_core/u_mem/g_tile[11].u_tile/o_s[11]_29[3]
+    SLICE_X64Y26         LUT6 (Prop_lut6_I1_O)        0.124   899.472 r  u_core/u_mem/g_tile[11].u_tile/led_OBUF[2]_inst_i_70/O
+                         net (fo=1, routed)           0.491   899.964    u_core/u_mem/g_tile[7].u_tile/led_OBUF[2]_inst_i_13_0
+    SLICE_X64Y26         LUT5 (Prop_lut5_I1_O)        0.124   900.088 r  u_core/u_mem/g_tile[7].u_tile/led_OBUF[2]_inst_i_30/O
+                         net (fo=1, routed)           0.495   900.582    u_core/u_mem/g_tile[7].u_tile/led_OBUF[2]_inst_i_30_n_0
+    SLICE_X66Y32         LUT5 (Prop_lut5_I4_O)        0.124   900.706 r  u_core/u_mem/g_tile[7].u_tile/led_OBUF[2]_inst_i_13/O
+                         net (fo=19, routed)          0.516   901.223    u_core/u_mem/g_tile[7].u_tile/o_n[7]_16[1]
+    SLICE_X70Y37         LUT6 (Prop_lut6_I0_O)        0.124   901.347 r  u_core/u_mem/g_tile[7].u_tile/led_OBUF[1]_inst_i_74/O
+                         net (fo=1, routed)           0.161   901.508    u_core/u_mem/g_tile[11].u_tile/led_OBUF[1]_inst_i_16_1
+    SLICE_X70Y37         LUT5 (Prop_lut5_I2_O)        0.124   901.632 r  u_core/u_mem/g_tile[11].u_tile/led_OBUF[1]_inst_i_37/O
+                         net (fo=1, routed)           0.280   901.912    u_core/u_mem/g_tile[11].u_tile/led_OBUF[1]_inst_i_37_n_0
+    SLICE_X70Y37         LUT5 (Prop_lut5_I4_O)        0.124   902.036 r  u_core/u_mem/g_tile[11].u_tile/led_OBUF[1]_inst_i_16/O
+                         net (fo=19, routed)          0.895   902.931    u_core/u_mem/g_tile[11].u_tile/o_s[11]_29[1]
+    SLICE_X64Y25         LUT6 (Prop_lut6_I0_O)        0.124   903.055 r  u_core/u_mem/g_tile[11].u_tile/led_OBUF[1]_inst_i_166/O
+                         net (fo=1, routed)           0.403   903.458    u_core/u_mem/g_tile[7].u_tile/led_OBUF[1]_inst_i_99_0
+    SLICE_X65Y25         LUT5 (Prop_lut5_I1_O)        0.124   903.582 r  u_core/u_mem/g_tile[7].u_tile/led_OBUF[1]_inst_i_139/O
+                         net (fo=1, routed)           0.433   904.015    u_core/u_mem/g_tile[7].u_tile/led_OBUF[1]_inst_i_139_n_0
+    SLICE_X65Y25         LUT5 (Prop_lut5_I4_O)        0.124   904.139 r  u_core/u_mem/g_tile[7].u_tile/led_OBUF[1]_inst_i_99/O
+                         net (fo=22, routed)          0.489   904.628    u_core/u_mem/g_tile[7].u_tile/o_w[7]_14[0]
+    SLICE_X71Y25         LUT6 (Prop_lut6_I5_O)        0.124   904.752 r  u_core/u_mem/g_tile[7].u_tile/led_OBUF[1]_inst_i_61/O
+                         net (fo=1, routed)           0.306   905.058    u_core/u_mem/g_tile[6].u_tile/led_OBUF[1]_inst_i_11_1
+    SLICE_X72Y25         LUT6 (Prop_lut6_I1_O)        0.124   905.182 r  u_core/u_mem/g_tile[6].u_tile/led_OBUF[1]_inst_i_27/O
+                         net (fo=1, routed)           0.522   905.704    u_core/u_mem/g_tile[6].u_tile/led_OBUF[1]_inst_i_27_n_0
+    SLICE_X72Y23         LUT5 (Prop_lut5_I4_O)        0.124   905.828 r  u_core/u_mem/g_tile[6].u_tile/led_OBUF[1]_inst_i_11/O
+                         net (fo=19, routed)          0.501   906.329    u_core/u_mem/g_tile[6].u_tile/o_e[6]_12[2]
+    SLICE_X67Y24         LUT6 (Prop_lut6_I5_O)        0.124   906.453 r  u_core/u_mem/g_tile[6].u_tile/led_OBUF[1]_inst_i_136/O
+                         net (fo=1, routed)           0.433   906.887    u_core/u_mem/g_tile[7].u_tile/q_i_51__5_1
+    SLICE_X67Y24         LUT5 (Prop_lut5_I2_O)        0.124   907.011 r  u_core/u_mem/g_tile[7].u_tile/led_OBUF[1]_inst_i_98/O
+                         net (fo=22, routed)          0.626   907.637    u_core/u_mem/g_tile[7].u_tile/o_w[7]_14[1]
+    SLICE_X73Y25         LUT6 (Prop_lut6_I3_O)        0.124   907.761 r  u_core/u_mem/g_tile[7].u_tile/led_OBUF[1]_inst_i_53/O
+                         net (fo=1, routed)           0.338   908.100    u_core/u_mem/g_tile[6].u_tile/led_OBUF[1]_inst_i_9_1
+    SLICE_X73Y25         LUT6 (Prop_lut6_I1_O)        0.124   908.224 r  u_core/u_mem/g_tile[6].u_tile/led_OBUF[1]_inst_i_23/O
+                         net (fo=1, routed)           0.407   908.631    u_core/u_mem/g_tile[6].u_tile/led_OBUF[1]_inst_i_23_n_0
+    SLICE_X74Y25         LUT5 (Prop_lut5_I4_O)        0.124   908.755 r  u_core/u_mem/g_tile[6].u_tile/led_OBUF[1]_inst_i_9/O
+                         net (fo=19, routed)          0.778   909.533    u_core/u_mem/g_tile[6].u_tile/o_e[6]_12[3]
+    SLICE_X69Y25         LUT6 (Prop_lut6_I1_O)        0.124   909.657 r  u_core/u_mem/g_tile[6].u_tile/led_OBUF[1]_inst_i_134/O
+                         net (fo=1, routed)           0.443   910.100    u_core/u_mem/g_tile[7].u_tile/q_i_51__5_0
+    SLICE_X73Y26         LUT5 (Prop_lut5_I2_O)        0.124   910.224 r  u_core/u_mem/g_tile[7].u_tile/led_OBUF[1]_inst_i_97/O
+                         net (fo=22, routed)          0.443   910.667    u_core/u_mem/g_tile[7].u_tile/o_w[7]_14[2]
+    SLICE_X76Y26         LUT6 (Prop_lut6_I1_O)        0.124   910.791 r  u_core/u_mem/g_tile[7].u_tile/led_OBUF[1]_inst_i_49/O
+                         net (fo=1, routed)           0.403   911.194    u_core/u_mem/g_tile[6].u_tile/led_OBUF[1]_inst_i_8_1
+    SLICE_X77Y25         LUT6 (Prop_lut6_I1_O)        0.124   911.318 r  u_core/u_mem/g_tile[6].u_tile/led_OBUF[1]_inst_i_21/O
+                         net (fo=1, routed)           0.452   911.770    u_core/u_mem/g_tile[6].u_tile/led_OBUF[1]_inst_i_21_n_0
+    SLICE_X74Y26         LUT5 (Prop_lut5_I4_O)        0.124   911.894 r  u_core/u_mem/g_tile[6].u_tile/led_OBUF[1]_inst_i_8/O
+                         net (fo=19, routed)          1.002   912.896    u_core/u_mem/g_tile[6].u_tile/o_e[6]_12[1]
+    SLICE_X71Y25         LUT6 (Prop_lut6_I0_O)        0.124   913.020 r  u_core/u_mem/g_tile[6].u_tile/led_OBUF[0]_inst_i_24/O
+                         net (fo=1, routed)           0.404   913.424    u_core/u_mem/g_tile[7].u_tile/q_i_41__4_2
+    SLICE_X71Y26         LUT5 (Prop_lut5_I2_O)        0.124   913.548 r  u_core/u_mem/g_tile[7].u_tile/led_OBUF[0]_inst_i_13/O
+                         net (fo=15, routed)          0.613   914.161    u_core/u_mem/g_tile[7].u_tile/o_s[7]_15[0]
+    SLICE_X75Y26         LUT6 (Prop_lut6_I5_O)        0.124   914.285 r  u_core/u_mem/g_tile[7].u_tile/q_i_152__0/O
+                         net (fo=1, routed)           0.303   914.588    u_core/u_mem/g_tile[3].u_tile/q_reg_i_106_0
+    SLICE_X78Y26         LUT6 (Prop_lut6_I0_O)        0.124   914.712 r  u_core/u_mem/g_tile[3].u_tile/q_i_130/O
+                         net (fo=1, routed)           0.000   914.712    u_core/u_mem/g_tile[3].u_tile/q_i_130_n_0
+    SLICE_X78Y26         MUXF7 (Prop_muxf7_I0_O)      0.212   914.924 r  u_core/u_mem/g_tile[3].u_tile/q_reg_i_106/O
+                         net (fo=1, routed)           0.436   915.361    u_core/u_mem/g_tile[3].u_tile/q_reg_i_106_n_0
+    SLICE_X78Y26         LUT5 (Prop_lut5_I4_O)        0.299   915.660 r  u_core/u_mem/g_tile[3].u_tile/q_i_82__9/O
+                         net (fo=18, routed)          0.622   916.281    u_core/u_mem/g_tile[3].u_tile/o_w[3]_39[1]
+    SLICE_X78Y25         LUT6 (Prop_lut6_I3_O)        0.124   916.405 r  u_core/u_mem/g_tile[3].u_tile/led_OBUF[0]_inst_i_59/O
+                         net (fo=1, routed)           0.666   917.071    u_core/u_mem/g_tile[2].u_tile/led_OBUF[0]_inst_i_31_1
+    SLICE_X76Y18         LUT6 (Prop_lut6_I5_O)        0.124   917.195 r  u_core/u_mem/g_tile[2].u_tile/led_OBUF[0]_inst_i_51/O
+                         net (fo=1, routed)           0.000   917.195    u_core/u_mem/g_tile[2].u_tile/led_OBUF[0]_inst_i_51_n_0
+    SLICE_X76Y18         MUXF7 (Prop_muxf7_I1_O)      0.245   917.440 r  u_core/u_mem/g_tile[2].u_tile/led_OBUF[0]_inst_i_31/O
+                         net (fo=1, routed)           0.299   917.739    u_core/u_mem/g_tile[2].u_tile/led_OBUF[0]_inst_i_31_n_0
+    SLICE_X78Y18         LUT5 (Prop_lut5_I4_O)        0.298   918.037 r  u_core/u_mem/g_tile[2].u_tile/led_OBUF[0]_inst_i_16/O
+                         net (fo=15, routed)          0.581   918.618    u_core/u_mem/g_tile[2].u_tile/o_e[2]_36[1]
+    SLICE_X78Y25         LUT6 (Prop_lut6_I3_O)        0.124   918.742 r  u_core/u_mem/g_tile[2].u_tile/q_i_103/O
+                         net (fo=1, routed)           0.296   919.038    u_core/u_mem/g_tile[3].u_tile/q_i_151__0
+    SLICE_X79Y25         LUT5 (Prop_lut5_I1_O)        0.124   919.162 r  u_core/u_mem/g_tile[3].u_tile/q_i_81__10/O
+                         net (fo=18, routed)          0.689   919.851    u_core/u_mem/g_tile[3].u_tile/o_w[3]_39[2]
+    SLICE_X78Y20         LUT6 (Prop_lut6_I1_O)        0.124   919.975 r  u_core/u_mem/g_tile[3].u_tile/led_OBUF[0]_inst_i_57/O
+                         net (fo=1, routed)           0.309   920.284    u_core/u_mem/g_tile[2].u_tile/led_OBUF[0]_inst_i_29_1
+    SLICE_X76Y21         LUT6 (Prop_lut6_I5_O)        0.124   920.408 r  u_core/u_mem/g_tile[2].u_tile/led_OBUF[0]_inst_i_49/O
+                         net (fo=1, routed)           0.000   920.408    u_core/u_mem/g_tile[2].u_tile/led_OBUF[0]_inst_i_49_n_0
+    SLICE_X76Y21         MUXF7 (Prop_muxf7_I1_O)      0.245   920.653 r  u_core/u_mem/g_tile[2].u_tile/led_OBUF[0]_inst_i_29/O
+                         net (fo=1, routed)           0.299   920.952    u_core/u_mem/g_tile[2].u_tile/led_OBUF[0]_inst_i_29_n_0
+    SLICE_X78Y21         LUT5 (Prop_lut5_I4_O)        0.298   921.250 r  u_core/u_mem/g_tile[2].u_tile/led_OBUF[0]_inst_i_15/O
+                         net (fo=15, routed)          0.325   921.575    u_core/u_mem/g_tile[2].u_tile/o_e[2]_36[2]
+    SLICE_X79Y21         LUT6 (Prop_lut6_I1_O)        0.124   921.699 r  u_core/u_mem/g_tile[2].u_tile/q_i_101/O
+                         net (fo=1, routed)           0.451   922.150    u_core/u_mem/g_tile[3].u_tile/q_i_151__0_0
+    SLICE_X83Y21         LUT5 (Prop_lut5_I1_O)        0.124   922.274 r  u_core/u_mem/g_tile[3].u_tile/q_i_80__10/O
+                         net (fo=18, routed)          0.516   922.789    u_core/u_mem/g_tile[3].u_tile/o_w[3]_39[3]
+    SLICE_X80Y23         LUT6 (Prop_lut6_I0_O)        0.124   922.913 r  u_core/u_mem/g_tile[3].u_tile/led_OBUF[0]_inst_i_55/O
+                         net (fo=1, routed)           0.343   923.257    u_core/u_mem/g_tile[2].u_tile/led_OBUF[0]_inst_i_27_1
+    SLICE_X81Y23         LUT6 (Prop_lut6_I5_O)        0.124   923.381 r  u_core/u_mem/g_tile[2].u_tile/led_OBUF[0]_inst_i_47/O
+                         net (fo=1, routed)           0.000   923.381    u_core/u_mem/g_tile[2].u_tile/led_OBUF[0]_inst_i_47_n_0
+    SLICE_X81Y23         MUXF7 (Prop_muxf7_I1_O)      0.217   923.598 r  u_core/u_mem/g_tile[2].u_tile/led_OBUF[0]_inst_i_27/O
+                         net (fo=1, routed)           0.436   924.034    u_core/u_mem/g_tile[2].u_tile/led_OBUF[0]_inst_i_27_n_0
+    SLICE_X81Y23         LUT5 (Prop_lut5_I4_O)        0.299   924.333 r  u_core/u_mem/g_tile[2].u_tile/led_OBUF[0]_inst_i_14/O
+                         net (fo=15, routed)          0.833   925.166    u_core/u_mem/g_tile[2].u_tile/o_e[2]_36[3]
+    SLICE_X71Y23         LUT6 (Prop_lut6_I0_O)        0.124   925.290 r  u_core/u_mem/g_tile[2].u_tile/led_OBUF[1]_inst_i_34/O
+                         net (fo=1, routed)           0.495   925.785    u_core/u_mem/g_tile[3].u_tile/q_i_83__0_0
+    SLICE_X70Y23         LUT5 (Prop_lut5_I1_O)        0.124   925.909 r  u_core/u_mem/g_tile[3].u_tile/led_OBUF[1]_inst_i_15/O
+                         net (fo=19, routed)          0.674   926.583    u_core/u_mem/g_tile[3].u_tile/o_n[3]_38[2]
+    SLICE_X69Y26         LUT6 (Prop_lut6_I5_O)        0.124   926.707 r  u_core/u_mem/g_tile[3].u_tile/led_OBUF[0]_inst_i_42/O
+                         net (fo=1, routed)           0.154   926.861    u_core/u_mem/g_tile[7].u_tile/led_OBUF[0]_inst_i_12_1
+    SLICE_X69Y26         LUT5 (Prop_lut5_I2_O)        0.124   926.985 r  u_core/u_mem/g_tile[7].u_tile/led_OBUF[0]_inst_i_23/O
+                         net (fo=1, routed)           0.351   927.336    u_core/u_mem/g_tile[7].u_tile/led_OBUF[0]_inst_i_23_n_0
+    SLICE_X68Y26         LUT5 (Prop_lut5_I4_O)        0.124   927.460 r  u_core/u_mem/g_tile[7].u_tile/led_OBUF[0]_inst_i_12/O
+                         net (fo=15, routed)          0.644   928.104    u_core/u_mem/g_tile[7].u_tile/o_s[7]_15[1]
+    SLICE_X69Y24         LUT6 (Prop_lut6_I3_O)        0.124   928.228 r  u_core/u_mem/g_tile[7].u_tile/led_OBUF[1]_inst_i_106/O
+                         net (fo=1, routed)           0.430   928.658    u_core/u_mem/g_tile[3].u_tile/led_OBUF[1]_inst_i_33_0
+    SLICE_X68Y24         LUT6 (Prop_lut6_I0_O)        0.124   928.782 r  u_core/u_mem/g_tile[3].u_tile/led_OBUF[1]_inst_i_68/O
+                         net (fo=1, routed)           0.000   928.782    u_core/u_mem/g_tile[3].u_tile/led_OBUF[1]_inst_i_68_n_0
+    SLICE_X68Y24         MUXF7 (Prop_muxf7_I0_O)      0.212   928.994 r  u_core/u_mem/g_tile[3].u_tile/led_OBUF[1]_inst_i_33/O
+                         net (fo=1, routed)           0.679   929.674    u_core/u_mem/g_tile[3].u_tile/led_OBUF[1]_inst_i_33_n_0
+    SLICE_X68Y24         LUT5 (Prop_lut5_I4_O)        0.299   929.973 r  u_core/u_mem/g_tile[3].u_tile/led_OBUF[1]_inst_i_14/O
+                         net (fo=19, routed)          0.540   930.512    u_core/u_mem/g_tile[3].u_tile/o_n[3]_38[0]
+    SLICE_X66Y25         LUT6 (Prop_lut6_I3_O)        0.124   930.636 r  u_core/u_mem/g_tile[3].u_tile/led_OBUF[0]_inst_i_39/O
+                         net (fo=1, routed)           0.426   931.062    u_core/u_mem/g_tile[7].u_tile/led_OBUF[0]_inst_i_11_1
+    SLICE_X66Y25         LUT5 (Prop_lut5_I2_O)        0.124   931.186 r  u_core/u_mem/g_tile[7].u_tile/led_OBUF[0]_inst_i_21/O
+                         net (fo=1, routed)           0.312   931.498    u_core/u_mem/g_tile[7].u_tile/led_OBUF[0]_inst_i_21_n_0
+    SLICE_X66Y26         LUT5 (Prop_lut5_I4_O)        0.124   931.622 r  u_core/u_mem/g_tile[7].u_tile/led_OBUF[0]_inst_i_11/O
+                         net (fo=15, routed)          1.013   932.636    u_core/u_mem/g_tile[7].u_tile/o_s[7]_15[2]
+    SLICE_X74Y24         LUT6 (Prop_lut6_I1_O)        0.124   932.760 r  u_core/u_mem/g_tile[7].u_tile/led_OBUF[1]_inst_i_105/O
+                         net (fo=1, routed)           0.159   932.918    u_core/u_mem/g_tile[3].u_tile/led_OBUF[1]_inst_i_31_0
+    SLICE_X74Y24         LUT6 (Prop_lut6_I0_O)        0.124   933.042 r  u_core/u_mem/g_tile[3].u_tile/led_OBUF[1]_inst_i_66/O
+                         net (fo=1, routed)           0.000   933.042    u_core/u_mem/g_tile[3].u_tile/led_OBUF[1]_inst_i_66_n_0
+    SLICE_X74Y24         MUXF7 (Prop_muxf7_I0_O)      0.212   933.254 r  u_core/u_mem/g_tile[3].u_tile/led_OBUF[1]_inst_i_31/O
+                         net (fo=1, routed)           0.436   933.691    u_core/u_mem/g_tile[3].u_tile/led_OBUF[1]_inst_i_31_n_0
+    SLICE_X74Y24         LUT5 (Prop_lut5_I4_O)        0.299   933.990 r  u_core/u_mem/g_tile[3].u_tile/led_OBUF[1]_inst_i_13/O
+                         net (fo=19, routed)          0.755   934.745    u_core/u_mem/g_tile[3].u_tile/o_n[3]_38[3]
+    SLICE_X63Y24         LUT6 (Prop_lut6_I1_O)        0.124   934.869 r  u_core/u_mem/g_tile[3].u_tile/led_OBUF[0]_inst_i_36/O
+                         net (fo=1, routed)           0.566   935.435    u_core/u_mem/g_tile[7].u_tile/led_OBUF[0]_inst_i_10_1
+    SLICE_X60Y24         LUT5 (Prop_lut5_I2_O)        0.124   935.559 r  u_core/u_mem/g_tile[7].u_tile/led_OBUF[0]_inst_i_19/O
+                         net (fo=1, routed)           0.419   935.978    u_core/u_mem/g_tile[7].u_tile/led_OBUF[0]_inst_i_19_n_0
+    SLICE_X64Y24         LUT5 (Prop_lut5_I4_O)        0.124   936.102 r  u_core/u_mem/g_tile[7].u_tile/led_OBUF[0]_inst_i_10/O
+                         net (fo=15, routed)          0.840   936.942    u_core/u_mem/g_tile[7].u_tile/o_s[7]_15[3]
+    SLICE_X69Y22         LUT6 (Prop_lut6_I0_O)        0.124   937.066 r  u_core/u_mem/g_tile[7].u_tile/led_OBUF[1]_inst_i_104/O
+                         net (fo=1, routed)           0.448   937.514    u_core/u_mem/g_tile[3].u_tile/led_OBUF[1]_inst_i_29_0
+    SLICE_X70Y22         LUT6 (Prop_lut6_I0_O)        0.124   937.638 r  u_core/u_mem/g_tile[3].u_tile/led_OBUF[1]_inst_i_64/O
+                         net (fo=1, routed)           0.000   937.638    u_core/u_mem/g_tile[3].u_tile/led_OBUF[1]_inst_i_64_n_0
+    SLICE_X70Y22         MUXF7 (Prop_muxf7_I0_O)      0.212   937.850 r  u_core/u_mem/g_tile[3].u_tile/led_OBUF[1]_inst_i_29/O
+                         net (fo=1, routed)           0.899   938.749    u_core/u_mem/g_tile[3].u_tile/led_OBUF[1]_inst_i_29_n_0
+    SLICE_X70Y22         LUT5 (Prop_lut5_I4_O)        0.299   939.048 r  u_core/u_mem/g_tile[3].u_tile/led_OBUF[1]_inst_i_12/O
+                         net (fo=19, routed)          0.637   939.685    u_core/u_mem/g_tile[3].u_tile/o_n[3]_38[1]
+    SLICE_X70Y27         LUT6 (Prop_lut6_I0_O)        0.124   939.809 r  u_core/u_mem/g_tile[3].u_tile/led_OBUF[1]_inst_i_5/O
+                         net (fo=1, routed)           0.656   940.465    u_core/u_mem/g_tile[7].u_tile/led_OBUF[1]_inst_i_2_0
+    SLICE_X71Y27         LUT6 (Prop_lut6_I2_O)        0.124   940.589 r  u_core/u_mem/g_tile[7].u_tile/led_OBUF[1]_inst_i_3/O
+                         net (fo=1, routed)           0.264   940.853    u_core/u_mem/g_tile[7].u_tile/led_OBUF[1]_inst_i_3_n_0
+    SLICE_X71Y27         LUT6 (Prop_lut6_I0_O)        0.124   940.977 r  u_core/u_mem/g_tile[7].u_tile/led_OBUF[1]_inst_i_2/O
+                         net (fo=2, routed)           0.521   941.498    u_core/g_bsr[2].u_cell/capture_reg_reg_5
+    SLICE_X73Y34         LUT3 (Prop_lut3_I2_O)        0.124   941.622 r  u_core/g_bsr[2].u_cell/capture_reg_i_1/O
+                         net (fo=1, routed)           0.000   941.622    u_core/g_bsr[1].u_cell/capture_reg_reg_3
+    SLICE_X73Y34         FDRE                                         r  u_core/g_bsr[1].u_cell/capture_reg_reg/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock tck rise edge)     1000.000  1000.000 r  
+    U18                                               0.000  1000.000 r  tck (IN)
+                         net (fo=0)                   0.000  1000.000    tck
+    U18                  IBUF (Prop_ibuf_I_O)         1.428  1001.428 r  tck_IBUF_inst/O
+                         net (fo=1, routed)           2.006  1003.434    tck_IBUF
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.091  1003.525 r  bufg_tck/O
+                         net (fo=6117, routed)        1.553  1005.078    u_core/g_bsr[1].u_cell/tck_g
+    SLICE_X73Y34         FDRE                                         r  u_core/g_bsr[1].u_cell/capture_reg_reg/C
+                         clock pessimism              0.394  1005.472    
+                         clock uncertainty           -0.035  1005.437    
+    SLICE_X73Y34         FDRE (Setup_fdre_C_D)        0.032  1005.469    u_core/g_bsr[1].u_cell/capture_reg_reg
+  -------------------------------------------------------------------
+                         required time                       1005.469    
+                         arrival time                        -941.595    
+  -------------------------------------------------------------------
+                         slack                                 63.874    
+
+
+
+
+
+Min Delay Paths
+--------------------------------------------------------------------------------------
+Slack (MET) :             0.082ns  (arrival time - required time)
+  Source:                 u_core/u_mem/g_tile[0].u_tile/sr_reg[167]/C
+                            (rising edge-triggered cell FDRE clocked by tck  {rise@0.000ns fall@500.000ns period=1000.000ns})
+  Destination:            u_core/u_mem/g_tile[0].u_tile/sr_reg[166]/D
+                            (rising edge-triggered cell FDRE clocked by tck  {rise@0.000ns fall@500.000ns period=1000.000ns})
+  Path Group:             tck
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (tck rise@0.000ns - tck rise@0.000ns)
+  Data Path Delay:        0.488ns  (logic 0.185ns (37.903%)  route 0.303ns (62.097%))
+  Logic Levels:           1  (LUT3=1)
+  Clock Path Skew:        0.275ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    2.073ns
+    Source Clock Delay      (SCD):    1.550ns
+    Clock Pessimism Removal (CPR):    0.248ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock tck rise edge)        0.000     0.000 r  
+    U18                                               0.000     0.000 r  tck (IN)
+                         net (fo=0)                   0.000     0.000    tck
+    U18                  IBUF (Prop_ibuf_I_O)         0.266     0.266 r  tck_IBUF_inst/O
+                         net (fo=1, routed)           0.674     0.940    tck_IBUF
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026     0.966 r  bufg_tck/O
+                         net (fo=6117, routed)        0.584     1.550    u_core/u_mem/g_tile[0].u_tile/tck_g
+    SLICE_X84Y50         FDRE                                         r  u_core/u_mem/g_tile[0].u_tile/sr_reg[167]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X84Y50         FDRE (Prop_fdre_C_Q)         0.141     1.691 r  u_core/u_mem/g_tile[0].u_tile/sr_reg[167]/Q
+                         net (fo=2, routed)           0.303     1.994    u_core/u_mem/g_tile[0].u_tile/sr[167]
+    SLICE_X86Y49         LUT3 (Prop_lut3_I0_O)        0.044     2.038 r  u_core/u_mem/g_tile[0].u_tile/sr[166]_i_1__14/O
+                         net (fo=1, routed)           0.000     2.038    u_core/u_mem/g_tile[0].u_tile/p_1_in[166]
+    SLICE_X86Y49         FDRE                                         r  u_core/u_mem/g_tile[0].u_tile/sr_reg[166]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock tck rise edge)        0.000     0.000 r  
+    U18                                               0.000     0.000 r  tck (IN)
+                         net (fo=0)                   0.000     0.000    tck
+    U18                  IBUF (Prop_ibuf_I_O)         0.454     0.454 r  tck_IBUF_inst/O
+                         net (fo=1, routed)           0.731     1.185    tck_IBUF
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029     1.214 r  bufg_tck/O
+                         net (fo=6117, routed)        0.859     2.073    u_core/u_mem/g_tile[0].u_tile/tck_g
+    SLICE_X86Y49         FDRE                                         r  u_core/u_mem/g_tile[0].u_tile/sr_reg[166]/C
+                         clock pessimism             -0.248     1.825    
+    SLICE_X86Y49         FDRE (Hold_fdre_C_D)         0.131     1.956    u_core/u_mem/g_tile[0].u_tile/sr_reg[166]
+  -------------------------------------------------------------------
+                         required time                         -1.956    
+                         arrival time                           2.038    
+  -------------------------------------------------------------------
+                         slack                                  0.082    
+
+
+
+
+
+Pulse Width Checks
+--------------------------------------------------------------------------------------
+Clock Name:         tck
+Waveform(ns):       { 0.000 500.000 }
+Period(ns):         1000.000
+Sources:            { tck }
+
+Check Type        Corner  Lib Pin     Reference Pin  Required(ns)  Actual(ns)  Slack(ns)  Location        Pin
+Min Period        n/a     BUFG/I      n/a            2.155         1000.000    997.845    BUFGCTRL_X0Y16  bufg_tck/I
+Low Pulse Width   Slow    SRL16E/CLK  n/a            0.980         500.000     499.020    SLICE_X104Y41   u_core/u_tap/idcode_dr_reg[10]_srl2___u_core_u_tap_usercode_dr_reg_r_0/CLK
+High Pulse Width  Slow    SRL16E/CLK  n/a            0.980         500.000     499.020    SLICE_X104Y41   u_core/u_tap/idcode_dr_reg[10]_srl2___u_core_u_tap_usercode_dr_reg_r_0/CLK
+
+
+

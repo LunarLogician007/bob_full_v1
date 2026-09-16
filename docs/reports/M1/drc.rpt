@@ -1,0 +1,61 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (win64) Build 6299465 Fri Nov 14 19:35:11 GMT 2025
+| Date         : Mon Sep 14 05:35:38 2026
+| Host         : SARAVANB423 running 64-bit major release  (build 9200)
+| Command      : report_drc -file E:/bob_full_v1/bob_vivado/out/M1/drc.rpt
+| Design       : fpga4x4_top
+| Device       : xc7z020clg400-1
+| Speed File   : -1
+| Design State : Fully Routed
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Report DRC
+
+Table of Contents
+-----------------
+1. REPORT SUMMARY
+2. REPORT DETAILS
+
+1. REPORT SUMMARY
+-----------------
+            Netlist: netlist
+          Floorplan: impl_1
+      Design limits: <entire design considered>
+           Ruledeck: default
+             Max checks: <unlimited>
+             Checks found: 3
++---------+------------------+--------------------------+--------+
+| Rule    | Severity         | Description              | Checks |
++---------+------------------+--------------------------+--------+
+| LUTLP-1 | Critical Warning | Combinatorial Loop Alert | 1      |
+| IOSR-1  | Warning          | IOB set reset sharing    | 1      |
+| ZPS7-1  | Warning          | PS7 block required       | 1      |
++---------+------------------+--------------------------+--------+
+
+2. REPORT DETAILS
+-----------------
+LUTLP-1#1 Critical Warning
+Combinatorial Loop Alert  
+1532 LUT cells form a combinatorial loop. This can create a race condition. Timing analysis may not be accurate. The preferred resolution is to modify the design to remove combinatorial logic loops. If the loop is known and understood, this DRC can be bypassed by acknowledging the condition and setting the following XDC constraint on any one of the nets in the loop: 'set_property ALLOW_COMBINATORIAL_LOOPS TRUE [get_nets <myHier/myNet>]'. One net in the loop is u_core/g_bsr[2].u_cell/cfg_out_reg[98]. Please evaluate your design. The cells in the loop are: u_core/u_tap/led_OBUF[0]_inst_i_21, u_core/u_tap/led_OBUF[0]_inst_i_22,
+u_core/u_tap/led_OBUF[0]_inst_i_23, u_core/u_tap/led_OBUF[0]_inst_i_24,
+u_core/u_tap/led_OBUF[0]_inst_i_37, u_core/u_tap/led_OBUF[0]_inst_i_38,
+u_core/u_tap/led_OBUF[0]_inst_i_39, u_core/u_tap/led_OBUF[0]_inst_i_40,
+u_core/u_tap/led_OBUF[0]_inst_i_41, u_core/u_tap/led_OBUF[0]_inst_i_42,
+u_core/u_tap/led_OBUF[0]_inst_i_43, u_core/u_tap/led_OBUF[0]_inst_i_44,
+u_core/u_tap/led_OBUF[0]_inst_i_61, u_core/u_tap/led_OBUF[0]_inst_i_62,
+u_core/u_tap/led_OBUF[0]_inst_i_64 (the first 15 of 1532 listed).
+Related violations: <none>
+
+IOSR-1#1 Warning
+IOB set reset sharing  
+IO tdi connects to flops which have these u_core/u_tap/bypass_dr_i_1_n_0, u_core/u_tap/ir_shift[3]_i_1_n_0
+u_core/u_tap/user_dr[31]_i_1_n_0 set/reset signals.  For optimal IOB flop packing there should be only one set/reset signal coming into the IOB.
+Related violations: <none>
+
+ZPS7-1#1 Warning
+PS7 block required  
+The PS7 cell must be used in this Zynq design in order to enable correct default configuration.
+Related violations: <none>
+
+

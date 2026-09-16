@@ -1,0 +1,4 @@
+arch_sha256 0f277adee0ee8550d45de16d005ba62b935264a67bb545ec4c24e54d3bc5bea2
+image 
+ghcr.io/lnis-uofu/openfpga-master:latest
+command vpr bob_k6.xml and2.blif --device bob6x4 --route_chan_width 24 --timing_analysis off --write_rr_graph rr.xml

@@ -1,0 +1,23 @@
+# Vivado (the project normally lives outside hw/, in ../bob_vivado)
+bob_vivado/
+*.jou
+*.log
+.Xil/
+
+# simulation
+sim/*.vvp
+sim/*.vcd
+
+# python
+__pycache__/
+.pytest_cache/
+
+# scratch and OS files
+build/
+.DS_Store
+*.vvp
+*.vcd
+
+# evidence that must stay versioned despite *.log above
+!docs/hwtest/results.log
+!docs/reports/**/*.log

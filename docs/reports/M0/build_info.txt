@@ -1,0 +1,20 @@
+tag         M0
+top         fpga4x4_top
+idcode      0x3BEEF093
+part        xc7z020clg400-1
+fingerprint e9ce64e8
+wns         67.290390 ns
+built       2026-09-14 04:09:46
+sources
+  src/clb/clb_pkg.sv
+  src/clb/lut6.sv
+  src/clb/clb.sv
+  src/clb/mux_bank.v
+  src/clb/tile.v
+  src/core/jtag_tap.v
+  src/core/bsc_cell.v
+  src/fabric/fabric.v
+  src/fabric/fpga4x4.v
+  src/fabric/mini_fpga.v
+  src/top/fpga4x4_top.v
+  src/top/mini_fpga_top.v
