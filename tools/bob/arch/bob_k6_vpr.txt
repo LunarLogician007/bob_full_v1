@@ -19,4 +19,4 @@ Circuit successfully routed with a channel width factor of 24.
                              L4    0      0.0191
 Flow timing analysis took 0 seconds (0 STA, 0 slack) (0 full updates: 0 setup, 0 hold, 0 combined).
 VPR succeeded
-The entire flow of VPR took 0.42 seconds (max_rss 59.0 MiB)
+The entire flow of VPR took 0.35 seconds (max_rss 58.8 MiB)

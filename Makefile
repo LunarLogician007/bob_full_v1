@@ -3,18 +3,26 @@
 #   make check     simulations + lint + pytest   (run before every hw/ handoff)
 #   make rrgraph   after changing the architecture in tools/bob/device.py: VPR (Docker)
 #                  builds the routing-resource graphs, then everything is regenerated
+#   make vpr       after changing an example, the synthesis flow or the architecture:
+#                  VPR (Docker) packs, places and routes every example -> tools/bob/vpr/
 #   make hw        refresh generated files inside hw/ and print the handoff steps
 #   make hwtest M=M0   hardware test on the PYNQ-Z2 through the Pico
 
 M ?= $(shell sed -n 's/^tag *= *\([A-Za-z0-9]*\).*/\1/p' hw/build.cfg)
 
-.PHONY: check device rrgraph sim lint test mutate hw hwtest clean
+.PHONY: check device rrgraph vpr sim lint test mutate hw hwtest clean
 
 # M7: arch XML -> VPR rr graph (Docker, committed) -> device.json / bob_params.vh / bob_fabric.v
 rrgraph:
 	tools/bob/device.py --arch-only
 	tools/bob/vpr_rrgraph.sh
 	tools/bob/device.py
+
+# M9: examples -> yosys -> VPR on the committed rr graph (Docker) -> tools/bob/vpr/<top>/ (committed)
+vpr:
+	for t in gates adder counter blinky ram mult; do tools/bob/equiv.py examples/$$t.v || exit 1; done
+	tools/bob/vpr_run.py --repeat
+	tools/bob/fasm_from_vpr.py --check
 .DEFAULT_GOAL := check
 
 # every deliberately broken guard must fail its testbench (slow-ish; not in check)

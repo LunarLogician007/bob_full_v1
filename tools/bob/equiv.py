@@ -89,9 +89,25 @@ def testbench(top, ports, vectors):
 
 
 def random_vectors(ports, cycles, seed):
+    """Biased random vectors in 50-cycle segments; each input bit is 1 with a
+    probability of 1/64, 1/2 or 63/64 for the whole segment. Uniform bits never let
+    a counter with a synchronous reset on an input count far (the M8 counter trace
+    was all zeros), so the first two segments are fixed: every other bit (in port
+    order) mostly 1 and the rest mostly 0, then the reverse. Later segments pick
+    at random."""
     rng = random.Random(seed)
     ins = [(n, w) for n, (d, w) in ports.items() if d == "input" and n != "clk"]
-    return [{n: rng.getrandbits(w) for n, w in ins} for _ in range(cycles)]
+    bits = [(n, k) for n, w in ins for k in range(w)]
+    out = []
+    for c in range(cycles):
+        seg = c // 50
+        if c % 50 == 0:
+            if seg < 2:
+                p = {nk: 63 if (i + seg) % 2 == 0 else 1 for i, nk in enumerate(bits)}
+            else:
+                p = {nk: rng.choice((1, 32, 63)) for nk in bits}
+        out.append({n: sum((rng.randrange(64) < p[(n, k)]) << k for k in range(w)) for n, w in ins})
+    return out
 
 
 def board_vector(v):

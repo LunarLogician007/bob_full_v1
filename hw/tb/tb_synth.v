@@ -213,7 +213,7 @@ module tb_synth;
 
     initial begin
         $display("");
-        $display("=== synthesised designs on the complete bob FPGA (M8) ===");
+        $display("=== synthesised designs on the complete bob FPGA (M8 hand-placed, M9 VPR) ===");
         tick(1'b1, 1'b0); tick(1'b1, 1'b0); tick(1'b1, 1'b0); tick(1'b1, 1'b0); tick(1'b1, 1'b0);
         tick(1'b0, 1'b0);
         run_synth;

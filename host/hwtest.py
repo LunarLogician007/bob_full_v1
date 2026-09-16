@@ -727,15 +727,23 @@ def check_pipeline_live(p, ctx):
 SYNTH_HW_CYCLES = 64
 
 
-def _synth_check(top):
+def _synth_check(top, vpr=False):
     def check(p, ctx):
-        """yosys -> netlist == source -> placed/routed; on the board, every user clock
-        (INTEST autostep) the LEDs equal the SOURCE Verilog's."""
+        """On the board, every user clock, the LEDs equal the source Verilog's.
+
+        yosys -> netlist == source -> placed/routed (M8: place.py; vpr=True, M9: the
+        committed VPR result -> FASM -> chain), loaded, clocked by INTEST autostep."""
         import cfgplane
         import fpga
         import place
         from bitstream import FABRIC_CFG_W
-        d, bs, contents, tr = place.flow(top)
+        if vpr:
+            import fasm_from_vpr
+            bs, contents, tr = fasm_from_vpr.flow(top)
+            what = "VPR-routed"
+        else:
+            d, bs, contents, tr = place.flow(top)
+            what = f"{len(d.cells)} CLBs"
         ok, msg = cfgplane.load(p, bs.to_int(), FABRIC_CFG_W, start=False)
         if not ok:
             return False, msg
@@ -758,9 +766,9 @@ def _synth_check(top):
                 bad.append(f"clock {k}: {got:03b} vs {trace[k][2]:03b}")
         cfgplane.user1(p, 0)
         fpga.go_live(p)
-        return not bad, (f"{len(d.cells)} CLBs, {len(trace)} clocks match the source Verilog"
+        return not bad, (f"{what}, {len(trace)} clocks match the source Verilog"
                          if not bad else f"{len(bad)} wrong, first {bad[:3]}")
-    check.__name__ = f"check_synth_{top}"
+    check.__name__ = f"check_{'vpr' if vpr else 'synth'}_{top}"
     return check
 
 
@@ -897,6 +905,16 @@ MILESTONE = {
            ("synth-blinky", _synth_check("blinky")),
            ("synth-ram", _synth_check("ram")),
            ("synth-mult", _synth_check("mult"))],
+    # M9: still no RTL change. The same examples packed, placed and routed by VPR on
+    # the rr graph the bitstream was generated from, turned into chain bits by
+    # tools/bob/fasm_from_vpr.py.
+    "M9": [("chain-length", check_chain_length),
+           ("vpr-gates", _synth_check("gates", vpr=True)),
+           ("vpr-adder", _synth_check("adder", vpr=True)),
+           ("vpr-counter", _synth_check("counter", vpr=True)),
+           ("vpr-blinky", _synth_check("blinky", vpr=True)),
+           ("vpr-ram", _synth_check("ram", vpr=True)),
+           ("vpr-mult", _synth_check("mult", vpr=True))],
 }
 
 

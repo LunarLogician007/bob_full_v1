@@ -31,7 +31,7 @@ Starting point: `/Users/sk/work/bob/` is a hardware-proven 4×4 CLB fabric (JTAG
 | M6 | DSP tile (UG479 DSP48E1 trimmed) | **done, passed on hardware** 2026-09-14 (all 25 checks, run with the restored M6 tools in `release/mac_M6/`) |
 | M7 | **done, passed on hardware 2026-09-17** (26/26 checks incl. bram-select, pipeline, full-column counter; 7670 LUTs, 10362 FFs, 2 RAMB18, 2 DSP48E1; WNS −1102 ns from unconfigured routing-loop paths, see M7 timing notes). Heterogeneous fabric generated from VPR's rr graph. **Board build = 16-CLB profile** (`ARCH_6X4`: 16 CLB, 2 BRAM, 2 DSP, 20 pads, 4216-bit chain, IDCODE `0xABEEF093`), switched 2026-09-15 because the 48-CLB Vivado synthesis was too slow on the build machine. The 48-CLB profile (`ARCH_8X8`, 9400 bits, IDCODE `0x9BEEF093`) is frozen complete in `release/M7_8x8/`, to be built later on a faster machine. 16-CLB results 2026-09-15: tb_bob 852, tb_synth 486, K=4 722, lint clean, pytest 88, `make mutate` 25/25 killed. The 48-CLB results at the time were | **built and simulated** 2026-09-14 (tb_bob 852 checks incl. random routed netlists, K=4 722, lint clean, pytest 80, `make mutate` 25/25 fabric + cfg all killed); awaiting M5/M6 hardware, then M7 hardware (bundle `hw/`, top `bob_top`) |
 | M8 | yosys synthesis to bob cells | **done, passed on hardware 2026-09-17** (10/10 on the M7 bitstream: gates, adder, counter, blinky, ram, mult each match the source Verilog for 64 clocks). Built and simulated 2026-09-14: 6 examples, netlist == source (iverilog), placed model == source, fabric RTL == source (tb_synth 486); no rebuild, hardware test on the M7 bitstream after M7 passes |
-| M9 | PnR with VPR | planned |
+| M9 | PnR with VPR | **built and simulated 2026-09-17, hardware test pending** (`make hwtest M=M9` on the M7 bitstream, no rebuild). All 6 examples packed/placed/routed by VPR on the committed rr graph (graph byte-identical after the arch change), FASM legal, same seed repeats, model == source 300 cycles, tb_synth 12 designs (6 VPR) == source |
 | M10 | bitgen + golden co-simulation | planned |
 | M11 | full hardware bring-up of real designs | planned |
 | M12 | Python PnR (checked against VPR) + optimisation | planned |
@@ -553,6 +553,56 @@ Not done yet (belongs to M7): pads and chain order for non-CLB tiles.
 
 **Done when:** every example routes; FASM is legal against `device.json`; same seed gives the same result; timing and wirelength reports are printed.
 **HW:** VPR-routed `gates.v` and `counter.v` (minimal FASM → chain) run on the board.
+
+**As built (2026-09-17):**
+- **Architecture** (`tools/bob/vpr_arch.py`): the CLB pb_type now has two modes, as the reference's fle does:
+  - `logic`: `.names` LUT K → `bob_ff`
+  - `arithmetic`: `bob_add` (A^B plus MUXCY/XORCY, a = I[0], b = I[1]) → `bob_ff`, with pack patterns `ble` (lut.out → ff.D) and `chain` (clb.cin → add.cin, add.cout → clb.cout, add.sumout → ff.D)
+
+  Models `bob_add` and `bob_ff` are in `device.py` `vpr_models()`. Tile pins are unchanged: `make rrgraph` gave byte-identical K=6 and K=4 rr graphs, so no rebuild.
+- **`tools/bob/vpr_run.py`** (Docker; `make vpr`) rewrites the yosys JSON into `<top>.eblif`:
+  - Constants on pins (CE/SR, BRAM/DSP pins, adder a/b, output pads) are left open and recorded, then become IPIN const0/const1. Constant LUT inputs are folded.
+  - Carry chains are cut to the column height (4), each piece with a generator (a = b = carry-in) and, if it continues or its carry out is used, a tap (sumout = cin).
+  - FDRE/FDSE → `bob_ff`, with the type kept in `<top>.vpr.json`.
+  - A buffer LUT is inserted when an FF's D is not a single-load LUT/adder output, and for a second output on the same net.
+  - Absolute paths are stripped from cell names so results commit.
+
+  Pins are fixed with `--fix_clusters` (clk on a spare pad; the clock is global). VPR runs with `--read_rr_graph` on the committed graph, a fixed seed, buffer absorption and sweeps off. Results are committed in `tools/bob/vpr/<top>/` with `stamp.txt` (arch sha, eblif sha, seed, image digest, command, wirelength, critical path, result hash).
+- **`tools/bob/fasm_from_vpr.py`** (no Docker) turns the committed result into chain bits:
+  - `.net`: LUT INIT re-indexed through VPR's `port_rotation_map`; arithmetic INIT and cy_en; FF flags
+  - `.place`: the tile
+  - `.route`: each node selects its predecessor; directs are VPR global nets and have no bits
+
+  Output is FASM (`clb_x2y3.init = 64'h…`, `rr1234 = 3'h5`), legality-checked against `device.json`, then the chain. It refuses stale results.
+- **Proofs:**
+  - `model.py` == source trace, 300 cycles
+  - tb_synth runs all 12 designs (6 hand-placed, 6 VPR) == source
+  - `tests/test_vpr.py`: fresh, legal, pads where fixed, chains ≤ column, stale refused, bad features rejected
+  - `make vpr --repeat`: the same seed gives the same result hash
+  - hwtest M9: `vpr-*` checks, 64 clocks each
+- **Results:**
+
+  | example | CLBs | wirelength | critical path |
+  |---|---|---|---|
+  | gates | 3 | 108 | 1.60 ns |
+  | adder | 4 | 59 | 1.74 ns |
+  | counter | 11 | 182 | 3.62 ns |
+  | blinky | 15/16 | 144 | 4.85 ns |
+  | ram | BRAM | 99 | 1.58 ns |
+  | mult | 7 + DSP | 157 | 1.81 ns |
+
+  Timing uses the reference's 40 nm numbers, not the emulated fabric.
+- **Found and fixed:** the M8 `counter` source trace was all zeros: uniform random inputs assert the synchronous reset half the time, so M8's counter check (model, RTL and board) could not fail. `equiv.py` now uses biased vectors in 50-cycle segments; the counter trace reaches LED 0–6.
+- **Gotchas:**
+  - VPR asserts in `update_chain_root_pins` when a chain pattern has no primitive-to-primitive connection inside the cluster, and forbids pack patterns into a multi-mode ff ("Multi-fanout nets not supported"). Hence one `bob_ff` primitive, and the sumout → ff.D edge in the chain pattern.
+  - `--fix_clusters` needs `--pack --place --route` given explicitly.
+  - Colima only shares `$HOME`, so VPR work directories live in `build/`, not `/tmp`.
+- **Not at M9:**
+  - O5 is not offered to VPR, so one function per CLB
+  - a carry out used in the middle of a chain
+  - constant FF D, CE tied 0, SR tied 1
+  - VPR timing does not model the emulated fabric
+  - Single-feature deletion test: 477/527 caught. The survivors are mostly equivalent mutants (a generator whose carry-in is 0, a tap whose LUT inputs are const0); the rest are gaps in trace coverage.
 
 ### M10: bitgen + golden co-simulation
 

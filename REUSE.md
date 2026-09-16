@@ -107,6 +107,12 @@ Status: **same** = byte-identical to `bob/`, **moved** = same content at a new p
 | `release/mac_M6/` | transcript replay of M6 `host/`, `tools/bob/`, `sim/gen_vectors.py` + `release/hw_M6` | restored | verified: regenerates M6 `bob_params.vh` and `vectors.vh` byte-identical; ran the M5/M6 hardware tests |
 | `release/hw_M7/`, `release/mac_M7/` | `hw/` and Mac tools at M7 | frozen copy | before M8 edits |
 
+## Technical report
+
+| file | origin | status | notes |
+|---|---|---|---|
+| `docs/bob_full_v1_report.tex` | inspected M7/M8 source, generated device schema, plan and recorded evidence | new | standalone LaTeX source; architecture, configuration field tables, toolchain, verification limitations and roadmap; inherited `docs/report.tex` preserved; no PDF generated |
+
 ## Documentation page
 
 | file | origin | status | notes |
@@ -123,3 +129,13 @@ Status: **same** = byte-identical to `bob/`, **moved** = same content at a new p
 | OpenFPGA Docker image | `ghcr.io/lnis-uofu/openfpga-master` (amd64, runs under emulation) | VPR 9.0 for M9 |
 | Aegis | `../../aegis` (Apache-2.0) | per-tile shift + shadow register, BRAM/DSP/clock/IO docs |
 | AMD UG470/473/474/479 | — | configuration, BRAM, CLB, DSP behaviour |
+
+## M9: PnR with VPR
+
+| File | From | Status | Notes |
+|---|---|---|---|
+| `tools/bob/vpr_arch.py`, `tools/bob/device.py` (`vpr_models`) | OpenFPGA `k6_frac_N10_tileable_adder_chain_dpram8K_dsp36_fracff_40nm.xml` fle modes (`n1_lut6`, `arithmetic`), `adder`/`dffr` models and `ble6`/`chain` pack patterns | modified | CLB modes `logic`/`arithmetic`, models `bob_add`/`bob_ff`; tile pins unchanged (rr graph byte-identical) |
+| `tools/bob/vpr_run.py`, `tools/bob/vpr/<top>/` | VPR command line as in `vpr_rrgraph.sh` | new | yosys JSON → eblif (constants, chain cutting, FF buffers), fixed pins, Docker VPR, committed results + stamp |
+| `tools/bob/fasm_from_vpr.py` | FASM idea from F4PGA (feature = value) | new | `.net/.place/.route` → FASM → legality vs `device.json` → chain |
+| `tools/bob/equiv.py` | M8 | modified | biased random vectors (the M8 counter trace was constant) |
+| `sim/gen_synth_vectors.py`, `hw/tb/tb_synth.v`, `host/hwtest.py`, `Makefile`, `tests/test_vpr.py`, `docs/hwtest/M9.md` | M8 | modified / new | VPR designs in tb_synth, hwtest M9 `vpr-*`, `make vpr` |

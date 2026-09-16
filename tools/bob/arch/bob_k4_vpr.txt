@@ -13,10 +13,10 @@ Warning 10: Found no more sample locations for OPIN in bram
 Warning 11: Found no more sample locations for SOURCE in dsp
 Warning 12: Found no more sample locations for OPIN in dsp
 Circuit successfully routed with a channel width factor of 24.
-	Total wirelength: 27, average net length: 9.00000
+	Total wirelength: 20, average net length: 6.66667
 	Total logic block area (Warning, need to add pitch of routing to blocks with height > 3): 0
+                           ---- ---- -----------
                              L4    0      0.0174
 Flow timing analysis took 0 seconds (0 STA, 0 slack) (0 full updates: 0 setup, 0 hold, 0 combined).
 VPR succeeded
-The entire flow of VPR took 0.40 seconds (max_rss 58.9 MiB)
-
+The entire flow of VPR took 0.35 seconds (max_rss 59.0 MiB)

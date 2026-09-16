@@ -1,0 +1,107 @@
+{
+"top": "counter",
+"lut": {},
+"add": {
+"bob_gen1": {
+"inv": 0
+},
+"$auto$alumacc.cc:548:replace_alu$16.slice[0].add": {
+"inv": 0
+},
+"$auto$alumacc.cc:548:replace_alu$16.slice[1].add": {
+"inv": 0
+},
+"bob_tap5": {
+"inv": 0
+},
+"bob_gen7": {
+"inv": 0
+},
+"$auto$alumacc.cc:548:replace_alu$16.slice[2].add": {
+"inv": 0
+},
+"$auto$alumacc.cc:548:replace_alu$16.slice[3].add": {
+"inv": 0
+},
+"bob_tap11": {
+"inv": 0
+},
+"bob_gen13": {
+"inv": 0
+},
+"$auto$alumacc.cc:548:replace_alu$16.slice[4].add": {
+"inv": 0
+},
+"$auto$alumacc.cc:548:replace_alu$16.slice[5].add": {
+"inv": 0
+}
+},
+"ff": {
+"$auto$ff.cc:337:slice$94": {
+"rstval": 0,
+"ce": true,
+"sr": true
+},
+"$auto$ff.cc:337:slice$95": {
+"rstval": 0,
+"ce": true,
+"sr": true
+},
+"$auto$ff.cc:337:slice$96": {
+"rstval": 0,
+"ce": true,
+"sr": true
+},
+"$auto$ff.cc:337:slice$97": {
+"rstval": 0,
+"ce": true,
+"sr": true
+},
+"$auto$ff.cc:337:slice$98": {
+"rstval": 0,
+"ce": true,
+"sr": true
+},
+"$auto$ff.cc:337:slice$99": {
+"rstval": 0,
+"ce": true,
+"sr": true
+}
+},
+"bram": {},
+"dsp": {},
+"consts": {
+"bob_gen1": {
+"a": 0,
+"b": 0
+},
+"$auto$alumacc.cc:548:replace_alu$16.slice[0].add": {
+"a": 1
+},
+"$auto$alumacc.cc:548:replace_alu$16.slice[1].add": {
+"a": 0
+},
+"$auto$alumacc.cc:548:replace_alu$16.slice[2].add": {
+"a": 0
+},
+"$auto$alumacc.cc:548:replace_alu$16.slice[3].add": {
+"a": 0
+},
+"$auto$alumacc.cc:548:replace_alu$16.slice[4].add": {
+"a": 0
+},
+"$auto$alumacc.cc:548:replace_alu$16.slice[5].add": {
+"a": 0
+}
+},
+"out_consts": {},
+"has_clk": true,
+"pins": {
+"clk": 2,
+"btn[0]": 10,
+"btn[1]": 12,
+"out:led[0]": 7,
+"out:led[1]": 9,
+"out:led[2]": 11
+}
+}

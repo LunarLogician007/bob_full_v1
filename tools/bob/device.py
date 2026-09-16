@@ -352,7 +352,18 @@ class Device:
         raise KeyError(t)
 
     def vpr_models(self):
-        out = []
+        # M9: the CLB primitives bob's yosys flow emits (tools/bob/synth), as VPR models.
+        # bob_add = BOB_ADD (the LUT's A^B plus MUXCY/XORCY), bob_ff = BOB_FDRE or BOB_FDSE;
+        # shaped like the reference arch's adder and dffr/dffs models.
+        out = [
+            {"name": "bob_add",
+             "inputs": [(n, 1, ' combinational_sink_ports="sumout cout"') for n in ("a", "b", "cin")],
+             "outputs": [("cout", 1, ""), ("sumout", 1, "")]},
+        ]
+        out.append({"name": "bob_ff",
+                    "inputs": [("D", 1, ' clock="C"'), ("CE", 1, ' clock="C"'),
+                               ("SR", 1, ' clock="C"'), ("C", 1, ' is_clock="1"')],
+                    "outputs": [("Q", 1, ' clock="C"')]})
         for t, model in (("bram", "bob_bram"), ("dsp", "bob_dsp")):
             ins = [(n, w, ' clock="clk"') for d, n, w in self.block_ports(t) if d == "in"]
             ins.append(("clk", 1, ' is_clock="1"'))

@@ -1,0 +1,216 @@
+<?xml version="1.0"?>
+<block name="ram.net" instance="FPGA_packed_netlist[0]" architecture_id="" atom_netlist_id="">
+	<inputs>clk sw[0] sw[1] btn[0] btn[2] btn[3]</inputs>
+	<outputs>out:led[0] out:led[1] out:led[2]</outputs>
+	<clocks>clk</clocks>
+	<block name="mem.0.0" instance="bram[0]" mode="bram">
+		<inputs>
+			<port name="addr_a">sw[0] sw[1] open open open open open open open open</port>
+			<port name="di_a">sw[1] btn[2] btn[3] open open open open open open open open open open open open open open open</port>
+			<port name="we_a">btn[0]</port>
+			<port name="en_a">open</port>
+			<port name="rst_a">open</port>
+			<port name="regce_a">open</port>
+			<port name="addr_b">open open open open open open open open open open</port>
+			<port name="di_b">open open open open open open open open open open open open open open open open open open</port>
+			<port name="we_b">open</port>
+			<port name="en_b">open</port>
+			<port name="rst_b">open</port>
+			<port name="regce_b">open</port>
+		</inputs>
+		<outputs>
+			<port name="do_a">bram_prim[0].do_a[0]-&gt;do_a bram_prim[0].do_a[1]-&gt;do_a bram_prim[0].do_a[2]-&gt;do_a open open open open open open open open open open open open open open open</port>
+			<port name="do_b">open open open open open open open open open open open open open open open open open open</port>
+		</outputs>
+		<clocks>
+			<port name="clk">clk</port>
+		</clocks>
+		<block name="mem.0.0" instance="bram_prim[0]">
+			<attributes />
+			<parameters />
+			<inputs>
+				<port name="addr_a">bram.addr_a[0]-&gt;addr_a bram.addr_a[1]-&gt;addr_a open open open open open open open open</port>
+				<port name="di_a">bram.di_a[0]-&gt;di_a bram.di_a[1]-&gt;di_a bram.di_a[2]-&gt;di_a open open open open open open open open open open open open open open open</port>
+				<port name="we_a">bram.we_a[0]-&gt;we_a</port>
+				<port name="en_a">open</port>
+				<port name="rst_a">open</port>
+				<port name="regce_a">open</port>
+				<port name="addr_b">open open open open open open open open open open</port>
+				<port name="di_b">open open open open open open open open open open open open open open open open open open</port>
+				<port name="we_b">open</port>
+				<port name="en_b">open</port>
+				<port name="rst_b">open</port>
+				<port name="regce_b">open</port>
+			</inputs>
+			<outputs>
+				<port name="do_a">led[0] led[1] led[2] open open open open open open open open open open open open open open open</port>
+				<port name="do_b">open open open open open open open open open open open open open open open open open open</port>
+			</outputs>
+			<clocks>
+				<port name="clk">bram.clk[0]-&gt;clk</port>
+			</clocks>
+		</block>
+	</block>
+	<block name="out:led[0]" instance="io[1]" mode="outpad">
+		<inputs>
+			<port name="outpad">led[0]</port>
+		</inputs>
+		<outputs>
+			<port name="inpad">open</port>
+		</outputs>
+		<clocks />
+		<block name="out:led[0]" instance="outpad[0]">
+			<attributes />
+			<parameters />
+			<inputs>
+				<port name="outpad">io.outpad[0]-&gt;outpad</port>
+			</inputs>
+			<outputs />
+			<clocks />
+		</block>
+	</block>
+	<block name="out:led[1]" instance="io[2]" mode="outpad">
+		<inputs>
+			<port name="outpad">led[1]</port>
+		</inputs>
+		<outputs>
+			<port name="inpad">open</port>
+		</outputs>
+		<clocks />
+		<block name="out:led[1]" instance="outpad[0]">
+			<attributes />
+			<parameters />
+			<inputs>
+				<port name="outpad">io.outpad[0]-&gt;outpad</port>
+			</inputs>
+			<outputs />
+			<clocks />
+		</block>
+	</block>
+	<block name="out:led[2]" instance="io[3]" mode="outpad">
+		<inputs>
+			<port name="outpad">led[2]</port>
+		</inputs>
+		<outputs>
+			<port name="inpad">open</port>
+		</outputs>
+		<clocks />
+		<block name="out:led[2]" instance="outpad[0]">
+			<attributes />
+			<parameters />
+			<inputs>
+				<port name="outpad">io.outpad[0]-&gt;outpad</port>
+			</inputs>
+			<outputs />
+			<clocks />
+		</block>
+	</block>
+	<block name="clk" instance="io[4]" mode="inpad">
+		<inputs>
+			<port name="outpad">open</port>
+		</inputs>
+		<outputs>
+			<port name="inpad">inpad[0].inpad[0]-&gt;inpad</port>
+		</outputs>
+		<clocks />
+		<block name="clk" instance="inpad[0]">
+			<attributes />
+			<parameters />
+			<inputs />
+			<outputs>
+				<port name="inpad">clk</port>
+			</outputs>
+			<clocks />
+		</block>
+	</block>
+	<block name="sw[0]" instance="io[5]" mode="inpad">
+		<inputs>
+			<port name="outpad">open</port>
+		</inputs>
+		<outputs>
+			<port name="inpad">inpad[0].inpad[0]-&gt;inpad</port>
+		</outputs>
+		<clocks />
+		<block name="sw[0]" instance="inpad[0]">
+			<attributes />
+			<parameters />
+			<inputs />
+			<outputs>
+				<port name="inpad">sw[0]</port>
+			</outputs>
+			<clocks />
+		</block>
+	</block>
+	<block name="sw[1]" instance="io[6]" mode="inpad">
+		<inputs>
+			<port name="outpad">open</port>
+		</inputs>
+		<outputs>
+			<port name="inpad">inpad[0].inpad[0]-&gt;inpad</port>
+		</outputs>
+		<clocks />
+		<block name="sw[1]" instance="inpad[0]">
+			<attributes />
+			<parameters />
+			<inputs />
+			<outputs>
+				<port name="inpad">sw[1]</port>
+			</outputs>
+			<clocks />
+		</block>
+	</block>
+	<block name="btn[0]" instance="io[7]" mode="inpad">
+		<inputs>
+			<port name="outpad">open</port>
+		</inputs>
+		<outputs>
+			<port name="inpad">inpad[0].inpad[0]-&gt;inpad</port>
+		</outputs>
+		<clocks />
+		<block name="btn[0]" instance="inpad[0]">
+			<attributes />
+			<parameters />
+			<inputs />
+			<outputs>
+				<port name="inpad">btn[0]</port>
+			</outputs>
+			<clocks />
+		</block>
+	</block>
+	<block name="btn[2]" instance="io[8]" mode="inpad">
+		<inputs>
+			<port name="outpad">open</port>
+		</inputs>
+		<outputs>
+			<port name="inpad">inpad[0].inpad[0]-&gt;inpad</port>
+		</outputs>
+		<clocks />
+		<block name="btn[2]" instance="inpad[0]">
+			<attributes />
+			<parameters />
+			<inputs />
+			<outputs>
+				<port name="inpad">btn[2]</port>
+			</outputs>
+			<clocks />
+		</block>
+	</block>
+	<block name="btn[3]" instance="io[9]" mode="inpad">
+		<inputs>
+			<port name="outpad">open</port>
+		</inputs>
+		<outputs>
+			<port name="inpad">inpad[0].inpad[0]-&gt;inpad</port>
+		</outputs>
+		<clocks />
+		<block name="btn[3]" instance="inpad[0]">
+			<attributes />
+			<parameters />
+			<inputs />
+			<outputs>
+				<port name="inpad">btn[3]</port>
+			</outputs>
+			<clocks />
+		</block>
+	</block>
+</block>

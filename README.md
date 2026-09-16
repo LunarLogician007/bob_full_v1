@@ -17,7 +17,7 @@ For the detailed plan, conventions, gotchas and every milestone, read [`PLAN.md`
 | M0–M6 | layout, device description, scan-chain config plane, 4×4 fabric, user clock, BRAM, DSP | passed on the board |
 | **M7** | fabric generated from VPR's rr graph, **16-CLB board profile** | **passed on the board 2026-09-17** (26/26); timing hardening planned for the next rebuild |
 | M8 | yosys synthesis onto bob cells → placed → runs on the fabric | **passed on the board 2026-09-17** (10/10, no rebuild) |
-| M9 | place and route real designs with VPR | next |
+| M9 | VPR packs, places and routes the examples → FASM → chain | built and simulated 2026-09-17; board test pending (no rebuild) |
 | M10 | bitgen (VPR routes → chain) + golden co-simulation | planned |
 | M11 | real designs on the board | planned |
 | M12 | Python PnR, larger grid | planned |
@@ -62,16 +62,19 @@ Back on the Mac with the Pico attached:
 make check              # now also checks the Vivado reports
 make hwtest M=M7        # regression + milestone checks; checklist in docs/hwtest/M7.md
 make hwtest M=M8        # same bitstream: yosys-synthesised examples (docs/hwtest/M8.md)
+make hwtest M=M9        # same bitstream: the examples placed and routed by VPR (docs/hwtest/M9.md)
 ```
 
 Every run is appended to `docs/hwtest/results.log`. To test an older bitstream, use its frozen tools, e.g. `cd release/mac_M6/host && ./hwtest.py --milestone M6`.
 
-## The guest flow (M8, today)
+## The guest flow (M8/M9, today)
 
 ```sh
 tools/bob/synth.py examples/counter.v     # yosys → $lut / BOB_FDRE / BOB_ADD / BOB_BRAM18 / BOB_DSP
 tools/bob/equiv.py examples/counter.v     # synthesised netlist == source Verilog (iverilog)
-tools/bob/place.py counter --check        # pack, place, route; placed bitstream == source (model)
+tools/bob/place.py counter --check        # M8 hand placer; placed bitstream == source (model)
+make vpr                                  # M9: VPR packs/places/routes every example (Docker) -> tools/bob/vpr/
+tools/bob/fasm_from_vpr.py --check        # committed VPR results -> FASM -> chain == source (model)
 sim/run_synth_sim.sh                      # the same bitstreams on the complete FPGA RTL
 ```
 
@@ -82,7 +85,7 @@ Examples in `examples/`: `gates`, `adder`, `counter`, `blinky`, `ram`, `mult`. T
 ```
 hw/            the Vivado bundle: sources.f, build.cfg, src/ (RTL + generated fabric), tb/, constr/, scripts/
 tools/bob/     device.py (single source of truth), VPR arch + rr graphs, fabric generator, model,
-               chainbits, synth/equiv/place (M8)
+               chainbits, synth/equiv/place (M8), vpr_run/fasm_from_vpr + committed vpr/ results (M9)
 host/          Pico/JTAG tools: cfgplane, fpga, hwtest, bitstream (router), designs
 sim/           iverilog/verilator scripts, vector generators, mutation tests
 tests/         pytest

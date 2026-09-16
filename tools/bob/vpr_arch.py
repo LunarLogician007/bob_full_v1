@@ -169,11 +169,34 @@ def _io_pb():
     ]
 
 
+def _ff_pb():
+    """bob's flip-flop: FDRE or FDSE (UG474) with CE and SR from the tile pins. One
+    primitive, bob_ff; which of the two it is travels as a netlist parameter
+    (tools/bob/vpr_run.py), because VPR forbids a pack pattern into a multi-mode ff."""
+    return ['  <pb_type name="ff" blif_model=".subckt bob_ff" num_pb="1">',
+            '    <input name="D" num_pins="1" port_class="D"/>',
+            '    <input name="CE" num_pins="1"/>',
+            '    <input name="SR" num_pins="1"/>',
+            '    <output name="Q" num_pins="1" port_class="Q"/>',
+            '    <clock name="C" num_pins="1" port_class="clock"/>',
+            '    <T_setup value="66e-12" port="ff.D" clock="C"/>',
+            '    <T_setup value="66e-12" port="ff.CE" clock="C"/>',
+            '    <T_setup value="66e-12" port="ff.SR" clock="C"/>',
+            '    <T_clock_to_Q max="124e-12" port="ff.Q" clock="C"/>',
+            '  </pb_type>']
+
+
 def _clb_pb(k):
-    """One BLE. M7 only needs the tile pins right (they fix the rr graph); the
-    packing modes (carry, O5, CE/SR flops as bob cells) arrive with M8/M9."""
+    """bob's CLB: one BLE, two modes (as the reference's fle has n1_lut6 and arithmetic).
+
+      logic       .names LUT K -> optional FF; O = FF.Q or LUT out
+      arithmetic  bob_add (the LUT computing A^B plus MUXCY/XORCY, DI = I0 = A)
+                  -> optional FF; O = FF.Q or sum; cin/cout on the carry direct
+
+    O5 is not offered to VPR (one function per CLB); the M8 hand placer still uses it.
+    The tile pins are exactly M7's, so the rr graph - and the fabric - do not change."""
     lut_delay = "\n".join(["261e-12"] * k)
-    return [
+    head = [
         '<pb_type name="clb">',
         f'  <input name="I" num_pins="{k}"/>',
         '  <input name="ce" num_pins="1"/>',
@@ -183,41 +206,60 @@ def _clb_pb(k):
         '  <output name="O5" num_pins="1"/>',
         '  <output name="cout" num_pins="1"/>',
         '  <clock name="clk" num_pins="1"/>',
-        '  <mode name="ble">',
-        '    <pb_type name="ble" num_pb="1">',
-        f'      <input name="in" num_pins="{k}"/>',
-        '      <output name="out" num_pins="1"/>',
-        '      <clock name="clk" num_pins="1"/>',
-        f'      <pb_type name="lut" blif_model=".names" num_pb="1" class="lut">',
-        f'        <input name="in" num_pins="{k}" port_class="lut_in"/>',
-        '        <output name="out" num_pins="1" port_class="lut_out"/>',
-        f'        <delay_matrix type="max" in_port="lut.in" out_port="lut.out">{lut_delay}</delay_matrix>',
-        '      </pb_type>',
-        '      <pb_type name="ff" blif_model=".latch" num_pb="1" class="flipflop">',
-        '        <input name="D" num_pins="1" port_class="D"/>',
-        '        <output name="Q" num_pins="1" port_class="Q"/>',
-        '        <clock name="clk" num_pins="1" port_class="clock"/>',
-        '        <T_setup value="66e-12" port="ff.D" clock="clk"/>',
-        '        <T_clock_to_Q max="124e-12" port="ff.Q" clock="clk"/>',
-        '      </pb_type>',
-        '      <interconnect>',
-        '        <direct name="lut_in" input="ble.in" output="lut.in"/>',
-        '        <direct name="ff_d" input="lut.out" output="ff.D"/>',
-        '        <direct name="ff_clk" input="ble.clk" output="ff.clk"/>',
-        '        <mux name="out" input="ff.Q lut.out" output="ble.out">',
-        '          <delay_constant max="25e-12" in_port="lut.out" out_port="ble.out"/>',
-        '          <delay_constant max="45e-12" in_port="ff.Q" out_port="ble.out"/>',
-        '        </mux>',
-        '      </interconnect>',
-        '    </pb_type>',
-        '    <interconnect>',
-        '      <direct name="i" input="clb.I" output="ble.in"/>',
-        '      <direct name="clk" input="clb.clk" output="ble.clk"/>',
-        '      <direct name="o" input="ble.out" output="clb.O"/>',
-        '    </interconnect>',
-        '  </mode>',
-        '</pb_type>',
     ]
+    ctl = ['    <direct name="ff_ce" input="clb.ce" output="ff.CE"/>',
+           '    <direct name="ff_sr" input="clb.sr" output="ff.SR"/>',
+           '    <direct name="ff_c" input="clb.clk" output="ff.C"/>']
+    logic = ['<mode name="logic">',
+             f'  <pb_type name="lut" blif_model=".names" num_pb="1" class="lut">',
+             f'    <input name="in" num_pins="{k}" port_class="lut_in"/>',
+             '    <output name="out" num_pins="1" port_class="lut_out"/>',
+             f'    <delay_matrix type="max" in_port="lut.in" out_port="lut.out">{lut_delay}</delay_matrix>',
+             '  </pb_type>']
+    logic += _ff_pb()
+    logic += ['  <interconnect>',
+              '    <direct name="lut_in" input="clb.I" output="lut.in"/>',
+              '    <direct name="ff_d" input="lut.out" output="ff.D">',
+              '      <pack_pattern name="ble" in_port="lut.out" out_port="ff.D"/>',
+              '    </direct>'] + ctl + [
+              '    <mux name="o" input="ff.Q lut.out" output="clb.O">',
+              '      <delay_constant max="25e-12" in_port="lut.out" out_port="clb.O"/>',
+              '      <delay_constant max="45e-12" in_port="ff.Q" out_port="clb.O"/>',
+              '    </mux>',
+              '  </interconnect>',
+              '</mode>']
+    arith = ['<mode name="arithmetic">',
+             '  <pb_type name="add" blif_model=".subckt bob_add" num_pb="1">',
+             '    <input name="a" num_pins="1"/>',
+             '    <input name="b" num_pins="1"/>',
+             '    <input name="cin" num_pins="1"/>',
+             '    <output name="cout" num_pins="1"/>',
+             '    <output name="sumout" num_pins="1"/>']
+    for i in ("a", "b", "cin"):
+        for o in ("sumout", "cout"):
+            dly = "0.01e-9" if (i, o) == ("cin", "cout") else "0.3e-9"
+            arith.append(f'    <delay_constant max="{dly}" in_port="add.{i}" out_port="add.{o}"/>')
+    arith.append('  </pb_type>')
+    arith += _ff_pb()
+    arith += ['  <interconnect>',
+              '    <direct name="a" input="clb.I[0]" output="add.a"/>',
+              '    <direct name="b" input="clb.I[1]" output="add.b"/>',
+              '    <direct name="cin" input="clb.cin" output="add.cin">',
+              '      <pack_pattern name="chain" in_port="clb.cin" out_port="add.cin"/>',
+              '    </direct>',
+              '    <direct name="cout" input="add.cout" output="clb.cout">',
+              '      <pack_pattern name="chain" in_port="add.cout" out_port="clb.cout"/>',
+              '    </direct>',
+              '    <direct name="ff_d" input="add.sumout" output="ff.D">',
+              '      <pack_pattern name="chain" in_port="add.sumout" out_port="ff.D"/>',
+              '    </direct>'] + ctl + [
+              '    <mux name="o" input="ff.Q add.sumout" output="clb.O">',
+              '      <delay_constant max="25e-12" in_port="add.sumout" out_port="clb.O"/>',
+              '      <delay_constant max="45e-12" in_port="ff.Q" out_port="clb.O"/>',
+              '    </mux>',
+              '  </interconnect>',
+              '</mode>']
+    return head + ["  " + x for x in logic + arith] + ['</pb_type>']
 
 
 def _hard_pb(t):

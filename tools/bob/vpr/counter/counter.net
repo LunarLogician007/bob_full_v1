@@ -1,0 +1,539 @@
+<?xml version="1.0"?>
+<block name="counter.net" instance="FPGA_packed_netlist[0]" architecture_id="" atom_netlist_id="">
+	<inputs>clk btn[0] btn[1]</inputs>
+	<outputs>out:led[0] out:led[1] out:led[2]</outputs>
+	<clocks>clk</clocks>
+	<block name="$auto$alumacc.cc:548:replace_alu$16.slice[0].add" instance="clb[0]" mode="arithmetic">
+		<inputs>
+			<port name="I">open n12 open open open open</port>
+			<port name="ce">btn[0]</port>
+			<port name="sr">btn[1]</port>
+			<port name="cin">cy2</port>
+		</inputs>
+		<outputs>
+			<port name="O">ff[0].Q[0]-&gt;o</port>
+			<port name="O5">open</port>
+			<port name="cout">add[0].cout[0]-&gt;cout</port>
+		</outputs>
+		<clocks>
+			<port name="clk">clk</port>
+		</clocks>
+		<block name="$auto$alumacc.cc:548:replace_alu$16.slice[0].add" instance="add[0]">
+			<attributes />
+			<parameters />
+			<inputs>
+				<port name="a">open</port>
+				<port name="b">clb.I[1]-&gt;b</port>
+				<port name="cin">clb.cin[0]-&gt;cin</port>
+			</inputs>
+			<outputs>
+				<port name="cout">cy3</port>
+				<port name="sumout">n14</port>
+			</outputs>
+			<clocks />
+		</block>
+		<block name="$auto$ff.cc:337:slice$94" instance="ff[0]">
+			<attributes />
+			<parameters />
+			<inputs>
+				<port name="D">add[0].sumout[0]-&gt;ff_d</port>
+				<port name="CE">clb.ce[0]-&gt;ff_ce</port>
+				<port name="SR">clb.sr[0]-&gt;ff_sr</port>
+			</inputs>
+			<outputs>
+				<port name="Q">n12</port>
+			</outputs>
+			<clocks>
+				<port name="C">clb.clk[0]-&gt;ff_c</port>
+			</clocks>
+		</block>
+	</block>
+	<block name="$auto$alumacc.cc:548:replace_alu$16.slice[1].add" instance="clb[1]" mode="arithmetic">
+		<inputs>
+			<port name="I">open n15 open open open open</port>
+			<port name="ce">btn[0]</port>
+			<port name="sr">btn[1]</port>
+			<port name="cin">cy3</port>
+		</inputs>
+		<outputs>
+			<port name="O">ff[0].Q[0]-&gt;o</port>
+			<port name="O5">open</port>
+			<port name="cout">add[0].cout[0]-&gt;cout</port>
+		</outputs>
+		<clocks>
+			<port name="clk">clk</port>
+		</clocks>
+		<block name="$auto$alumacc.cc:548:replace_alu$16.slice[1].add" instance="add[0]">
+			<attributes />
+			<parameters />
+			<inputs>
+				<port name="a">open</port>
+				<port name="b">clb.I[1]-&gt;b</port>
+				<port name="cin">clb.cin[0]-&gt;cin</port>
+			</inputs>
+			<outputs>
+				<port name="cout">cy4</port>
+				<port name="sumout">n17</port>
+			</outputs>
+			<clocks />
+		</block>
+		<block name="$auto$ff.cc:337:slice$95" instance="ff[0]">
+			<attributes />
+			<parameters />
+			<inputs>
+				<port name="D">add[0].sumout[0]-&gt;ff_d</port>
+				<port name="CE">clb.ce[0]-&gt;ff_ce</port>
+				<port name="SR">clb.sr[0]-&gt;ff_sr</port>
+			</inputs>
+			<outputs>
+				<port name="Q">n15</port>
+			</outputs>
+			<clocks>
+				<port name="C">clb.clk[0]-&gt;ff_c</port>
+			</clocks>
+		</block>
+	</block>
+	<block name="$auto$alumacc.cc:548:replace_alu$16.slice[2].add" instance="clb[2]" mode="arithmetic">
+		<inputs>
+			<port name="I">open n18 open open open open</port>
+			<port name="ce">btn[0]</port>
+			<port name="sr">btn[1]</port>
+			<port name="cin">cy8</port>
+		</inputs>
+		<outputs>
+			<port name="O">ff[0].Q[0]-&gt;o</port>
+			<port name="O5">open</port>
+			<port name="cout">add[0].cout[0]-&gt;cout</port>
+		</outputs>
+		<clocks>
+			<port name="clk">clk</port>
+		</clocks>
+		<block name="$auto$alumacc.cc:548:replace_alu$16.slice[2].add" instance="add[0]">
+			<attributes />
+			<parameters />
+			<inputs>
+				<port name="a">open</port>
+				<port name="b">clb.I[1]-&gt;b</port>
+				<port name="cin">clb.cin[0]-&gt;cin</port>
+			</inputs>
+			<outputs>
+				<port name="cout">cy9</port>
+				<port name="sumout">n20</port>
+			</outputs>
+			<clocks />
+		</block>
+		<block name="$auto$ff.cc:337:slice$96" instance="ff[0]">
+			<attributes />
+			<parameters />
+			<inputs>
+				<port name="D">add[0].sumout[0]-&gt;ff_d</port>
+				<port name="CE">clb.ce[0]-&gt;ff_ce</port>
+				<port name="SR">clb.sr[0]-&gt;ff_sr</port>
+			</inputs>
+			<outputs>
+				<port name="Q">n18</port>
+			</outputs>
+			<clocks>
+				<port name="C">clb.clk[0]-&gt;ff_c</port>
+			</clocks>
+		</block>
+	</block>
+	<block name="$auto$alumacc.cc:548:replace_alu$16.slice[3].add" instance="clb[3]" mode="arithmetic">
+		<inputs>
+			<port name="I">open led[0] open open open open</port>
+			<port name="ce">btn[0]</port>
+			<port name="sr">btn[1]</port>
+			<port name="cin">cy9</port>
+		</inputs>
+		<outputs>
+			<port name="O">ff[0].Q[0]-&gt;o</port>
+			<port name="O5">open</port>
+			<port name="cout">add[0].cout[0]-&gt;cout</port>
+		</outputs>
+		<clocks>
+			<port name="clk">clk</port>
+		</clocks>
+		<block name="$auto$alumacc.cc:548:replace_alu$16.slice[3].add" instance="add[0]">
+			<attributes />
+			<parameters />
+			<inputs>
+				<port name="a">open</port>
+				<port name="b">clb.I[1]-&gt;b</port>
+				<port name="cin">clb.cin[0]-&gt;cin</port>
+			</inputs>
+			<outputs>
+				<port name="cout">cy10</port>
+				<port name="sumout">n22</port>
+			</outputs>
+			<clocks />
+		</block>
+		<block name="$auto$ff.cc:337:slice$97" instance="ff[0]">
+			<attributes />
+			<parameters />
+			<inputs>
+				<port name="D">add[0].sumout[0]-&gt;ff_d</port>
+				<port name="CE">clb.ce[0]-&gt;ff_ce</port>
+				<port name="SR">clb.sr[0]-&gt;ff_sr</port>
+			</inputs>
+			<outputs>
+				<port name="Q">led[0]</port>
+			</outputs>
+			<clocks>
+				<port name="C">clb.clk[0]-&gt;ff_c</port>
+			</clocks>
+		</block>
+	</block>
+	<block name="$auto$alumacc.cc:548:replace_alu$16.slice[4].add" instance="clb[4]" mode="arithmetic">
+		<inputs>
+			<port name="I">open led[1] open open open open</port>
+			<port name="ce">btn[0]</port>
+			<port name="sr">btn[1]</port>
+			<port name="cin">cy14</port>
+		</inputs>
+		<outputs>
+			<port name="O">ff[0].Q[0]-&gt;o</port>
+			<port name="O5">open</port>
+			<port name="cout">add[0].cout[0]-&gt;cout</port>
+		</outputs>
+		<clocks>
+			<port name="clk">clk</port>
+		</clocks>
+		<block name="$auto$alumacc.cc:548:replace_alu$16.slice[4].add" instance="add[0]">
+			<attributes />
+			<parameters />
+			<inputs>
+				<port name="a">open</port>
+				<port name="b">clb.I[1]-&gt;b</port>
+				<port name="cin">clb.cin[0]-&gt;cin</port>
+			</inputs>
+			<outputs>
+				<port name="cout">cy15</port>
+				<port name="sumout">n24</port>
+			</outputs>
+			<clocks />
+		</block>
+		<block name="$auto$ff.cc:337:slice$98" instance="ff[0]">
+			<attributes />
+			<parameters />
+			<inputs>
+				<port name="D">add[0].sumout[0]-&gt;ff_d</port>
+				<port name="CE">clb.ce[0]-&gt;ff_ce</port>
+				<port name="SR">clb.sr[0]-&gt;ff_sr</port>
+			</inputs>
+			<outputs>
+				<port name="Q">led[1]</port>
+			</outputs>
+			<clocks>
+				<port name="C">clb.clk[0]-&gt;ff_c</port>
+			</clocks>
+		</block>
+	</block>
+	<block name="$auto$alumacc.cc:548:replace_alu$16.slice[5].add" instance="clb[5]" mode="arithmetic">
+		<inputs>
+			<port name="I">open led[2] open open open open</port>
+			<port name="ce">btn[0]</port>
+			<port name="sr">btn[1]</port>
+			<port name="cin">cy15</port>
+		</inputs>
+		<outputs>
+			<port name="O">ff[0].Q[0]-&gt;o</port>
+			<port name="O5">open</port>
+			<port name="cout">open</port>
+		</outputs>
+		<clocks>
+			<port name="clk">clk</port>
+		</clocks>
+		<block name="$auto$alumacc.cc:548:replace_alu$16.slice[5].add" instance="add[0]">
+			<attributes />
+			<parameters />
+			<inputs>
+				<port name="a">open</port>
+				<port name="b">clb.I[1]-&gt;b</port>
+				<port name="cin">clb.cin[0]-&gt;cin</port>
+			</inputs>
+			<outputs>
+				<port name="cout">open</port>
+				<port name="sumout">n26</port>
+			</outputs>
+			<clocks />
+		</block>
+		<block name="$auto$ff.cc:337:slice$99" instance="ff[0]">
+			<attributes />
+			<parameters />
+			<inputs>
+				<port name="D">add[0].sumout[0]-&gt;ff_d</port>
+				<port name="CE">clb.ce[0]-&gt;ff_ce</port>
+				<port name="SR">clb.sr[0]-&gt;ff_sr</port>
+			</inputs>
+			<outputs>
+				<port name="Q">led[2]</port>
+			</outputs>
+			<clocks>
+				<port name="C">clb.clk[0]-&gt;ff_c</port>
+			</clocks>
+		</block>
+	</block>
+	<block name="bob_gen7" instance="clb[6]" mode="arithmetic">
+		<inputs>
+			<port name="I">cy6 cy6 open open open open</port>
+			<port name="ce">open</port>
+			<port name="sr">open</port>
+			<port name="cin">open</port>
+		</inputs>
+		<outputs>
+			<port name="O">open</port>
+			<port name="O5">open</port>
+			<port name="cout">add[0].cout[0]-&gt;cout</port>
+		</outputs>
+		<clocks>
+			<port name="clk">open</port>
+		</clocks>
+		<block name="bob_gen7" instance="add[0]">
+			<attributes />
+			<parameters />
+			<inputs>
+				<port name="a">clb.I[0]-&gt;a</port>
+				<port name="b">clb.I[1]-&gt;b</port>
+				<port name="cin">open</port>
+			</inputs>
+			<outputs>
+				<port name="cout">cy8</port>
+				<port name="sumout">open</port>
+			</outputs>
+			<clocks />
+		</block>
+		<block name="open" instance="ff[0]" />
+	</block>
+	<block name="bob_gen13" instance="clb[7]" mode="arithmetic">
+		<inputs>
+			<port name="I">cy12 cy12 open open open open</port>
+			<port name="ce">open</port>
+			<port name="sr">open</port>
+			<port name="cin">open</port>
+		</inputs>
+		<outputs>
+			<port name="O">open</port>
+			<port name="O5">open</port>
+			<port name="cout">add[0].cout[0]-&gt;cout</port>
+		</outputs>
+		<clocks>
+			<port name="clk">open</port>
+		</clocks>
+		<block name="bob_gen13" instance="add[0]">
+			<attributes />
+			<parameters />
+			<inputs>
+				<port name="a">clb.I[0]-&gt;a</port>
+				<port name="b">clb.I[1]-&gt;b</port>
+				<port name="cin">open</port>
+			</inputs>
+			<outputs>
+				<port name="cout">cy14</port>
+				<port name="sumout">open</port>
+			</outputs>
+			<clocks />
+		</block>
+		<block name="open" instance="ff[0]" />
+	</block>
+	<block name="bob_tap5" instance="clb[8]" mode="arithmetic">
+		<inputs>
+			<port name="I">open open open open open open</port>
+			<port name="ce">open</port>
+			<port name="sr">open</port>
+			<port name="cin">cy4</port>
+		</inputs>
+		<outputs>
+			<port name="O">add[0].sumout[0]-&gt;o</port>
+			<port name="O5">open</port>
+			<port name="cout">open</port>
+		</outputs>
+		<clocks>
+			<port name="clk">open</port>
+		</clocks>
+		<block name="bob_tap5" instance="add[0]">
+			<attributes />
+			<parameters />
+			<inputs>
+				<port name="a">open</port>
+				<port name="b">open</port>
+				<port name="cin">clb.cin[0]-&gt;cin</port>
+			</inputs>
+			<outputs>
+				<port name="cout">open</port>
+				<port name="sumout">cy6</port>
+			</outputs>
+			<clocks />
+		</block>
+		<block name="open" instance="ff[0]" />
+	</block>
+	<block name="bob_tap11" instance="clb[9]" mode="arithmetic">
+		<inputs>
+			<port name="I">open open open open open open</port>
+			<port name="ce">open</port>
+			<port name="sr">open</port>
+			<port name="cin">cy10</port>
+		</inputs>
+		<outputs>
+			<port name="O">add[0].sumout[0]-&gt;o</port>
+			<port name="O5">open</port>
+			<port name="cout">open</port>
+		</outputs>
+		<clocks>
+			<port name="clk">open</port>
+		</clocks>
+		<block name="bob_tap11" instance="add[0]">
+			<attributes />
+			<parameters />
+			<inputs>
+				<port name="a">open</port>
+				<port name="b">open</port>
+				<port name="cin">clb.cin[0]-&gt;cin</port>
+			</inputs>
+			<outputs>
+				<port name="cout">open</port>
+				<port name="sumout">cy12</port>
+			</outputs>
+			<clocks />
+		</block>
+		<block name="open" instance="ff[0]" />
+	</block>
+	<block name="bob_gen1" instance="clb[10]" mode="arithmetic">
+		<inputs>
+			<port name="I">open open open open open open</port>
+			<port name="ce">open</port>
+			<port name="sr">open</port>
+			<port name="cin">open</port>
+		</inputs>
+		<outputs>
+			<port name="O">open</port>
+			<port name="O5">open</port>
+			<port name="cout">add[0].cout[0]-&gt;cout</port>
+		</outputs>
+		<clocks>
+			<port name="clk">open</port>
+		</clocks>
+		<block name="bob_gen1" instance="add[0]">
+			<attributes />
+			<parameters />
+			<inputs>
+				<port name="a">open</port>
+				<port name="b">open</port>
+				<port name="cin">open</port>
+			</inputs>
+			<outputs>
+				<port name="cout">cy2</port>
+				<port name="sumout">open</port>
+			</outputs>
+			<clocks />
+		</block>
+		<block name="open" instance="ff[0]" />
+	</block>
+	<block name="out:led[0]" instance="io[11]" mode="outpad">
+		<inputs>
+			<port name="outpad">led[0]</port>
+		</inputs>
+		<outputs>
+			<port name="inpad">open</port>
+		</outputs>
+		<clocks />
+		<block name="out:led[0]" instance="outpad[0]">
+			<attributes />
+			<parameters />
+			<inputs>
+				<port name="outpad">io.outpad[0]-&gt;outpad</port>
+			</inputs>
+			<outputs />
+			<clocks />
+		</block>
+	</block>
+	<block name="out:led[1]" instance="io[12]" mode="outpad">
+		<inputs>
+			<port name="outpad">led[1]</port>
+		</inputs>
+		<outputs>
+			<port name="inpad">open</port>
+		</outputs>
+		<clocks />
+		<block name="out:led[1]" instance="outpad[0]">
+			<attributes />
+			<parameters />
+			<inputs>
+				<port name="outpad">io.outpad[0]-&gt;outpad</port>
+			</inputs>
+			<outputs />
+			<clocks />
+		</block>
+	</block>
+	<block name="out:led[2]" instance="io[13]" mode="outpad">
+		<inputs>
+			<port name="outpad">led[2]</port>
+		</inputs>
+		<outputs>
+			<port name="inpad">open</port>
+		</outputs>
+		<clocks />
+		<block name="out:led[2]" instance="outpad[0]">
+			<attributes />
+			<parameters />
+			<inputs>
+				<port name="outpad">io.outpad[0]-&gt;outpad</port>
+			</inputs>
+			<outputs />
+			<clocks />
+		</block>
+	</block>
+	<block name="clk" instance="io[14]" mode="inpad">
+		<inputs>
+			<port name="outpad">open</port>
+		</inputs>
+		<outputs>
+			<port name="inpad">inpad[0].inpad[0]-&gt;inpad</port>
+		</outputs>
+		<clocks />
+		<block name="clk" instance="inpad[0]">
+			<attributes />
+			<parameters />
+			<inputs />
+			<outputs>
+				<port name="inpad">clk</port>
+			</outputs>
+			<clocks />
+		</block>
+	</block>
+	<block name="btn[0]" instance="io[15]" mode="inpad">
+		<inputs>
+			<port name="outpad">open</port>
+		</inputs>
+		<outputs>
+			<port name="inpad">inpad[0].inpad[0]-&gt;inpad</port>
+		</outputs>
+		<clocks />
+		<block name="btn[0]" instance="inpad[0]">
+			<attributes />
+			<parameters />
+			<inputs />
+			<outputs>
+				<port name="inpad">btn[0]</port>
+			</outputs>
+			<clocks />
+		</block>
+	</block>
+	<block name="btn[1]" instance="io[16]" mode="inpad">
+		<inputs>
+			<port name="outpad">open</port>
+		</inputs>
+		<outputs>
+			<port name="inpad">inpad[0].inpad[0]-&gt;inpad</port>
+		</outputs>
+		<clocks />
+		<block name="btn[1]" instance="inpad[0]">
+			<attributes />
+			<parameters />
+			<inputs />
+			<outputs>
+				<port name="inpad">btn[1]</port>
+			</outputs>
+			<clocks />
+		</block>
+	</block>
+</block>
