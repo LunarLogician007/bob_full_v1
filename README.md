@@ -17,8 +17,8 @@ For the detailed plan, conventions, gotchas and every milestone, read [`PLAN.md`
 | M0–M6 | layout, device description, scan-chain config plane, 4×4 fabric, user clock, BRAM, DSP | passed on the board |
 | **M7** | fabric generated from VPR's rr graph, **16-CLB board profile** | **passed on the board 2026-09-17** (26/26); timing hardening planned for the next rebuild |
 | M8 | yosys synthesis onto bob cells → placed → runs on the fabric | **passed on the board 2026-09-17** (10/10, no rebuild) |
-| M9 | VPR packs, places and routes the examples → FASM → chain | built and simulated 2026-09-17; board test pending (no rebuild) |
-| M10 | bitgen (VPR routes → chain) + golden co-simulation | planned |
+| M9 | VPR packs, places and routes the examples → FASM → chain | **passed on the board 2026-09-17** (10/10, no rebuild) |
+| M10 | bitgen (FASM → chain → `.bit`), `bob build`/`bob load`, golden co-simulation | next |
 | M11 | real designs on the board | planned |
 | M12 | Python PnR, larger grid | planned |
 | M13 | frame-based configuration (UG470) replacing the scan chain | planned, last |
