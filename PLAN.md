@@ -658,6 +658,16 @@ blinky, switches → LEDs, RAM and FIR on the PYNQ-Z2, verified by readback and 
 - **`bob build --clock run`** prints the user clock rate. At M10 a `--div 26` build (one clock per 137 s) looked like a dead board.
 - **Reports:** `tools/bob/report.py` → `docs/reports/M11/designs.md`, with cells, CLBs/BRAM/DSP, pins, wirelength, VPR path, FASM features and muxes, registers on CAPTURE, chain CRC and VPR result for all 9 designs. The chain CRCs equal the ones the board loaded at M10.
 - **Why the live check is a model consistency check and not a trace comparison:** a person's inputs are unknown in advance. SAMPLE takes pins and LEDs in one Capture-DR, and CAPTURE gives the registers. A burst in which the registers moved (the 14.9 Hz clock ticked) is skipped, not failed.
+- **First hardware run** (2026-09-17): everything passed except `ram-readback`.
+  - **Stale BRAM words:** bram0[4..7] and bram1 held earlier tests' words. BRAM contents survive JPROGRAM and a new chain, and `bob load` wrote only up to the last non-zero word, so zero words kept the previous design's values.
+    - Fix: `cli.write_brams` writes all 1024 words of every BRAM the design uses (`cfgplane.bram_fill`: one IR scan, then DR scans). The `.bit` has a section per used BRAM, even an all-zero one. The M8/M9 checks use the same writer.
+  - **Live checks too short to exercise:** they saw 1 input vector because 8 s was not enough to flip anything. They are now guided:
+    - a description and example inputs with model LEDs
+    - Enter to start
+    - a live status line (pins, LEDs, model, goals)
+    - goals per design (`LIVE_GUIDE`), ending when all are reached or failing after 90 s with the missing ones
+
+    Without a terminal they keep the 8 s mode and say "goals not checked". `make hwtest ONLY=...` / `--only` reruns single checks.
 - **Not at M11:**
   - live consistency for BRAM designs (the BRAM output latch isn't observable while running; the RAM is verified by readback instead)
   - DSP registers (opmode M only)

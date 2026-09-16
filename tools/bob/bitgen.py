@@ -110,8 +110,9 @@ def word_from_features(F):
 # --- .bit ------------------------------------------------------------------------------
 
 def write_bit(path, word, brams=None, meta=None):
-    sections = [chainbits.bram_section(b, words) for b, words in sorted((brams or {}).items())
-                if any(words)]
+    # a section for every BRAM the design uses, even all-zero: the loader writes all
+    # 1024 words of each (trailing zeros are not stored in the file)
+    sections = [chainbits.bram_section(b, words) for b, words in sorted((brams or {}).items())]
     meta = dict(meta or {})
     meta.setdefault("fasm_sha256", hashlib.sha256(to_fasm(features_from_word(word)).encode()).hexdigest())
     sections.append(("META", json.dumps(meta, sort_keys=True).encode()))

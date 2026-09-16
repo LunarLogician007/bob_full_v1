@@ -157,6 +157,19 @@ def bram_write(p, addr, words):
         bram_scan(p, "write", w)
 
 
+def bram_fill(p, words, addr=0):
+    """Write words from addr with one IR scan and one DR scan per word (bram_write
+    reloads the IR every word). Checks the version and err once at the end."""
+    ir(p, "BRAM")
+    p.shift_dr_fast(96, (BRAM_CMD["load_ptr"] << 92) | addr)
+    for w in words:
+        p.shift_dr_fast(96, (BRAM_CMD["write"] << 92) | (w & 0x3FFFF))
+    st = bram_scan(p, "nop")
+    if st["err"]:
+        raise RuntimeError("USER4 WRITE refused (GWE is 1: contents are only written before JSTART)")
+    return st
+
+
 def bram_read(p, addr, n):
     """mem[addr..addr+n-1]; a READ's result is captured by the following scan."""
     bram_scan(p, "load_ptr", addr)

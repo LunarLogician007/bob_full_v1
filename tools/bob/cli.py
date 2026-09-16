@@ -125,6 +125,20 @@ def build(files, top=None, pcf=None, out=None, clock="jtag", div=0, seed=1, name
     return out, word, contents, tr
 
 
+def write_brams(p, brams):
+    """Every word of every BRAM the design uses, zeros included: BRAM contents survive
+    JPROGRAM and a new chain, so a word left out keeps the previous design's value
+    (as UG470 bitstreams initialise all BRAM contents, not only the non-zero words)."""
+    import cfgplane
+    msg = ""
+    for b, words in sorted(brams.items()):
+        full = list(words) + [0] * (1024 - len(words))
+        cfgplane.bram_select(p, b)
+        cfgplane.bram_fill(p, full)
+        msg += f", bram{b} all 1024 words"
+    return msg
+
+
 def load(p, path, start=True, log=print):
     """.bit -> CFG_IN (verified by CFG_OUT readback) -> BRAM contents over USER4 -> JSTART"""
     import cfgplane
@@ -132,12 +146,7 @@ def load(p, path, start=True, log=print):
     ok, msg = cfgplane.load(p, c["word"], B.CHAIN_W, start=False)
     if not ok:
         return False, msg
-    for b, words in sorted(c["brams"].items()):
-        last = max((a for a, w in enumerate(words) if w), default=-1)
-        if last >= 0:
-            cfgplane.bram_select(p, b)
-            cfgplane.bram_write(p, 0, words[:last + 1])
-            msg += f", bram{b} {last + 1} words"
+    msg += write_brams(p, c["brams"])
     if start:
         cfgplane.jstart(p)
         st = cfgplane.status(p)

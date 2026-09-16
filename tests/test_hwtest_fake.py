@@ -169,7 +169,36 @@ def quick(monkeypatch):
 def test_m11_live_passes_on_a_good_board(name, quick):
     ok, msg = hwtest._live_check(name)(FakeBob(switches=_wiggle), {})
     assert ok, msg
-    assert "live samples" in msg
+    assert "live samples" in msg and "not a terminal" in msg
+
+
+def _fast_person(t):
+    return (int(t / 0.08) * 0x2D) % 64          # every one of the 64 input vectors within 5 s
+
+
+@pytest.fixture
+def at_the_board(monkeypatch):
+    """interactive mode: Enter is pressed at once, goals must be reached"""
+    monkeypatch.setattr(hwtest, "_interactive", lambda: True)
+    monkeypatch.setattr("builtins.input", lambda *_: "")
+    monkeypatch.setattr(hwtest, "LIVE_TIMEOUT", 25.0)
+
+
+@pytest.mark.parametrize("name", ["switches", "fir", "mult"])
+def test_m11_live_goals_reached_by_a_person(name, at_the_board):
+    ok, msg = hwtest._live_check(name)(FakeBob(switches=_fast_person, rate_scale=4), {})
+    assert ok and "all goals reached" in msg, msg
+
+
+def test_m11_live_fails_when_nobody_touches_the_switches(at_the_board, monkeypatch):
+    monkeypatch.setattr(hwtest, "LIVE_TIMEOUT", 2.0)
+    ok, msg = hwtest._live_check("switches")(FakeBob(switches=lambda t: 0), {})
+    assert not ok and "goals not reached" in msg
+
+
+def test_m11_live_blinky_goal_is_automatic():
+    ok, msg = hwtest._live_check("blinky")(FakeBob(rate_scale=8), {})
+    assert ok and "all goals reached" in msg, msg
 
 
 def test_m11_live_fails_when_leds_are_wrong(quick):

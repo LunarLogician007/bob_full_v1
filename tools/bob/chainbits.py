@@ -124,7 +124,7 @@ def pack_chain(name, word, width, sections=None, version=None):
 
 def bram_section(index, words):
     """BRAM contents: u8 BRAM index, u16 first address, u16 count, count x u32 words
-    (trailing zero words dropped - the loader writes nothing past the last non-zero)"""
+    (trailing zero words are not stored; the loader writes all 1024 words, zero-filled)"""
     last = max((a for a, w in enumerate(words) if w), default=-1)
     body = struct.pack("<BHH", index, 0, last + 1) + b"".join(struct.pack("<I", w) for w in words[:last + 1])
     return ("BRAM", body)

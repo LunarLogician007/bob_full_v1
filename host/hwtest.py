@@ -747,11 +747,8 @@ def _synth_check(top, vpr=False):
         ok, msg = cfgplane.load(p, bs.to_int(), FABRIC_CFG_W, start=False)
         if not ok:
             return False, msg
-        for b, words in sorted(contents.items()):
-            last = max((a for a, w in enumerate(words) if w), default=-1)
-            if last >= 0:
-                cfgplane.bram_select(p, b)
-                cfgplane.bram_write(p, 0, words[:last + 1])
+        import cli
+        cli.write_brams(p, contents)
         cfgplane.jstart(p)
         cfgplane.user1(p, 0x10)                  # autostep: one user clock per INTEST scan
         cfgplane.ir(p, "INTEST")
@@ -858,28 +855,127 @@ def _live_state(p, cmap_idx):
     return (smp, c1) if (c1 & mask) == (c2 & mask) else None
 
 
+LIVE_TIMEOUT = 90.0            # interactive: give up on the goals after this long
+
+
+def _interactive():
+    return sys.stdin.isatty() and sys.stdout.isatty()
+
+
+def _sw(k):
+    return (f"SW1..0 = {k:02b}", lambda i, leds, h: (i & 3) == k)
+
+
+def _btn(k, extra="", cond=lambda i, leds: True):
+    return (f"BTN{k} pressed{extra}", lambda i, leds, h: (i >> (2 + k)) & 1 and cond(i, leds))
+
+
+def _led_values(n):
+    def seen(i, leds, h):
+        h.setdefault("leds", set()).add(leds)
+        return len(h["leds"]) >= n
+    return (f"LEDs show {n} different values", seen)
+
+
+def _ld2_toggles_off():
+    def goal(i, leds, h):
+        if leds & 4:
+            h["ld2_was_on"] = True
+        return h.get("ld2_was_on") and not leds & 4
+    return ("BTN3 again turns LD2 back off", goal)
+
+
+# What each live design asks of the person at the board. "try" rows are inputs to hold;
+# the LEDs they should give are computed from model.py (inputs held for a few clocks).
+LIVE_GUIDE = {
+    "switches": {
+        "about": "LD0 = SW0 xor SW1.  LD1 = BTN0, or BTN1 while SW0 is up.  LD2 toggles once per BTN3 press.",
+        "try": [0b000000, 0b000001, 0b000011, 0b000100, 0b001001],
+        "goals": [_sw(0), _sw(1), _sw(2), _sw(3),
+                  _btn(0, " (LD1 on)", lambda i, leds: leds & 2),
+                  _btn(1, " with SW0 up, BTN0 released (LD1 on)",
+                       lambda i, leds: i & 1 and not i & 4 and leds & 2),
+                  ("BTN3 press turns LD2 on", lambda i, leds, h: leds & 4),
+                  _ld2_toggles_off()],
+        "note": "LD2 is a register: each press flips it; holding BTN3 does nothing more.",
+    },
+    "fir": {
+        "about": "x = SW1..0 each clock; y = x[n]*h0 + x[n-1]*h1, h0 = {BTN3,BTN2,1}, h1 = {BTN2,BTN3,1}; "
+                 "LD2..0 = y[4:2]. Hold inputs for a moment: the delay line needs 2 clocks.",
+        "try": [0b000011, 0b000001, 0b110011, 0b100010, 0b010011],
+        "goals": [_sw(0), _sw(1), _sw(2), _sw(3), _btn(2, " (held)"), _btn(3, " (held)"),
+                  ("BTN2 and BTN3 held together", lambda i, leds, h: (i >> 4) & 3 == 3), _led_values(3)],
+    },
+    "mult": {
+        "about": "a = {BTN1,BTN0,SW1,SW0} and b = {BTN3,BTN2,SW1,SW0} are registered; p = a*b next clock; "
+                 "LD2..0 = p[7:5]. The LEDs light only for large products: hold several buttons.",
+        "try": [0b000011, 0b111111, 0b101111, 0b011011],
+        "goals": [_sw(0), _sw(1), _sw(2), _sw(3), _btn(0), _btn(1), _btn(2), _btn(3), _led_values(3)],
+    },
+    "blinky": {
+        "about": "a free-running 8-bit counter, LD2..0 = q[7:5]; nothing to press.",
+        "try": [],
+        "goals": [("16 counter states seen", lambda i, leds, h: len(h.get("states", ())) >= 16)],
+        "auto": True,
+    },
+}
+
+
+def _fmt_in(i):
+    return f"SW1..0={i & 3:02b} BTN3..0={(i >> 2) & 15:04b}"
+
+
+def _live_guide(name, word):
+    import model
+    from bitstream import Bitstream
+    g = LIVE_GUIDE[name]
+    print(f"\n           --- live-{name} ---")
+    print(f"           {g['about']}")
+    for v in g["try"]:
+        m = model.Fabric(Bitstream(word))
+        m.clock(gsr=1)
+        for _ in range(4):
+            m.clock(pad_i=v)
+        print(f"             hold {_fmt_in(v)}  ->  LD2..0 = {m.outputs(v):03b}")
+    if g.get("note"):
+        print(f"           {g['note']}")
+    if not g.get("auto"):
+        print("           Goals (ticked off as the board shows them):")
+        for label, _fn in g["goals"]:
+            print(f"             [ ] {label}")
+
+
 def _live_check(name):
     def check(p, ctx):
-        """Live on the real switches (free-running clock): whenever the registers are
-        stable across CAPTURE-SAMPLE-CAPTURE, model.py given those registers and the
-        sampled pins reproduces the sampled LEDs. CFG_OUT readback while running."""
+        """Live on the real switches (free-running clock): whenever the registers are stable
+        across CAPTURE-SAMPLE-CAPTURE, model.py given those registers and the sampled pins
+        reproduces the sampled LEDs, until every goal of LIVE_GUIDE has been seen on the
+        board (interactive), then CFG_OUT readback while running == .bit."""
         import time
-        import bitgen
         import cfgplane
         import cli
         import fasm_from_vpr
         import fpga
         import model
         from bitstream import BLOCKS, CLBS, FABRIC_CFG_W, Bitstream
+        guide = LIVE_GUIDE[name]
         path, word = _live_build(name)
         ok, msg = cli.load(p, path, log=lambda *_: None)
         if not ok:
             return False, msg
         idx = [i for i, _bit in fasm_from_vpr.capture_map(name)]
-        print(f"           {name} is live: flip SW0/SW1 and press the buttons for {LIVE_SECONDS:.0f} s")
-        seen_in, seen_state, samples, skipped, bad = set(), set(), 0, 0, []
-        t_end = time.time() + LIVE_SECONDS
-        while time.time() < t_end:
+        interactive = _interactive() and not guide.get("auto")
+        _live_guide(name, word)
+        if interactive:
+            input(f"           {name} is running. Press Enter, then work through the goals "
+                  f"(up to {LIVE_TIMEOUT:.0f} s) ")
+        limit = LIVE_TIMEOUT if (interactive or guide.get("auto")) else LIVE_SECONDS
+        goals = guide["goals"]
+        done = [False] * len(goals)
+        hist = {"states": set()}
+        seen_in, samples, skipped, bad = set(), 0, 0, []
+        t0 = time.time()
+        while time.time() - t0 < limit:
             got = _live_state(p, idx)
             if got is None:
                 skipped += 1
@@ -892,18 +988,41 @@ def _live_check(name):
             want = m.outputs(smp["i"])
             samples += 1
             seen_in.add(smp["i"])
-            seen_state.add(sum(((cap >> i) & 1) << k for k, i in enumerate(idx)))
+            hist["states"].add(sum(((cap >> i) & 1) << k for k, i in enumerate(idx)))
             if want != smp["leds"]:
-                bad.append(f"pins {smp['i']:06b} registers {cap:04X}: LEDs {smp['leds']:03b}, model {want:03b}")
+                bad.append(f"{_fmt_in(smp['i'])} registers {cap:04X}: LEDs {smp['leds']:03b}, model {want:03b}")
+            else:
+                for k, (_label, fn) in enumerate(goals):
+                    if not done[k] and fn(smp["i"], smp["leds"], hist):
+                        done[k] = True
+            if interactive:
+                mark = "ok" if want == smp["leds"] else "MISMATCH"
+                print(f"\r           {_fmt_in(smp['i'])}  LEDs {smp['leds']:03b}  model {want:03b} {mark:8s} "
+                      f"goals {sum(done)}/{len(goals)}  {time.time() - t0:4.0f} s ", end="", flush=True)
+                if bad:
+                    break
+            if (interactive or guide.get("auto")) and all(done):
+                break
+        if interactive:
+            print()
+            for (label, _fn), d in zip(goals, done):
+                print(f"             [{'x' if d else ' '}] {label}")
         back = cfgplane.cfg_out(p, FABRIC_CFG_W)
         fpga.go_live(p)
         if back != word:
             bad.append("CFG_OUT readback while running differs from the .bit")
         if samples == 0:
-            return False, f"no stable sample in {LIVE_SECONDS:.0f} s ({skipped} bursts saw registers move)"
-        return not bad, (f"{samples} live samples LEDs == model(registers, pins), {len(seen_in)} input "
-                         f"vectors, {len(seen_state)} register states, {skipped} bursts skipped (moving); "
-                         f"readback while running == .bit" if not bad else f"{len(bad)} wrong, first {bad[:3]}")
+            return False, f"no stable sample in {limit:.0f} s ({skipped} bursts saw registers move)"
+        stats = (f"{samples} live samples LEDs == model(registers, pins), {len(seen_in)} input vectors, "
+                 f"{len(hist['states'])} register states, {skipped} bursts skipped (moving)")
+        if bad:
+            return False, f"{len(bad)} wrong, first {bad[:3]}"
+        missing = [label for (label, _fn), d in zip(goals, done) if not d]
+        if (interactive or guide.get("auto")) and missing:
+            return False, f"{stats}; goals not reached in {limit:.0f} s: {missing}"
+        how = ("all goals reached" if (interactive or guide.get("auto"))
+               else "goals not checked (not a terminal: run `make hwtest` interactively)")
+        return True, f"{stats}; {how}; readback while running == .bit"
     check.__name__ = f"check_live_{name}"
     return check
 
@@ -972,18 +1091,19 @@ def check_ram_readback(p, ctx):
     back = cfgplane.cfg_out(p, FABRIC_CFG_W)
     cfgplane.jprogram(p)                                   # stop: GWE = 0, BRAM reads allowed
     bad = []
-    for b in range(len(m.brams)):
+    for b in sorted(contents):                             # the BRAMs the design uses
         cfgplane.bram_select(p, b)
-        got = cfgplane.bram_read(p, 0, 8)
-        want = m.brams[b].mem[:8]
+        got = cfgplane.bram_read(p, 0, 16)
+        want = m.brams[b].mem[:16]
         if got != want:
-            bad.append(f"bram{b}[0..7] = {got}, model {want}")
+            bad.append(f"bram{b}[0..15] = {got}, model {want}")
     fpga.go_live(p)
     if back != word:
         bad.append("CFG_OUT readback differs from the .bit")
     writes = sum(1 for v, _b, _a in trace if (v >> 2) & 1)
-    return not bad, (f"{len(trace)} clocks ({writes} with BTN0 write), bram0[0..3] = "
-                     f"{m.brams[0].mem[:4]} read back after JPROGRAM == model; chain readback == .bit"
+    return not bad, (f"{len(trace)} clocks ({writes} with BTN0 write), bram0[0..15] = "
+                     f"{m.brams[0].mem[:16]} read back after JPROGRAM == model (all 1024 words were "
+                     f"written at load, so no earlier design's words remain); chain readback == .bit"
                      if not bad else "; ".join(bad))
 
 
@@ -1185,6 +1305,8 @@ def main():
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--manual", action="store_true")
     ap.add_argument("--freq", type=int, default=100, help="TCK frequency in kHz")
+    ap.add_argument("--only", metavar="CHECK[,CHECK]",
+                    help="run only these milestone checks (idcode still runs first), e.g. --only live-fir")
     args = ap.parse_args()
 
     ms = args.milestone.upper()
@@ -1195,6 +1317,12 @@ def main():
         print(f"note: hw/build.cfg is tagged {cfg.get('tag')}, testing {ms}")
 
     checks = REGRESSION_BY_TOP.get(cfg.get("top"), REGRESSION) + MILESTONE[ms]
+    if args.only:
+        want = args.only.split(",")
+        unknown = [w for w in want if w not in dict(checks)]
+        if unknown:
+            sys.exit(f"{ms} has no check {unknown}; see --list")
+        checks = [c for c in checks if c[0] == "idcode" or c[0] in want]
     if args.list:
         print(f"{ms} (build.cfg tag {cfg.get('tag')}, top {cfg.get('top')}):")
         for name, fn in checks:

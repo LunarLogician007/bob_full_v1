@@ -6,7 +6,7 @@
 #   make vpr       after changing an example, the synthesis flow or the architecture:
 #                  VPR (Docker) packs, places and routes every example -> tools/bob/vpr/
 #   make hw        refresh generated files inside hw/ and print the handoff steps
-#   make hwtest M=M0   hardware test on the PYNQ-Z2 through the Pico
+#   make hwtest M=M0   hardware test on the PYNQ-Z2 through the Pico (ONLY=check,check to rerun some)
 
 M ?= $(shell sed -n 's/^tag *= *\([A-Za-z0-9]*\).*/\1/p' hw/build.cfg)
 
@@ -70,7 +70,7 @@ hw:
 	@echo "  4. make hwtest M=$(M)"
 
 hwtest:
-	cd host && ./hwtest.py --milestone $(M)
+	cd host && ./hwtest.py --milestone $(M) $(if $(ONLY),--only $(ONLY))
 
 clean:
 	rm -f sim/*.vvp sim/*.vcd

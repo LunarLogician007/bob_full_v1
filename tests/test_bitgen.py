@@ -76,7 +76,7 @@ def test_bit_file_v2(tmp_path):
     bitgen.write_bit(path, w, {1: words, 0: [0] * 1024}, {"design": "x"})
     c = bitgen.read_bit(path)
     assert c["word"] == w and c["version"] == 2
-    assert c["brams"] == {1: words} and c["meta"]["design"] == "x"
+    assert c["brams"] == {0: [0] * 1024, 1: words} and c["meta"]["design"] == "x"   # used BRAMs, even all-zero
     blob = bytearray(open(path, "rb").read())
     blob[-20] ^= 1                                                     # inside META
     with pytest.raises(cb.ChainFileError):
