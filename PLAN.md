@@ -32,7 +32,7 @@ Starting point: `/Users/sk/work/bob/` is a hardware-proven 4×4 CLB fabric (JTAG
 | M7 | **done, passed on hardware 2026-09-17** (26/26 checks incl. bram-select, pipeline, full-column counter; 7670 LUTs, 10362 FFs, 2 RAMB18, 2 DSP48E1; WNS −1102 ns from unconfigured routing-loop paths, see M7 timing notes). Heterogeneous fabric generated from VPR's rr graph. **Board build = 16-CLB profile** (`ARCH_6X4`: 16 CLB, 2 BRAM, 2 DSP, 20 pads, 4216-bit chain, IDCODE `0xABEEF093`), switched 2026-09-15 because the 48-CLB Vivado synthesis was too slow on the build machine. The 48-CLB profile (`ARCH_8X8`, 9400 bits, IDCODE `0x9BEEF093`) is frozen complete in `release/M7_8x8/`, to be built later on a faster machine. 16-CLB results 2026-09-15: tb_bob 852, tb_synth 486, K=4 722, lint clean, pytest 88, `make mutate` 25/25 killed. The 48-CLB results at the time were | **built and simulated** 2026-09-14 (tb_bob 852 checks incl. random routed netlists, K=4 722, lint clean, pytest 80, `make mutate` 25/25 fabric + cfg all killed); awaiting M5/M6 hardware, then M7 hardware (bundle `hw/`, top `bob_top`) |
 | M8 | yosys synthesis to bob cells | **done, passed on hardware 2026-09-17** (10/10 on the M7 bitstream: gates, adder, counter, blinky, ram, mult each match the source Verilog for 64 clocks). Built and simulated 2026-09-14: 6 examples, netlist == source (iverilog), placed model == source, fabric RTL == source (tb_synth 486); no rebuild, hardware test on the M7 bitstream after M7 passes |
 | M9 | PnR with VPR | **done, passed on hardware 2026-09-17** (10/10 on the M7 bitstream, no rebuild: vpr-gates/adder/counter/blinky/ram/mult each match the source Verilog for 64 clocks). All 6 examples packed/placed/routed by VPR on the committed rr graph (graph byte-identical after the arch change), FASM legal, same seed repeats, model == source 300 cycles, tb_synth 12 designs (6 VPR) == source |
-| M10 | bitgen + golden co-simulation | planned |
+| M10 | bitgen + golden co-simulation | **built and simulated 2026-09-17, hardware test pending** (`make hwtest M=M10` on the M7 bitstream, no rebuild). `bob build`/`load`/`info`/`fasm`, FASM ⇄ chain exact, `.bit` v2 with BRAM contents, `.pcf` pins, golden co-sim of 7 designs (source live vs fabric RTL loaded from `.bit`, LEDs + CAPTURE every cycle, mutation-checked) |
 | M11 | full hardware bring-up of real designs | planned |
 | M12 | Python PnR (checked against VPR) + optimisation | planned |
 | M13 | frame-based configuration (UG470), replacing the scan chain | planned, deliberately last |
@@ -610,6 +610,34 @@ Not done yet (belongs to M7): pads and chain order for non-CLB tiles.
 
 **Done when:** bits → FASM → bits round-trips; every example's source Verilog equals the fabric RTL loaded with its chain through CFG_IN, on random vectors every cycle.
 **HW:** `bob build` + `bob load` for every example; `hwtest.py` compares LEDs and CAPTURE against golden simulation.
+
+**As built (2026-09-17):**
+- **`tools/bob/bitgen.py`** turns FASM (`feature = W'hV`) into a chain, checked against `device.json` (width, field, value, mux input), and a chain back into FASM. The decode refuses bits that no feature owns, so the round trip is exact. `.bit` is chain file version 2 (`docs/bitstream-format.md` §8, §8a):
+  - v1 header and chain
+  - sections: `BRAM` contents, `META` JSON
+  - a file CRC-32C
+- **`tools/bob/cli.py`** (`./bob`):
+  - `build`: synth → source == netlist == golden → VPR (reuses a fresh committed result, otherwise Docker) → FASM → bits → model == trace → `.bit`. Options: `--pcf`, `--clock jtag|run --div N`.
+  - `load`: CFG_IN + readback → BRAM over USER4 → JSTART.
+  - `info`, `fasm`.
+- **Pins:** `.pcf` files with `set_io <port> <SW0..|LD0..|pad<N>>` (`vpr_run.read_pcf`). Committed variants live in `vpr_run.VARIANTS`: `gates_swapped` = gates.v + `examples/gates_swapped.pcf`. Results are named per variant, and the stamp records top and pcf.
+- **`tools/bob/golden.py`:** the yosys JSON as Verilog with one wire per bit (`n<bit>`). `equiv.py` now simulates source, yosys netlist and golden together and saves every golden net after each clock (`trace.json` `nets`/`nets_after`). `vpr_run` records which yosys bit each VPR net carries (`net_bits`), and `fasm_from_vpr.capture_map()` gives CAPTURE bit → golden register.
+- **Golden co-simulation** (`sim/tb_cosim.v`, `sim/gen_cosim.py`, `sim/run_cosim_sim.sh`, in `make sim`): 7 designs, each `bob build` → `.bit` → complete FPGA RTL through CFG_IN/USER4. The source Verilog and golden netlist are instantiated live with their own clocks. There are 100 fresh random cycles per design (seed ≠ build trace). LEDs == source == golden before and after each edge; CAPTURE == golden registers after each edge. 1707 checks, about 25 s. The shared JTAG harness is in `hw/tb/bob_harness.vh` (tb_synth uses it too).
+
+  The testbench was mutation-checked; each of these fails it: a wrong golden net, a CRC-valid routing change, a missing source clock, unswapped pins, dropped BRAM contents, a wrong golden LUT.
+- **hwtest M10** (`bob-*`, 7 checks):
+  1. `bob build`
+  2. `bob load` without start, with CFG_OUT readback decoded to FASM == `.bit` FASM
+  3. JSTART
+  4. 64 clocks, each with CAPTURE (every CLB flip-flop == golden) and LEDs == source
+
+  `tests/test_hwtest_fake.py` runs this check against a stand-in board (`model.py` behind the JTAG instructions): it passes when the board is right and fails when CAPTURE is corrupted.
+- **Gotchas:**
+  - yosys' `_syn.v` renames cells and nets, so nothing inside it maps to fabric locations; hence golden.py.
+  - A CAPTURE scan leaves INTEST, so the pads read the real switches. Only flip-flop CLBs are compared on the board; they don't clock outside INTEST with autostep.
+  - VPR's `.net` top block carries the netlist file name; it is excluded from the result hash.
+  - A variable called `name` shadowed the result name in `features()`.
+- **Not at M10:** CAPTURE of combinational CLBs on the board; BRAM/DSP state in CAPTURE (not in the capture chain); designs whose ports aren't on the sw/btn/led convention get no model/trace check, only equivalence.
 
 ### M11: full hardware bring-up
 

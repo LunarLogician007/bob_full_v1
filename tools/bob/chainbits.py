@@ -22,7 +22,8 @@ CTRL_KEY = 0xC5
 CTRL_VERSION = 0x02
 
 MAGIC = b"BOBC"
-FILE_VERSION = 1
+FILE_VERSION = 2                         # 2 (M10): v1 + sections (BRAM contents, META) + file CRC
+FILE_VERSIONS = (1, 2)
 
 
 # --- CRC ------------------------------------------------------------------------
@@ -99,24 +100,79 @@ class ChainFileError(ValueError):
     pass
 
 
-def pack_chain(name, word, width):
+def pack_chain(name, word, width, sections=None, version=None):
+    """sections: [(4-char tag, bytes)]. Version 1 (no sections) is still written when
+    asked for, and always read."""
+    version = version or (FILE_VERSION if sections else 1)
     nb = name.encode("ascii")
-    return (MAGIC + struct.pack("<HH", FILE_VERSION, len(nb)) + nb
+    blob = (MAGIC + struct.pack("<HH", version, len(nb)) + nb
             + struct.pack("<II", width, crc32c_bits(word, width))
             + word_to_bytes(word, width))
+    if version == 1:
+        if sections:
+            raise ChainFileError("version 1 files have no sections")
+        return blob
+    sections = sections or []
+    blob += struct.pack("<H", len(sections))
+    for tag, data in sections:
+        t = tag.encode("ascii")
+        if len(t) != 4:
+            raise ChainFileError(f"section tag {tag!r} is not 4 characters")
+        blob += t + struct.pack("<I", len(data)) + data
+    return blob + struct.pack("<I", crc32c_bytes(blob))
+
+
+def bram_section(index, words):
+    """BRAM contents: u8 BRAM index, u16 first address, u16 count, count x u32 words
+    (trailing zero words dropped - the loader writes nothing past the last non-zero)"""
+    last = max((a for a, w in enumerate(words) if w), default=-1)
+    body = struct.pack("<BHH", index, 0, last + 1) + b"".join(struct.pack("<I", w) for w in words[:last + 1])
+    return ("BRAM", body)
 
 
 def unpack_chain(blob, expect_name=None, expect_width=None):
     if blob[:4] != MAGIC:
         raise ChainFileError("not a .bobc file (bad magic)")
     version, nlen = struct.unpack_from("<HH", blob, 4)
-    if version != FILE_VERSION:
-        raise ChainFileError(f"file version {version}, this tool reads {FILE_VERSION}")
+    if version not in FILE_VERSIONS:
+        raise ChainFileError(f"file version {version}, this tool reads {FILE_VERSIONS}")
     name = blob[8:8 + nlen].decode("ascii")
     width, crc = struct.unpack_from("<II", blob, 8 + nlen)
-    payload = blob[16 + nlen:]
-    if len(payload) != (width + 7) // 8:
-        raise ChainFileError(f"payload is {len(payload)} bytes, width {width} needs {(width + 7) // 8}")
+    start = 16 + nlen
+    nbytes = (width + 7) // 8
+    sections, brams, meta = [], {}, {}
+    if version == 1:
+        payload = blob[start:]
+        if len(payload) != nbytes:
+            raise ChainFileError(f"payload is {len(payload)} bytes, width {width} needs {nbytes}")
+    else:
+        if len(blob) < start + nbytes + 6:
+            raise ChainFileError("file is truncated")
+        if crc32c_bytes(blob[:-4]) != struct.unpack("<I", blob[-4:])[0]:
+            raise ChainFileError("file CRC mismatch - file is corrupt")
+        payload = blob[start:start + nbytes]
+        pos = start + nbytes
+        (count,) = struct.unpack_from("<H", blob, pos)
+        pos += 2
+        for _ in range(count):
+            tag = blob[pos:pos + 4].decode("ascii")
+            (ln,) = struct.unpack_from("<I", blob, pos + 4)
+            data = blob[pos + 8:pos + 8 + ln]
+            if len(data) != ln:
+                raise ChainFileError(f"section {tag} is truncated")
+            sections.append((tag, data))
+            pos += 8 + ln
+            if tag == "BRAM":
+                idx, first, n = struct.unpack_from("<BHH", data, 0)
+                words = [0] * 1024
+                for i in range(n):
+                    words[first + i] = struct.unpack_from("<I", data, 5 + 4 * i)[0]
+                brams[idx] = words
+            elif tag == "META":
+                import json
+                meta = json.loads(data.decode("utf-8"))
+        if pos != len(blob) - 4:
+            raise ChainFileError("trailing bytes after the sections")
     word = bytes_to_word(payload, width)
     if crc32c_bits(word, width) != crc:
         raise ChainFileError("CRC mismatch - file is corrupt")
@@ -124,12 +180,13 @@ def unpack_chain(blob, expect_name=None, expect_width=None):
         raise ChainFileError(f"chain is for device '{name}', connected device is '{expect_name}'")
     if expect_width is not None and width != expect_width:
         raise ChainFileError(f"chain is {width} bits, device expects {expect_width}")
-    return {"name": name, "width": width, "crc": crc, "word": word}
+    return {"name": name, "width": width, "crc": crc, "word": word, "version": version,
+            "sections": sections, "brams": brams, "meta": meta}
 
 
-def write_chain(path, name, word, width):
+def write_chain(path, name, word, width, sections=None):
     with open(path, "wb") as fh:
-        fh.write(pack_chain(name, word, width))
+        fh.write(pack_chain(name, word, width, sections))
 
 
 def read_chain(path, **expect):
@@ -149,7 +206,8 @@ def main():
     args = ap.parse_args()
     if args.cmd == "info":
         c = read_chain(args.file)
-        print(f"device {c['name']}  width {c['width']}  crc 0x{c['crc']:08X}  (valid)")
+        print(f"device {c['name']}  width {c['width']}  crc 0x{c['crc']:08X}  version {c['version']}  "
+              f"BRAMs {sorted(c['brams'])}  meta {c['meta']}  (valid)")
     else:
         print(f"0x{crc32c_bits(int(args.word, 0), args.width):08X}")
     return 0

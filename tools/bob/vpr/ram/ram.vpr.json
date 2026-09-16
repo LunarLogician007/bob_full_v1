@@ -1098,6 +1098,19 @@
 },
 "out_consts": {},
 "has_clk": true,
+"out_pads": {},
+"net_bits": {
+"btn[0]": 5,
+"btn[1]": 6,
+"btn[2]": 7,
+"btn[3]": 8,
+"clk": 2,
+"led[0]": 9,
+"led[1]": 10,
+"led[2]": 11,
+"sw[0]": 3,
+"sw[1]": 4
+},
 "pins": {
 "clk": 2,
 "sw[0]": 6,
@@ -1108,5 +1121,6 @@
 "out:led[0]": 7,
 "out:led[1]": 9,
 "out:led[2]": 11
-}
+},
+"pcf": null
 }

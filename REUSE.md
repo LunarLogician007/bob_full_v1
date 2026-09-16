@@ -139,3 +139,17 @@ Status: **same** = byte-identical to `bob/`, **moved** = same content at a new p
 | `tools/bob/fasm_from_vpr.py` | FASM idea from F4PGA (feature = value) | new | `.net/.place/.route` → FASM → legality vs `device.json` → chain |
 | `tools/bob/equiv.py` | M8 | modified | biased random vectors (the M8 counter trace was constant) |
 | `sim/gen_synth_vectors.py`, `hw/tb/tb_synth.v`, `host/hwtest.py`, `Makefile`, `tests/test_vpr.py`, `docs/hwtest/M9.md` | M8 | modified / new | VPR designs in tb_synth, hwtest M9 `vpr-*`, `make vpr` |
+
+## M10: bitgen + golden co-simulation
+
+| File | From | Status | Notes |
+|---|---|---|---|
+| `tools/bob/bitgen.py` | F4PGA FASM idea; `chainbits.py` | new | FASM ⇄ chain (exact), legality, `.bit` writer/reader |
+| `tools/bob/chainbits.py` | M2 | modified | chain file version 2: sections (BRAM, META) + file CRC; v1 still read |
+| `tools/bob/cli.py`, `bob` | `place.flow`, `hwtest._synth_check` loading | new | `bob build` / `load` / `info` / `fasm` |
+| `tools/bob/golden.py` | — | new | yosys JSON → Verilog with every bit named, for CAPTURE comparisons |
+| `tools/bob/equiv.py` | M8 | modified | source == yosys netlist == golden; golden nets saved per clock |
+| `tools/bob/vpr_run.py`, `tools/bob/fasm_from_vpr.py` | M9 | modified | `.pcf` pins, variants, net → yosys bit map, CAPTURE map, pin-aware model check |
+| `hw/tb/bob_harness.vh` | `hw/tb/tb_synth.v` tasks | moved | shared by tb_synth and tb_cosim |
+| `sim/tb_cosim.v`, `sim/gen_cosim.py`, `sim/run_cosim_sim.sh` | `hw/tb/tb_synth.v` | new | golden co-simulation, source live |
+| `host/hwtest.py`, `tests/test_bitgen.py`, `tests/test_hwtest_fake.py`, `examples/gates_swapped.pcf`, `docs/hwtest/M10.md`, `docs/bitstream-format.md` | M9 | modified / new | hwtest M10 `bob-*`; FASM and `.bit` v2 documented |

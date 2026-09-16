@@ -34,15 +34,15 @@
 "sw[1]": 3
 },
 "pins": {
-"sw[0]": 6,
-"sw[1]": 8,
+"sw[0]": 8,
+"sw[1]": 6,
 "btn[0]": 10,
 "btn[1]": 12,
 "btn[2]": 0,
 "btn[3]": 1,
-"out:led[0]": 7,
+"out:led[0]": 11,
 "out:led[1]": 9,
-"out:led[2]": 11
+"out:led[2]": 7
 },
-"pcf": null
+"pcf": "examples/gates_swapped.pcf"
 }

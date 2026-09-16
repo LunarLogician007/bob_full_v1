@@ -1,3 +1,5 @@
+top blinky
+pcf -
 arch_sha256 08f5698e0714c3fc43beee6445c472a3c00e9d1952f92985a15b2568e224f581
 eblif_sha256 5a71ca8f8b43a06c4146ea6821db956663f91ddcc94fa01c020a34c46db919db
 seed 1
@@ -6,4 +8,4 @@ command vpr arch.xml blinky.eblif --device bob6x4 --route_chan_width 24 --read_r
 wirelength 144
 cpd_ns 4.84692
 fmax_mhz 173.82
-result_sha 2b9b6403db0f3539
+result_sha 78e6073fa2ee59e7

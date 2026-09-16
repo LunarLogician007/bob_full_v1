@@ -772,6 +772,62 @@ def _synth_check(top, vpr=False):
     return check
 
 
+# --- M10: bob build / bob load, golden LEDs and CAPTURE ------------------------------------
+
+def _bob_check(name):
+    def check(p, ctx):
+        """`bob build` -> .bit -> `bob load`; every user clock the LEDs equal the source's
+        and CAPTURE (every CLB flip-flop) equals the golden netlist's registers.
+
+        The chain read back by CFG_OUT is decoded to FASM and must equal the .bit's."""
+        import bitgen
+        import cfgplane
+        import cli
+        import fasm_from_vpr
+        import fpga
+        import vpr_run
+        from bitstream import FABRIC_CFG_W, NCLB
+        top, pcf = vpr_run.VARIANTS.get(name, (name, None))
+        path, word, contents, tr = cli.build([os.path.join(ROOT, "examples", f"{top}.v")], top, pcf,
+                                             os.path.join(ROOT, "build", "bit", f"{name}.bit"),
+                                             name=name, log=lambda *_: None)
+        ok, msg = cli.load(p, path, start=False, log=lambda *_: None)
+        if not ok:
+            return False, msg
+        back = bitgen.features_from_word(cfgplane.cfg_out(p, FABRIC_CFG_W))
+        if back != bitgen.features_from_word(bitgen.read_bit(path)["word"]):
+            return False, "CFG_OUT readback decodes to different FASM than the .bit"
+        cfgplane.jstart(p)
+        cmap = fasm_from_vpr.capture_map(name)
+        pos = {b: i for i, b in enumerate(tr["nets"])}
+        cfgplane.user1(p, 0x10)                  # autostep: one user clock per INTEST scan
+        cfgplane.ir(p, "INTEST")
+        trace = tr["trace"][:SYNTH_HW_CYCLES]
+        bad, caps = [], 0
+        p.shift_dr_fast(fpga.BSR_W, fpga.bsr_word(trace[0][0]))      # inputs 0, clock 0
+        for k in range(len(trace)):
+            if cmap:                                                 # registers after clock k
+                cap = cfgplane.capture(p, NCLB)
+                nets = int(tr["nets_after"][k], 16)
+                for idx, bit in cmap:
+                    want = (nets >> pos[bit]) & 1
+                    if (cap >> idx) & 1 != want:
+                        bad.append(f"clock {k}: CAPTURE bit {idx} = {(cap >> idx) & 1}, golden n{bit} = {want}")
+                caps += 1
+                cfgplane.ir(p, "INTEST")
+            nxt = trace[k + 1][0] if k + 1 < len(trace) else trace[k][0]
+            got = fpga.bsr_leds(p.shift_dr_fast(fpga.BSR_W, fpga.bsr_word(nxt)))
+            if got != trace[k][2]:
+                bad.append(f"clock {k}: LEDs {got:03b} vs source {trace[k][2]:03b}")
+        cfgplane.user1(p, 0)
+        fpga.go_live(p)
+        return not bad, (f"{msg}; readback == FASM; {len(trace)} clocks LEDs == source, "
+                         f"{caps} CAPTUREs x {len(cmap)} registers == golden"
+                         if not bad else f"{len(bad)} wrong, first {bad[:3]}")
+    check.__name__ = f"check_bob_{name}"
+    return check
+
+
 REGRESSION = [
     ("idcode", check_idcode),
     ("bypass", check_bypass),
@@ -915,6 +971,16 @@ MILESTONE = {
            ("vpr-blinky", _synth_check("blinky", vpr=True)),
            ("vpr-ram", _synth_check("ram", vpr=True)),
            ("vpr-mult", _synth_check("mult", vpr=True))],
+    # M10: still no RTL change. `bob build` -> .bit -> `bob load`, readback decoded to
+    # FASM, then LEDs against the source and CAPTURE against the golden netlist.
+    "M10": [("chain-length", check_chain_length),
+            ("bob-gates", _bob_check("gates")),
+            ("bob-adder", _bob_check("adder")),
+            ("bob-counter", _bob_check("counter")),
+            ("bob-blinky", _bob_check("blinky")),
+            ("bob-ram", _bob_check("ram")),
+            ("bob-mult", _bob_check("mult")),
+            ("bob-gates-swapped", _bob_check("gates_swapped"))],
 }
 
 

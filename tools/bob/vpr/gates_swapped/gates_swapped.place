@@ -1,0 +1,17 @@
+Netlist_File: gates_swapped.net Netlist_ID: SHA256:5a4143ba238da252acf1e675479bfc66a0830f25ea7e43c50ee909716eb6e6dc
+Array size: 8 x 6 logic blocks
+
+#block name	x	y	subblk	layer	block number
+#----------	--	--	------	-----	------------
+led[1]		1	1	0	0	#0
+led[2]		2	1	0	0	#1
+led[0]		2	2	0	0	#2
+out:led[0]	7	3	0	0	#3
+out:led[1]	7	2	0	0	#4
+out:led[2]	7	1	0	0	#5
+sw[0]		0	2	0	0	#6
+sw[1]		0	1	0	0	#7
+btn[0]		0	3	0	0	#8
+btn[1]		0	4	0	0	#9
+btn[2]		1	0	0	0	#10
+btn[3]		2	0	0	0	#11

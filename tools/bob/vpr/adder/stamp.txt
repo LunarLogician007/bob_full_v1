@@ -1,3 +1,5 @@
+top adder
+pcf -
 arch_sha256 08f5698e0714c3fc43beee6445c472a3c00e9d1952f92985a15b2568e224f581
 eblif_sha256 78b6979e678a7ac2fc6abd88670e28eef59ab3c6c6a083da6ae33f4cbd9267f8
 seed 1
@@ -6,4 +8,4 @@ command vpr arch.xml adder.eblif --device bob6x4 --route_chan_width 24 --read_rr
 wirelength 59
 cpd_ns 1.73567
 fmax_mhz 610.911
-result_sha 53c2aa15dcff795d
+result_sha de807ab2bcf5f7f7

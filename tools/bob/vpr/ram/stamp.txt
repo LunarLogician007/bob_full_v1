@@ -1,3 +1,5 @@
+top ram
+pcf -
 arch_sha256 08f5698e0714c3fc43beee6445c472a3c00e9d1952f92985a15b2568e224f581
 eblif_sha256 ebeaa4227a5c20de53b45f02812cd6a1f3b48ca95a556ef425d5ce9f1f484a42
 seed 1
@@ -6,4 +8,4 @@ command vpr arch.xml ram.eblif --device bob6x4 --route_chan_width 24 --read_rr_g
 wirelength 99
 cpd_ns 1.58202
 fmax_mhz 773.767
-result_sha bc22274b3d241520
+result_sha a8497322aa965f74

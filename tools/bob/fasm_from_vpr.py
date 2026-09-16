@@ -84,11 +84,12 @@ def read_route(path):
     return nets
 
 
-def features(work, top):
-    """-> ({feature: value}, bram contents {index: words})"""
-    side = json.load(open(os.path.join(work, f"{top}.vpr.json")))
-    place = read_place(os.path.join(work, f"{top}.place"))
-    root = ET.parse(os.path.join(work, f"{top}.net")).getroot()
+def features(work, result):
+    """-> ({feature: value}, bram contents {index: words}) for the VPR result
+    <work>/<name>.{net,place,route,vpr.json}"""
+    side = json.load(open(os.path.join(work, f"{result}.vpr.json")))
+    place = read_place(os.path.join(work, f"{result}.place"))
+    root = ET.parse(os.path.join(work, f"{result}.net")).getroot()
     F = {}
 
     def put(feature, value):
@@ -154,12 +155,11 @@ def features(work, top):
                 if v:
                     pin_const(name, pin, v)
     for oname, v in side["out_consts"].items():
-        k = int(re.fullmatch(r"led\[(\d+)\]", oname).group(1))
         if v:
-            pin_const(B.pad_block(B.BOARD_OUT[k]), "outpad[0]", v)
+            pin_const(B.pad_block(side["out_pads"][oname]), "outpad[0]", v)
 
     # routing
-    for net, branches in read_route(os.path.join(work, f"{top}.route")).items():
+    for net, branches in read_route(os.path.join(work, f"{result}.route")).items():
         seen, prev = set(), None
         for node, kind in branches[0]:
             if node in seen:                       # a branch restarts from a node on the tree
@@ -175,6 +175,29 @@ def features(work, top):
 
     put("ctrl.clk_mode", B.CLOCK_MODES["jtag"])
     return F, contents
+
+
+def capture_map(result, work=None):
+    """[(CAPTURE bit, yosys bit)] for every CLB whose output is its flip-flop: the
+    register state CAPTURE reads, and the golden net (golden.py n<bit>) it must equal"""
+    import vpr_run
+    work = work or os.path.join(vpr_run.RESULTS, result)
+    side = json.load(open(os.path.join(work, f"{result}.vpr.json")))
+    place = read_place(os.path.join(work, f"{result}.place"))
+    root = ET.parse(os.path.join(work, f"{result}.net")).getroot()
+    out = []
+    for blk in root.findall("block"):
+        if not blk.get("instance").startswith("clb["):
+            continue
+        kids = {c.get("instance").split("[")[0]: c for c in _children(blk)}
+        if "ff" not in kids:
+            continue
+        q = kids["ff"].find("outputs").find("port").text.strip()
+        bit = side["net_bits"].get(q)
+        if bit is None:
+            raise FasmError(f"{result}: flip-flop output net {q} has no yosys bit")
+        out.append((B.CLBS.index(BLOCK_AT[place[blk.get("name")]]["name"]), bit))
+    return sorted(out)
 
 
 def check_legal(F):
@@ -234,38 +257,97 @@ def to_bitstream(F):
     return bs
 
 
-def build(top, work=None):
-    """-> (bitstream, bram contents, fasm text)"""
+def build(name, work=None):
+    """-> (bitstream, bram contents, fasm text). name is an example or a variant
+    (vpr_run.VARIANTS); without work, the committed result, refused if stale."""
     import vpr_run
     if work is None:
-        why = vpr_run.stale(top)
+        why = vpr_run.stale(name)
         if why:
             raise FasmError(why)
-        work = os.path.join(vpr_run.RESULTS, top)
-    F, contents = features(work, top)
+        work = os.path.join(vpr_run.RESULTS, name)
+    F, contents = features(work, name)
     check_legal(F)
     text = to_fasm(F)
-    out = os.path.join(ROOT, "build", "vpr", top)
+    out = os.path.join(ROOT, "build", "vpr", name)
     os.makedirs(out, exist_ok=True)
-    open(os.path.join(out, f"{top}.fasm"), "w").write(text)
+    open(os.path.join(out, f"{name}.fasm"), "w").write(text)
     bs = to_bitstream(F)
-    open(os.path.join(out, f"{top}.hex"), "w").write(bs.to_hex() + "\n")
+    open(os.path.join(out, f"{name}.hex"), "w").write(bs.to_hex() + "\n")
     return bs, contents, text
 
 
-def flow(top, cycles=300):
+def top_of(name):
+    import vpr_run
+    return vpr_run.VARIANTS.get(name, (name, None))[0]
+
+
+def board_trace(tr, pins):
+    """The source trace (examples' convention: sw/btn -> pad_i, led -> pad_o) as the
+    board sees it through a result's fixed pins. None if a port is off the board."""
+    conv_in = [f"sw[{i}]" for i in range(2)] + [f"btn[{i}]" for i in range(4)]
+    conv_out = [f"led[{i}]" for i in range(3)]
+    perm_in, perm_out = [], []
+    for k, port in enumerate(conv_in):
+        pad = pins.get(port)
+        if pad is not None:
+            if pad not in B.BOARD_IN:
+                return None
+            perm_in.append((k, B.BOARD_IN.index(pad)))
+    for k, port in enumerate(conv_out):
+        pad = pins.get("out:" + port, pins.get(port))
+        if pad is not None:
+            if pad not in B.BOARD_OUT:
+                return None
+            perm_out.append((k, B.BOARD_OUT.index(pad)))
+
+    def remap(v, perm):
+        return sum(((v >> a) & 1) << b for a, b in perm)
+
+    out = dict(tr)
+    out["trace"] = [(remap(v, perm_in), remap(bef, perm_out), remap(aft, perm_out)) for v, bef, aft in tr["trace"]]
+    return out
+
+
+def check_model(name, bs, contents, work=None, top=None):
+    """(bad samples, cycles, board trace) of these bits on model.py against the source
+    trace, seen through the result's pins"""
+    import model
+    import vpr_run
+    work = work or os.path.join(vpr_run.RESULTS, name)
+    top = top or top_of(name)
+    side = json.load(open(os.path.join(work, f"{name}.vpr.json")))
+    tr = json.load(open(os.path.join(ROOT, "build", "synth", top, f"{top}.trace.json")))
+    tr = board_trace(tr, side["pins"])
+    if tr is None:
+        raise FasmError(f"{name}: a port is not on a board pin; no model check")
+    m = model.Fabric(bs)
+    m.clock(gsr=1)
+    for b, words in contents.items():
+        m.brams[b].mem = list(words)
+    bad = []
+    for c, (v, before, after) in enumerate(tr["trace"]):
+        if m.outputs(v) != before:
+            bad.append((c, v, m.outputs(v), before))
+        if tr["has_clk"]:
+            m.clock(pad_i=v)
+        if m.outputs(v) != after:
+            bad.append((c, v, m.outputs(v), after))
+    return bad, len(tr["trace"]), tr
+
+
+def flow(name, cycles=300):
     """synth -> netlist == source -> committed VPR result (fresh?) -> FASM -> chain
-    -> model == source trace. Returns (bitstream, bram contents, trace dict)."""
+    -> model == source trace. Returns (bitstream, bram contents, board trace dict)."""
     import equiv
-    import place
+    top = top_of(name)
     ok, lines, _mod = equiv.equiv([os.path.join(ROOT, "examples", f"{top}.v")], top, cycles=cycles)
     if not ok:
         raise FasmError(f"{top}: synthesised netlist differs from the source: {lines}")
-    bs, contents, _text = build(top)
-    bad, n = place.check(top, bs, contents)
+    bs, contents, _text = build(name)
+    bad, n, tr = check_model(name, bs, contents)
     if bad:
-        raise FasmError(f"{top}: VPR bitstream differs from the source in {len(bad)} of {2 * n} samples")
-    tr = json.load(open(os.path.join(ROOT, "build", "synth", top, f"{top}.trace.json")))
+        raise FasmError(f"{name}: VPR bitstream differs from the source in {len(bad)} of {2 * n} samples")
     return bs, contents, tr
 
 
@@ -277,7 +359,7 @@ def main():
     args = ap.parse_args()
     import vpr_run
     fails = 0
-    for top in args.tops or vpr_run.EXAMPLES:
+    for top in args.tops or vpr_run.EXAMPLES + list(vpr_run.VARIANTS):
         try:
             bs, contents, text = build(top)
         except (FasmError, KeyError, FileNotFoundError) as e:
@@ -290,8 +372,7 @@ def main():
         if not args.check:
             print(f"PASS  {line}")
             continue
-        import place
-        bad, n = place.check(top, bs, contents)
+        bad, n, _tr = check_model(top, bs, contents)
         print(f"{'PASS' if not bad else 'FAIL'}  {line}; on model.py vs the source trace "
               f"{2 * n - len(bad)}/{2 * n} samples")
         for c, v, g, e in bad[:5]:

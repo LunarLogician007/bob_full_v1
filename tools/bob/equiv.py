@@ -32,6 +32,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
 sys.path.insert(0, HERE)
 
+import golden  # noqa: E402
 import synth  # noqa: E402
 
 SIM_LIBS = [os.path.join(HERE, "synth", "bob_cells_sim.v"),
@@ -45,7 +46,7 @@ def ports_of(mod):
     return {n: (p["direction"], len(p["bits"])) for n, p in mod["ports"].items()}
 
 
-def testbench(top, ports, vectors):
+def testbench(top, ports, vectors, net_ids=()):
     ins = [(n, w) for n, (d, w) in ports.items() if d == "input" and n != "clk"]
     outs = [(n, w) for n, (d, w) in ports.items() if d == "output"]
     has_clk = "clk" in ports
@@ -54,7 +55,7 @@ def testbench(top, ports, vectors):
     for n, w in ins:
         L.append(f"  reg [{w-1}:0] {n} = 0;")
     for n, w in outs:
-        L.append(f"  wire [{w-1}:0] r_{n}, s_{n};")
+        L.append(f"  wire [{w-1}:0] r_{n}, s_{n}, g_{n};")
     conn = lambda pre: ", ".join([".clk(clk)"] if has_clk else [] +          # noqa: E731
                                  [f".{n}({n})" for n, _ in ins] + [f".{n}({pre}{n})" for n, _ in outs])
     conn_r = ", ".join(([".clk(clk)"] if has_clk else []) + [f".{n}({n})" for n, _ in ins]
@@ -63,14 +64,20 @@ def testbench(top, ports, vectors):
                        + [f".{n}(s_{n})" for n, _ in outs])
     L.append(f"  {top} u_source ({conn_r});")          # not 'ref': a SystemVerilog keyword
     L.append(f"  {top}_syn u_netlist ({conn_s});")
+    conn_g = ", ".join(([".clk(clk)"] if has_clk else []) + [f".{n}({n})" for n, _ in ins]
+                       + [f".{n}(g_{n})" for n, _ in outs])
+    L.append(f"  {top}_golden u_golden ({conn_g});")
+    gnets = "{" + ", ".join(f"u_golden.n{b}" for b in reversed(net_ids)) + "}" if net_ids else "1'b0"
     L.append("  integer errors = 0;")
     L.append("  integer fh;")
     L.append("  reg [63:0] bef, aft;")
     rcat = "{" + ", ".join(f"r_{n}" for n, _ in reversed(outs)) + "}" if outs else "1'b0"
     scat = "{" + ", ".join(f"s_{n}" for n, _ in reversed(outs)) + "}" if outs else "1'b0"
+    gcat = "{" + ", ".join(f"g_{n}" for n, _ in reversed(outs)) + "}" if outs else "1'b0"
     L.append("  task cmp(input integer c, input integer phase);")
-    L.append(f"    if ({rcat} !== {scat}) begin errors = errors + 1;")
-    L.append(f'      if (errors < 10) $display("MISMATCH cycle %0d phase %0d: source %h netlist %h", c, phase, {rcat}, {scat}); end')
+    L.append(f"    if ({rcat} !== {scat} || {rcat} !== {gcat}) begin errors = errors + 1;")
+    L.append(f'      if (errors < 10) $display("MISMATCH cycle %0d phase %0d: source %h netlist %h golden %h", '
+             f'c, phase, {rcat}, {scat}, {gcat}); end')
     L.append("  endtask")
     L.append("  initial begin")
     L.append('    fh = $fopen("trace.txt", "w");')
@@ -79,7 +86,7 @@ def testbench(top, ports, vectors):
         edge = (f" clk = 1; #1 cmp({c}, 1); aft = {rcat}; #4 clk = 0;" if has_clk
                 else f" #1 aft = {rcat}; #4;")
         L.append(f"    {assigns} #4 cmp({c}, 0); bef = {rcat};{edge}"
-                 f" $fwrite(fh, \"%0d %h %h\\n\", {c}, bef, aft);")
+                 f" $fwrite(fh, \"%0d %h %h %h\\n\", {c}, bef, aft, {gnets});")
     L.append('    $fclose(fh);')
     L.append('    if (errors == 0) $display("EQUIV_OK"); else $display("EQUIV_FAIL %0d", errors);')
     L.append("    $finish;")
@@ -123,6 +130,8 @@ def equiv(files, top, out=None, cycles=300, seed=1):
     mod = synth.synth(files, top, out)
     ports = ports_of(mod)
     vectors = random_vectors(ports, cycles, seed)
+    net_ids = golden.nets(mod)
+    open(os.path.join(out, f"{top}_golden.v"), "w").write(golden.write(mod, top))
     syn = open(os.path.join(out, f"{top}_syn.v")).read()
     syn = re.sub(rf"\bmodule\s+{re.escape(top)}\b", f"module {top}_syn", syn, count=1)
     # BRAM INIT arrives as an 18432-digit binary literal with x for unset words: too
@@ -132,20 +141,23 @@ def equiv(files, top, out=None, cycles=300, seed=1):
                  lambda m: f"{m.group(1)}'h{int(m.group(2).replace('x', '0'), 2):x}", syn)
     open(os.path.join(out, f"{top}_syn_renamed.v"), "w").write(syn)
     tb = os.path.join(out, "tb_equiv.v")
-    open(tb, "w").write(testbench(top, ports, vectors))
+    open(tb, "w").write(testbench(top, ports, vectors, net_ids))
     vvp = os.path.join(out, "tb_equiv.vvp")
     r = subprocess.run(["iverilog", "-g2012", "-o", vvp, "-s", "tb", *[os.path.abspath(f) for f in files],
-                        os.path.join(out, f"{top}_syn_renamed.v"), *SIM_LIBS, tb],
+                        os.path.join(out, f"{top}_syn_renamed.v"), os.path.join(out, f"{top}_golden.v"),
+                        *SIM_LIBS, tb],
                        capture_output=True, text=True)
     if r.returncode != 0:
         raise RuntimeError(f"iverilog failed:\n{r.stderr[-2000:]}")
     r = subprocess.run(["vvp", vvp], capture_output=True, text=True, cwd=out)
     ok = "EQUIV_OK" in r.stdout
-    trace = []
+    trace, nets_after = [], []
     for line, v in zip(open(os.path.join(out, "trace.txt")).read().split("\n"), vectors):
-        c, bef, aft = line.split()
+        c, bef, aft, gn = line.split()
         trace.append((board_vector(v), int(bef, 16), int(aft, 16)))   # inputs, before edge, after edge
-    json.dump({"top": top, "has_clk": "clk" in ports, "trace": trace},
+        nets_after.append(gn)                                           # golden n<bit>s after the edge, hex
+    json.dump({"top": top, "has_clk": "clk" in ports, "trace": trace,
+               "nets": net_ids, "nets_after": nets_after},
               open(os.path.join(out, f"{top}.trace.json"), "w"))
     return ok, r.stdout.strip().splitlines()[-10:], mod
 

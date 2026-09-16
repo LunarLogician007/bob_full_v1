@@ -1,3 +1,5 @@
+top mult
+pcf -
 arch_sha256 08f5698e0714c3fc43beee6445c472a3c00e9d1952f92985a15b2568e224f581
 eblif_sha256 512bfe9a207d0091f984c5b62f81a3fc08d3bba2b80d3c99eea1e711b1b48651
 seed 1
@@ -6,4 +8,4 @@ command vpr arch.xml mult.eblif --device bob6x4 --route_chan_width 24 --read_rr_
 wirelength 157
 cpd_ns 1.80641
 fmax_mhz 648.898
-result_sha b170434d1e3d83dd
+result_sha fecc769aa7dff060

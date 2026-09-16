@@ -18,7 +18,7 @@ rrgraph:
 	tools/bob/vpr_rrgraph.sh
 	tools/bob/device.py
 
-# M9: examples -> yosys -> VPR on the committed rr graph (Docker) -> tools/bob/vpr/<top>/ (committed)
+# M9/M10: examples (+ pin variants) -> yosys -> VPR on the committed rr graph (Docker) -> tools/bob/vpr/<name>/ (committed)
 vpr:
 	for t in gates adder counter blinky ram mult; do tools/bob/equiv.py examples/$$t.v || exit 1; done
 	tools/bob/vpr_run.py --repeat
@@ -50,6 +50,7 @@ sim:
 	sim/run_cfg_sim.sh
 	sim/run_k4_sim.sh
 	sim/run_synth_sim.sh
+	sim/run_cosim_sim.sh
 
 lint:
 	sim/lint.sh

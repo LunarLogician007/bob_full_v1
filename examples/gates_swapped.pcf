@@ -1,0 +1,12 @@
+# gates.v with its outputs reversed on the LEDs and its switches swapped:
+# proof that bob build --pcf pins reach the pads (M10). Board pins: SW0 SW1
+# BTN0..BTN3 LD0..LD2, or pad<N> for any fabric pad.
+set_io sw[0]  SW1
+set_io sw[1]  SW0
+set_io btn[0] BTN0
+set_io btn[1] BTN1
+set_io btn[2] BTN2
+set_io btn[3] BTN3
+set_io led[0] LD2
+set_io led[1] LD1
+set_io led[2] LD0

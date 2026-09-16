@@ -53,7 +53,7 @@ Bits 5 and 4 follow 7-series usage (openFPGALoader reads DONE and INIT_B there).
 
 ## 4. The configuration chain
 
-- **Width W** comes from the device description (`tools/bob/device.json` `chain.width`). The M2 test top uses 64 = 4 tiles × 16; the fabric used 2896 at M3, 3064 at M4, 3488 at M5, 3720 at M6, and **9400 from M7** (6808 at K=4).
+- **Width W** comes from the device description (`tools/bob/device.json` `chain.width`). The M2 test top uses 64 = 4 tiles × 16; the fabric used 2896 at M3, 3064 at M4, 3488 at M5, 3720 at M6, **4216 from M7 on the board profile** (16 CLBs, `ARCH_6X4`; 3352 at K=4). The frozen 48-CLB profile (`release/M7_8x8/`) is 9400 (6808 at K=4).
 - **M7 layout** (replaces the M4–M6 tile description below, kept for the frozen bundles). Bits come in this order:
   - the 8-bit **ctrl tile**
   - one entry per **grid location**, row-major from VPR (0,0) (x East, y North): first the fields of the block rooted there, then that location's routing muxes in ascending rr node id
@@ -151,9 +151,9 @@ USER3 selects a read-only chain. Capture-DR snapshots the top's user-state vecto
 |---|---|---|
 | `cfg_test_top` (M2) | 16 | `[7:0]` counter, `[9:8]` 0, `[11:10]` SW1..SW0, `[15:12]` BTN3..BTN0 |
 | `fpga4x4_top` (M3–M6) | 16 | CLB `o` of tiles 0..15 |
-| `bob_top` (M7) | 48 | CLB `o` of every CLB, row-major by (y, x) (`device.json` `capture.order`); USER1 status returns the first 16 |
+| `bob_top` (M7) | `device.json` `capture.width` (16 on the board profile, 48 for 8×8) | CLB `o` of every CLB, row-major by (y, x) (`capture.order`); USER1 status returns the first 16. For a CLB with its flip-flop enabled, `o` is the register (M10 compares these with the golden netlist) |
 
-**Boundary (M7):** 64 BC_1 cells, 2 per fabric pad. Cell k (bit k, cell 0 nearest TDO) for k < 32 is pad k's output cell: the fabric's pad output, forced 0 while GTS, to the world. Cell 32+k is pad k's input cell: the world to the fabric. Pads are numbered row-major over the I/O ring. SW0, SW1, BTN0..3 are pads 8, 10, 12, 14, 16, 18 (West edge); LD0..LD2 are pads 9, 11, 13 (East edge). Every other pad reads 0 from the world and is reachable only by boundary scan.
+**Boundary (M7):** 2 BC_1 cells per fabric pad (40 on the board profile, 20 pads; 64 for 8×8). Cell k (bit k, cell 0 nearest TDO) for k < NPAD is pad k's output cell: the fabric's pad output, forced 0 while GTS, to the world. Cell NPAD+k is pad k's input cell: the world to the fabric. Pads are numbered row-major over the I/O ring. Board profile: SW0, SW1, BTN0, BTN1 are pads 6, 8, 10, 12 (West edge), BTN2, BTN3 pads 0, 1 (South edge); LD0..LD2 are pads 7, 9, 11 (East edge); `device.json` `pads` has them. Every other pad reads 0 from the world and is reachable only by boundary scan.
 
 ## 7a. BRAM tile and USER4 (M5)
 
@@ -244,6 +244,33 @@ USER3 selects a read-only chain. Capture-DR snapshots the top's user-state vecto
 | 16+N | ⌈W/8⌉ | chain bytes, byte j = chain bits `[8j+7:8j]` |
 
 The loader checks magic, name, width and CRC **before** touching hardware.
+
+**Version 2 (M10, `.bit` from `tools/bob/bitgen.py` / `bob build`)** is version 1 with the version field = 2, followed by:
+
+| size | field |
+|---|---|
+| 2 | section count S (LE) |
+| S × (8 + len) | sections: 4-byte ASCII tag, 4-byte length (LE), data |
+| 4 | CRC-32C (byte-wise, `crc32c_bytes`) of every byte before it |
+
+| tag | data |
+|---|---|
+| `BRAM` | u8 BRAM index, u16 first address, u16 count, count × u32 words (LE). Written over USER4 (SELECT, LOAD_PTR, WRITE) after CFG_IN and before JSTART, while GWE = 0 |
+| `META` | UTF-8 JSON: design, top, sources + sha256, pcf, VPR result hash, clock, fasm_sha256 |
+
+Version 1 files still read. `bob load`: steps 1–5 above, the BRAM sections, then steps 6–7.
+
+## 8a. FASM (M9/M10)
+
+The text form of a chain, one feature per line (after F4PGA's FASM): `feature = <width>'h<value>`, `#` comments. Only non-zero features need to be written.
+
+| feature | meaning |
+|---|---|
+| `<block>.<field>` | a field of a CLB, BRAM or DSP block (`clb_x2y3.init`, `bram0.wmode_a`), section 4 |
+| `ctrl.<field>` | the ctrl tile (`ctrl.clk_mode`, `ctrl.clk_div`) |
+| `rr<node>` | the routing mux of rr-graph node `<node>`: const0, const1 (IPIN) or base + input index |
+
+The declared width must equal the device's; every value is checked (field exists, fits, a mux value is a constant or one of the mux's inputs). Chain → FASM decodes every configurable field and refuses set bits that no feature owns (the tail), so chain → FASM → chain is exact (`bitgen.py --roundtrip`).
 
 ## 9. What M13 changes
 

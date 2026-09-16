@@ -84,10 +84,49 @@ def _const(b):
     return None if isinstance(b, int) else (1 if b == "1" else 0)
 
 
+# --- pins ------------------------------------------------------------------------------
+
+BOARD_PIN_NAMES = {**{n: B.BOARD_IN[k] for k, n in enumerate(("SW0", "SW1", "BTN0", "BTN1", "BTN2", "BTN3"))},
+                   **{f"LD{k}": pad for k, pad in enumerate(B.BOARD_OUT)}}
+
+
+def board_pins(ports):
+    """The examples' convention: sw[1:0] -> SW1..0, btn[3:0] -> BTN3..0, led[2:0] -> LD2..0."""
+    pins = {}
+    for pname, lo, n, board in (("sw", 0, 2, B.BOARD_IN), ("btn", 2, 4, B.BOARD_IN), ("led", 0, 3, B.BOARD_OUT)):
+        for i in range(min(n, len(ports.get(pname, {}).get("bits", [])))):
+            pins[f"{pname}[{i}]"] = board[lo + i]
+    return pins
+
+
+def read_pcf(path):
+    """VPR / nextpnr style: `set_io <port bit> <pin>` per line, # comments. A pin is a
+    board name (SW0 SW1 BTN0..BTN3 LD0..LD2) or pad<N> for any of the fabric's pads
+    (reachable by boundary scan only)."""
+    pins = {}
+    for n, line in enumerate(open(path), 1):
+        line = line.split("#", 1)[0].strip()
+        if not line:
+            continue
+        f = line.split()
+        if len(f) != 3 or f[0] != "set_io":
+            raise VprError(f"{path}:{n}: expected `set_io <port> <pin>`")
+        pin = f[2]
+        if pin in BOARD_PIN_NAMES:
+            pad = BOARD_PIN_NAMES[pin]
+        elif re.fullmatch(r"pad\d+", pin) and int(pin[3:]) in B.PAD_XY:
+            pad = int(pin[3:])
+        else:
+            raise VprError(f"{path}:{n}: unknown pin {pin} (board names {sorted(BOARD_PIN_NAMES)} or pad0..pad{B.NPAD - 1})")
+        pins[f[1]] = pad
+    return pins
+
+
 # --- netlist -> VPR eblif ---------------------------------------------------------------
 
-def write_eblif(top, mod):
-    """-> (eblif text, sidecar dict, io placement {block name: pad})"""
+def write_eblif(top, mod, pin_map=None):
+    """-> (eblif text, sidecar dict, io placement {block name: pad}). pin_map: {port
+    bit name: pad}, default board_pins()."""
     cells = mod["cells"]
     ports = mod["ports"]
     L = []
@@ -171,6 +210,7 @@ def write_eblif(top, mod):
     nxt = {v: k for k, v in ci_from.items()}
     body = []
     fresh = [0]
+    tap_bits = {}
 
     def new(prefix):
         fresh[0] += 1
@@ -229,6 +269,7 @@ def write_eblif(top, mod):
             if i < len(chain) or last_co_used:
                 tap = new("bob_tap")
                 out = N(last_co) if i >= len(chain) else new("cy")
+                tap_bits[out] = cells[take[-1]]["connections"]["CO"][0]
                 add_line(tap, cin=cin, sumout=out)
                 carry_in = (out, None)
 
@@ -360,28 +401,33 @@ def write_eblif(top, mod):
     L.append(".end")
 
     # --- pin constraints --------------------------------------------------------------------
+    pin_map = pin_map or board_pins(ports)
     fixed = {}
     for net in inputs:
-        m = re.fullmatch(r"(sw|btn)\[(\d+)\]", net)
-        if m:
-            k = int(m.group(2)) + (0 if m.group(1) == "sw" else 2)
-            if k >= (2 if m.group(1) == "sw" else 6):
-                raise VprError(f"input {net}: not a board pin")
-            fixed[net] = B.BOARD_IN[k]
-        elif net == "clk":
+        if net == "clk" and net not in pin_map:
             spare = [p for p in sorted(B.PAD_XY) if p not in B.BOARD_IN and p not in B.BOARD_OUT]
             fixed[net] = spare[0]
+        elif net in pin_map:
+            fixed[net] = pin_map[net]
         else:
-            raise VprError(f"input {net}: only sw[1:0], btn[3:0] and clk are board pins")
-    for net in outputs:
-        m = re.fullmatch(r"led\[(\d+)\]", net)
-        if not m or int(m.group(1)) >= len(B.BOARD_OUT):
-            raise VprError(f"output {net}: only led[2:0] are board pins")
-        fixed["out:" + net] = B.BOARD_OUT[int(m.group(1))]
-    for oname in side["out_consts"]:
-        m = re.fullmatch(r"led\[(\d+)\]", oname)
-        if not m or int(m.group(1)) >= len(B.BOARD_OUT):
-            raise VprError(f"output {oname}: only led[2:0] are board pins")
+            raise VprError(f"input {net} has no pin (pcf set_io)")
+    for net in list(outputs) + list(side["out_consts"]):
+        if net not in pin_map:
+            raise VprError(f"output {net} has no pin (pcf set_io)")
+        if net in outputs:
+            fixed["out:" + net] = pin_map[net]
+    side["out_pads"] = {net: pin_map[net] for net in side["out_consts"]}
+    used = list(fixed.values())
+    dup = sorted({p for p in used if used.count(p) > 1})
+    if dup:
+        raise VprError(f"pads {dup} are assigned to more than one port")
+
+    # which yosys bit each VPR net carries (CAPTURE comparisons against golden.py)
+    bit_of = {nm: b for b, nm in name.items() if isinstance(b, int)}
+    for src, dst in buffers:
+        bit_of.setdefault(dst, bit_of.get(src))
+    bit_of.update(tap_bits)
+    side["net_bits"] = {nm: b for nm, b in sorted(bit_of.items()) if b is not None}
     return "\n".join(L) + "\n", side, fixed
 
 
@@ -395,22 +441,25 @@ def _docker_env():
     return env
 
 
-def prepare(top):
-    """build/synth/<top>/<top>.json -> (eblif text, sidecar, fixed pins)"""
+def prepare(top, pcf=None):
+    """build/synth/<top>/<top>.json (+ optional .pcf) -> (eblif text, sidecar, fixed pins)"""
     jpath = os.path.join(ROOT, "build", "synth", top, f"{top}.json")
     if not os.path.exists(jpath):
         raise VprError(f"{os.path.relpath(jpath, ROOT)} missing: run tools/bob/equiv.py examples/{top}.v")
-    return write_eblif(top, json.load(open(jpath))["modules"][top])
+    pin_map = read_pcf(pcf) if pcf else None
+    return write_eblif(top, json.load(open(jpath))["modules"][top], pin_map)
 
 
 def arch_sha():
     return hashlib.sha256(open(os.path.join(ARCH_DIR, f"bob_k{K}.xml"), "rb").read()).hexdigest()
 
 
-def run(top, seed=1, work=None):
-    """synth JSON -> eblif -> VPR in Docker. Returns the work directory (build/vpr/<top>)."""
-    eblif, side, fixed = prepare(top)
-    work = work or os.path.join(ROOT, "build", "vpr", top)
+def run(top, seed=1, work=None, pcf=None, name=None):
+    """synth JSON -> eblif -> VPR in Docker. Files are <name>.* (name defaults to top) in
+    the work directory (default build/vpr/<name>), which is returned."""
+    name = name or top
+    eblif, side, fixed = prepare(top, pcf)
+    work = work or os.path.join(ROOT, "build", "vpr", name)
     shutil.rmtree(work, ignore_errors=True)
     os.makedirs(work)
     arch = os.path.join(ARCH_DIR, f"bob_k{K}.xml")
@@ -418,20 +467,21 @@ def run(top, seed=1, work=None):
     with gzip.open(os.path.join(ARCH_DIR, f"bob_k{K}_rr.xml.gz"), "rb") as src, \
             open(os.path.join(work, "rr.xml"), "wb") as dst:
         shutil.copyfileobj(src, dst)
-    open(os.path.join(work, f"{top}.eblif"), "w").write(eblif)
-    with open(os.path.join(work, f"{top}.pins"), "w") as fh:
+    open(os.path.join(work, f"{name}.eblif"), "w").write(eblif)
+    with open(os.path.join(work, f"{name}.pins"), "w") as fh:
         fh.write("# fixed I/O: block x y subblk (tools/bob/vpr_run.py)\n")
         for blk, pad in sorted(fixed.items()):
             x, y = B.PAD_XY[pad]
             fh.write(f"{blk}\t{x}\t{y}\t0\n")
     side["pins"] = fixed
-    json.dump(side, open(os.path.join(work, f"{top}.vpr.json"), "w"), indent=0)
+    side["pcf"] = os.path.relpath(pcf, ROOT) if pcf else None
+    json.dump(side, open(os.path.join(work, f"{name}.vpr.json"), "w"), indent=0)
 
     text = open(arch).read()
     device = re.search(r'fixed_layout name="([^"]+)"', text).group(1)
     width = re.search(r'chan_width="(\d+)"', text).group(1)
-    args = [VPR, "arch.xml", f"{top}.eblif", "--device", device, "--route_chan_width", width,
-            "--read_rr_graph", "rr.xml", "--fix_clusters", f"{top}.pins", "--seed", str(seed),
+    args = [VPR, "arch.xml", f"{name}.eblif", "--device", device, "--route_chan_width", width,
+            "--read_rr_graph", "rr.xml", "--fix_clusters", f"{name}.pins", "--seed", str(seed),
             "--absorb_buffer_luts", "off", "--const_gen_inference", "none",
             "--sweep_dangling_primary_ios", "off", "--sweep_dangling_nets", "off",
             "--sweep_dangling_blocks", "off", "--sweep_constant_primary_outputs", "off",
@@ -449,27 +499,31 @@ def run(top, seed=1, work=None):
     log = open(logf).read() if os.path.exists(logf) else ""
     if "successfully routed" not in log:
         tail = re.findall(r"Error \d+:[\s\S]*?Message:.*", log) or log.splitlines()[-15:] or ["no vpr.log: is Docker running?"]
-        raise VprError(f"VPR failed on {top}:\n" + "\n".join(tail))
+        raise VprError(f"VPR failed on {name}:\n" + "\n".join(tail))
     return work
 
 
-def commit(top, work, seed):
-    """copy the result VPR produced into tools/bob/vpr/<top>/ (committed, so the
-    rest of the flow - FASM, chain, simulations, hwtest - needs no Docker)"""
-    dst = os.path.join(RESULTS, top)
+def commit(top, work, seed, name=None, pcf=None):
+    """copy the result VPR produced into tools/bob/vpr/<name>/ (committed, so the
+    rest of the flow - FASM, chain, simulations, hwtest - needs no Docker). name
+    defaults to top; a design routed with a .pcf gets its own name."""
+    name = name or top
+    dst = os.path.join(RESULTS, name)
     shutil.rmtree(dst, ignore_errors=True)
     os.makedirs(dst)
     for ext in KEEP:
-        text = open(os.path.join(work, f"{top}.{ext}")).read()
+        text = open(os.path.join(work, f"{name}.{ext}")).read()
         if ext == "net":                              # VPR writes its own run's absolute paths
             text = re.sub(r'(architecture_id|atom_netlist_id)="[^"]*"', r'\1=""', text)
-        open(os.path.join(dst, f"{top}.{ext}"), "w").write(text)
-    s = summary(work, top)
+        open(os.path.join(dst, f"{name}.{ext}"), "w").write(text)
+    s = summary(work, name)
     digest = subprocess.run(["docker", "image", "inspect", "--format", "{{index .RepoDigests 0}}", IMAGE],
                             env=_docker_env(), capture_output=True, text=True).stdout.strip() or IMAGE
     with open(os.path.join(dst, "stamp.txt"), "w") as fh:
+        fh.write(f"top {top}\n")
+        fh.write(f"pcf {os.path.relpath(pcf, ROOT) if pcf else '-'}\n")
         fh.write(f"arch_sha256 {arch_sha()}\n")
-        fh.write(f"eblif_sha256 {hashlib.sha256(open(os.path.join(dst, top + '.eblif'), 'rb').read()).hexdigest()}\n")
+        fh.write(f"eblif_sha256 {hashlib.sha256(open(os.path.join(dst, name + '.eblif'), 'rb').read()).hexdigest()}\n")
         fh.write(f"seed {seed}\n")
         fh.write(f"image {digest}\n")
         fh.write("command " + open(os.path.join(work, "command.txt")).read())
@@ -478,18 +532,25 @@ def commit(top, work, seed):
     return dst
 
 
-def stale(top):
-    """None if tools/bob/vpr/<top>/ was routed from today's netlist and architecture,
-    else why not"""
-    d = os.path.join(RESULTS, top)
-    if not os.path.exists(os.path.join(d, "stamp.txt")):
-        return f"no committed VPR result for {top}: run `make vpr` (Docker)"
-    stamp = dict(l.split(" ", 1) for l in open(os.path.join(d, "stamp.txt")).read().splitlines() if " " in l)
+def read_stamp(name):
+    path = os.path.join(RESULTS, name, "stamp.txt")
+    if not os.path.exists(path):
+        return None
+    return dict(l.split(" ", 1) for l in open(path).read().splitlines() if " " in l)
+
+
+def stale(name):
+    """None if tools/bob/vpr/<name>/ was routed from today's netlist, pins and
+    architecture, else why not"""
+    stamp = read_stamp(name)
+    if stamp is None:
+        return f"no committed VPR result for {name}: run `make vpr` (Docker)"
     if stamp.get("arch_sha256") != arch_sha():
-        return f"tools/bob/vpr/{top} was routed on a different architecture: run `make vpr` (Docker)"
-    eblif, _side, _fixed = prepare(top)
+        return f"tools/bob/vpr/{name} was routed on a different architecture: run `make vpr` (Docker)"
+    pcf = stamp.get("pcf", "-")
+    eblif, _side, _fixed = prepare(stamp.get("top", name), None if pcf == "-" else os.path.join(ROOT, pcf))
     if hashlib.sha256(eblif.encode()).hexdigest() != stamp.get("eblif_sha256"):
-        return f"tools/bob/vpr/{top} was routed from a different netlist: run `make vpr` (Docker)"
+        return f"tools/bob/vpr/{name} was routed from a different netlist or pins: run `make vpr` (Docker)"
     return None
 
 
@@ -505,7 +566,7 @@ def summary(work, top):
     for ext in ("net", "place", "route"):
         text = open(os.path.join(work, f"{top}.{ext}")).read()
         text = "\n".join(l for l in text.splitlines() if not l.startswith(("Netlist_File", "Placement_File")))
-        text = re.sub(r'architecture_id="[^"]*"|atom_netlist_id="[^"]*"', "", text)
+        text = re.sub(r'architecture_id="[^"]*"|atom_netlist_id="[^"]*"|name="[^"]*\.net"', "", text)
         h.update(text.encode())
     return {
         "wirelength": grab(r"Total wirelength: (\d+)"),
@@ -517,31 +578,35 @@ def summary(work, top):
 
 
 EXAMPLES = ["gates", "adder", "counter", "blinky", "ram", "mult"]
+# results routed with a pin file: name -> (top, pcf). gates_swapped proves .pcf pins reach the pads.
+VARIANTS = {"gates_swapped": ("gates", os.path.join(ROOT, "examples", "gates_swapped.pcf"))}
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("tops", nargs="*", help=f"default: every example ({' '.join(EXAMPLES)})")
+    ap.add_argument("tops", nargs="*", help=f"default: every example and variant "
+                                              f"({' '.join(EXAMPLES + list(VARIANTS))})")
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--no-commit", action="store_true", help="leave the result in build/vpr only")
     ap.add_argument("--repeat", action="store_true", help="route twice with the seed; results must match")
     args = ap.parse_args()
     fails = 0
-    for top in args.tops or EXAMPLES:
+    for name in args.tops or EXAMPLES + list(VARIANTS):
+        top, pcf = VARIANTS.get(name, (name, None))
         try:
-            work = run(top, args.seed)
-            s = summary(work, top)
+            work = run(top, args.seed, pcf=pcf, name=name)
+            s = summary(work, name)
             again = ""
             if args.repeat:
-                s2 = summary(run(top, args.seed, work + "_repeat"), top)
+                s2 = summary(run(top, args.seed, work + "_repeat", pcf, name), name)
                 again = ", same seed repeats: " + ("yes" if s2["result_sha"] == s["result_sha"] else "NO")
                 fails += s2["result_sha"] != s["result_sha"]
-            where = os.path.relpath(work if args.no_commit else commit(top, work, args.seed), ROOT)
+            where = os.path.relpath(work if args.no_commit else commit(top, work, args.seed, name, pcf), ROOT)
         except VprError as e:
-            print(f"FAIL  {top}: {e}")
+            print(f"FAIL  {name}: {e}")
             fails += 1
             continue
-        print(f"PASS  {top}: routed, wirelength {s['wirelength']}, critical path {s['cpd_ns']} ns "
+        print(f"PASS  {name}: routed, wirelength {s['wirelength']}, critical path {s['cpd_ns']} ns "
               f"(Fmax {s['fmax_mhz']} MHz), result {s['result_sha']}{again} -> {where}")
     return 1 if fails else 0
 
