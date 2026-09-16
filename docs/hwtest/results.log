@@ -505,3 +505,19 @@
     PASS  live-fir         2717 live samples LEDs == model(registers, pins), 8 input vectors, 12 register states, 16 bursts skipped (moving); all goals reached; readback while running == .bit
     PASS  live-mult        2060 live samples LEDs == model(registers, pins), 21 input vectors, 22 register states, 43 bursts skipped (moving); all goals reached; readback while running == .bit
     PASS  live-switches    2203 live samples LEDs == model(registers, pins), 17 input vectors, 8 register states, 14 bursts skipped (moving); all goals reached; readback while running == .bit
+2026-09-17 03:40:02  M12  tag=M7 top=bob_top
+    PASS  idcode           0xABEEF093, build.cfg expects 0xABEEF093
+    PASS  bypass           measured 1 bit(s)
+    PASS  selftest         12/12 designs match the model
+    PASS  chain-length     4216 bits, design intact after the marker scan
+    PASS  pnr-gates        loaded 4216 bits (bulk), crc 0xF8A4EF20, readback verified; readback == FASM; 64 clocks LEDs == source, 0 CAPTUREs x 0 registers == golden
+    PASS  pnr-adder        loaded 4216 bits (bulk), crc 0xAAC03B69, readback verified; readback == FASM; 64 clocks LEDs == source, 0 CAPTUREs x 0 registers == golden
+    PASS  pnr-counter      loaded 4216 bits (bulk), crc 0xB76D4EB1, readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 6 registers == golden
+    PASS  pnr-blinky       loaded 4216 bits (bulk), crc 0xE9DA76BA, readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 8 registers == golden
+    PASS  pnr-ram          loaded 4216 bits (bulk), crc 0x2213DEE8, readback verified, bram0 all 1024 words; readback == FASM; 64 clocks LEDs == source, 0 CAPTUREs x 0 registers == golden
+    PASS  pnr-mult         loaded 4216 bits (bulk), crc 0xECFA91C3, readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 7 registers == golden
+    PASS  pnr-switches     loaded 4216 bits (bulk), crc 0xF0A38984, readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 3 registers == golden
+    PASS  pnr-fir          loaded 4216 bits (bulk), crc 0x02180960, readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 7 registers == golden
+    PASS  pnr-gates-swapped loaded 4216 bits (bulk), crc 0xBF4693D3, readback verified; readback == FASM; 64 clocks LEDs == source, 0 CAPTUREs x 0 registers == golden
+    PASS  live-fir-py      532 live samples LEDs == model(registers, pins), 17 input vectors, 9 register states, 14 bursts skipped (moving); all goals reached; readback while running == .bit
+    PASS  live-switches-py 648 live samples LEDs == model(registers, pins), 34 input vectors, 8 register states, 19 bursts skipped (moving); all goals reached; readback while running == .bit

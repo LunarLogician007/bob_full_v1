@@ -20,8 +20,8 @@ For the detailed plan, conventions, gotchas and every milestone, read [`PLAN.md`
 | M9 | VPR packs, places and routes the examples → FASM → chain | **passed on the board 2026-09-17** (10/10, no rebuild) |
 | M10 | bitgen (FASM ⇄ chain, `.bit`), `bob build`/`bob load`, `.pcf` pins, golden co-simulation | **passed on the board 2026-09-17** (7/7, no rebuild) |
 | M11 | real designs live on the board (free-running clock, real switches): switches, FIR on DSPs, RAM readback, blinky rate | **passed on the board 2026-09-17** (12/12, no rebuild) |
-| M12 | **M12a built and simulated 2026-09-17:** bob's own Python pack/place/route (`--pnr python`), 0.99× VPR's wirelength; board test pending (no rebuild). M12b (area, larger grid, rebuild) awaits a decision | in progress |
-| M13 | frame-based configuration (UG470) replacing the scan chain | planned, last |
+| M12 | bob's own Python pack/place/route (`--pnr python`), 0.99× VPR's wirelength | **M12a passed on the board 2026-09-17** (13/13, no rebuild); M12b (area, larger grid) deferred |
+| M13 | frame-based configuration (UG470 packets/frames) + M7 timing fixes | **next** (Vivado rebuild) |
 
 After M7 the Vivado bitstream stayed the same through M11: those milestones only load new configuration chains over JTAG. M12a (Python PnR) needs no rebuild either; the next Vivado rebuilds come at M12b (area, bigger grid) and M13 (new config plane).
 

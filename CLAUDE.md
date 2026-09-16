@@ -2,7 +2,7 @@
 
 **Read `PLAN.md` first.** It has the status table, folder structure, commands, conventions, gotchas and every milestone in detail. `arch.html` is the interactive picture of the fabric and the guest flow.
 
-Where it stands: M0–M11 passed on the PYNQ-Z2 (git tags `m7`…`m11`). The board runs the M7 16-CLB bitstream (IDCODE `0xABEEF093`, 4216-bit chain); M8–M11 needed no rebuild. M12a (Python PnR in `tools/bob/pnr/`, `./bob build --pnr python`) is built and simulated, awaiting `make hwtest M=M12`; M12b (area/larger grid, Vivado rebuild) needs the user's decision.
+Where it stands: M0–M11 passed on the PYNQ-Z2 (git tags `m7`…`m11`). The board runs the M7 16-CLB bitstream (IDCODE `0xABEEF093`, 4216-bit chain); M8–M11 needed no rebuild. M12a (Python PnR, `./bob build --pnr python`) passed (tag `m12`); M12b (area/larger grid) is deferred by the user. M13 next: frame-based configuration (UG470 style) together with the M7 timing fixes, one Vivado rebuild.
 
 The short version:
 - This is an FPGA fabric ("bob") running inside a PYNQ-Z2 (XC7Z020), configured over JTAG from a Pico (DirtyJTAG). `/Users/sk/work/bob/` is the frozen original; work only here.

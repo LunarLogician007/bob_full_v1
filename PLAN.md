@@ -43,8 +43,8 @@ The 8×8 profile (48 CLBs, 9400 bits, `0x9BEEF093`) is frozen in `release/M7_8x8
 | M9 | pack/place/route with VPR on the committed rr graph | **passed on hardware 2026-09-17** (10/10, no rebuild) |
 | M10 | FASM ⇄ chain, `.bit` v2, `./bob build/load`, `.pcf`, golden netlist + co-simulation | **passed on hardware 2026-09-17** (7/7, no rebuild) |
 | M11 | real designs live: free-running clock, real switches, RAM readback, clock rate, FIR on DSPs | **passed on hardware 2026-09-17** (12/12 on the second run, every live goal reached; the first run found stale BRAM words, fixed in `bob load`) |
-| M12 | Python PnR checked against VPR (M12a, no rebuild) + area and a larger grid (M12b, rebuild) | **M12a built and simulated 2026-09-17, hardware test pending** (`make hwtest M=M12`, no rebuild): `tools/bob/pnr/` pack / annealing place / PathFinder route, wirelength 0.99× VPR over all designs, co-sim 18 designs (VPR + Python) == source. M12b needs the user's decision |
-| M13 | frame-based configuration (UG470), replacing the scan chain | planned, deliberately last |
+| M12 | M12a: Python PnR checked against VPR (no rebuild); M12b area/larger grid | **M12a passed on hardware 2026-09-17** (13/13 on the M7 bitstream: pnr-* ×9, live-fir-py, live-switches-py; wirelength 0.99× VPR). **M12b deferred by the user** (area/larger grid later) |
+| M13 | frame-based configuration (UG470-style packets and frames), with the M7 timing fixes in the same rebuild | **next** (user 2026-09-17: frames now, area later) |
 
 Hardware results are in `docs/hwtest/results.log`; Vivado reports are in `docs/reports/Mx/`; per-design guest reports in `docs/reports/M11/designs.md`.
 
