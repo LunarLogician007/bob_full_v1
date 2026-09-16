@@ -18,8 +18,8 @@ For the detailed plan, conventions, gotchas and every milestone, read [`PLAN.md`
 | **M7** | fabric generated from VPR's rr graph, **16-CLB board profile** | **passed on the board 2026-09-17** (26/26); timing hardening planned for the next rebuild |
 | M8 | yosys synthesis onto bob cells → placed → runs on the fabric | **passed on the board 2026-09-17** (10/10, no rebuild) |
 | M9 | VPR packs, places and routes the examples → FASM → chain | **passed on the board 2026-09-17** (10/10, no rebuild) |
-| M10 | bitgen (FASM ⇄ chain, `.bit`), `bob build`/`bob load`, `.pcf` pins, golden co-simulation | built and simulated 2026-09-17; board test pending (no rebuild) |
-| M11 | real designs on the board | planned |
+| M10 | bitgen (FASM ⇄ chain, `.bit`), `bob build`/`bob load`, `.pcf` pins, golden co-simulation | **passed on the board 2026-09-17** (7/7, no rebuild) |
+| M11 | real designs live on the board (free-running clock, real switches) | next |
 | M12 | Python PnR, larger grid | planned |
 | M13 | frame-based configuration (UG470) replacing the scan chain | planned, last |
 

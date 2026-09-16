@@ -428,3 +428,15 @@
     PASS  vpr-blinky       VPR-routed, 64 clocks match the source Verilog
     PASS  vpr-ram          VPR-routed, 64 clocks match the source Verilog
     PASS  vpr-mult         VPR-routed, 64 clocks match the source Verilog
+2026-09-17 01:37:23  M10  tag=M7 top=bob_top
+    PASS  idcode           0xABEEF093, build.cfg expects 0xABEEF093
+    PASS  bypass           measured 1 bit(s)
+    PASS  selftest         12/12 designs match the model
+    PASS  chain-length     4216 bits, design intact after the marker scan
+    PASS  bob-gates        loaded 4216 bits (bulk), crc 0xE4FEB272, readback verified; readback == FASM; 64 clocks LEDs == source, 0 CAPTUREs x 0 registers == golden
+    PASS  bob-adder        loaded 4216 bits (bulk), crc 0x597F800C, readback verified; readback == FASM; 64 clocks LEDs == source, 0 CAPTUREs x 0 registers == golden
+    PASS  bob-counter      loaded 4216 bits (bulk), crc 0x7F343F31, readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 6 registers == golden
+    PASS  bob-blinky       loaded 4216 bits (bulk), crc 0xC7BA9F4D, readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 8 registers == golden
+    PASS  bob-ram          loaded 4216 bits (bulk), crc 0x95ADF2A8, readback verified, bram0 4 words; readback == FASM; 64 clocks LEDs == source, 0 CAPTUREs x 0 registers == golden
+    PASS  bob-mult         loaded 4216 bits (bulk), crc 0xAD7B4077, readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 7 registers == golden
+    PASS  bob-gates-swapped loaded 4216 bits (bulk), crc 0xDE5868AA, readback verified; readback == FASM; 64 clocks LEDs == source, 0 CAPTUREs x 0 registers == golden

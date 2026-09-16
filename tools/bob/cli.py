@@ -28,7 +28,6 @@ A .pcf has `set_io <port bit> <SW0|SW1|BTN0..3|LD0..2|pad<N>>` lines.
 
 import argparse
 import hashlib
-import json
 import os
 import sys
 
@@ -95,6 +94,10 @@ def build(files, top=None, pcf=None, out=None, clock="jtag", div=0, seed=1, name
     if div:
         F["ctrl.clk_div"] = div
     word = bitgen.word_from_features(F)
+    if clock == "run":
+        hz = 125e6 / 2 ** (div + B.DIV_MIN_SHIFT)
+        log(f"  clock    free-running: 125 MHz / 2^{div + B.DIV_MIN_SHIFT} = {hz:.4g} Hz "
+            f"(one user clock every {1 / hz:.3g} s)")
     log(f"  fasm     {len(F)} features, legal against device.json; bits -> FASM -> bits identical: "
         f"{bitgen.word_from_features(bitgen.features_from_word(word)) == word}")
 
