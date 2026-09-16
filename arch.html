@@ -837,7 +837,30 @@
       ["host/cfgplane.py", "JTAG load, USER4, CAPTURE"], ["tools/bob/report.py", "docs/reports/M11/designs.md"]],
     tb: [["tests/test_synth.py, test_vpr.py, test_bitgen.py", "flow, VPR results, FASM/.bit round trips"], ["hw/tb/tb_synth.v", "12 designs (6 hand-placed, 6 VPR) on the fabric RTL"],
       ["sim/tb_cosim.v", "golden co-simulation: 9 designs from .bit, source live, LEDs + CAPTURE"], ["hwtest M8–M11", "board: synth-*, vpr-*, bob-*, live-*"]],
-    drill: ["vpr", "bitgen", "verify", "routing"]
+    drill: ["vpr", "pnr", "bitgen", "verify", "routing"]
+  });
+
+  D("pnr", {
+    title: "bob's own place & route (M12a)", sub: "Python: pack · simulated-annealing place · PathFinder route · same files as VPR · ./bob build --pnr python", k: "GTX", stage: "tools/bob/pnr/run.py",
+    rows: [F("same input, same output as VPR",
+        ["vpr_run.prepare", "the eblif VPR gets + fixed pins", "vpr", "SOFT"],
+        ["pack.py", "LUT+FF / adder+FF per CLB · carry macros", "clb", "CLB"],
+        ["place.py", "annealing: bb cost · T0 = 20σ · 10·N^(4/3) moves", null, "SOFT"],
+        ["route.py", "PathFinder + A* on the committed rr graph", "routing", "GTX"],
+        ["write.py", ".net .place .route in VPR formats", "bitgen", "CFG"]),
+      B("result vs VPR (docs/reports/M12/pnr_vs_vpr.md)",
+        ["wirelength", "1201 vs 1215 (0.99×) over 9 designs", null, "GTX"],
+        ["CLBs", "equal on every design", "clb", "CLB"],
+        ["time", "0.02–0.17 s per design, no Docker", null, "SOFT"])],
+    notes: ["Negotiated congestion: node cost = base × (1 + history) × (1 + present congestion); every rr node has capacity 1 because a mux selects one driver.",
+      "LUT inputs are permutable: a LUT-input sink is any free I pin of its CLB, negotiated like any other node; the chosen pin becomes the LUT's port_rotation_map, so the INIT is re-indexed exactly as for VPR's results. With only 2 or 4 drivers per input pin, this is where the Python router beats VPR on gates and switches.",
+      "Adder inputs stay on I[0]/I[1] (DI = I0 is structural), which is why carry-heavy designs route up to 1.17× longer than VPR.",
+      "Because the files are VPR-shaped, fasm_from_vpr, bitgen, the model check, tb_cosim and hwtest are shared unchanged between the two flows."],
+    src: [["Betz & Rose, VPR (FPL 1997)", "annealing schedule, bounding-box cost, range limit"], ["McMurchie & Ebeling, PathFinder (FPGA 1995)", "negotiated-congestion routing"], ["VPR lut_in port_class", "LUT input equivalence"]],
+    why: ["The plan's M12: a PnR bob owns, checked against VPR on the same graph — the step before growing the grid, where VPR in Docker under emulation is slow."],
+    files: [["tools/bob/pnr/netlist.py, pack.py", "netlist, clusters, macros"], ["tools/bob/pnr/place.py", "annealing"], ["tools/bob/pnr/route.py", "PathFinder"], ["tools/bob/pnr/write.py, run.py", "VPR-format results, driver"], ["tools/bob/pnr/compare.py", "report"]],
+    tb: [["tests/test_pnr.py", "independent legality from the files, determinism, failing cases"], ["sim/tb_cosim.v", "18 designs: VPR and Python routed, source live"], ["hwtest M12 pnr-*, live-*-py", "board"]],
+    drill: ["flow", "vpr", "routing", "bitgen"]
   });
 
   D("vpr", {

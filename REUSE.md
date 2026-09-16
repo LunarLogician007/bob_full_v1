@@ -172,3 +172,14 @@ Status: **same** = byte-identical to `bob/`, **moved** = same content at a new p
 | `docs/arch/p2…p8`, `docs/arch/p4b_det_flow.js`, `arch.html` | M7 arch page | modified / new | 16-CLB profile facts; guest flow, VPR, FASM/bitgen and verification detail pages |
 | `docs/bitstream-format.md` | M10 | unchanged since M10 | |
 
+## M12a: Python place and route
+
+| File | From | Status | Notes |
+|---|---|---|---|
+| `tools/bob/pnr/netlist.py`, `pack.py` | VPR pack patterns (`tools/bob/vpr_arch.py`) | new | atoms from the M9 eblif; logic/arithmetic clusters; carry macros |
+| `tools/bob/pnr/place.py` | Betz & Rose VPR placer (FPL 1997) | new | simulated annealing, VPR schedule, macro moves |
+| `tools/bob/pnr/route.py` | McMurchie & Ebeling PathFinder (FPGA 1995); `host/bitstream.py` BFS router (rr-graph access) | new | negotiated congestion + A*, permutable LUT inputs |
+| `tools/bob/pnr/write.py`, `run.py`, `compare.py` | VPR `.net/.place/.route` formats | new | results in VPR formats; driver; comparison report |
+| `tools/bob/cli.py`, `host/hwtest.py`, `sim/gen_cosim.py`, `sim/tb_cosim.v` | M10/M11 | modified | `--pnr python`; hwtest M12; co-sim of both flows |
+| `tests/test_pnr.py`, `tests/test_hwtest_fake.py`, `docs/hwtest/M12.md`, `docs/reports/M12/pnr_vs_vpr.md` | — | new / modified | independent legality, determinism, failing cases; board checklist; report |
+

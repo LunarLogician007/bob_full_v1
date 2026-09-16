@@ -40,9 +40,11 @@ SEED = 2026                 # the build's trace uses seed 1
 
 
 def designs():
-    out = [(n, n, None) for n in vpr_run.EXAMPLES]
-    out += [(n, top, pcf) for n, (top, pcf) in vpr_run.VARIANTS.items()]
-    return out
+    """(label, result name, top, pcf, pnr): every example and variant through VPR and
+    through bob's own Python PnR (M12)"""
+    base = [(n, n, None) for n in vpr_run.EXAMPLES] + [(n, t, p) for n, (t, p) in vpr_run.VARIANTS.items()]
+    return ([(n, n, t, p, "vpr") for n, t, p in base] +
+            [(f"py-{n}", n, t, p, "python") for n, t, p in base])
 
 
 def main():
@@ -52,21 +54,20 @@ def main():
     os.makedirs(OUT_DIR, exist_ok=True)
     W = B.CHAIN_W
     decl, mux, clk_on, runs, sources = [], [], [], [], set()
-    for k, (name, top, pcf) in enumerate(designs()):
+    for k, (label, name, top, pcf, pnr) in enumerate(designs()):
         src = os.path.join(ROOT, "examples", f"{top}.v")
-        bit = os.path.join(OUT_DIR, f"{name}.bit")
-        cli.build([src], top, pcf, bit, name=name, log=lambda *_: None)
+        bit = os.path.join(OUT_DIR, f"{label}.bit")
+        _p, _w, _c, _t, work = cli.build([src], top, pcf, bit, name=name, log=lambda *_: None, pnr=pnr)
         c = bitgen.read_bit(bit)
         sources.add(src)
         sources.add(os.path.join(ROOT, "build", "synth", top, f"{top}_golden.v"))
         mod = json.load(open(os.path.join(ROOT, "build", "synth", top, f"{top}.json")))["modules"][top]
         ports = {n: len(p["bits"]) for n, p in mod["ports"].items()}
-        work = os.path.join(vpr_run.RESULTS, name)
         side = json.load(open(os.path.join(work, f"{name}.vpr.json")))
         pins = side["pins"]
 
         # instances: source and golden, own clock, inputs in the examples' convention
-        decl.append(f"    // ---- {k}: {name}")
+        decl.append(f"    // ---- {k}: {label} ({pnr})")
         decl.append(f"    reg clk_{k} = 1'b0;")
         decl.append(f"    wire [2:0] s_led_{k}, g_led_{k};")
         conn = []
@@ -91,7 +92,7 @@ def main():
                     bits[B.BOARD_OUT.index(pad)] = f"{v}[{i}]"
             return "{" + ", ".join(reversed(bits)) + "}"
 
-        cmap = FV.capture_map(name)
+        cmap = FV.capture_map(name, work)
         cap = ["1'b0"] * B.NCLB
         mask = 0
         for idx, nbit in cmap:
@@ -105,8 +106,9 @@ def main():
         # stimulus: source view and board view of the same vector
         vec_ports = {n: ("input", w) for n, w in ports.items()}
         vectors = equiv.random_vectors(vec_ports, args.cycles, SEED + k)
-        runs.append(f"    // ---- {name}: {len(cmap)} registers on CAPTURE, pins {os.path.relpath(pcf, ROOT) if pcf else 'default'}")
-        runs.append(f'    dname = "{name}"; cur = {k};')
+        runs.append(f"    // ---- {label}: {pnr} place and route, {len(cmap)} registers on CAPTURE, "
+                    f"pins {os.path.relpath(pcf, ROOT) if pcf else 'default'}")
+        runs.append(f'    dname = "{label}"; cur = {k};')
         runs.append(f"    cfgw   = {W}'h{c['word']:0{(W + 3) // 4}x};")
         runs.append(f"    cfgcrc = 32'h{crc32c_bits(c['word'], W):08x};")
         runs.append("    commit_config;")
@@ -139,7 +141,7 @@ def main():
     open(os.path.join(OUT_DIR, "cosim_designs.vh"), "w").write("\n".join(text))
     open(os.path.join(OUT_DIR, "sources.txt"), "w").write("\n".join(sorted(sources)) + "\n")
     print(f"wrote build/cosim/cosim_designs.vh: {len(designs())} designs x {args.cycles} cycles "
-          f"(source and golden netlist live, chains from .bit files)")
+          f"(VPR and Python PnR, source and golden netlist live, chains from .bit files)")
 
 
 if __name__ == "__main__":

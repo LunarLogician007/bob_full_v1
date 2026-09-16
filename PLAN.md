@@ -43,7 +43,7 @@ The 8×8 profile (48 CLBs, 9400 bits, `0x9BEEF093`) is frozen in `release/M7_8x8
 | M9 | pack/place/route with VPR on the committed rr graph | **passed on hardware 2026-09-17** (10/10, no rebuild) |
 | M10 | FASM ⇄ chain, `.bit` v2, `./bob build/load`, `.pcf`, golden netlist + co-simulation | **passed on hardware 2026-09-17** (7/7, no rebuild) |
 | M11 | real designs live: free-running clock, real switches, RAM readback, clock rate, FIR on DSPs | **passed on hardware 2026-09-17** (12/12 on the second run, every live goal reached; the first run found stale BRAM words, fixed in `bob load`) |
-| M12 | Python PnR checked against VPR (M12a, no rebuild) + area and a larger grid (M12b, rebuild) | **next** |
+| M12 | Python PnR checked against VPR (M12a, no rebuild) + area and a larger grid (M12b, rebuild) | **M12a built and simulated 2026-09-17, hardware test pending** (`make hwtest M=M12`, no rebuild): `tools/bob/pnr/` pack / annealing place / PathFinder route, wirelength 0.99× VPR over all designs, co-sim 18 designs (VPR + Python) == source. M12b needs the user's decision |
 | M13 | frame-based configuration (UG470), replacing the scan chain | planned, deliberately last |
 
 Hardware results are in `docs/hwtest/results.log`; Vivado reports are in `docs/reports/Mx/`; per-design guest reports in `docs/reports/M11/designs.md`.
@@ -717,6 +717,30 @@ Split in two, because only the second half changes the Vivado bitstream:
 - **HW:** `make hwtest M=M12` on the M7 bitstream:
   - `pnr-*`: the M10 golden check (LEDs vs source, CAPTURE vs golden) for the Python-routed examples.
   - `live-*` again on Python-routed switches/fir.
+
+**M12a as built (2026-09-17):**
+- **`tools/bob/pnr/`:**
+  - `netlist.py`: the eblif from `vpr_run.prepare` → atoms.
+  - `pack.py`: logic / arithmetic clusters, carry macros, global (clock) and direct (carry) nets.
+  - `place.py`: annealing with VPR's schedule (T0 = 20σ, 10·N^(4/3) moves, α by acceptance, range limit), macro moves with displacement, a legality check.
+  - `route.py`: PathFinder + A*. A sink may be a tuple of equivalent IPINs, so LUT inputs are permutable; the chosen pin sets the LUT's `port_rotation_map`.
+  - `write.py`: `.net` / `.place` / `.route` in VPR formats, with branches emitted in tree order.
+  - `run.py`: the driver, retrying the next seed if routing does not converge.
+  - `compare.py`: both flows measured identically → `docs/reports/M12/pnr_vs_vpr.md`.
+- **Integration:**
+  - `./bob build --pnr python`, and `cli.build` now returns the result directory (5-tuple).
+  - `hwtest M12`: `pnr-*` (9) and `live-fir-py`, `live-switches-py`.
+  - `tb_cosim` runs every design through both flows (18).
+  - `make pnr` regenerates the comparison.
+- **Results:**
+  - Same CLB count as VPR on every design.
+  - Total wirelength 1201 vs VPR 1215 (0.99×): better on LUT-heavy designs (pin permutation), up to 1.17× on carry-heavy ones.
+  - 0.02–0.17 s per design.
+  - Co-sim 4618 checks; `test_pnr.py` 13 (independent legality from the files, determinism, failing cases); fake-board M12 cases.
+- **Bugs found while building it:**
+  - Branches were written in sink order, not routing order, so the `.route` parser attached a branch to the wrong predecessor. It gave an illegal edge in one design and legal-but-wrong mux values in `gates`, which the model check caught. Now emitted in tree order.
+  - The BRAM/DSP `clk` pin was counted as a logic sink.
+- **Not in M12a:** timing-driven placement/routing (VPR optimises delay too); LUT pin permutation is not applied to adder inputs (DI = I0 is structural).
 
 **M12b — area and a larger grid (Vivado rebuild; needs the user's decision first).**
 - **Measured problem:** the 16-CLB fabric already costs 7670 LUTs / 10362 FFs on the XC7Z020 (M7 `util.rpt`), mostly configuration (4216-bit shift register + 4216-bit shadow register) and routing muxes. The 48-CLB profile did not get through Vivado synthesis in reasonable time.

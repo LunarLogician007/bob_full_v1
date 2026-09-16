@@ -10,7 +10,7 @@
 
 M ?= $(shell sed -n 's/^tag *= *\([A-Za-z0-9]*\).*/\1/p' hw/build.cfg)
 
-.PHONY: check device rrgraph vpr sim lint test mutate hw hwtest clean
+.PHONY: check device rrgraph vpr pnr sim lint test mutate hw hwtest clean
 
 # M7: arch XML -> VPR rr graph (Docker, committed) -> device.json / bob_params.vh / bob_fabric.v
 rrgraph:
@@ -23,6 +23,10 @@ vpr:
 	for t in gates adder counter blinky ram mult switches fir; do tools/bob/equiv.py examples/$$t.v || exit 1; done
 	tools/bob/vpr_run.py --repeat
 	tools/bob/fasm_from_vpr.py --check
+
+# M12a: bob's own Python pack/place/route vs VPR's committed results (no Docker)
+pnr:
+	tools/bob/pnr/compare.py
 .DEFAULT_GOAL := check
 
 # every deliberately broken guard must fail its testbench (slow-ish; not in check)

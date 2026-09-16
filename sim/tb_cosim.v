@@ -84,7 +84,7 @@ module tb_cosim;
 
     initial begin
         $display("");
-        $display("=== golden co-simulation: source Verilog vs the fabric loaded from .bit (M10) ===");
+        $display("=== golden co-simulation: source Verilog vs the fabric loaded from .bit (M10; VPR and Python PnR, M12) ===");
         tick(1'b1, 1'b0); tick(1'b1, 1'b0); tick(1'b1, 1'b0); tick(1'b1, 1'b0); tick(1'b1, 1'b0);
         tick(1'b0, 1'b0);
         run_cosim;

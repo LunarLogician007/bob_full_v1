@@ -771,7 +771,7 @@ def _synth_check(top, vpr=False):
 
 # --- M10: bob build / bob load, golden LEDs and CAPTURE ------------------------------------
 
-def _bob_check(name):
+def _bob_check(name, pnr="vpr"):
     def check(p, ctx):
         """`bob build` -> .bit -> `bob load`; every user clock the LEDs equal the source's
         and CAPTURE (every CLB flip-flop) equals the golden netlist's registers.
@@ -785,9 +785,10 @@ def _bob_check(name):
         import vpr_run
         from bitstream import FABRIC_CFG_W, NCLB
         top, pcf = vpr_run.VARIANTS.get(name, (name, None))
-        path, word, contents, tr = cli.build([os.path.join(ROOT, "examples", f"{top}.v")], top, pcf,
-                                             os.path.join(ROOT, "build", "bit", f"{name}.bit"),
-                                             name=name, log=lambda *_: None)
+        suffix = "_py" if pnr == "python" else ""
+        path, word, contents, tr, work = cli.build([os.path.join(ROOT, "examples", f"{top}.v")], top, pcf,
+                                                   os.path.join(ROOT, "build", "bit", f"{name}{suffix}.bit"),
+                                                   name=name, log=lambda *_: None, pnr=pnr)
         ok, msg = cli.load(p, path, start=False, log=lambda *_: None)
         if not ok:
             return False, msg
@@ -795,7 +796,7 @@ def _bob_check(name):
         if back != bitgen.features_from_word(bitgen.read_bit(path)["word"]):
             return False, "CFG_OUT readback decodes to different FASM than the .bit"
         cfgplane.jstart(p)
-        cmap = fasm_from_vpr.capture_map(name)
+        cmap = fasm_from_vpr.capture_map(name, work)
         pos = {b: i for i, b in enumerate(tr["nets"])}
         cfgplane.user1(p, 0x10)                  # autostep: one user clock per INTEST scan
         cfgplane.ir(p, "INTEST")
@@ -821,7 +822,7 @@ def _bob_check(name):
         return not bad, (f"{msg}; readback == FASM; {len(trace)} clocks LEDs == source, "
                          f"{caps} CAPTUREs x {len(cmap)} registers == golden"
                          if not bad else f"{len(bad)} wrong, first {bad[:3]}")
-    check.__name__ = f"check_bob_{name}"
+    check.__name__ = f"check_bob_{name}{'_py' if pnr == 'python' else ''}"
     return check
 
 
@@ -831,14 +832,15 @@ LIVE_DIV = 15                  # 125 MHz / 2**23 = 14.9 Hz: slower than a CAPTUR
 LIVE_SECONDS = 8.0
 
 
-def _live_build(name):
+def _live_build(name, pnr="vpr"):
     import cli
     import vpr_run
     top, pcf = vpr_run.VARIANTS.get(name, (name, None))
-    path, word, contents, tr = cli.build([os.path.join(ROOT, "examples", f"{top}.v")], top, pcf,
-                                         os.path.join(ROOT, "build", "bit", f"{name}_run.bit"), clock="run",
-                                         div=LIVE_DIV, name=name, log=lambda *_: None)
-    return path, word
+    suffix = "_py" if pnr == "python" else ""
+    path, word, contents, tr, work = cli.build([os.path.join(ROOT, "examples", f"{top}.v")], top, pcf,
+                                               os.path.join(ROOT, "build", "bit", f"{name}{suffix}_run.bit"),
+                                               clock="run", div=LIVE_DIV, name=name, log=lambda *_: None, pnr=pnr)
+    return path, word, work
 
 
 def _live_state(p, cmap_idx):
@@ -945,7 +947,7 @@ def _live_guide(name, word):
             print(f"             [ ] {label}")
 
 
-def _live_check(name):
+def _live_check(name, pnr="vpr"):
     def check(p, ctx):
         """Live on the real switches (free-running clock): whenever the registers are stable
         across CAPTURE-SAMPLE-CAPTURE, model.py given those registers and the sampled pins
@@ -959,11 +961,11 @@ def _live_check(name):
         import model
         from bitstream import BLOCKS, CLBS, FABRIC_CFG_W, Bitstream
         guide = LIVE_GUIDE[name]
-        path, word = _live_build(name)
+        path, word, work = _live_build(name, pnr)
         ok, msg = cli.load(p, path, log=lambda *_: None)
         if not ok:
             return False, msg
-        idx = [i for i, _bit in fasm_from_vpr.capture_map(name)]
+        idx = [i for i, _bit in fasm_from_vpr.capture_map(name, work)]
         interactive = _interactive() and not guide.get("auto")
         _live_guide(name, word)
         if interactive:
@@ -1023,7 +1025,7 @@ def _live_check(name):
         how = ("all goals reached" if (interactive or guide.get("auto"))
                else "goals not checked (not a terminal: run `make hwtest` interactively)")
         return True, f"{stats}; {how}; readback while running == .bit"
-    check.__name__ = f"check_live_{name}"
+    check.__name__ = f"check_live_{name}{'_py' if pnr == 'python' else ''}"
     return check
 
 
@@ -1037,7 +1039,7 @@ def check_blinky_rate(p, ctx):
     import fasm_from_vpr
     import fpga
     from bitstream import DIV_MIN_SHIFT, NCLB
-    path, _word = _live_build("blinky")
+    path, _word, _work = _live_build("blinky")
     ok, msg = cli.load(p, path, log=lambda *_: None)
     if not ok:
         return False, msg
@@ -1070,7 +1072,7 @@ def check_ram_readback(p, ctx):
     import fpga
     import model
     from bitstream import FABRIC_CFG_W, Bitstream
-    path, word, contents, tr = cli.build([os.path.join(ROOT, "examples", "ram.v")], "ram", None,
+    path, word, contents, tr, _work = cli.build([os.path.join(ROOT, "examples", "ram.v")], "ram", None,
                                          os.path.join(ROOT, "build", "bit", "ram.bit"), log=lambda *_: None)
     ok, msg = cli.load(p, path, log=lambda *_: None)
     if not ok:
@@ -1271,6 +1273,20 @@ MILESTONE = {
             ("live-fir", _live_check("fir")),
             ("live-mult", _live_check("mult")),
             ("live-switches", _live_check("switches"))],          # last: leaves switches.v running
+    # M12a: still no RTL change. Every example placed and routed by bob's own Python PnR
+    # (tools/bob/pnr/) instead of VPR, through the M10 golden check, then two live.
+    "M12": [("chain-length", check_chain_length),
+            ("pnr-gates", _bob_check("gates", pnr="python")),
+            ("pnr-adder", _bob_check("adder", pnr="python")),
+            ("pnr-counter", _bob_check("counter", pnr="python")),
+            ("pnr-blinky", _bob_check("blinky", pnr="python")),
+            ("pnr-ram", _bob_check("ram", pnr="python")),
+            ("pnr-mult", _bob_check("mult", pnr="python")),
+            ("pnr-switches", _bob_check("switches", pnr="python")),
+            ("pnr-fir", _bob_check("fir", pnr="python")),
+            ("pnr-gates-swapped", _bob_check("gates_swapped", pnr="python")),
+            ("live-fir-py", _live_check("fir", pnr="python")),
+            ("live-switches-py", _live_check("switches", pnr="python"))],   # last: leaves switches running
 }
 
 

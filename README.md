@@ -20,7 +20,7 @@ For the detailed plan, conventions, gotchas and every milestone, read [`PLAN.md`
 | M9 | VPR packs, places and routes the examples → FASM → chain | **passed on the board 2026-09-17** (10/10, no rebuild) |
 | M10 | bitgen (FASM ⇄ chain, `.bit`), `bob build`/`bob load`, `.pcf` pins, golden co-simulation | **passed on the board 2026-09-17** (7/7, no rebuild) |
 | M11 | real designs live on the board (free-running clock, real switches): switches, FIR on DSPs, RAM readback, blinky rate | **passed on the board 2026-09-17** (12/12, no rebuild) |
-| M12 | **next:** Python pack/place/route checked against VPR (no rebuild), then area and a larger grid (rebuild) | planned in `PLAN.md` |
+| M12 | **M12a built and simulated 2026-09-17:** bob's own Python pack/place/route (`--pnr python`), 0.99× VPR's wirelength; board test pending (no rebuild). M12b (area, larger grid, rebuild) awaits a decision | in progress |
 | M13 | frame-based configuration (UG470) replacing the scan chain | planned, last |
 
 After M7 the Vivado bitstream stayed the same through M11: those milestones only load new configuration chains over JTAG. M12a (Python PnR) needs no rebuild either; the next Vivado rebuilds come at M12b (area, bigger grid) and M13 (new config plane).
@@ -65,6 +65,7 @@ make hwtest M=M8        # same bitstream: yosys-synthesised examples (docs/hwtes
 make hwtest M=M9        # same bitstream: the examples placed and routed by VPR (docs/hwtest/M9.md)
 make hwtest M=M10       # same bitstream: bob build/load, LEDs vs source, CAPTURE vs golden (docs/hwtest/M10.md)
 make hwtest M=M11       # same bitstream: designs live on the switches, RAM readback, clock rate (docs/hwtest/M11.md)
+make hwtest M=M12       # same bitstream: every example placed and routed by bob's own Python PnR (docs/hwtest/M12.md)
 ```
 
 Every run is appended to `docs/hwtest/results.log`. To test an older bitstream, use its frozen tools, e.g. `cd release/mac_M6/host && ./hwtest.py --milestone M6`.
@@ -82,6 +83,8 @@ tools/bob/fasm_from_vpr.py --check        # committed VPR results -> FASM -> cha
 ./bob load build/bit/counter.bit          # CFG_IN + readback, BRAM contents, JSTART (Pico attached)
 ./bob build examples/switches.v --clock run --div 15   # free-running user clock (14.9 Hz); then ./bob load
 ./bob info build/bit/counter.bit          # or: ./bob fasm build/bit/counter.bit
+./bob build examples/fir.v --pnr python   # M12: bob's own pack/place/route instead of VPR (no Docker)
+tools/bob/pnr/compare.py                  # Python PnR vs VPR -> docs/reports/M12/pnr_vs_vpr.md
 sim/run_cosim_sim.sh                      # golden co-simulation: source live vs fabric RTL loaded from .bit
 sim/run_synth_sim.sh                      # the same bitstreams on the complete FPGA RTL
 ```

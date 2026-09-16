@@ -224,3 +224,19 @@ def test_m11_ram_readback_fails_when_memory_differs():
             return out ^ 1 if self.ir == "BRAM" and not self.done else out
     ok, msg = hwtest.check_ram_readback(BadRam(), {})
     assert not ok and "bram0" in msg
+
+
+@pytest.mark.parametrize("name", ["counter", "ram", "gates_swapped"])
+def test_m12_python_pnr_check_passes_on_a_good_board(name):
+    ok, msg = hwtest._bob_check(name, pnr="python")(FakeBob(), {})
+    assert ok, msg
+
+
+def test_m12_python_pnr_check_fails_when_capture_is_wrong():
+    ok, msg = hwtest._bob_check("counter", pnr="python")(FakeBob(corrupt_capture=True), {})
+    assert not ok and "CAPTURE" in msg
+
+
+def test_m12_live_python_pnr(at_the_board):
+    ok, msg = hwtest._live_check("switches", pnr="python")(FakeBob(switches=_fast_person, rate_scale=4), {})
+    assert ok and "all goals reached" in msg, msg

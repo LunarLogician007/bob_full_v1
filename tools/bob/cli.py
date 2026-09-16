@@ -3,7 +3,7 @@
 bob - build a Verilog design for the bob FPGA and load it (M10).
 
   ./bob build examples/counter.v [--top counter] [--pcf pins.pcf] [-o counter.bit]
-              [--clock jtag|run] [--div N] [--seed N]
+              [--clock jtag|run] [--div N] [--seed N] [--pnr vpr|python]
   ./bob load  counter.bit [--watch]          (Pico on PMODA, M7 bitstream in the PL)
   ./bob info  counter.bit
   ./bob fasm  counter.bit                     the chain as FASM
@@ -12,9 +12,11 @@ build, every step checked before the next:
   1. synthesis   tools/bob/synth.py (yosys onto bob cells)
   2. equivalence tools/bob/equiv.py: source == yosys netlist == golden netlist in
                  iverilog; saves the source trace and every golden net per clock
-  3. place/route VPR on the committed rr graph (tools/bob/vpr_run.py). A committed
-                 result in tools/bob/vpr/<name>/ that is still fresh is reused (no
-                 Docker); otherwise VPR runs in Docker into build/vpr/<name>/
+  3. place/route --pnr vpr (default): VPR on the committed rr graph (tools/bob/vpr_run.py);
+                 a fresh committed result in tools/bob/vpr/<name>/ is reused (no
+                 Docker), otherwise VPR runs in Docker into build/vpr/<name>/.
+                 --pnr python (M12): bob's own pack/place/route (tools/bob/pnr/),
+                 same netlist, pins and output files, into build/pnr/<name>/
   4. FASM        tools/bob/fasm_from_vpr.py, legality-checked against device.json
   5. bits        tools/bob/bitgen.py; --clock sets the ctrl tile (jtag: stepped over
                  JTAG, as the tests do; run: free-running, 125 MHz / 2**(div+8))
@@ -49,8 +51,18 @@ class BuildError(Exception):
     pass
 
 
-def build(files, top=None, pcf=None, out=None, clock="jtag", div=0, seed=1, name=None, log=print):
-    """-> (bit path, word, bram contents, board trace or None)"""
+def result_dir(name, pnr="vpr"):
+    """where build() took the place-and-route result from"""
+    if pnr == "python":
+        return os.path.join(ROOT, "build", "pnr", name)
+    stamp = vpr_run.read_stamp(name)
+    if stamp is not None and vpr_run.stale(name) is None:
+        return os.path.join(vpr_run.RESULTS, name)
+    return os.path.join(ROOT, "build", "vpr", name)
+
+
+def build(files, top=None, pcf=None, out=None, clock="jtag", div=0, seed=1, name=None, log=print, pnr="vpr"):
+    """-> (bit path, word, bram contents, board trace or None, result directory)"""
     import equiv
     top = top or os.path.splitext(os.path.basename(files[0]))[0]
     if not name and pcf:
@@ -71,7 +83,19 @@ def build(files, top=None, pcf=None, out=None, clock="jtag", div=0, seed=1, name
     stamp = vpr_run.read_stamp(name)
     same_pins = stamp is not None and stamp.get("pcf", "-") == (os.path.relpath(os.path.abspath(pcf), ROOT)
                                                                if pcf else "-")
-    if same_pins and vpr_run.stale(name) is None:
+    pnr_stats = None
+    if pnr == "python":
+        from pnr import pack as pnr_pack, place as pnr_place, route as pnr_route, run as pnr_run
+        try:
+            work, pnr_stats = pnr_run.run(top, seed, pcf, name)
+        except (vpr_run.VprError, pnr_pack.PackError, pnr_place.PlaceError, pnr_route.RouteError) as e:
+            raise BuildError(f"python pnr: {e}")
+        log(f"  pnr      python: {pnr_stats['clusters']['clb']} CLBs, wirelength {pnr_stats['wirelength']}, "
+            f"{pnr_stats['iterations']} routing iteration(s), "
+            f"{pnr_stats['pack_s'] + pnr_stats['place_s'] + pnr_stats['route_s']:.2f} s -> {os.path.relpath(work, ROOT)}")
+    elif pnr != "vpr":
+        raise BuildError("--pnr is vpr or python")
+    elif same_pins and vpr_run.stale(name) is None:
         work = os.path.join(vpr_run.RESULTS, name)
         log(f"  vpr      reused committed {os.path.relpath(work, ROOT)} (routed from this netlist and arch)")
     else:
@@ -117,12 +141,15 @@ def build(files, top=None, pcf=None, out=None, clock="jtag", div=0, seed=1, name
             "sources": [os.path.relpath(os.path.abspath(f), ROOT) for f in files],
             "source_sha256": hashlib.sha256(b"".join(open(f, "rb").read() for f in files)).hexdigest(),
             "pcf": os.path.relpath(os.path.abspath(pcf), ROOT) if pcf else None,
-            "vpr_result": stampd.get("result_sha") or vpr_run.summary(work, name)["result_sha"],
+            "pnr": pnr,
+            "vpr_result": (None if pnr == "python" else
+                           stampd.get("result_sha") or vpr_run.summary(work, name)["result_sha"]),
+            "pnr_seed": pnr_stats["seed"] if pnr_stats else None,
             "clock": clock, "div": div}
     bitgen.write_bit(out, word, contents, meta)
     log(f"  bit      {os.path.relpath(os.path.abspath(out), ROOT)}: {B.CHAIN_W}-bit chain"
         + (f", BRAM {sorted(b for b, w in contents.items() if any(w))}" if any(map(any, contents.values())) else ""))
-    return out, word, contents, tr
+    return out, word, contents, tr, work
 
 
 def write_brams(p, brams):
@@ -169,6 +196,7 @@ def main():
     b.add_argument("--div", type=int, default=0)
     b.add_argument("--seed", type=int, default=1)
     b.add_argument("--name", help="result name (default top, or top_<pcf>)")
+    b.add_argument("--pnr", default="vpr", choices=("vpr", "python"), help="place and route with VPR or bob's own (M12)")
     ld = sub.add_parser("load")
     ld.add_argument("bit")
     ld.add_argument("--watch", action="store_true", help="show the LEDs afterwards (fpga.py --watch)")
@@ -180,7 +208,8 @@ def main():
     try:
         if args.cmd == "build":
             print(f"bob build {' '.join(args.files)}")
-            build(args.files, args.top, args.pcf, args.output, args.clock, args.div, args.seed, args.name)
+            build(args.files, args.top, args.pcf, args.output, args.clock, args.div, args.seed, args.name,
+                  pnr=args.pnr)
             return 0
         if args.cmd == "info":
             c = bitgen.read_bit(args.bit)
