@@ -8,6 +8,10 @@
 //   - CFG_CTRL (USER2) 64-bit register: status out, expected CRC in behind a
 //     write key
 //   - JPROGRAM clear, and the JSTART sequence GSR -> GTS -> GWE -> DONE
+//   - M13: the chain arrives on CHAIN_IN/CHAIN_OUT (sel_cfg_in/out here); it
+//     commits only while GWE = 0; startup runs after a good chain load OR after
+//     the frame controller accepted START (frames_ok), and its errors show in
+//     the IR capture
 //
 // Edge discipline: counters, flags and startup on the rising edge; the
 // expected-CRC write on the falling edge (Update-DR); the cfg commit itself is
@@ -31,6 +35,9 @@ module cfg_ctrl #(
     input  wire        sel_ctrl,
     input  wire        jprogram,
     input  wire        jstart_tick,
+    input  wire        frames_ok,      // cfg_frames: START accepted
+    input  wire        frames_error,   // cfg_frames: any error
+    input  wire        frames_crc_error,
 
     // to cfg_mem
     output wire        cfg_capture,
@@ -77,7 +84,7 @@ module cfg_ctrl #(
     wire        len_good  = (count == WANT_COUNT);
     wire        load_good = crc_good & len_good;
 
-    assign cfg_commit = sel_cfg_in & dr_update & load_good;
+    assign cfg_commit = sel_cfg_in & dr_update & load_good & ~gwe;
 
     // ---------------------------------------------------------------------
     // CRC and bit count over one CFG_IN scan
@@ -112,11 +119,11 @@ module cfg_ctrl #(
                 crc_ok  <= load_good;
                 crc_err <= ~crc_good;
                 len_err <= ~len_good;
-                if (load_good)
+                if (load_good & ~gwe)
                     committed <= 1'b1;
             end
 
-            if (jstart_tick & committed & (phase != 3'd4)) begin
+            if (jstart_tick & (committed | frames_ok) & (phase != 3'd4)) begin
                 phase <= phase + 3'd1;
                 case (phase)
                     3'd0:    gsr  <= 1'b0;
@@ -147,7 +154,8 @@ module cfg_ctrl #(
     end
 
     assign ctrl_so   = ctrl_sr[0];
-    assign ir_status = {done, ~(crc_err | len_err), committed, crc_err};
+    assign ir_status = {done, ~(crc_err | len_err | frames_error), committed | frames_ok,
+                        crc_err | frames_crc_error};
 
     initial begin
         gsr       = 1'b1;

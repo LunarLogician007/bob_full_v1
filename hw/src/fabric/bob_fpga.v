@@ -5,12 +5,15 @@
 // No BUFG, no pin assignments, no vendor primitives: the identical file runs in
 // simulation and in synthesis. Sizes come from bob_params.vh (tools/bob/device.py).
 //
-// Configuration (docs/bitstream-format.md):
-//   jtag_tap6    6-bit AMD 7-series IR (CFG_IN/CFG_OUT/USER1-4/JPROGRAM/JSTART/DSP)
-//   cfg_ctrl     CRC-32C + length check before commit; GSR/GTS/GWE/DONE startup
-//   u_chain      the whole configuration chain (ctrl tile, grid tiles, tail) as
-//                one shift register + shadow register; the tile boundaries are
-//                device.json's, the RTL does not need them
+// Configuration (docs/bitstream-format.md sections 4-11):
+//   jtag_tap6    6-bit AMD 7-series IR (CFG_IN/CFG_OUT/USER1-4/JPROGRAM/JSTART/DSP,
+//                private CHAIN_IN/CHAIN_OUT/INTEST)
+//   cfg_frames   M13: UG470-style packets on CFG_IN/CFG_OUT - sync word, type-1/2
+//                packets, FAR/FDRI/FDRO/CMD/STAT/IDCODE/CRC, frames of 4 words
+//   cfg_ctrl     the chain's CRC-32C + length check (CHAIN_IN); GSR/GTS/GWE/DONE
+//                startup after either path
+//   u_store      the configuration memory: NFRAMES frames, written by the chain
+//                (shift register + shadow) or frame by frame; both only while GWE = 0
 //   capture      USER3 snapshots every CLB output; USER1 returns the first 16
 //
 // User clock (clock_ctrl.v): the fabric runs on sysclk with gce as its enable -
@@ -61,7 +64,8 @@ module bob_fpga #(
     wire                bsr_si, bsr_so, tlr;
     wire                dr_capture, dr_shift, dr_update;
     wire                sel_cfg_in, sel_cfg_out, sel_ctrl, sel_capture, sel_bram, sel_dsp;
-    wire                cfg_so, ctrl_so, cap_so, bram_so, dsp_so;
+    wire                sel_chain_in, sel_chain_out;
+    wire                cfg_so, pkt_so, ctrl_so, cap_so, bram_so, dsp_so;
     wire                jprogram, jstart_tick;
     wire [3:0]          ir_status;
     wire                ce, sr, cin, step_pulse;
@@ -70,7 +74,12 @@ module bob_fpga #(
     // configuration plane
     wire                cfg_capture, cfg_shift, cfg_commit, cfg_clear;
     wire                gsr, gts, gwe, done, committed;
-    wire [CHAIN_W-1:0]  chain_cfg;                    // chain bit k = chain_cfg[k]
+    wire [CHAIN_W-1:0]  chain_cfg;                    // chain bit k = chain_cfg[k] = memory bit k
+    localparam integer  FIDX_W = 8;
+    wire                frame_we, frames_ok, frames_error, frames_crc_error;
+    wire [FIDX_W-1:0]   frame_idx;
+    wire [`BOB_FRAME_BITS-1:0] frame_data;
+    wire [31:0]         frames_stat;
     wire [CTRL_W-1:0]   ctrl_cfg = chain_cfg[CTRL_W-1:0];
 
     // user clock
@@ -110,11 +119,14 @@ module bob_fpga #(
         .dr_update   (dr_update),
         .sel_cfg_in  (sel_cfg_in),
         .sel_cfg_out (sel_cfg_out),
+        .sel_chain_in  (sel_chain_in),
+        .sel_chain_out (sel_chain_out),
         .sel_ctrl    (sel_ctrl),
         .sel_capture (sel_capture),
         .sel_bram    (sel_bram),
         .sel_dsp     (sel_dsp),
         .cfg_so      (cfg_so),
+        .pkt_so      (pkt_so),
         .ctrl_so     (ctrl_so),
         .cap_so      (cap_so),
         .bram_so     (bram_so),
@@ -137,11 +149,14 @@ module bob_fpga #(
         .dr_capture  (dr_capture),
         .dr_shift    (dr_shift),
         .dr_update   (dr_update),
-        .sel_cfg_in  (sel_cfg_in),
-        .sel_cfg_out (sel_cfg_out),
+        .sel_cfg_in  (sel_chain_in),          // M13: the chain lives on CHAIN_IN / CHAIN_OUT
+        .sel_cfg_out (sel_chain_out),
         .sel_ctrl    (sel_ctrl),
         .jprogram    (jprogram),
         .jstart_tick (jstart_tick),
+        .frames_ok        (frames_ok),
+        .frames_error     (frames_error),
+        .frames_crc_error (frames_crc_error),
         .cfg_capture (cfg_capture),
         .cfg_shift   (cfg_shift),
         .cfg_commit  (cfg_commit),
@@ -155,16 +170,49 @@ module bob_fpga #(
         .ir_status   (ir_status)
     );
 
-    // TDI -> chain_cfg[CHAIN_W-1] ... chain_cfg[0] -> TDO
-    cfg_tile_sr #(.W(CHAIN_W)) u_chain (
-        .tck     (tck),
-        .capture (cfg_capture),
-        .shift   (cfg_shift),
-        .commit  (cfg_commit),
-        .clear   (cfg_clear),
-        .si      (tdi),
-        .so      (cfg_so),
-        .cfg     (chain_cfg)
+    cfg_frames #(
+        .IDCODE_VALUE (IDCODE_VALUE),
+        .FW           (`BOB_FRAME_WORDS),
+        .NFRAMES      (`BOB_NFRAMES),
+        .NCOLS        (`BOB_FAR_NCOLS),
+        .FAR_TABLE    (`BOB_FAR_TABLE),
+        .FIDX_W       (FIDX_W)
+    ) u_frames (
+        .tck        (tck),
+        .tdi        (tdi),
+        .dr_capture (dr_capture),
+        .dr_shift   (dr_shift),
+        .sel_in     (sel_cfg_in),
+        .sel_out    (sel_cfg_out),
+        .jprogram   (jprogram),
+        .gsr        (gsr),
+        .gts        (gts),
+        .gwe        (gwe),
+        .done       (done),
+        .mem        (chain_cfg),
+        .so         (pkt_so),
+        .frame_we   (frame_we),
+        .frame_idx  (frame_idx),
+        .frame_data (frame_data),
+        .start_ok   (frames_ok),
+        .any_error  (frames_error),
+        .crc_error  (frames_crc_error),
+        .stat       (frames_stat)
+    );
+
+    // chain: TDI -> memory bit CHAIN_W-1 ... bit 0 -> TDO; frames: frame f = bits [FB*f +: FB]
+    cfg_store #(.FB(`BOB_FRAME_BITS), .NFRAMES(`BOB_NFRAMES), .FIDX_W(FIDX_W)) u_store (
+        .tck        (tck),
+        .capture    (cfg_capture),
+        .shift      (cfg_shift),
+        .commit     (cfg_commit),
+        .clear      (cfg_clear),
+        .si         (tdi),
+        .so         (cfg_so),
+        .frame_we   (frame_we),
+        .frame_idx  (frame_idx),
+        .frame_data (frame_data),
+        .cfg        (chain_cfg)
     );
 
     capture_chain #(.N(NCLB)) u_cap (
@@ -178,7 +226,8 @@ module bob_fpga #(
 
     clock_ctrl #(
         .DIV_W     (`BOB_CTRL_CLK_DIV_W),
-        .MIN_SHIFT (DIV_MIN_SHIFT)
+        .MIN_SHIFT (DIV_MIN_SHIFT),
+        .GAP_SHIFT (DIV_MIN_SHIFT)            // M13: gce >= 2**8 sysclk cycles apart on the board
     ) u_clk (
         .sysclk   (sysclk),
         .tck      (tck),
@@ -268,8 +317,11 @@ module bob_fpga #(
     );
 
     // ---------------------------------------------------------------------
-    // The generated fabric (tools/bob/fabric_gen.py)
+    // The generated fabric (tools/bob/fabric_gen.py). Its hierarchy is kept so the
+    // multicycle constraints on u_fabric/* still name its registers after synthesis
+    // (M7 lost them to flattening; docs/bitstream-format.md section 11).
     // ---------------------------------------------------------------------
+    (* keep_hierarchy = "yes" *)
     bob_fabric u_fabric (
         .clk            (sysclk),
         .gce            (gce),
@@ -295,7 +347,7 @@ module bob_fpga #(
     assign configured = done;
 
     // USER1 sr is superseded by the routed per-CLB SR (M4).
-    wire _unused = &{1'b0, committed, ir_value, sr,
+    wire _unused = &{1'b0, committed, ir_value, sr, frames_stat,
                      ctrl_cfg[CTRL_W-1:`BOB_CTRL_CLK_DIV_LO + `BOB_CTRL_CLK_DIV_W]};
 
 endmodule

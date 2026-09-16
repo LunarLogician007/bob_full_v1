@@ -699,7 +699,7 @@
     title: "JTAG TAP — jtag_tap6.v", sub: "IEEE 1149.1 · 16-state FSM · 6-bit AMD 7-series IR", k: "CFG", stage: "hw/src/core/jtag_tap6.v",
     rows: [F("every host operation", ["TMS walk", "Select-DR/IR", null, "CFG"], ["Capture", "load the register", null, "CFG"], ["Shift", "LSB first, TDO on falling edge", null, "CFG"], ["Update", "falling edge", null, "CFG"]),
       B("instructions → registers",
-        ["CFG_IN 000101 · CFG_OUT 000100", "the chain", "chain", "CFG"], ["USER2 000011 CFG_CTRL", "CRC, status", "cfgctrl", "CFG"],
+        ["CFG_IN 000101 · CFG_OUT 000100", "M13: frame packets", "frames", "CFG"], ["CHAIN_IN 110101 · CHAIN_OUT 110100", "the chain", "chain", "CFG"], ["USER2 000011 CFG_CTRL", "CRC, status", "cfgctrl", "CFG"],
         ["USER1 · USER3 CAPTURE", "ce/step/cin · CLB outs", "capture", "CFG"], ["USER4 100011 · DSP 101000", "BRAM / DSP access", "user4", "CFG"],
         ["JPROGRAM · JSTART", "clear · startup", "startup", "CFG"], ["SAMPLE · EXTEST · INTEST", "boundary", "bsr", "CFG"])],
     notes: ["Capture-IR returns <code>{DONE, INIT_B, COMMITTED, CRC_ERR, 0, 1}</code>, so any IR scan reports configuration status.",
@@ -715,7 +715,7 @@
   D("cfgctrl", {
     title: "CFG_CTRL — CRC-32C commit guard", sub: "commit only if count == 4216 AND ~crc == expected", k: "CFG", stage: "hw/src/core/cfg_ctrl.v",
     rows: [F("one load", ["JPROGRAM", "clear cfg, GSR=GTS=1", "startup", "CFG"], ["CFG_CTRL write", "key 0xC5 + expected CRC", null, "CFG"],
-        ["CFG_IN shift", "CRC + count per bit", "chain", "CFG"], ["Update-DR", "commit ⇔ len_good ∧ crc_good", null, "CFG"], ["CFG_OUT", "readback, never commits", "chain", "CFG"], ["JSTART", "phases", "startup", "CFG"]),
+        ["CHAIN_IN shift", "CRC + count per bit", "chain", "CFG"], ["Update-DR", "commit ⇔ len_good ∧ crc_good ∧ GWE = 0", null, "CFG"], ["CHAIN_OUT", "readback, never commits", "chain", "CFG"], ["JSTART", "phases (chain or frames)", "startup", "CFG"]),
       B("status register (64)", ["[31:0] ~crc", "", null, "CFG"], ["[47:32] count", "", null, "CFG"], ["[55:48] flags", "DONE GWE GTS GSR COMMITTED LEN_ERR CRC_ERR CRC_OK", null, "CFG"], ["[63:56] 0x02", "version", null, "CFG"])],
     notes: ["CRC-32C reflected 0x82F63B78, init/xorout 0xFFFFFFFF, bit-serial in shift order; 4216 is byte aligned so it equals the byte-wise CRC-32C.",
       "A corrupted chain sets CRC_ERR and the <b>running design keeps working</b> (tb section [4], hwtest crc-reject-live)."],
@@ -743,7 +743,8 @@
     rows: [F("per bit", ["TDI", "enters bit 4215", null, "CFG"], ["sr (posedge)", "capture ← cfg · shift", null, "CFG"], ["cfg shadow (negedge)", "commit / clear", null, "CFG"], ["fabric", "sees only cfg", "routing", "GTX"]),
       B("order", ["ctrl 8", "clk_mode, clk_div", "clock", "CMT"], ["grid tiles", "block fields, then muxes by node id", "routing", "GTX"], ["tail", "byte pad", null, "CFG"])],
     notes: ["Chain bit k is the k-th bit shifted in. Tile boundaries exist only in device.json — the RTL is one 4216-bit <code>cfg_tile_sr</code>.",
-      "Shadow register: the fabric never sees bits sliding past, and CFG_OUT readback is non-destructive.",
+      "Shadow register: the fabric never sees bits sliding past, and CHAIN_OUT readback is non-destructive.",
+      "M13: the same memory is laid out in 128-bit frames (39 of them); the chain is all frames end to end, so a chain word loads identically over CHAIN_IN or as frames over CFG_IN.",
       "M13 replaces exactly this module with UG470 frames; tiles, VPR and the tools stay."],
     src: [["OpenFPGA config_protocol scan_chain", "chain through every tile's configuration flops"], ["Aegis docs/arch/configuration.md", "shift register + shadow config register"]],
     why: ["Scan chain is the simplest protocol proven in both projects; frames come last (M13) once everything else is solid."],
@@ -926,6 +927,56 @@
     drill: ["flow", "capture", "bsr"]
   });
 
+  /* ============================ M13: frames and timing ============================ */
+  D("frames", {
+    title: "Frame configuration — UG470-style packets (M13)", sub: `CFG_IN / CFG_OUT · sync 0xAA995566 · type-1/2 packets · ${BOB.chain / 128} frames × 4 words · the chain kept on CHAIN_IN`, k: "CFG", stage: "hw/src/core/cfg_frames.v",
+    rows: [F("CFG_IN, word by word (MSB first)",
+        ["hunt", "bit by bit for 0xAA995566", null, "CFG"],
+        ["type-1 header", "[31:29]=001 op reg[17:13] count[10:0]", null, "CFG"],
+        ["type-2 header", "[31:29]=010 op count[26:0]", null, "CFG"],
+        ["register write", "CRC-32C over {reg, data}", "cfgctrl", "CFG"]),
+      B("registers",
+        ["FAR", "block · row · column · minor, auto-increment", null, "CFG"],
+        ["FDRI", "4 words → one 128-bit frame into cfg_store", "chain", "CFG"],
+        ["FDRO", "frame words out on CFG_OUT (needs RCFG)", null, "CFG"],
+        ["CMD", "WCFG RCFG RCRC LFRM START DESYNC", "startup", "CFG"],
+        ["STAT · IDCODE · CRC", "errors CRC/ID/PKT/WR, INIT_B, DONE", null, "CFG"])],
+    notes: ["The configuration memory is column-major frames: FAR column 0 = the ctrl tile, FAR column x+1 = grid column x, each padded to whole frames. The chain is exactly all frames end to end, so both paths write one memory and read it back identically (hwtest frames-vs-chain).",
+      "Writes need WCFG, a matched IDCODE and GWE = 0; START needs a CRC match after the last frame. Any error parks the parser until JPROGRAM, as a 7-series device does.",
+      "Simplified against 7-series: a frame lands when its 4th word arrives (no pad frame on load, no garbage frame on readback); no encryption, compression, COR/CTL, ECC or multiboot; BRAM contents stay on USER4 (FAR block type 001 reserved).",
+      "tools/bob/packets.py builds the streams and holds a bit-level Python model of this controller; every expected value in tb_frames comes from it."],
+    src: [["AMD UG470 chapter 5", "sync word, packet headers, register and CMD codes, FAR layout"], ["resourses/04-config-bitstream/CONFIG-CONTROLLER.md", "parser states, frame writer, gotchas"], ["prjxray crc.py", "CRC over {address, data}"]],
+    why: ["The user asked for frames 'just like AMD, slightly simplified', keeping the chain as an option: frames make the stream self-synchronising, addressable and readable per frame, which the chain is not."],
+    files: [["hw/src/core/cfg_frames.v", "parser, registers, frame writer, readback"], ["hw/src/core/cfg_store.v", "one memory, chain and frame write paths"], ["hw/src/core/jtag_tap6.v", "CFG_IN/CFG_OUT vs CHAIN_IN/CHAIN_OUT"], ["tools/bob/packets.py", "streams, model, dump"], ["host/cfgplane.py", "load_frames, frames_readback, frames_stat"], ["docs/bitstream-format.md §9–10", "specification"]],
+    tb: [["hw/tb/tb_frames.v", "34 checks: load, readback, split stream, CRC/ID/PKT/WR errors, GWE refusal, chain after frames"], ["sim/mutate_frames.sh", "16 guard mutants, all killed"], ["hwtest M13 frames-*", "board"]],
+    drill: ["chain", "cfgctrl", "startup", "timing"]
+  });
+
+  D("timing", {
+    title: "Host timing — why M7 failed and what M13 guarantees", sub: "M7: WNS −1102 ns · TNS −1 608 726 ns · 1858 failing endpoints → M13 constraints that are true by construction", k: "CMT", stage: "hw/constr/pynq_z2.xdc",
+    rows: [F("sysclk (M7 −1102 ns)",
+        ["fabric register", "e.g. BRAM hold register", "bram", "BRAM"],
+        ["1202 logic levels", "through unconfigured routing loops", "routing", "GTX"],
+        ["fabric register", "1110 ns > 120-cycle budget, and the name escaped the filter", null, "BRAM"]),
+      F("tck (M7 −657 ns)",
+        ["IR / boundary update", "", "jtag", "CFG"],
+        ["fabric + DSP comb", "~1650 ns", "dsp", "DSP"],
+        ["DSP JTAG capture", "under a 1 MHz clock, driven at 100 kHz", "dspjtag", "CFG"]),
+      B("M13",
+        ["gce gap ≥ 256 cycles", "clock_ctrl.v, both modes", "clock", "CMT"],
+        ["keep_hierarchy u_fabric", "multicycle 256 on its sequential cells", null, "CMT"],
+        ["TCK 10 µs", "dirtyjtag.py refuses > 100 kHz", "jtag", "CFG"],
+        ["config only while GWE = 0", "chain and frames", "cfgctrl", "CFG"])],
+    notes: ["The static analyser cannot know a configuration, so it walks paths through routing muxes that no legal (loop-free) configuration uses. Those paths are bounded by the user clock, which is an enable on sysclk: guaranteeing the enable spacing in RTL turns the multicycle from an assumption into a fact (tb_clock_gap.v).",
+      "M7's constraints named cells by patterns like *u_bram*/u_core/*; synthesis flattened and renamed some registers (hold_qb_reg[17]_i_5__0), so the worst paths were timed as single-cycle. Keeping the fabric's hierarchy keeps every fabric register under u_fabric/.",
+      "tests/test_reports.py now requires WNS ≥ 0, no failing endpoint, WHS ≥ 0 and no 'No valid object' for M13 builds."],
+    src: [["docs/reports/M7/timing.rpt", "the failing paths"], ["AMD UG903 / UG949", "multicycle paths on clock-enabled logic; enables over derived clocks"]],
+    why: ["Honest constraints: every relaxation is backed by an RTL guarantee or a host limit, and each has a test."],
+    files: [["hw/src/core/clock_ctrl.v", "gce gap guard"], ["hw/src/fabric/bob_fpga.v", "keep_hierarchy on u_fabric"], ["hw/constr/pynq_z2.xdc", "TCK period, multicycles"], ["host/dirtyjtag.py", "MAX_TCK_KHZ"]],
+    tb: [["hw/tb/tb_clock_gap.v", "spacing in both modes"], ["tests/test_reports.py", "timing closure from M13"], ["sim/mutate_frames.sh", "gap guard mutants"]],
+    drill: ["clock", "frames", "routing"]
+  });
+
   /* ============================================================================
      FLOORPLAN  —  the home screen: bob's real 8 × 6 VPR grid (16-CLB board profile) inside the XC7Z020 PL
      ========================================================================= */
@@ -1029,7 +1080,8 @@
   txt(CPX, GY - 5, "bob_fpga.v  ·  CONFIGURATION PLANE + CLOCK", { size: 7.4, anchor: "start", fill: C.CFG.t, mono: true, ls: .6, w: 600 });
   const cp = [
     ["JTAG TAP  ·  jtag_tap6.v", "IEEE 1149.1 FSM · 6-bit AMD IR", "jtag", C.CFG],
-    ["CFG_CTRL  ·  cfg_ctrl.v", "CRC-32C + length guard · key 0xC5", "cfgctrl", C.CFG],
+    ["FRAMES  ·  cfg_frames.v", "UG470 packets · FAR FDRI FDRO CRC", "frames", C.CFG],
+    ["CFG_CTRL  ·  cfg_ctrl.v", "chain CRC + length · startup", "cfgctrl", C.CFG],
     ["STARTUP FSM", "GSR → GTS → GWE → DONE (LD3)", "startup", C.CFG],
     [`CONFIG CHAIN  ·  ${BOB.chain} bits`, "shift + shadow · cfg_tile_sr.v", "chain", C.CFG],
     ["USER1 / CAPTURE", "ce · step · autostep · 16 CLB outs", "capture", C.CFG],
@@ -1602,7 +1654,7 @@
   ];
   const TAP = { st: "TLR", ir: "IDCODE", last: null };
   const IRS = [["IDCODE", "001001", "32-bit 0xABEEF093"], ["USERCODE", "001000", "milestone number"], ["BYPASS", "111111", "1 bit"],
-    ["CFG_IN", "000101", "chain write · commits if CRC+len"], ["CFG_OUT", "000100", "chain readback"], ["USER2 CFG_CTRL", "000011", "64-bit CRC/status"],
+    ["CFG_IN", "000101", "M13: frame packets (UG470)"], ["CFG_OUT", "000100", "M13: FDRO / STAT readback"], ["CHAIN_IN · CHAIN_OUT", "110101 · 110100", "the chain (private)"], ["USER2 CFG_CTRL", "000011", "64-bit CRC/status"],
     ["USER1", "000010", "ce sr cin step autostep"], ["USER3 CAPTURE", "100010", "16 CLB outputs"], ["USER4 BRAM", "100011", "96-bit contents/drive"],
     ["DSP (private)", "101000", "256-bit drive / P"], ["JPROGRAM", "001011", "clears at Update-IR"], ["JSTART", "001100", "startup in RTI"],
     ["SAMPLE · EXTEST", "000001 · 100110", "40-cell boundary"], ["INTEST (private)", "000111", "cells drive the fabric"]];

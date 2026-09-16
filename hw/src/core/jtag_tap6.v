@@ -8,6 +8,8 @@
 //     CFG_OUT), CFG_CTRL and CAPTURE are external data registers, fed by the
 //     strobes and selects this module exports and returned through *_so inputs
 //   - Capture-IR returns status: {DONE, INIT_B, COMMITTED, CRC_ERR, 0, 1}
+//   - M13: CFG_IN / CFG_OUT select the frame packet controller (cfg_frames.v,
+//     pkt_so); the configuration chain moved to the private CHAIN_IN / CHAIN_OUT
 //
 // Kept exactly: the state machine and its encoding, rising-edge sampling,
 // falling-edge TDO and update latches, IDCODE/BYPASS, the USER control word
@@ -56,13 +58,16 @@ module jtag_tap6 #(
     output wire        dr_capture,   // state == Capture-DR
     output wire        dr_shift,     // state == Shift-DR
     output wire        dr_update,    // state == Update-DR
-    output wire        sel_cfg_in,
-    output wire        sel_cfg_out,
+    output wire        sel_cfg_in,   // CFG_IN  = packet stream (M13)
+    output wire        sel_cfg_out,  // CFG_OUT = packet readback (M13)
+    output wire        sel_chain_in, // CHAIN_IN  (private) = the configuration chain
+    output wire        sel_chain_out,// CHAIN_OUT (private) = chain readback
     output wire        sel_ctrl,     // USER2 = CFG_CTRL
     output wire        sel_capture,  // USER3 = CAPTURE
     output wire        sel_bram,     // USER4 = BRAM contents / test
     output wire        sel_dsp,      // private DSP test drive
-    input  wire        cfg_so,
+    input  wire        cfg_so,       // chain
+    input  wire        pkt_so,       // packet readback
     input  wire        ctrl_so,
     input  wire        cap_so,
     input  wire        bram_so,
@@ -127,6 +132,8 @@ module jtag_tap6 #(
     localparam [5:0] IR_USER4    = 6'b100011;   // BRAM contents / test (M5)
     localparam [5:0] IR_DSP      = 6'b101000;   // DSP test drive (M6) - private, not an AMD code
     localparam [5:0] IR_EXTEST   = 6'b100110;
+    localparam [5:0] IR_CHAIN_OUT = 6'b110100;  // private (M13): the chain readback
+    localparam [5:0] IR_CHAIN_IN  = 6'b110101;  // private (M13): the chain write
     localparam [5:0] IR_BYPASS   = 6'b111111;
 
     // USER1 control word bit positions (as USER in jtag_tap.v)
@@ -211,6 +218,8 @@ module jtag_tap6 #(
     assign dr_update   = (state == UPDATE_DR);
     assign sel_cfg_in  = (ir == IR_CFG_IN);
     assign sel_cfg_out = (ir == IR_CFG_OUT);
+    assign sel_chain_in  = (ir == IR_CHAIN_IN);
+    assign sel_chain_out = (ir == IR_CHAIN_OUT);
     assign sel_ctrl    = (ir == IR_USER2);
     assign sel_capture = (ir == IR_USER3);
     assign sel_bram    = (ir == IR_USER4);
@@ -248,7 +257,8 @@ module jtag_tap6 #(
             IR_USER3:                        dr_tdo = cap_so;
             IR_USER4:                        dr_tdo = bram_so;
             IR_DSP:                          dr_tdo = dsp_so;
-            IR_CFG_IN, IR_CFG_OUT:           dr_tdo = cfg_so;
+            IR_CFG_IN, IR_CFG_OUT:           dr_tdo = pkt_so;
+            IR_CHAIN_IN, IR_CHAIN_OUT:       dr_tdo = cfg_so;
             IR_EXTEST, IR_SAMPLE, IR_INTEST: dr_tdo = bsr_selected ? bsr_so : bypass_dr;
             default:                         dr_tdo = bypass_dr;
         endcase

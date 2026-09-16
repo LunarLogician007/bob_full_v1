@@ -7,13 +7,17 @@
 // (JSTART), write_user1, bram_dr, bram_poke. Needs `include "bob_params.vh" first.
 // -----------------------------------------------------------------------------
 
+`ifndef TB_IDCODE
+`define TB_IDCODE 32'h8BEEF093
+`endif
     localparam        HALF   = 50;
     localparam integer CFG_W = `BOB_CHAIN_W;
     localparam integer NPAD  = `BOB_NPAD;
 
     localparam [5:0] IR_USER1    = 6'b000010;
     localparam [5:0] IR_CFG_CTRL = 6'b000011;
-    localparam [5:0] IR_CFG_IN   = 6'b000101;
+    localparam [5:0] IR_CHAIN_IN  = 6'b110101;   // M13: the chain (private); CFG_IN is the packet port
+    localparam [5:0] IR_CHAIN_OUT = 6'b110100;
     localparam [5:0] IR_JPROGRAM = 6'b001011;
     localparam [5:0] IR_JSTART   = 6'b001100;
     localparam [5:0] IR_BRAM     = 6'b100011;
@@ -49,7 +53,7 @@
     reg clk_on = 1'b1;
     always #2 sysclk = clk_on ? ~sysclk : 1'b0;
 
-    bob_fpga #(.DIV_MIN_SHIFT(3)) dut (
+    bob_fpga #(.DIV_MIN_SHIFT(3), .IDCODE_VALUE(`TB_IDCODE)) dut (
         .sysclk(sysclk), .tck(tck), .tms(tms), .tdi(tdi), .tdo(tdo),
         .pad_i(pads_i), .pad_o(pads_o), .tap_state(tap_state), .configured(configured));
 
@@ -129,7 +133,7 @@
             shift_ir(IR_JPROGRAM, irc);
             shift_ir(IR_CFG_CTRL, irc);
             shift_dr(64, {64'h0, 8'hC5, 24'h0, cfgcrc}, rx);
-            shift_ir(IR_CFG_IN, irc);
+            shift_ir(IR_CHAIN_IN, irc);
             shift_chain(cfgw);
             shift_ir(IR_CFG_CTRL, irc);
             shift_dr(64, 128'h0, rx);

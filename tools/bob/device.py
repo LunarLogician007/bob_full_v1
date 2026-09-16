@@ -78,6 +78,11 @@ GEN_DIR = os.path.join(ROOT, "hw", "src", "generated")
 
 SYSCLK_HZ = 125_000_000              # PYNQ-Z2 PL clock on H16
 DIV_MIN_SHIFT = 8                    # free-running enable: every 2**(clk_div+8) sysclk cycles
+GCE_MIN_GAP_SHIFT = 8                # M13: user-clock enables >= 2**8 sysclk cycles apart in both modes
+
+# M13 frames (docs/bitstream-format.md sections 9-10): UG470-style configuration frames
+FRAME_WORDS = 4
+FRAME_BITS = 32 * FRAME_WORDS
 
 # --- M7 architecture ---------------------------------------------------------------
 # Two profiles. The 8x8 core (48 CLBs) is the M7 fabric frozen in release/M7_8x8/
@@ -485,13 +490,32 @@ class Device:
             width = (len(ins) + base - 1).bit_length()
             mux_spec.setdefault(owner, []).append((nid, width, base, tuple(ins)))
 
-        # chain: ctrl, grid tiles row-major (block fields, then muxes by node id), tail
+        # memory: frames of FRAME_BITS, column-major (M13, docs/bitstream-format.md section 9).
+        # FAR column 0: the ctrl tile; FAR column x+1: grid column x, tiles bottom to top
+        # (block fields, then muxes by node id); each column padded to whole frames. The
+        # chain is exactly all frames end to end.
         self.tiles = [Tile("ctrl", "ctrl", None, None, 0, self.tile_types["ctrl"].fields)]
         lo = self.tile_types["ctrl"].width
+        self.frames = []                   # [{"far_col", "x", "base", "count", "lo"}]
+
+        def close_column(far_col, x, start):
+            nonlocal lo
+            if lo == start:
+                return
+            if lo % FRAME_BITS:
+                pad = FRAME_BITS - lo % FRAME_BITS
+                self.tiles.append(Tile(f"pad_c{far_col}", "tail", None, None, lo,
+                                       (Field("reserved", 0, pad, "reserved", "ctrl", "frame padding, write 0"),)))
+                lo += pad
+            self.frames.append({"far_col": far_col, "x": x, "base": start // FRAME_BITS,
+                                "count": (lo - start) // FRAME_BITS, "lo": start})
+
+        close_column(0, None, 0)
         self.muxes = {}
         blocks = []
-        for y in range(self.height):
-            for x in range(self.width):
+        for x in range(self.width):
+            start = lo
+            for y in range(self.height):
                 fields, off = [], 0
                 blk = self.block_at.get((x, y))
                 if blk is not None and blk.type in ("clb", "bram", "dsp"):
@@ -509,10 +533,11 @@ class Device:
                 if fields:
                     self.tiles.append(Tile(f"t_x{x}y{y}", "grid", x, y, lo, tuple(fields)))
                     lo += off
-        if lo % 8:
-            self.tiles.append(Tile("tail", "tail", None, None, lo,
-                                   (Field("reserved", 0, 8 - lo % 8, "reserved", "ctrl", "write 0"),)))
-            lo += 8 - lo % 8
+            close_column(x + 1, x, start)
+        self.nframes = lo // FRAME_BITS
+        # only memory positions are column-major: blocks keep their row-major order,
+        # which the fabric's clb_o bits and CAPTURE use (block.index)
+        blocks.sort(key=lambda bl: (bl.y, bl.x))
         self.chain_width = lo
         self.blocks = blocks
         self.by_type = {t: [b for b in blocks if b.type == t] for t in ("io", "clb", "bram", "dsp")}
@@ -621,11 +646,16 @@ class Device:
                        "width": t.width} for t in self.tiles],
             "chain": {
                 "width": self.chain_width,
-                "order": "ctrl tile first, then grid tiles row-major from (0,0) (the fields of "
-                         "the block rooted there, then its routing muxes by rr node id), then "
-                         "reserved bits to a byte boundary",
+                "order": "frames end to end (M13): FAR column 0 = ctrl tile, FAR column x+1 = grid "
+                         "column x with tiles bottom to top (the fields of the block rooted there, "
+                         "then its routing muxes by rr node id), each column padded to whole frames",
                 "bit_order": "chain bit k is the k-th bit shifted in on TDI (LSB-first)",
             },
+            "frames": {"words": FRAME_WORDS, "bits": FRAME_BITS, "count": self.nframes,
+                       "columns": [{k: c[k] for k in ("far_col", "x", "base", "count")} for c in self.frames],
+                       "far": "[25:23] block type (000 config), [22] top/bottom, [21:17] row, "
+                              "[16:7] column, [6:0] minor",
+                       "doc": "frame f = chain bits [128f+127:128f]; word w bit k = frame bit 32w+k"},
             "pads": {"count": len(self.pads),
                      "io": [{"pad": b.index, "x": b.x, "y": b.y} for b in self.pads],
                      "board_inputs": self.board_inputs, "board_outputs": self.board_outputs},
@@ -662,7 +692,9 @@ class Device:
             ("CTRL_CLK_MODE", ct.field("clk_mode").offset),
             ("CTRL_CLK_DIV_LO", ct.field("clk_div").offset),
             ("CTRL_CLK_DIV_W", ct.field("clk_div").width),
-            ("DIV_MIN_SHIFT", DIV_MIN_SHIFT),
+            ("DIV_MIN_SHIFT", DIV_MIN_SHIFT), ("GCE_MIN_GAP_SHIFT", GCE_MIN_GAP_SHIFT),
+            ("FRAME_WORDS", FRAME_WORDS), ("FRAME_BITS", FRAME_BITS), ("NFRAMES", self.nframes),
+            ("FAR_NCOLS", len(self.frames) and max(c["far_col"] for c in self.frames) + 1),
             ("NPAD", len(self.pads)), ("BSR_W", 2 * len(self.pads)),
             ("NCLB", len(self.by_type["clb"])), ("STATUS_W", STATUS_W),
             ("NBRAM", len(self.by_type["bram"])), ("NDSP", len(self.by_type["dsp"])),
@@ -686,6 +718,15 @@ class Device:
         ]
         w = max(len(n) for n, _ in vals)
         lines += [f"`define BOB_{n:<{w}} {v}" for n, v in vals]
+        # FAR column -> (first frame, frame count), packed 16 bits each: [c*16 +: 8] base, [c*16+8 +: 8] count
+        ncol = max(c["far_col"] for c in self.frames) + 1
+        table = {c["far_col"]: c for c in self.frames}
+        packed = 0
+        for c in range(ncol):
+            if c in table:
+                packed |= (table[c]["base"] & 0xFF) << (16 * c) | (table[c]["count"] & 0xFF) << (16 * c + 8)
+        lines += ["", "// FAR column c: [16c+7:16c] first frame index, [16c+15:16c+8] frame count (0: no frames)",
+                  f"`define BOB_FAR_TABLE {16 * ncol}'h{packed:0{4 * ncol}x}"]
         lines += ["", "`endif", ""]
         return "\n".join(lines)
 

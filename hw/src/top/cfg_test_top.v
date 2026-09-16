@@ -46,6 +46,7 @@ module cfg_test_top #(
     // TAP <-> data registers
     wire        dr_capture, dr_shift, dr_update;
     wire        sel_cfg_in, sel_cfg_out, sel_ctrl, sel_capture, sel_bram, sel_dsp;
+    wire        sel_pkt_in, sel_pkt_out;
     wire        cfg_so, ctrl_so, cap_so;
     wire        jprogram, jstart_tick;
     wire [3:0]  ir_status;
@@ -81,13 +82,16 @@ module cfg_test_top #(
         .dr_capture  (dr_capture),
         .dr_shift    (dr_shift),
         .dr_update   (dr_update),
-        .sel_cfg_in  (sel_cfg_in),
-        .sel_cfg_out (sel_cfg_out),
+        .sel_cfg_in  (sel_pkt_in),                // M13: packet port, unused by this top
+        .sel_cfg_out (sel_pkt_out),
+        .sel_chain_in  (sel_cfg_in),              // the chain moved to CHAIN_IN / CHAIN_OUT
+        .sel_chain_out (sel_cfg_out),
         .sel_ctrl    (sel_ctrl),
         .sel_capture (sel_capture),
         .sel_bram    (sel_bram),
         .sel_dsp     (sel_dsp),
         .cfg_so      (cfg_so),
+        .pkt_so      (1'b0),
         .ctrl_so     (ctrl_so),
         .cap_so      (cap_so),
         .bram_so     (1'b0),
@@ -115,6 +119,9 @@ module cfg_test_top #(
         .sel_ctrl    (sel_ctrl),
         .jprogram    (jprogram),
         .jstart_tick (jstart_tick),
+        .frames_ok        (1'b0),
+        .frames_error     (1'b0),
+        .frames_crc_error (1'b0),
         .cfg_capture (cfg_capture),
         .cfg_shift   (cfg_shift),
         .cfg_commit  (cfg_commit),
@@ -159,7 +166,7 @@ module cfg_test_top #(
     assign led[2:0] = gts ? 3'b000 : cfg[2:0];
     assign led[3]   = done;
 
-    wire _unused = &{1'b0, bsr_capture, bsr_shift, bsr_update, bsr_mode, bsr_si,
+    wire _unused = &{1'b0, sel_pkt_in, sel_pkt_out, bsr_capture, bsr_shift, bsr_update, bsr_mode, bsr_si,
                      tlr, cin, tap_state, ir_value, committed, cfg[CHAIN_W-1:3], sel_bram, sel_dsp};
 
 endmodule

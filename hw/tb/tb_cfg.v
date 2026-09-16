@@ -21,8 +21,8 @@ module tb_cfg;
 
     localparam [5:0] IR_USER1    = 6'b000010;
     localparam [5:0] IR_CFG_CTRL = 6'b000011;
-    localparam [5:0] IR_CFG_OUT  = 6'b000100;
-    localparam [5:0] IR_CFG_IN   = 6'b000101;
+    localparam [5:0] IR_CHAIN_OUT = 6'b110100;   // M13: the chain (private); CFG_OUT is the packet port
+    localparam [5:0] IR_CHAIN_IN  = 6'b110101;   // M13: the chain (private); CFG_IN is the packet port
     localparam [5:0] IR_USERCODE = 6'b001000;
     localparam [5:0] IR_IDCODE   = 6'b001001;
     localparam [5:0] IR_JPROGRAM = 6'b001011;
@@ -177,14 +177,14 @@ module tb_cfg;
     task load(input [63:0] word, input [31:0] crc);
         begin
             write_expected(crc);
-            shift_ir(IR_CFG_IN, irc);
+            shift_ir(IR_CHAIN_IN, irc);
             shift_dr(W, {64'h0, word}, rx);
         end
     endtask
 
     task readback(output [63:0] v);
         begin
-            shift_ir(IR_CFG_OUT, irc);
+            shift_ir(IR_CHAIN_OUT, irc);
             shift_dr(W, 128'h0, rx);
             v = rx[63:0];
         end
@@ -198,7 +198,7 @@ module tb_cfg;
             write_expected(crc);
             read_ctrl(st);                    // shifts zeros: no key, must not overwrite
             read_ctrl(st);
-            shift_ir(IR_CFG_IN, irc);
+            shift_ir(IR_CHAIN_IN, irc);
             shift_dr(W, {64'h0, word}, rx);
             read_ctrl(st);
             check_loud("key guard: expected CRC survived two keyless CFG_CTRL reads (commit)",
@@ -254,7 +254,7 @@ module tb_cfg;
         begin
             prev = cfg;
             write_expected(crc63);
-            shift_ir(IR_CFG_IN, irc);
+            shift_ir(IR_CHAIN_IN, irc);
             shift_dr(W - 1, {64'h0, word}, rx);
             read_ctrl(st);
             check("63-bit scan: CRC matched (isolates the length guard)",
@@ -264,7 +264,7 @@ module tb_cfg;
             check("63-bit scan: cfg kept",     cfg, prev);
 
             write_expected(crc65);
-            shift_ir(IR_CFG_IN, irc);
+            shift_ir(IR_CHAIN_IN, irc);
             shift_dr(W + 1, {63'h0, word, 1'b0}, rx);
             read_ctrl(st);
             check("65-bit scan: CRC matched (isolates the length guard)",
@@ -281,7 +281,7 @@ module tb_cfg;
             prev = cfg;
             led_before = led;
             write_expected(crc);
-            shift_ir(IR_CFG_IN, irc);
+            shift_ir(IR_CHAIN_IN, irc);
             shift_dr_to_pause(W, {64'h0, word});
             check_loud("mid-scan (Pause-DR): cfg unchanged", cfg, prev);
             check("mid-scan: LEDs unchanged", {60'h0, led}, {60'h0, led_before});

@@ -44,7 +44,7 @@ The 8×8 profile (48 CLBs, 9400 bits, `0x9BEEF093`) is frozen in `release/M7_8x8
 | M10 | FASM ⇄ chain, `.bit` v2, `./bob build/load`, `.pcf`, golden netlist + co-simulation | **passed on hardware 2026-09-17** (7/7, no rebuild) |
 | M11 | real designs live: free-running clock, real switches, RAM readback, clock rate, FIR on DSPs | **passed on hardware 2026-09-17** (12/12 on the second run, every live goal reached; the first run found stale BRAM words, fixed in `bob load`) |
 | M12 | M12a: Python PnR checked against VPR (no rebuild); M12b area/larger grid | **M12a passed on hardware 2026-09-17** (13/13 on the M7 bitstream: pnr-* ×9, live-fir-py, live-switches-py; wirelength 0.99× VPR). **M12b deferred by the user** (area/larger grid later) |
-| M13 | frame-based configuration (UG470-style packets and frames), with the M7 timing fixes in the same rebuild | **next** (user 2026-09-17: frames now, area later) |
+| M13 | frame-based configuration (UG470-style packets and frames) next to the kept chain, with the M7 timing fixes | **built and simulated 2026-09-17, Vivado build + hardware test pending** (`tb_frames` 34, `tb_clock_gap` 5, all earlier sims pass, 16 frame mutants killed; `make hwtest M=M13`) |
 
 Hardware results are in `docs/hwtest/results.log`; Vivado reports are in `docs/reports/Mx/`; per-design guest reports in `docs/reports/M11/designs.md`.
 
@@ -177,7 +177,7 @@ What `build.tcl` guarantees (tested on the Mac with the stub): the project lives
 - **New top** → `parameter [31:0] IDCODE_VALUE` and the board ports `tck tms tdi tdo sw[1:0] btn[3:0] led[3:0]`; add it to `sim/lint.sh`.
 - **Per milestone with RTL changes:** bump `hw/build.cfg` `tag`, `idcode` version nibble and `usercode`; add `docs/hwtest/Mx.md`; register checks in `host/hwtest.py` `MILESTONE["Mx"]`; update `REUSE.md`, this file's status table and `README.md`.
 - **Per milestone without RTL changes:** same, except `build.cfg` stays tagged with the bitstream in the PL (hwtest prints a note).
-- **IDCODE map:** `0x1BEEF093` bare TAP, `0x2BEEF093` single CLB, `0x3BEEF093` 4×4 fabric (M0–M1), `0x4BEEF093` M2 cfg test top, `0x5BEEF093` M3, `0x6BEEF093` M4, `0x7BEEF093` M5, `0x8BEEF093` M6, `0x9BEEF093` M7 8×8 profile (`release/M7_8x8`), `0xABEEF093` M7 16-CLB board profile; next free nibble `0xB`.
+- **IDCODE map:** `0x1BEEF093` bare TAP, `0x2BEEF093` single CLB, `0x3BEEF093` 4×4 fabric (M0–M1), `0x4BEEF093` M2 cfg test top, `0x5BEEF093` M3, `0x6BEEF093` M4, `0x7BEEF093` M5, `0x8BEEF093` M6, `0x9BEEF093` M7 8×8 profile (`release/M7_8x8`), `0xABEEF093` M7 16-CLB board profile (M7–M12), `0xBBEEF093` M13 (frames); next free nibble `0xC`.
 - **Architecture numbers live only in `tools/bob/device.py`.** Consumers read `device.json` or `bob_params.vh`. After editing it: `make device`, or `make rrgraph` if the VPR architecture changed (sha256 stamps make stale graphs fail). Then `make vpr` if the arch sha changed (committed VPR results are stamped too).
 - **Guest designs** (`examples/*.v`): ports `clk`, `sw[1:0]`, `btn[3:0]`, `led[2:0]`, or any ports with a `.pcf`. A new example goes into `vpr_run.EXAMPLES` (or `VARIANTS` for a pin file), then `make vpr`.
 - **Committed generated data** (rr graphs, VPR results) carries a stamp of what it was built from; tools refuse stale data with the command that rebuilds it. Docker is needed only to rebuild.
@@ -751,7 +751,45 @@ Split in two, because only the second half changes the Vivado bitstream:
   4. **Larger grid only:** build `release/M7_8x8` on a faster machine as it is.
 - **Done when:** the chosen change is built as the complete FPGA; `util.rpt` LUT/FF per CLB is below M7's; every earlier hardware check passes on the new bitstream; the examples re-run through both PnR flows on the new graph.
 
-### M13: frame-based configuration (only once everything above is solid)
+### M13: frame-based configuration, the chain kept, M7 timing fixed
 
-Replace `cfg_mem.v` with a UG470-style frame controller: sync word `0xAA995566`, type-1/type-2 packets, FAR/FDRI/FDRO with auto-increment, CRC over `{addr, data}`, OpenFPGA `frame_based` decoders. Bitgen's output stage switches to frames. Tiles, VPR and FASM stay untouched.
-**Done when:** the M10 golden tests pass unchanged through the frame path. **HW:** the same examples load through frames.
+User, 2026-09-17: "frame based writing just like AMD (slightly simplified) … look into the WNS and TNS of M7 … keep an option for both" (area deferred to M12b).
+
+**As built (2026-09-17):**
+- **Spec first:** `docs/bitstream-format.md` sections 9–11. It covers the two write paths, frames, FAR, packets, registers, CMD, STAT, CRC, readback, the load sequence and the host-to-fabric timing rules.
+- **Memory layout** (`device.py`):
+  - Frames of FRAME_WORDS = 4 × 32 bits, column-major. FAR column 0 holds the ctrl tile; FAR column x+1 holds grid column x, tiles bottom to top, padded to whole frames.
+  - 39 frames = 4992 bits (was 4216; K=4: 32 frames, 4096 bits). The chain is exactly the frames concatenated.
+  - Blocks keep row-major order: `clb_o`, CAPTURE and the fabric wiring are unchanged. The first attempt reordered them too and broke `tb_bob`'s counter probes.
+  - `device.json` gains `frames`; `bob_params.vh` gains `FRAME_WORDS/BITS`, `NFRAMES`, `FAR_NCOLS`, `FAR_TABLE`.
+- **RTL:**
+  - `cfg_frames.v`: bit-wise sync hunt; HDR/T2/DATA/ERR parser; CRC/FAR/FDRI/CMD/IDCODE writes; FAR auto-increment; FDRO/STAT/FAR/IDCODE/CRC read queue on CFG_OUT (STAT when nothing is queued); errors CRC/ID/PKT/WR; START only after a CRC match that followed the last FDRI word.
+  - `cfg_store.v`: the one memory, written by the chain (shift + shadow) or frame by frame on the falling edge.
+  - `jtag_tap6.v`: CFG_IN/CFG_OUT → packets; private CHAIN_IN `110101` / CHAIN_OUT `110100` → chain.
+  - `cfg_ctrl.v`: chain commit only while GWE = 0; startup after the chain or after `frames_ok`; frame errors in the IR capture.
+  - `clock_ctrl.v`: gce ≥ 2^GAP_SHIFT sysclk cycles apart in both modes, with one pending request.
+  - `bob_fpga.v`: wiring, `keep_hierarchy` on `u_fabric`.
+  - `cfg_test_top.v`: the chain on CHAIN codes.
+- **Timing** (`pynq_z2.xdc`):
+  - TCK at 10 µs; `dirtyjtag.py` MAX_TCK_KHZ = 100.
+  - One 256/255 multicycle over `IS_SEQUENTIAL && NAME =~ *u_fabric/*` (plus the cin synchroniser), replacing M7's 20 filters.
+  - Analysis of M7's report: sysclk WNS came from a 1202-level path through unconfigured routing loops whose flattened source escaped the 120-cycle filters (and 960 ns < 1110 ns anyway). tck WNS came from a real IR → boundary → fabric → DSP-capture path under a 1 MHz constraint.
+  - `tests/test_reports.py` now requires WNS ≥ 0, 0 failing endpoints, WHS ≥ 0 and no "No valid object" from M13 on.
+- **Host:**
+  - `tools/bob/packets.py`: stream builders; `to_jtag`/`from_jtag`; `Controller`, a bit-level model of `cfg_frames.v` including readback; `dump`.
+  - `cfgplane.py`: `load_frames`, `frames_send/read/stat/readback`; the chain functions use CHAIN_IN/CHAIN_OUT.
+  - `bob load --mode frames|chain` (frames default).
+  - `hwtest` M13: 39 checks, i.e. the M7 regression via the chain, 5 frame checks, 6 guest designs via frames, ram-readback, blinky-rate, pipeline-live.
+- **Verification:**
+  - `tb_frames` (34) and `tb_clock_gap` (5) in `make sim`, with expectations from the Python model.
+  - `tb_bob` 852, `tb_cfg` 180, `tb_synth` 972, `tb_cosim` 4618, K=4 all pass.
+  - `sim/mutate_frames.sh` (16) in `make mutate`; `mutate_cfg` and `mutate_fabric` still pass, with one pattern updated.
+  - Stand-in board: frame controller model, new passing and failing cases.
+- **Gotchas:**
+  - A Verilog macro defined twice (`RB_V`) silently sent the expected data as the stream.
+  - A freshly built Python model has no memory of earlier streams; the board does (START_OK persists until JPROGRAM), so scenarios must be modelled in sequence.
+  - After a parser error the controller ignores everything until JPROGRAM: a board check first read back over FDRO after a refused load. The stand-in board caught it; that check now reads over CHAIN_OUT.
+  - The shared test harness defaulted the DUT IDCODE (`TB_IDCODE`).
+  - iverilog aborts on a `$display` of a huge constant expression.
+- **Not in M13:** BRAM content frames (FAR block type 001 reserved); MFWR compression, encryption, COR/CTL options, per-frame ECC, multiboot; area (M12b).
+

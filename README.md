@@ -21,9 +21,9 @@ For the detailed plan, conventions, gotchas and every milestone, read [`PLAN.md`
 | M10 | bitgen (FASM ⇄ chain, `.bit`), `bob build`/`bob load`, `.pcf` pins, golden co-simulation | **passed on the board 2026-09-17** (7/7, no rebuild) |
 | M11 | real designs live on the board (free-running clock, real switches): switches, FIR on DSPs, RAM readback, blinky rate | **passed on the board 2026-09-17** (12/12, no rebuild) |
 | M12 | bob's own Python pack/place/route (`--pnr python`), 0.99× VPR's wirelength | **M12a passed on the board 2026-09-17** (13/13, no rebuild); M12b (area, larger grid) deferred |
-| M13 | frame-based configuration (UG470 packets/frames) + M7 timing fixes | **next** (Vivado rebuild) |
+| M13 | frame-based configuration (UG470 packets on CFG_IN/CFG_OUT) next to the kept chain (CHAIN_IN/CHAIN_OUT), M7 timing fixed | built and simulated 2026-09-17; **Vivado rebuild** + board test pending |
 
-After M7 the Vivado bitstream stayed the same through M11: those milestones only load new configuration chains over JTAG. M12a (Python PnR) needs no rebuild either; the next Vivado rebuilds come at M12b (area, bigger grid) and M13 (new config plane).
+After M7 the Vivado bitstream stayed the same through M11: those milestones only load new configuration chains over JTAG. M12a (Python PnR) needed no rebuild either. M13 (frames + timing fixes) is the next Vivado build; M12b (area, bigger grid) is deferred.
 
 ## The M7 device (16-CLB profile)
 
@@ -80,7 +80,9 @@ make vpr                                  # M9: VPR packs/places/routes every ex
 tools/bob/fasm_from_vpr.py --check        # committed VPR results -> FASM -> chain == source (model)
 ./bob build examples/counter.v            # M10: all of the above in one command -> build/bit/counter.bit
 ./bob build examples/gates.v --pcf examples/gates_swapped.pcf
-./bob load build/bit/counter.bit          # CFG_IN + readback, BRAM contents, JSTART (Pico attached)
+./bob load build/bit/counter.bit          # frames on CFG_IN + FDRO readback, BRAM contents, JSTART (Pico attached)
+./bob load build/bit/counter.bit --mode chain   # the same memory through the scan chain (CHAIN_IN)
+tools/bob/packets.py dump build/bit/counter.bit # the UG470-style packet stream
 ./bob build examples/switches.v --clock run --div 15   # free-running user clock (14.9 Hz); then ./bob load
 ./bob info build/bit/counter.bit          # or: ./bob fasm build/bit/counter.bit
 ./bob build examples/fir.v --pnr python   # M12: bob's own pack/place/route instead of VPR (no Docker)

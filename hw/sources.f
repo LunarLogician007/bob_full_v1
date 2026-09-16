@@ -26,6 +26,8 @@ src/core/jtag_tap6.v
 src/core/cfg_tile_sr.v
 src/core/cfg_mem.v
 src/core/cfg_ctrl.v
+src/core/cfg_store.v
+src/core/cfg_frames.v
 src/core/capture_chain.v
 
 # M4: user clock (sysclk + enable) and its synchronisers

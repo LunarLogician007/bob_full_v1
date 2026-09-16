@@ -71,13 +71,13 @@ set_property -dict {PACKAGE_PIN M14 IOSTANDARD LVCMOS33} [get_ports {led[3]}]
 set_property -dict {PACKAGE_PIN H16 IOSTANDARD LVCMOS33} [get_ports sysclk]
 create_clock -period 8.000 -name sysclk [get_ports sysclk]
 
-# --- Timing ------------------------------------------------------------------
-# TCK clocks the whole chip. 1000 ns (1 MHz) for both tops: the fabric needs it
-# (a path can cross sixteen tiles of 20:1 muxes and LUT6 trees), and the link is
-# driven at 100 kHz - 1 MHz, so the constraint is honest rather than
-# aspirational. The single CLB would close far tighter; one value keeps this a
-# plain XDC.
-create_clock -period 1000.000 -name tck [get_ports tck]
+# --- Timing (M13: docs/bitstream-format.md section 11) --------------------------
+# TCK clocks the configuration plane, the boundary and the JTAG data registers.
+# M7 constrained it at 1 MHz and failed by 657 ns: a real TCK-to-TCK path runs from
+# the IR / boundary update cells through the fabric's routing into the DSP JTAG
+# capture register (~1650 ns). The probe never runs TCK faster than 100 kHz
+# (host/dirtyjtag.py refuses more), so 10 us is the honest period.
+create_clock -period 10000.000 -name tck [get_ports tck]
 
 # TMS/TDI are launched by the probe on the falling edge and sampled here on the
 # rising edge; TDO is launched here on the falling edge. Loose on purpose.
@@ -86,44 +86,24 @@ set_input_delay  -clock tck -min  0.000 [get_ports {tms tdi}]
 set_output_delay -clock tck -max 20.000 -clock_fall [get_ports tdo]
 set_output_delay -clock tck -min  0.000 -clock_fall [get_ports tdo]
 
-# TCK and sysclk are unrelated. The configuration (TCK domain) is quasi-static
-# for the fabric, and every TCK-domain signal the fabric uses as logic passes
-# through clock_ctrl.v's ASYNC_REG synchronisers.
+# TCK and sysclk are unrelated. The configuration (TCK domain) changes only while
+# GWE = 0 (both the chain and the frame path refuse writes otherwise), and every
+# TCK-domain signal the fabric uses as logic passes through clock_ctrl.v's
+# ASYNC_REG synchronisers.
 set_clock_groups -asynchronous -group [get_clocks tck] -group [get_clocks sysclk]
 
-# Fabric flip-flops change only on a gce pulse, and gce pulses are >= 120 sysclk
-# cycles apart (clock_ctrl.v: free-running >= 256 cycles; JTAG-stepped needs
-# TCK <= 1 MHz = 125 cycles). A path through up to sixteen tiles of routing
-# therefore has 120 cycles (960 ns), as it had 1000 ns under TCK before M4.
-set_multicycle_path -setup 120 -from [get_cells -hier -filter {NAME =~ *u_clb_*/q_reg}] -to [get_cells -hier -filter {NAME =~ *u_clb_*/q_reg}]
-set_multicycle_path -hold  119 -from [get_cells -hier -filter {NAME =~ *u_clb_*/q_reg}] -to [get_cells -hier -filter {NAME =~ *u_clb_*/q_reg}]
-set_multicycle_path -setup 120 -from [get_cells -hier -filter {NAME =~ *u_clk/cin_m_reg*}] -to [get_cells -hier -filter {NAME =~ *u_clb_*/q_reg}]
-set_multicycle_path -hold  119 -from [get_cells -hier -filter {NAME =~ *u_clk/cin_m_reg*}] -to [get_cells -hier -filter {NAME =~ *u_clb_*/q_reg}]
-
-# M5 BRAM tile: its user-facing state (the RAMB18 and the output latch/register
-# logic in u_core) also changes only on gce, so paths between it and the fabric
-# flops - and fabric-routed paths from it back to itself - get the same 120
-# cycles. The contents engine (u_bram/u_jtag -> RAM) stays single-cycle.
-set_multicycle_path -setup 120 -from [get_cells -hier -filter {NAME =~ *u_clb_*/q_reg}] -to [get_cells -hier -filter {NAME =~ *u_bram*/u_core/*}]
-set_multicycle_path -hold  119 -from [get_cells -hier -filter {NAME =~ *u_clb_*/q_reg}] -to [get_cells -hier -filter {NAME =~ *u_bram*/u_core/*}]
-set_multicycle_path -setup 120 -from [get_cells -hier -filter {NAME =~ *u_bram*/u_core/*}] -to [get_cells -hier -filter {NAME =~ *u_clb_*/q_reg}]
-set_multicycle_path -hold  119 -from [get_cells -hier -filter {NAME =~ *u_bram*/u_core/*}] -to [get_cells -hier -filter {NAME =~ *u_clb_*/q_reg}]
-set_multicycle_path -setup 120 -from [get_cells -hier -filter {NAME =~ *u_bram*/u_core/*}] -to [get_cells -hier -filter {NAME =~ *u_bram*/u_core/*}]
-set_multicycle_path -hold  119 -from [get_cells -hier -filter {NAME =~ *u_bram*/u_core/*}] -to [get_cells -hier -filter {NAME =~ *u_bram*/u_core/*}]
-
-# M6 DSP tile: the same rule for its registers (u_dsp/.../u_core), to and from
-# the fabric flops, the BRAM core and itself. The DSP JTAG drive register is in
-# the TCK domain (asynchronous).
-set_multicycle_path -setup 120 -from [get_cells -hier -filter {NAME =~ *u_clb_*/q_reg}] -to [get_cells -hier -filter {NAME =~ *u_dsp*/u_core/*}]
-set_multicycle_path -hold  119 -from [get_cells -hier -filter {NAME =~ *u_clb_*/q_reg}] -to [get_cells -hier -filter {NAME =~ *u_dsp*/u_core/*}]
-set_multicycle_path -setup 120 -from [get_cells -hier -filter {NAME =~ *u_dsp*/u_core/*}] -to [get_cells -hier -filter {NAME =~ *u_clb_*/q_reg}]
-set_multicycle_path -hold  119 -from [get_cells -hier -filter {NAME =~ *u_dsp*/u_core/*}] -to [get_cells -hier -filter {NAME =~ *u_clb_*/q_reg}]
-set_multicycle_path -setup 120 -from [get_cells -hier -filter {NAME =~ *u_dsp*/u_core/*}] -to [get_cells -hier -filter {NAME =~ *u_dsp*/u_core/*}]
-set_multicycle_path -hold  119 -from [get_cells -hier -filter {NAME =~ *u_dsp*/u_core/*}] -to [get_cells -hier -filter {NAME =~ *u_dsp*/u_core/*}]
-set_multicycle_path -setup 120 -from [get_cells -hier -filter {NAME =~ *u_bram*/u_core/*}] -to [get_cells -hier -filter {NAME =~ *u_dsp*/u_core/*}]
-set_multicycle_path -hold  119 -from [get_cells -hier -filter {NAME =~ *u_bram*/u_core/*}] -to [get_cells -hier -filter {NAME =~ *u_dsp*/u_core/*}]
-set_multicycle_path -setup 120 -from [get_cells -hier -filter {NAME =~ *u_dsp*/u_core/*}] -to [get_cells -hier -filter {NAME =~ *u_bram*/u_core/*}]
-set_multicycle_path -hold  119 -from [get_cells -hier -filter {NAME =~ *u_dsp*/u_core/*}] -to [get_cells -hier -filter {NAME =~ *u_bram*/u_core/*}]
+# Every fabric register (CLB flip-flops, BRAM and DSP state) changes only on a gce
+# pulse, and clock_ctrl.v guarantees gce pulses >= 256 sysclk cycles apart in both
+# clock modes (tb_clock_gap.v). A path from fabric register to fabric register -
+# however many unconfigured routing muxes the static analysis walks through (M7:
+# 1202 logic levels, 1110 ns) - therefore has 256 cycles = 2048 ns. The fabric's
+# hierarchy is kept (keep_hierarchy on u_fabric in bob_fpga.v): M7's filters named
+# cells that synthesis had flattened and renamed, so the worst paths escaped them.
+set_multicycle_path -setup 256 -from [get_cells -hier -filter {IS_SEQUENTIAL && NAME =~ *u_fabric/*}] -to [get_cells -hier -filter {IS_SEQUENTIAL && NAME =~ *u_fabric/*}]
+set_multicycle_path -hold  255 -from [get_cells -hier -filter {IS_SEQUENTIAL && NAME =~ *u_fabric/*}] -to [get_cells -hier -filter {IS_SEQUENTIAL && NAME =~ *u_fabric/*}]
+# USER1 cin enters the carry chains from its synchroniser and changes only by JTAG
+set_multicycle_path -setup 256 -from [get_cells -hier -filter {NAME =~ *u_clk/cin_m_reg*}] -to [get_cells -hier -filter {IS_SEQUENTIAL && NAME =~ *u_fabric/*}]
+set_multicycle_path -hold  255 -from [get_cells -hier -filter {NAME =~ *u_clk/cin_m_reg*}] -to [get_cells -hier -filter {IS_SEQUENTIAL && NAME =~ *u_fabric/*}]
 
 # The switches, buttons and LEDs are the fabric's pads, asynchronous to TCK.
 set_false_path -to   [get_ports {led[*]}]

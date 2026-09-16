@@ -58,9 +58,11 @@ def test_chain_fields_chain_round_trip(k):
         assert dev.encode(dev.decode(w)) == w
 
 
-@pytest.mark.parametrize("k,chain_w", [(6, 4216), (4, 3352)])
+@pytest.mark.parametrize("k,chain_w", [(6, 4992), (4, 4096)])
 def test_sizes(k, chain_w):
-    """The M7 board device (6x4 core), pinned: a change here must be a deliberate one.
+    """The board device (6x4 core), pinned: a change here must be a deliberate one.
+    M7-M12 packed the tiles into 4216 bits (K=4: 3352); M13 lays the memory out in
+    128-bit frames per column, padding each column (6: 39 frames, 4: 32).
     The 8x8 profile (48 CLBs, 9400 bits) is frozen in release/M7_8x8."""
     dev = DEVICES[k]
     assert (dev.width, dev.height, dev.arch["chan_width"]) == (8, 6, 24)
@@ -284,7 +286,7 @@ def test_bitstream_engine_at_k4(tmp_path):
                     "--lut-k", "4", "--out", str(gen)], check=True, capture_output=True)
     code = (
         "import designs, bitstream as B\n"
-        "assert B.LUT_K == 4 and B.FABRIC_CFG_W == 3352\n"
+        "assert B.LUT_K == 4 and B.FABRIC_CFG_W == 4096\n"
         "assert set(designs.SKIPPED) == {'and6', 'xor6'}\n"
         "for k, d, f, s in designs.DESIGNS:\n"
         "    bs = f().build()\n"
@@ -296,3 +298,25 @@ def test_bitstream_engine_at_k4(tmp_path):
                        cwd=os.path.join(ROOT, "host"))
     assert "K4_OK 10" in r.stdout, r.stdout + r.stderr
     assert json.load(open(gen / "device.json"))["lut_k"] == 4
+
+
+@pytest.mark.parametrize("k", [6, 4])
+def test_frames_tile_the_memory(k):
+    """M13: frames of FRAME_BITS cover the memory exactly, column by column; every
+    tile lies inside its column's frames; padding bits are reserved."""
+    import device
+    dev = DEVICES[k]
+    assert dev.chain_width == dev.nframes * device.FRAME_BITS
+    nxt = 0
+    for col in dev.frames:
+        assert col["base"] == nxt and col["lo"] == nxt * device.FRAME_BITS and col["count"] > 0
+        nxt += col["count"]
+    assert nxt == dev.nframes
+    span = {c["far_col"]: (c["lo"], c["lo"] + c["count"] * device.FRAME_BITS) for c in dev.frames}
+    assert span[0][0] == 0 and dev.ctrl_tile.chain_lo == 0
+    for t in dev.tiles:
+        if t.kind == "grid":
+            lo, hi = span[t.x + 1]
+            assert lo <= t.chain_lo and t.chain_lo + t.width <= hi, t.name
+        if t.kind == "tail":
+            assert all(f.kind == "reserved" for f in t.fields)

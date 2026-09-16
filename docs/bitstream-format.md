@@ -24,8 +24,10 @@ Valid from M2 to M12. M13 replaces the chain with frames (UG470 packets); sectio
 | `000010` | USER1 | control/status | 32 | `[0]` ce `[1]` sr `[2]` cin `[3]` step `[4]` autostep; capture returns `[3:0]` control + status bits above |
 | `000011` | USER2 = **CFG_CTRL** | control/status | 64 | section 5 |
 | `100010` | USER3 = **CAPTURE** | user-state snapshot | top-specific | section 7 |
-| `000100` | **CFG_OUT** | config chain | chain width | readback; never commits |
-| `000101` | **CFG_IN** | config chain | chain width | write; commits at Update-DR if length and CRC are right |
+| `000100` | **CFG_OUT** | packet output (M13) | 32 × words requested | frame / register readback, section 10 (up to M12: the chain) |
+| `000101` | **CFG_IN** | packet input (M13) | any | the UG470-style packet stream, section 10 (up to M12: the chain) |
+| `110100` | **CHAIN_OUT** | config chain | chain width | **private**, M13: the chain readback that was CFG_OUT (section 4); never commits |
+| `110101` | **CHAIN_IN** | config chain | chain width | **private**, M13: the chain write that was CFG_IN; commits at Update-DR if length and CRC are right and GWE = 0 |
 | `001000` | USERCODE | 32 | 32 | `USERCODE_VALUE` = milestone number |
 | `001001` | IDCODE | 32 | 32 | selected by Test-Logic-Reset |
 | `001011` | **JPROGRAM** | bypass | 1 | acts at Update-IR: section 6 |
@@ -272,6 +274,95 @@ The text form of a chain, one feature per line (after F4PGA's FASM): `feature = 
 
 The declared width must equal the device's; every value is checked (field exists, fits, a mux value is a constant or one of the mux's inputs). Chain → FASM decodes every configurable field and refuses set bits that no feature owns (the tail), so chain → FASM → chain is exact (`bitgen.py --roundtrip`).
 
-## 9. What M13 changes
+## 9. Two ways to write the same configuration memory (M13)
 
-The chain (sections 4 and 8) is replaced by UG470 frames: sync word `0xAA995566`, type-1/2 packets, FAR/FDRI/FDRO with auto-increment, CRC over `{addr, data}`. The instruction codes, CFG_IN/CFG_OUT as the transport, startup (section 6) and CAPTURE stay.
+From M13 the configuration memory is organised in **frames**, as in AMD 7-series devices, and there are two independent ways to write and read it back:
+
+| path | instructions | unit | integrity | use |
+|---|---|---|---|---|
+| **frames** (default) | CFG_IN / CFG_OUT (the AMD codes) | 32-bit words in type-1/type-2 packets; frames of 4 words | CRC-32C over `{register, data}` of every write, IDCODE check | section 10; `bob load` |
+| **chain** | CHAIN_IN / CHAIN_OUT (private) + CFG_CTRL | the whole memory in one DR scan | CRC-32C + length (section 5) | sections 4, 5, 8; `bob load --mode chain` |
+
+Both write the same shadow register the fabric reads, both are refused while GWE = 1 (a running design is never reconfigured underneath itself), both are cleared by JPROGRAM, and both feed the same startup (section 6: JSTART after a good load).
+
+**Frame layout of the memory.** The memory is cut into **frames of FRAME_WORDS = 4 words = 128 bits**. Frames are column-major, like the 7-series configuration columns:
+
+- FAR column 0 is the configuration column: the 8-bit ctrl tile (section 4), padded to a whole frame.
+- FAR column `c = x + 1` holds VPR grid column `x`: the tiles `(x, 0), (x, 1), … (x, H−1)` bottom to top, each as in section 4 (block fields, then routing muxes in ascending rr node id), padded with zeros to a whole number of frames. A column without configuration bits has no frames.
+- Frame index `f` numbers the frames of column 0, then column 1, … in order; frame `f` is memory bits `[128·f + 127 : 128·f]`, and within a frame word `w` bit `k` is frame bit `32·w + k`.
+
+So **the chain (section 4) is exactly all frames end to end**: chain bit `k` is memory bit `k` in both paths, the chain width is `128 × NFRAMES`, and a `.bit` chain word loads identically through either path. `device.json` `frames` lists every column's FAR column number, frame count and first frame index; padding bits are reserved and must be 0.
+
+## 10. The frame path: packets, registers, readback (M13)
+
+Modelled on UG470 chapter 5 (configuration packets and registers) and simplified where noted.
+
+**Stream framing.** Over CFG_IN each 32-bit word is shifted **MSB first** (bit 31 of the first word is the first bit on TDI), as a 7-series `.bit` reaches the device over JTAG. The controller hunts bit by bit for the sync word **`0xAA995566`**; the next 32 bits are the first word. Dummy words before the sync word are ignored. Words can span as many DR scans as the host likes (Capture-DR and Update-DR do not reset the word alignment). JPROGRAM or a DESYNC command returns to hunting.
+
+**Packet headers** (UG470 Table 5-20, 5-21):
+
+| type | [31:29] | [28:27] | [26:13] | [12:11] | [10:0] / [26:0] |
+|---|---|---|---|---|---|
+| 1 | `001` | opcode: `00` NOP, `01` READ, `10` WRITE | register address (only [17:13] may be non-zero) | `00` | word count (11 bits) |
+| 2 | `010` | opcode (must equal the preceding type-1's) | — | — | word count (27 bits) |
+
+A type-1 header with count 0 must be followed by a type-2 header carrying the count (the FDRI idiom `30004000 5000xxxx`). A type-2 header anywhere else, an unknown header type, an unknown register or an unsupported command is a **packet error**. A WRITE is followed by its count data words; a READ has no data words in the input stream: it queues `count` words for CFG_OUT.
+
+**Registers** (7-series addresses; the subset bob implements):
+
+| addr | name | W/R | bob behaviour |
+|---|---|---|---|
+| `00000` | CRC | W | compare the written value with the running CRC: equal sets CRC_OK; different sets CRC_ERROR (packet parser stops, startup refused) |
+| `00001` | FAR | W/R | frame address, below; auto-increments after every whole frame written or read |
+| `00010` | FDRI | W | frame data in: words fill a frame; the 4th word writes the frame at FAR into the memory **immediately** and advances FAR |
+| `00011` | FDRO | R | frame data out: words of the frame at FAR, advancing FAR per frame |
+| `00100` | CMD | W | command, below |
+| `00111` | STAT | R | status, below |
+| `01100` | IDCODE | W | must equal the device IDCODE; a mismatch sets ID_ERROR (parser stops). FDRI is refused until it has matched |
+
+**FAR** (7-series layout, UG470 Table 5-24): `[25:23]` block type (`000` configuration; `001` BRAM contents, reserved: writing it is a write error), `[22]` top/bottom (0), `[21:17]` row (0), `[16:7]` column, `[6:0]` minor (frame within the column). After each frame the minor advances; past the column's last frame it moves to minor 0 of the next column with frames. Writing or reading at an address outside the memory is a write error.
+
+**CMD** (UG470 Table 5-25 codes): `00000` NULL · `00001` **WCFG** arm frame writes · `00011` **LFRM** last frame (accepted, recorded) · `00100` **RCFG** arm frame reads · `00101` **START** allow startup: requires CRC_OK after the last FDRI word, the IDCODE match and no error · `00111` **RCRC** reset the CRC · `01101` **DESYNC** back to hunting. Any other value is a packet error.
+
+**CRC.** CRC-32C (reflected polynomial `0x82F63B78`), initial value 0, no final inversion. Every WRITE data word except those written to CRC updates it with the 37-bit value `{register[4:0], data[31:0]}`, least significant bit first. RCRC sets it to 0 (after its own update). READs and headers do not contribute. (prjxray `crc.py` computes the 7-series CRC this way.)
+
+**Frame writes** are accepted only while WCFG is armed, IDCODE has matched, GWE = 0, no error is set and FAR is valid; otherwise the words are dropped and WR_ERROR is set. Any FDRI data word clears CRC_OK, so a CRC check must follow the frames before START.
+
+**Simplifications against 7-series:** a frame is written the moment its last word arrives, so bitstreams need **no trailing pad frame**, and readback returns **no leading pad frame**; no encryption, compression (MFWR), bus-width detection, COR/CTL options, per-frame ECC or multiboot; BRAM contents stay on USER4 (FAR block type `001` reserved for them); a parser error is left only by JPROGRAM.
+
+**STAT** (32 bits; positions follow 7-series where the meaning exists):
+
+| bit | 0 | 5 | 6 | 11 | 12 | 14 | 15 | 23:16 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| meaning | CRC_ERROR | GTS_CFG_B (= not GTS) | GWE | INIT_COMPLETE (1) | INIT_B (no error) | DONE | ID_ERROR | version `0x13` | PKT_ERROR | WR_ERROR | SYNCED | WCFG | CRC_OK | GSR | START accepted | RCFG |
+
+**Readback (CFG_OUT).** Each READ packet queues words: FDRO gives frame words from FAR (advancing FAR per frame); STAT, FAR, IDCODE and CRC give one current value per word. A CFG_OUT DR scan shifts the queued words out MSB first, 32 bits per word; with nothing queued (and past the queue) each word reads STAT, so a bare 32-bit CFG_OUT scan is a status read. FDRO needs RCFG armed (else WR_ERROR, zeros).
+
+**Load sequence** (what `bob load` sends; `tools/bob/packets.py` builds and parses it):
+
+```
+FFFFFFFF FFFFFFFF          dummy
+AA995566                   sync
+20000000                   NOP
+30008001 00000007          CMD    <- RCRC
+30018001 <IDCODE>          IDCODE <- the device IDCODE
+30002001 00000000          FAR    <- 0 (column 0, minor 0)
+30008001 00000001          CMD    <- WCFG
+30004000 5000xxxx          FDRI, type-2 count = 4 x NFRAMES
+<4 x NFRAMES words>        frames 0 .. NFRAMES-1 (FAR advances by itself)
+30000001 <CRC>             CRC    <- expected
+30008001 00000003          CMD    <- LFRM
+30008001 00000005          CMD    <- START
+30008001 0000000D          CMD    <- DESYNC
+20000000 20000000          NOP
+```
+
+then JTAG: CFG_IN READ of STAT and CFG_OUT (START accepted, no error), BRAM contents over USER4, JSTART + 12 TCK in Run-Test/Idle, DONE. Readback sends `sync, CMD <- RCFG, FAR <- 0, 28006000 4800xxxx (READ FDRO, type-2), DESYNC` on CFG_IN and shifts `32 × 4 × NFRAMES` bits out of CFG_OUT.
+
+## 11. Host-to-fabric timing assumptions (M13)
+
+Three rules make the Vivado timing constraints true (hw/constr/pynq_z2.xdc):
+
+1. **User-clock enables are at least 256 sysclk cycles apart** (2048 ns), enforced in `clock_ctrl.v` for both clock modes (a JTAG step arriving earlier waits). Every path from a fabric register through the fabric to a fabric register is therefore a 256-cycle multicycle; the fabric hierarchy is kept (`KEEP_HIERARCHY`) so the constraint's cell names survive synthesis.
+2. **TCK is at most 100 kHz** (`host/dirtyjtag.py` refuses more) and is constrained at that period, so TCK-to-TCK paths through the fabric (boundary cell → fabric → DSP/BRAM/CAPTURE capture register) have 10 µs.
+3. **Configuration changes only while GWE = 0**, so the fabric never samples configuration bits while they change.

@@ -101,7 +101,8 @@
   txt(CPX, GY - 5, "bob_fpga.v  ·  CONFIGURATION PLANE + CLOCK", { size: 7.4, anchor: "start", fill: C.CFG.t, mono: true, ls: .6, w: 600 });
   const cp = [
     ["JTAG TAP  ·  jtag_tap6.v", "IEEE 1149.1 FSM · 6-bit AMD IR", "jtag", C.CFG],
-    ["CFG_CTRL  ·  cfg_ctrl.v", "CRC-32C + length guard · key 0xC5", "cfgctrl", C.CFG],
+    ["FRAMES  ·  cfg_frames.v", "UG470 packets · FAR FDRI FDRO CRC", "frames", C.CFG],
+    ["CFG_CTRL  ·  cfg_ctrl.v", "chain CRC + length · startup", "cfgctrl", C.CFG],
     ["STARTUP FSM", "GSR → GTS → GWE → DONE (LD3)", "startup", C.CFG],
     [`CONFIG CHAIN  ·  ${BOB.chain} bits`, "shift + shadow · cfg_tile_sr.v", "chain", C.CFG],
     ["USER1 / CAPTURE", "ce · step · autostep · 16 CLB outs", "capture", C.CFG],

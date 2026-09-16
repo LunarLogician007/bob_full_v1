@@ -23,7 +23,7 @@
   ];
   const TAP = { st: "TLR", ir: "IDCODE", last: null };
   const IRS = [["IDCODE", "001001", "32-bit 0xABEEF093"], ["USERCODE", "001000", "milestone number"], ["BYPASS", "111111", "1 bit"],
-    ["CFG_IN", "000101", "chain write · commits if CRC+len"], ["CFG_OUT", "000100", "chain readback"], ["USER2 CFG_CTRL", "000011", "64-bit CRC/status"],
+    ["CFG_IN", "000101", "M13: frame packets (UG470)"], ["CFG_OUT", "000100", "M13: FDRO / STAT readback"], ["CHAIN_IN · CHAIN_OUT", "110101 · 110100", "the chain (private)"], ["USER2 CFG_CTRL", "000011", "64-bit CRC/status"],
     ["USER1", "000010", "ce sr cin step autostep"], ["USER3 CAPTURE", "100010", "16 CLB outputs"], ["USER4 BRAM", "100011", "96-bit contents/drive"],
     ["DSP (private)", "101000", "256-bit drive / P"], ["JPROGRAM", "001011", "clears at Update-IR"], ["JSTART", "001100", "startup in RTI"],
     ["SAMPLE · EXTEST", "000001 · 100110", "40-cell boundary"], ["INTEST (private)", "000111", "cells drive the fabric"]];

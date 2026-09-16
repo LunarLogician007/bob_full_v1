@@ -57,3 +57,23 @@ def test_no_constraint_file_critical_warnings(d):
     bad = sorted(set(re.findall(
         r"CRITICAL WARNING: \[(?:Designutils 20-1307|Common 17-1548|Vivado 12-4739)\][^\n]*", logs)))
     assert not bad, "\n".join(bad)
+
+
+@pytest.mark.parametrize("d", REPORTS, ids=[os.path.basename(d) for d in REPORTS])
+def test_timing_closes_from_m13(d):
+    """M7 reported WNS -1102 ns (TNS -1.6e6 ns): paths through unconfigured routing loops
+    under 120-cycle multicycles that synthesis had renamed away, and a TCK path under a
+    1 MHz clock. M13 guarantees the 256-cycle gce gap in RTL, keeps the fabric hierarchy
+    and constrains TCK at 100 kHz, so setup and hold must close, and every multicycle
+    must name real cells (docs/bitstream-format.md section 11)."""
+    if int(os.path.basename(d)[1:]) < 13:
+        pytest.skip("timing closure is an M13 requirement")
+    t = _read(d, "timing.rpt")
+    m = re.search(r"WNS\(ns\)\s+TNS\(ns\).*?\n[-\s]+\n\s*(-?[0-9.]+)\s+(-?[0-9.]+)\s+(\d+)\s+\d+\s+(-?[0-9.]+)",
+                  t, re.S)
+    assert m, "no Design Timing Summary in timing.rpt"
+    wns, tns, failing, whs = float(m.group(1)), float(m.group(2)), int(m.group(3)), float(m.group(4))
+    assert wns >= 0 and failing == 0, f"setup: WNS {wns} ns, TNS {tns} ns, {failing} failing endpoints"
+    assert whs >= 0, f"hold: WHS {whs} ns"
+    logs = _read(d, "synth_1.log") + _read(d, "impl_1.log")
+    assert "No valid object" not in logs, "a timing constraint names no cells (see the logs)"

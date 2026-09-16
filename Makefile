@@ -33,6 +33,7 @@ pnr:
 mutate:
 	sim/mutate_cfg.sh
 	sim/mutate_fabric.sh
+	sim/mutate_frames.sh
 
 # device -> vectors -> sims must run in order even under make -j
 .NOTPARALLEL:
@@ -55,6 +56,7 @@ sim:
 	sim/run_k4_sim.sh
 	sim/run_synth_sim.sh
 	sim/run_cosim_sim.sh
+	sim/run_frames_sim.sh
 
 lint:
 	sim/lint.sh

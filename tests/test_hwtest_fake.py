@@ -26,6 +26,7 @@ import cfgplane  # noqa: E402
 import chainbits  # noqa: E402
 import hwtest  # noqa: E402
 import model  # noqa: E402
+import packets  # noqa: E402
 
 IR = {v: k for k, v in cfgplane.IR.items()}
 
@@ -44,6 +45,7 @@ class FakeBob:
         self.target = 0
         self.ptr = 0
         self.corrupt_capture = corrupt_capture
+        self.frames = packets.Controller()          # M13: the frame path on CFG_IN / CFG_OUT
         self.corrupt_sample = corrupt_sample
         self.rate_scale = rate_scale
         self.switches = switches            # time -> pad_i of the real board inputs
@@ -66,13 +68,17 @@ class FakeBob:
     # --- probe API used by cfgplane / fpga / hwtest ---
     def shift_ir(self, code, width=6):
         self._run()
+        errs = self.frames.errors() if hasattr(self, "frames") else 0
+        cap = (0b000001 | (self.done << 5) | (int(not errs) << 4) | (self.committed << 3)
+               | ((self.frames.flags["crc_err"] if errs else 0) << 2))
         self.ir = IR[code]
         if self.ir == "JPROGRAM":
             self.done = self.committed = 0
-        return 0b010001 | (self.done << 5) | (self.committed << 3)
+            self.frames.jprogram()
+        return cap
 
     def pulse(self, tms=0, tdi=0):
-        if self.ir == "JSTART" and self.committed and not self.done:
+        if self.ir == "JSTART" and (self.committed or self.frames.flags["start_ok"]) and not self.done:
             self.done = 1
             self.fab = model.Fabric(B.Bitstream(self.chain))
             self.fab.clock(gsr=1)
@@ -84,7 +90,7 @@ class FakeBob:
         self.ir = "IDCODE"
 
     def read_idcode(self):
-        return 0xABEEF093
+        return packets.device_idcode()
 
     def shift_dr_fast(self, n, din=0):
         return self.shift_dr(n, din)
@@ -94,20 +100,33 @@ class FakeBob:
         ir = self.ir
         if ir == "JPROGRAM":
             return 0
+        if ir == "CFG_IN":                           # M13 frame path
+            self.frames.gwe = int(self.done)
+            self.frames.mem = self.chain
+            self.frames.shift_in(n, din)
+            self.chain = self.frames.mem
+            return 0
+        if ir == "CFG_OUT":
+            words = [self.frames.read_word(gsr=int(not self.done), gts=int(not self.done),
+                                           gwe=int(self.done), done=int(self.done))
+                     for _ in range((n + 31) // 32)]
+            return packets.to_jtag(words)[1] & ((1 << n) - 1)
         if ir == "CFG_CTRL":
             out = (self.expected | (self.count << 32) | (int(chainbits.crc32c_bits(self.chain, B.CHAIN_W)
                    == self.expected) << 48) | (self.committed << 51) | (self.done << 55)
                    | (chainbits.CTRL_VERSION << 56))
-            if din >> 56 == chainbits.CTRL_KEY:
+            if din >> 56 == chainbits.CTRL_KEY:          # only the expected CRC (cfg_ctrl.v)
                 self.expected = din & 0xFFFFFFFF
-                self.committed = self.done = 0
             return out
-        if ir == "CFG_IN":
-            self.chain, self.count = din, n
-            self.committed = int(chainbits.crc32c_bits(din, n) == self.expected and n == B.CHAIN_W)
+        if ir == "CHAIN_IN":                         # commits only while GWE = 0 (M13)
+            self.count = n
+            good = chainbits.crc32c_bits(din, n) == self.expected and n == B.CHAIN_W
+            if good and not self.done:
+                self.chain = din
+                self.committed = 1
             self.brams = {}
             return 0
-        if ir == "CFG_OUT":
+        if ir == "CHAIN_OUT":
             return self.chain
         if ir == "USER1":
             self.user1 = din
@@ -240,3 +259,37 @@ def test_m12_python_pnr_check_fails_when_capture_is_wrong():
 def test_m12_live_python_pnr(at_the_board):
     ok, msg = hwtest._live_check("switches", pnr="python")(FakeBob(switches=_fast_person, rate_scale=4), {})
     assert ok and "all goals reached" in msg, msg
+
+
+@pytest.mark.parametrize("check", ["frames_load", "frames_crc_reject", "frames_idcode_reject",
+                                   "frames_live_refused", "frames_vs_chain"])
+def test_m13_frame_checks_pass_on_a_good_board(check):
+    ok, msg = getattr(hwtest, f"check_{check}")(FakeBob(), {})
+    assert ok, msg
+
+
+def test_m13_frames_live_refused_fails_if_the_board_accepts_writes_while_running():
+    class Reckless(FakeBob):
+        def shift_dr(self, n, din=0):
+            if self.ir == "CFG_IN":
+                self.frames.gwe = 0                  # a board that ignores GWE
+                self.frames.mem = self.chain
+                self.frames.shift_in(n, din)
+                self.chain = self.frames.mem
+                return 0
+            return super().shift_dr(n, din)
+    ok, msg = hwtest.check_frames_live_refused(Reckless(), {})
+    assert not ok, msg
+
+
+def test_m13_crc_reject_fails_if_the_board_ignores_the_crc():
+    class NoCrc(FakeBob):
+        def shift_dr(self, n, din=0):
+            out = super().shift_dr(n, din)
+            if self.ir == "CFG_IN":
+                self.frames.flags["crc_err"] = 0
+                self.frames.flags["start_ok"] = 1
+                self.frames.st = "hdr"
+            return out
+    ok, msg = hwtest.check_frames_crc_reject(NoCrc(), {})
+    assert not ok, msg

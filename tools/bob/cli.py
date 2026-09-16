@@ -166,11 +166,18 @@ def write_brams(p, brams):
     return msg
 
 
-def load(p, path, start=True, log=print):
-    """.bit -> CFG_IN (verified by CFG_OUT readback) -> BRAM contents over USER4 -> JSTART"""
+def load(p, path, start=True, log=print, mode="frames"):
+    """.bit -> configuration memory -> BRAM contents over USER4 -> JSTART.
+    mode "frames" (M13 default): UG470-style packets on CFG_IN, STAT, FDRO readback;
+    mode "chain": CHAIN_IN with CFG_CTRL CRC, CHAIN_OUT readback."""
     import cfgplane
     c = bitgen.read_bit(path)
-    ok, msg = cfgplane.load(p, c["word"], B.CHAIN_W, start=False)
+    if mode == "frames":
+        ok, msg = cfgplane.load_frames(p, c["word"], start=False)
+    elif mode == "chain":
+        ok, msg = cfgplane.load(p, c["word"], B.CHAIN_W, start=False)
+    else:
+        return False, f"mode is frames or chain, not {mode}"
     if not ok:
         return False, msg
     msg += write_brams(p, c["brams"])
@@ -200,7 +207,9 @@ def main():
     ld = sub.add_parser("load")
     ld.add_argument("bit")
     ld.add_argument("--watch", action="store_true", help="show the LEDs afterwards (fpga.py --watch)")
-    ld.add_argument("--freq", type=int, default=100, help="TCK kHz")
+    ld.add_argument("--freq", type=int, default=100, help="TCK kHz (at most 100)")
+    ld.add_argument("--mode", default="frames", choices=("frames", "chain"),
+                    help="configuration path: UG470-style frames on CFG_IN (default) or the chain")
     sub.add_parser("info").add_argument("bit")
     sub.add_parser("fasm").add_argument("bit")
     args = ap.parse_args()
@@ -232,7 +241,7 @@ def main():
             if idcode != fpga.IDCODE_FABRIC:
                 print(f"IDCODE 0x{idcode:08X}, expected 0x{fpga.IDCODE_FABRIC:08X}: program the M7 bitstream")
                 return 1
-            ok, msg = load(p, args.bit)
+            ok, msg = load(p, args.bit, mode=args.mode)
             fpga.go_live(p)
             print(f"{'PASS' if ok else 'FAIL'}  load {args.bit}: {msg}")
             if ok and args.watch:

@@ -50,6 +50,9 @@ USER_CE, USER_SR, USER_CIN, USER_STEP, USER_AUTOSTEP = 0, 1, 2, 3, 4
 IDCODE_EXPECTED = 0x2BEEF093
 
 
+MAX_TCK_KHZ = 100          # M13: the XDC constrains TCK at 10 us; never drive it faster
+
+
 class Probe:
     def __init__(self, freq_khz=100):
         dev = usb.core.find(idVendor=VID, idProduct=PID)
@@ -88,6 +91,9 @@ class Probe:
             return "(no reply to CMD_INFO)"
 
     def set_freq_khz(self, khz):
+        if khz > MAX_TCK_KHZ:
+            raise ValueError(f"TCK {khz} kHz: bob's timing constraints assume at most {MAX_TCK_KHZ} kHz "
+                             "(hw/constr/pynq_z2.xdc, docs/bitstream-format.md section 11)")
         self._xact([CMD_FREQ, (khz >> 8) & 0xFF, khz & 0xFF])
 
     def pulse(self, tms=0, tdi=0):

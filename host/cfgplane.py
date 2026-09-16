@@ -30,8 +30,10 @@ IR = {
     "SAMPLE":   0b000001,
     "USER1":    0b000010,
     "CFG_CTRL": 0b000011,   # USER2
-    "CFG_OUT":  0b000100,
-    "CFG_IN":   0b000101,
+    "CFG_OUT":  0b000100,   # M13: frame packet readback (packets.py)
+    "CFG_IN":   0b000101,   # M13: frame packet stream (packets.py)
+    "CHAIN_OUT": 0b110100,  # M13: the configuration chain readback (private; was CFG_OUT)
+    "CHAIN_IN":  0b110101,  # M13: the configuration chain write (private; was CFG_IN)
     "INTEST":   0b000111,   # private
     "USERCODE": 0b001000,
     "IDCODE":   0b001001,
@@ -96,12 +98,12 @@ def write_expected(p, crc):
 
 
 def cfg_in(p, word, width, fast=True):
-    ir(p, "CFG_IN")
+    ir(p, "CHAIN_IN")
     _shift(p, width, word, fast)
 
 
 def cfg_out(p, width, fast=True):
-    ir(p, "CFG_OUT")
+    ir(p, "CHAIN_OUT")
     return _shift(p, width, 0, fast)
 
 
@@ -209,14 +211,66 @@ def measure_chain(p, limit):
     marker pattern by chance; everything after the true length is marker then
     zeros. So the LAST position where the marker appears is the length."""
     marker = 0xA5C35A3C
-    ir(p, "CFG_OUT")
+    ir(p, "CHAIN_OUT")
     out = _shift(p, limit + 32, marker, True)
     hits = [n for n in range(1, limit + 1) if (out >> n) & 0xFFFFFFFF == marker]
     return hits[-1] if hits else None
 
 
+# --- M13: the frame path (UG470-style packets on CFG_IN / CFG_OUT, tools/bob/packets.py) ----
+
+def frames_send(p, words):
+    """shift a packet stream into CFG_IN (words MSB first)"""
+    import packets
+    ir(p, "CFG_IN")
+    n, v = packets.to_jtag(words)
+    p.shift_dr_fast(n, v)
+
+
+def frames_read(p, nwords):
+    """nwords words out of CFG_OUT (the queued READ words, or STAT)"""
+    import packets
+    ir(p, "CFG_OUT")
+    return packets.from_jtag(p.shift_dr_fast(32 * nwords, 0), nwords)
+
+
+def frames_stat(p):
+    import packets
+    return packets.decode_stat(frames_read(p, 1)[0])
+
+
+def frames_readback(p):
+    """the whole configuration memory through FDRO, as a chain word"""
+    import packets
+    frames_send(p, packets.readback_stream())
+    return packets.word_from_frames(frames_read(p, packets.NFRAMES * packets.FW))
+
+
+def load_frames(p, word, start=True, idcode=None):
+    """JPROGRAM, the frame load stream on CFG_IN, STAT (START accepted, no error),
+    FDRO readback == word, then optionally JSTART and DONE. Returns (ok, message)."""
+    import packets
+    jprogram(p)
+    frames_send(p, packets.load_stream(word, idcode=idcode))
+    st = frames_stat(p)
+    errs = [k for k in ("CRC_ERROR", "ID_ERROR", "PKT_ERROR", "WR_ERROR") if st[k]]
+    if errs or not st["START_OK"]:
+        return False, f"frame load refused: STAT {errs or ''} START_OK={st['START_OK']} SYNCED={st['SYNCED']}"
+    back = frames_readback(p)
+    if back != word:
+        return False, f"FDRO readback differs in {bin(back ^ word).count('1')} bits"
+    msg = (f"loaded {packets.NFRAMES} frames ({packets.NFRAMES * packets.FW} words) through CFG_IN, "
+           f"CRC {packets.expected_crc(word, idcode):08X}, FDRO readback verified")
+    if start:
+        jstart(p)
+        if not status(p)["done"]:
+            return False, f"{msg}; DONE did not rise"
+        msg += ", DONE"
+    return True, msg
+
+
 def load(p, word, width, start=True, fast_first=True):
-    """The full load sequence of docs/bitstream-format.md section 8.
+    """The chain load (CHAIN_IN since M13), docs/bitstream-format.md section 8.
     Returns (ok, message). Bulk first, then per-pulse (the fallback bob's
     fpga.load_bitstream proved on hardware)."""
     crc = chainbits.crc32c_bits(word, width)

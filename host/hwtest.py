@@ -1109,6 +1109,109 @@ def check_ram_readback(p, ctx):
                      if not bad else "; ".join(bad))
 
 
+# --- M13: frame configuration (UG470-style packets) next to the chain -------------------
+
+def _sweep_ok(p, bs, key):
+    import fpga
+    from bitstream import simulate
+    from designs import BY_KEY
+    vs = list(BY_KEY[key][2])
+    got = fpga.intest_sweep(p, vs)
+    fpga.go_live(p)
+    return [v for v, g in zip(vs, got) if g != simulate(bs, v)], len(vs)
+
+
+def check_frames_load(p, ctx):
+    """showcase through the frame path: STAT (START accepted), FDRO readback == chain word,
+    CHAIN_OUT readback of the same memory == chain word, JSTART -> DONE, LEDs == model."""
+    import cfgplane
+    from bitstream import FABRIC_CFG_W
+    show = _fabric_bs("showcase")
+    word = show.to_int()
+    ok, msg = cfgplane.load_frames(p, word, start=False)
+    if not ok:
+        return False, msg
+    chain = cfgplane.cfg_out(p, FABRIC_CFG_W)
+    cfgplane.jstart(p)
+    done = cfgplane.status(p)["done"]
+    bad, n = _sweep_ok(p, show, "showcase")
+    good = ok and chain == word and done and not bad
+    return good, f"{msg}; CHAIN_OUT == word: {chain == word}; DONE={done}; {n - len(bad)}/{n} vectors == model"
+
+
+def check_frames_crc_reject(p, ctx):
+    """one flipped frame-data bit: STAT CRC_ERROR, START refused, JSTART cannot bring DONE up,
+    IR capture shows INIT_B low."""
+    import cfgplane
+    import packets
+    word = _fabric_bs("xor6").to_int()
+    s = packets.load_stream(word)
+    s[s.index(packets.type2(packets.OP_WRITE, packets.NFRAMES * packets.FW)) + 1 + 40] ^= 1 << 3
+    cfgplane.jprogram(p)
+    cfgplane.frames_send(p, s)
+    st = cfgplane.frames_stat(p)
+    cfgplane.jstart(p)
+    done = cfgplane.status(p)["done"]
+    irst = cfgplane.ir_status(p)
+    ok = st["CRC_ERROR"] and not st["START_OK"] and not done and not irst["init_b"]
+    return ok, f"CRC_ERROR={st['CRC_ERROR']} START_OK={st['START_OK']} DONE={done} INIT_B={irst['init_b']}"
+
+
+def check_frames_idcode_reject(p, ctx):
+    """a stream for another IDCODE: STAT ID_ERROR, no frame written (CHAIN_OUT reads zeros)."""
+    import cfgplane
+    import packets
+    from bitstream import FABRIC_CFG_W
+    word = _fabric_bs("showcase").to_int()
+    cfgplane.jprogram(p)
+    cfgplane.frames_send(p, packets.load_stream(word, idcode=packets.device_idcode() ^ 0x10000000))
+    st = cfgplane.frames_stat(p)
+    empty = cfgplane.cfg_out(p, FABRIC_CFG_W) == 0
+    return st["ID_ERROR"] and empty, f"ID_ERROR={st['ID_ERROR']} memory empty={empty}"
+
+
+def check_frames_live_refused(p, ctx):
+    """while showcase runs (GWE = 1) a complete frame load of another design is refused
+    (WR_ERROR) and a good chain for it does not commit either; showcase keeps working."""
+    import cfgplane
+    import fpga
+    import packets
+    from bitstream import FABRIC_CFG_W
+    from chainbits import crc32c_bits
+    show = _fabric_bs("showcase")
+    ok, msg = cfgplane.load_frames(p, show.to_int())
+    if not ok:
+        return False, msg
+    other = _fabric_bs("xor6").to_int()
+    cfgplane.frames_send(p, packets.load_stream(other))
+    st = cfgplane.frames_stat(p)
+    # the controller now sits in its error state until JPROGRAM, so read the memory over the chain
+    kept_frames = cfgplane.cfg_out(p, FABRIC_CFG_W) == show.to_int()
+    cfgplane.write_expected(p, crc32c_bits(other, FABRIC_CFG_W))
+    cfgplane.cfg_in(p, other, FABRIC_CFG_W)
+    kept_chain = cfgplane.cfg_out(p, FABRIC_CFG_W) == show.to_int()
+    done = cfgplane.status(p)["done"]
+    bad, n = _sweep_ok(p, show, "showcase")
+    fpga.go_live(p)
+    good = st["WR_ERROR"] and kept_frames and kept_chain and done and not bad
+    return good, (f"frames: WR_ERROR={st['WR_ERROR']} memory kept={kept_frames}; chain while running kept={kept_chain}; "
+                  f"DONE={done}; showcase {n - len(bad)}/{n} vectors == model")
+
+
+def check_frames_vs_chain(p, ctx):
+    """one memory, two paths: a chain load reads back identically through FDRO, and a frame
+    load identically through CHAIN_OUT (a different design each way)."""
+    import cfgplane
+    from bitstream import FABRIC_CFG_W
+    a = _fabric_bs("xor6").to_int()
+    b = _fabric_bs("showcase").to_int()
+    ok1, m1 = cfgplane.load(p, a, FABRIC_CFG_W, start=False)
+    fdro = cfgplane.frames_readback(p) == a
+    ok2, m2 = cfgplane.load_frames(p, b, start=False)
+    chain = cfgplane.cfg_out(p, FABRIC_CFG_W) == b
+    return ok1 and ok2 and fdro and chain, f"chain load -> FDRO == word: {fdro}; frame load -> CHAIN_OUT == word: {chain}"
+
+
 REGRESSION = [
     ("idcode", check_idcode),
     ("bypass", check_bypass),
@@ -1273,6 +1376,7 @@ MILESTONE = {
             ("live-fir", _live_check("fir")),
             ("live-mult", _live_check("mult")),
             ("live-switches", _live_check("switches"))],          # last: leaves switches.v running
+    # M13 is built further down (it reuses the lists above).
     # M12a: still no RTL change. Every example placed and routed by bob's own Python PnR
     # (tools/bob/pnr/) instead of VPR, through the M10 golden check, then two live.
     "M12": [("chain-length", check_chain_length),
@@ -1288,6 +1392,26 @@ MILESTONE = {
             ("live-fir-py", _live_check("fir", pnr="python")),
             ("live-switches-py", _live_check("switches", pnr="python"))],   # last: leaves switches running
 }
+
+# M13: a Vivado rebuild (frames, timing fixes), so the complete regression runs again:
+# every M7 fabric check (loaded over the CHAIN path, CHAIN_IN / CHAIN_OUT), then the frame
+# path on its own, then the guest designs, which bob load now sends as frames.
+MILESTONE["M13"] = (
+    [c for c in MILESTONE["M7"] if c[0] != "pipeline-live"] +
+    [("frames-load", check_frames_load),
+     ("frames-crc-reject", check_frames_crc_reject),
+     ("frames-idcode-reject", check_frames_idcode_reject),
+     ("frames-live-refused", check_frames_live_refused),
+     ("frames-vs-chain", check_frames_vs_chain),
+     ("bob-gates", _bob_check("gates")),
+     ("bob-counter", _bob_check("counter")),
+     ("bob-ram", _bob_check("ram")),
+     ("bob-mult", _bob_check("mult")),
+     ("bob-fir", _bob_check("fir")),
+     ("pnr-switches", _bob_check("switches", pnr="python")),
+     ("ram-readback", check_ram_readback),
+     ("blinky-rate", check_blinky_rate),
+     ("pipeline-live", dict(MILESTONE["M7"])["pipeline-live"])])      # last: leaves the pipeline on the switches
 
 
 # --- runner ------------------------------------------------------------------

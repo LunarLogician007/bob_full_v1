@@ -56,8 +56,8 @@ run done-is-commit  src/fabric/bob_fpga.v 's/assign configured = done;/assign co
 # M4 user clock and routed CE
 run no-gce          src/clb/clb.sv        's/else if \(gwe && gce\) begin/else if (gwe) begin/'
 run ce-not-routed   src/clb/clb.sv        's/wire ce_eff = ff_ce_en \? ce : 1'"'"'b1;/wire ce_eff = 1'"'"'b1;/'
-run step-ignores-ce src/core/clock_ctrl.v 's/gce <= \(tck_rise & ce_m\[1\]\) \| step_rise;/gce <= tck_rise | step_rise;/'
-run divider-off-by-1 src/core/clock_ctrl.v 's/if \(cnt >= last\) begin/if (cnt > last) begin/'
+run step-ignores-ce src/core/clock_ctrl.v 's/else           req = \(tck_rise & ce_m\[1\]\) \| step_rise;/else           req = tck_rise | step_rise;/'
+run divider-off-by-1 src/core/clock_ctrl.v 's/cnt >= last/cnt > last/g'
 # M5 BRAM
 run bram-no-write-first src/tiles/bram_core.v 's/\(we_qa && wmode_a == WRITE_FIRST\) \? din_qa :/1'"'"'b0 ? din_qa :/'
 run bram-no-no-change   src/tiles/bram_core.v 's/\(we_qa && wmode_a == NO_CHANGE\)   \? hold_qa :/1'"'"'b0 ? hold_qa :/'

@@ -183,3 +183,16 @@ Status: **same** = byte-identical to `bob/`, **moved** = same content at a new p
 | `tools/bob/cli.py`, `host/hwtest.py`, `sim/gen_cosim.py`, `sim/tb_cosim.v` | M10/M11 | modified | `--pnr python`; hwtest M12; co-sim of both flows |
 | `tests/test_pnr.py`, `tests/test_hwtest_fake.py`, `docs/hwtest/M12.md`, `docs/reports/M12/pnr_vs_vpr.md` | — | new / modified | independent legality, determinism, failing cases; board checklist; report |
 
+## M13: frame-based configuration, chain kept, timing fixes
+
+| File | From | Status | Notes |
+|---|---|---|---|
+| `hw/src/core/cfg_frames.v` | AMD UG470 ch. 5 (packets, registers, CMD, FAR); `resourses/04-config-bitstream/CONFIG-CONTROLLER.md`; prjxray `crc.py` | new | packet parser, register file, frame writer, readback queue |
+| `hw/src/core/cfg_store.v` | `cfg_tile_sr.v` (M2, hardware-proven) | new, derived | the chain protocol plus a frame write port on one memory |
+| `hw/src/core/jtag_tap6.v`, `cfg_ctrl.v`, `clock_ctrl.v`, `hw/src/fabric/bob_fpga.v`, `hw/src/top/cfg_test_top.v` | M2–M7 | modified | CHAIN_IN/CHAIN_OUT; commit only while GWE=0; startup after either path; gce gap guard; wiring, keep_hierarchy |
+| `hw/constr/pynq_z2.xdc`, `host/dirtyjtag.py` | M7 | modified | TCK 100 kHz; 256-cycle multicycle on `u_fabric`; TCK ceiling |
+| `tools/bob/device.py` | M7 | modified | column-major frames, `frames` in device.json, FAR table |
+| `tools/bob/packets.py`, `host/cfgplane.py`, `tools/bob/cli.py`, `host/hwtest.py` | M10–M12 | new / modified | streams + Controller model; load_frames; `--mode`; hwtest M13 |
+| `hw/tb/tb_frames.v`, `hw/tb/tb_clock_gap.v`, `hw/tb/bob_harness.vh`, `sim/gen_frame_vectors.py`, `sim/run_frames_sim.sh`, `sim/mutate_frames.sh` | `tb_synth` harness | new / modified | frame-path and gap tests, mutants |
+| `tests/test_device.py`, `tests/test_reports.py`, `tests/test_hwtest_fake.py`, `docs/bitstream-format.md`, `docs/hwtest/M13.md` | — | modified / new | sizes, timing closure from M13, fake-board frame controller; spec; checklist |
+

@@ -36,6 +36,6 @@ run crc-poly       "s/32'h82F63B78/32'h82F63B79/"
 run no-crc-guard   's/load_good = crc_good & len_good;/load_good = len_good;/'
 run no-len-guard   's/load_good = crc_good & len_good;/load_good = crc_good;/'
 run no-write-key   's/\(ctrl_sr\[63:56\] == CTRL_KEY\)/1'"'"'b1/'
-run start-no-commit 's/if \(jstart_tick & committed & /if (jstart_tick \& /'
+run start-no-commit 's/if \(jstart_tick & \(committed \| frames_ok\) & /if (jstart_tick \& /'
 
 if [[ $survivors -eq 0 ]]; then echo "all mutants killed"; else echo "$survivors mutant(s) not killed"; exit 1; fi

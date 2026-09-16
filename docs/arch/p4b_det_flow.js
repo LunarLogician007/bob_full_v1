@@ -114,3 +114,53 @@
     tb: [["sim/run_cosim_sim.sh", "9 designs × 100 cycles"], ["hwtest M10, M11", "passed 2026-09-17"]],
     drill: ["flow", "capture", "bsr"]
   });
+
+  /* ============================ M13: frames and timing ============================ */
+  D("frames", {
+    title: "Frame configuration — UG470-style packets (M13)", sub: `CFG_IN / CFG_OUT · sync 0xAA995566 · type-1/2 packets · ${BOB.chain / 128} frames × 4 words · the chain kept on CHAIN_IN`, k: "CFG", stage: "hw/src/core/cfg_frames.v",
+    rows: [F("CFG_IN, word by word (MSB first)",
+        ["hunt", "bit by bit for 0xAA995566", null, "CFG"],
+        ["type-1 header", "[31:29]=001 op reg[17:13] count[10:0]", null, "CFG"],
+        ["type-2 header", "[31:29]=010 op count[26:0]", null, "CFG"],
+        ["register write", "CRC-32C over {reg, data}", "cfgctrl", "CFG"]),
+      B("registers",
+        ["FAR", "block · row · column · minor, auto-increment", null, "CFG"],
+        ["FDRI", "4 words → one 128-bit frame into cfg_store", "chain", "CFG"],
+        ["FDRO", "frame words out on CFG_OUT (needs RCFG)", null, "CFG"],
+        ["CMD", "WCFG RCFG RCRC LFRM START DESYNC", "startup", "CFG"],
+        ["STAT · IDCODE · CRC", "errors CRC/ID/PKT/WR, INIT_B, DONE", null, "CFG"])],
+    notes: ["The configuration memory is column-major frames: FAR column 0 = the ctrl tile, FAR column x+1 = grid column x, each padded to whole frames. The chain is exactly all frames end to end, so both paths write one memory and read it back identically (hwtest frames-vs-chain).",
+      "Writes need WCFG, a matched IDCODE and GWE = 0; START needs a CRC match after the last frame. Any error parks the parser until JPROGRAM, as a 7-series device does.",
+      "Simplified against 7-series: a frame lands when its 4th word arrives (no pad frame on load, no garbage frame on readback); no encryption, compression, COR/CTL, ECC or multiboot; BRAM contents stay on USER4 (FAR block type 001 reserved).",
+      "tools/bob/packets.py builds the streams and holds a bit-level Python model of this controller; every expected value in tb_frames comes from it."],
+    src: [["AMD UG470 chapter 5", "sync word, packet headers, register and CMD codes, FAR layout"], ["resourses/04-config-bitstream/CONFIG-CONTROLLER.md", "parser states, frame writer, gotchas"], ["prjxray crc.py", "CRC over {address, data}"]],
+    why: ["The user asked for frames 'just like AMD, slightly simplified', keeping the chain as an option: frames make the stream self-synchronising, addressable and readable per frame, which the chain is not."],
+    files: [["hw/src/core/cfg_frames.v", "parser, registers, frame writer, readback"], ["hw/src/core/cfg_store.v", "one memory, chain and frame write paths"], ["hw/src/core/jtag_tap6.v", "CFG_IN/CFG_OUT vs CHAIN_IN/CHAIN_OUT"], ["tools/bob/packets.py", "streams, model, dump"], ["host/cfgplane.py", "load_frames, frames_readback, frames_stat"], ["docs/bitstream-format.md §9–10", "specification"]],
+    tb: [["hw/tb/tb_frames.v", "34 checks: load, readback, split stream, CRC/ID/PKT/WR errors, GWE refusal, chain after frames"], ["sim/mutate_frames.sh", "16 guard mutants, all killed"], ["hwtest M13 frames-*", "board"]],
+    drill: ["chain", "cfgctrl", "startup", "timing"]
+  });
+
+  D("timing", {
+    title: "Host timing — why M7 failed and what M13 guarantees", sub: "M7: WNS −1102 ns · TNS −1 608 726 ns · 1858 failing endpoints → M13 constraints that are true by construction", k: "CMT", stage: "hw/constr/pynq_z2.xdc",
+    rows: [F("sysclk (M7 −1102 ns)",
+        ["fabric register", "e.g. BRAM hold register", "bram", "BRAM"],
+        ["1202 logic levels", "through unconfigured routing loops", "routing", "GTX"],
+        ["fabric register", "1110 ns > 120-cycle budget, and the name escaped the filter", null, "BRAM"]),
+      F("tck (M7 −657 ns)",
+        ["IR / boundary update", "", "jtag", "CFG"],
+        ["fabric + DSP comb", "~1650 ns", "dsp", "DSP"],
+        ["DSP JTAG capture", "under a 1 MHz clock, driven at 100 kHz", "dspjtag", "CFG"]),
+      B("M13",
+        ["gce gap ≥ 256 cycles", "clock_ctrl.v, both modes", "clock", "CMT"],
+        ["keep_hierarchy u_fabric", "multicycle 256 on its sequential cells", null, "CMT"],
+        ["TCK 10 µs", "dirtyjtag.py refuses > 100 kHz", "jtag", "CFG"],
+        ["config only while GWE = 0", "chain and frames", "cfgctrl", "CFG"])],
+    notes: ["The static analyser cannot know a configuration, so it walks paths through routing muxes that no legal (loop-free) configuration uses. Those paths are bounded by the user clock, which is an enable on sysclk: guaranteeing the enable spacing in RTL turns the multicycle from an assumption into a fact (tb_clock_gap.v).",
+      "M7's constraints named cells by patterns like *u_bram*/u_core/*; synthesis flattened and renamed some registers (hold_qb_reg[17]_i_5__0), so the worst paths were timed as single-cycle. Keeping the fabric's hierarchy keeps every fabric register under u_fabric/.",
+      "tests/test_reports.py now requires WNS ≥ 0, no failing endpoint, WHS ≥ 0 and no 'No valid object' for M13 builds."],
+    src: [["docs/reports/M7/timing.rpt", "the failing paths"], ["AMD UG903 / UG949", "multicycle paths on clock-enabled logic; enables over derived clocks"]],
+    why: ["Honest constraints: every relaxation is backed by an RTL guarantee or a host limit, and each has a test."],
+    files: [["hw/src/core/clock_ctrl.v", "gce gap guard"], ["hw/src/fabric/bob_fpga.v", "keep_hierarchy on u_fabric"], ["hw/constr/pynq_z2.xdc", "TCK period, multicycles"], ["host/dirtyjtag.py", "MAX_TCK_KHZ"]],
+    tb: [["hw/tb/tb_clock_gap.v", "spacing in both modes"], ["tests/test_reports.py", "timing closure from M13"], ["sim/mutate_frames.sh", "gap guard mutants"]],
+    drill: ["clock", "frames", "routing"]
+  });
