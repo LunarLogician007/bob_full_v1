@@ -1,0 +1,5 @@
+# graphify: frozen copies of hw/ host/ tools/ (M3-M7, 8x8 profile) would duplicate every module
+release/
+build/
+graphify-out/
+architecture-v2.html
