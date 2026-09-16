@@ -479,3 +479,29 @@
     PASS  live-fir         312 live samples LEDs == model(registers, pins), 1 input vectors, 1 register states, 0 bursts skipped (moving); readback while running == .bit
     PASS  live-mult        318 live samples LEDs == model(registers, pins), 1 input vectors, 1 register states, 0 bursts skipped (moving); readback while running == .bit
     PASS  live-switches    314 live samples LEDs == model(registers, pins), 1 input vectors, 1 register states, 0 bursts skipped (moving); readback while running == .bit
+2026-09-17 02:10:33  M11  tag=M7 top=bob_top
+    PASS  idcode           0xABEEF093, build.cfg expects 0xABEEF093
+    PASS  bypass           measured 1 bit(s)
+    PASS  selftest         12/12 designs match the model
+    PASS  chain-length     4216 bits, design intact after the marker scan
+    PASS  bob-switches     loaded 4216 bits (bulk), crc 0x5F93B8BC, readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 3 registers == golden
+    PASS  bob-fir          loaded 4216 bits (bulk), crc 0x369CFCF9, readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 7 registers == golden
+    PASS  ram-readback     64 clocks (50 with BTN0 write), bram0[0..15] = [2, 2, 4, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] read back after JPROGRAM == model (all 1024 words were written at load, so no earlier design's words remain); chain readback == .bit
+    PASS  blinky-rate      61 counts in 4.13 s = 14.79 Hz (expected 14.90)
+    PASS  live-blinky      30 live samples LEDs == model(registers, pins), 1 input vectors, 16 register states, 9 bursts skipped (moving); all goals reached; readback while running == .bit
+    FAIL  live-fir         USBError: [Errno 19] No such device (it may have been disconnected)
+    FAIL  live-mult        USBError: [Errno 19] No such device (it may have been disconnected)
+    FAIL  live-switches    USBError: [Errno 19] No such device (it may have been disconnected)
+2026-09-17 02:14:54  M11  tag=M7 top=bob_top
+    PASS  idcode           0xABEEF093, build.cfg expects 0xABEEF093
+    PASS  bypass           measured 1 bit(s)
+    PASS  selftest         12/12 designs match the model
+    PASS  chain-length     4216 bits, design intact after the marker scan
+    PASS  bob-switches     loaded 4216 bits (bulk), crc 0x5F93B8BC, readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 3 registers == golden
+    PASS  bob-fir          loaded 4216 bits (bulk), crc 0x369CFCF9, readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 7 registers == golden
+    PASS  ram-readback     64 clocks (50 with BTN0 write), bram0[0..15] = [2, 2, 4, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] read back after JPROGRAM == model (all 1024 words were written at load, so no earlier design's words remain); chain readback == .bit
+    PASS  blinky-rate      62 counts in 4.13 s = 15.01 Hz (expected 14.90)
+    PASS  live-blinky      30 live samples LEDs == model(registers, pins), 1 input vectors, 16 register states, 9 bursts skipped (moving); all goals reached; readback while running == .bit
+    PASS  live-fir         2717 live samples LEDs == model(registers, pins), 8 input vectors, 12 register states, 16 bursts skipped (moving); all goals reached; readback while running == .bit
+    PASS  live-mult        2060 live samples LEDs == model(registers, pins), 21 input vectors, 22 register states, 43 bursts skipped (moving); all goals reached; readback while running == .bit
+    PASS  live-switches    2203 live samples LEDs == model(registers, pins), 17 input vectors, 8 register states, 14 bursts skipped (moving); all goals reached; readback while running == .bit
