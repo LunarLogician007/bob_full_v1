@@ -1,0 +1,83 @@
+{
+"top": "switches",
+"lut": {
+"led[1]": {
+"n": 3,
+"tt": 248
+},
+"led[0]": {
+"n": 2,
+"tt": 6
+},
+"n14": {
+"n": 2,
+"tt": 4
+},
+"n15": {
+"n": 1,
+"tt": 1
+},
+"ffd1": {
+"n": 1,
+"tt": 2
+},
+"ffd2": {
+"n": 1,
+"tt": 2
+}
+},
+"add": {},
+"ff": {
+"$auto$ff.cc:337:slice$100": {
+"rstval": 0,
+"ce": false,
+"sr": false
+},
+"$auto$ff.cc:337:slice$101": {
+"rstval": 0,
+"ce": false,
+"sr": false
+},
+"$auto$ff.cc:337:slice$93": {
+"rstval": 0,
+"ce": true,
+"sr": false
+}
+},
+"bram": {},
+"dsp": {},
+"consts": {},
+"out_consts": {},
+"has_clk": true,
+"out_pads": {},
+"net_bits": {
+"btn[0]": 5,
+"btn[1]": 6,
+"btn[2]": 7,
+"btn[3]": 8,
+"clk": 2,
+"ffd1": 8,
+"ffd2": 13,
+"led[0]": 9,
+"led[1]": 10,
+"led[2]": 11,
+"n12": 12,
+"n13": 13,
+"n14": 14,
+"n15": 15,
+"sw[0]": 3,
+"sw[1]": 4
+},
+"pins": {
+"clk": 2,
+"sw[0]": 6,
+"sw[1]": 8,
+"btn[0]": 10,
+"btn[1]": 12,
+"btn[3]": 1,
+"out:led[0]": 7,
+"out:led[1]": 9,
+"out:led[2]": 11
+},
+"pcf": null
+}

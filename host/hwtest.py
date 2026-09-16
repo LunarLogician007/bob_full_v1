@@ -828,6 +828,165 @@ def _bob_check(name):
     return check
 
 
+# --- M11: real designs live on the board (free-running clock, real switches) ------------------
+
+LIVE_DIV = 15                  # 125 MHz / 2**23 = 14.9 Hz: slower than a CAPTURE-SAMPLE-CAPTURE burst
+LIVE_SECONDS = 8.0
+
+
+def _live_build(name):
+    import cli
+    import vpr_run
+    top, pcf = vpr_run.VARIANTS.get(name, (name, None))
+    path, word, contents, tr = cli.build([os.path.join(ROOT, "examples", f"{top}.v")], top, pcf,
+                                         os.path.join(ROOT, "build", "bit", f"{name}_run.bit"), clock="run",
+                                         div=LIVE_DIV, name=name, log=lambda *_: None)
+    return path, word
+
+
+def _live_state(p, cmap_idx):
+    """CAPTURE, SAMPLE, CAPTURE. -> (sample, capture) when no register changed in
+    between, else None"""
+    import cfgplane
+    import fpga
+    from bitstream import NCLB
+    c1 = cfgplane.capture(p, NCLB)
+    cfgplane.ir(p, "SAMPLE")
+    smp = fpga.sample(p)
+    c2 = cfgplane.capture(p, NCLB)
+    mask = sum(1 << i for i in cmap_idx)
+    return (smp, c1) if (c1 & mask) == (c2 & mask) else None
+
+
+def _live_check(name):
+    def check(p, ctx):
+        """Live on the real switches (free-running clock): whenever the registers are
+        stable across CAPTURE-SAMPLE-CAPTURE, model.py given those registers and the
+        sampled pins reproduces the sampled LEDs. CFG_OUT readback while running."""
+        import time
+        import bitgen
+        import cfgplane
+        import cli
+        import fasm_from_vpr
+        import fpga
+        import model
+        from bitstream import BLOCKS, CLBS, FABRIC_CFG_W, Bitstream
+        path, word = _live_build(name)
+        ok, msg = cli.load(p, path, log=lambda *_: None)
+        if not ok:
+            return False, msg
+        idx = [i for i, _bit in fasm_from_vpr.capture_map(name)]
+        print(f"           {name} is live: flip SW0/SW1 and press the buttons for {LIVE_SECONDS:.0f} s")
+        seen_in, seen_state, samples, skipped, bad = set(), set(), 0, 0, []
+        t_end = time.time() + LIVE_SECONDS
+        while time.time() < t_end:
+            got = _live_state(p, idx)
+            if got is None:
+                skipped += 1
+                continue
+            smp, cap = got
+            m = model.Fabric(Bitstream(word))
+            for i in idx:
+                b = BLOCKS[CLBS[i]]
+                m.q[(b["x"], b["y"])] = (cap >> i) & 1
+            want = m.outputs(smp["i"])
+            samples += 1
+            seen_in.add(smp["i"])
+            seen_state.add(sum(((cap >> i) & 1) << k for k, i in enumerate(idx)))
+            if want != smp["leds"]:
+                bad.append(f"pins {smp['i']:06b} registers {cap:04X}: LEDs {smp['leds']:03b}, model {want:03b}")
+        back = cfgplane.cfg_out(p, FABRIC_CFG_W)
+        fpga.go_live(p)
+        if back != word:
+            bad.append("CFG_OUT readback while running differs from the .bit")
+        if samples == 0:
+            return False, f"no stable sample in {LIVE_SECONDS:.0f} s ({skipped} bursts saw registers move)"
+        return not bad, (f"{samples} live samples LEDs == model(registers, pins), {len(seen_in)} input "
+                         f"vectors, {len(seen_state)} register states, {skipped} bursts skipped (moving); "
+                         f"readback while running == .bit" if not bad else f"{len(bad)} wrong, first {bad[:3]}")
+    check.__name__ = f"check_live_{name}"
+    return check
+
+
+def check_blinky_rate(p, ctx):
+    """blinky on the free-running clock counts at 125 MHz / 2**(LIVE_DIV+8) (CAPTURE of its
+    8 register bits over about 4 s)."""
+    import json
+    import time
+    import cfgplane
+    import cli
+    import fasm_from_vpr
+    import fpga
+    from bitstream import DIV_MIN_SHIFT, NCLB
+    path, _word = _live_build("blinky")
+    ok, msg = cli.load(p, path, log=lambda *_: None)
+    if not ok:
+        return False, msg
+    mod = json.load(open(os.path.join(ROOT, "build", "synth", "blinky", "blinky.json")))["modules"]["blinky"]
+    qbits = mod["netnames"]["q"]["bits"]
+    where = {bit: i for i, bit in fasm_from_vpr.capture_map("blinky")}
+
+    def count():
+        c = cfgplane.capture(p, NCLB)
+        return sum(((c >> where[b]) & 1) << k for k, b in enumerate(qbits))
+
+    t0, last, total = time.time(), count(), 0
+    for _ in range(8):
+        time.sleep(0.5)
+        v = count()
+        total += (v - last) % 256
+        last = v
+    dt = time.time() - t0
+    rate, want = total / dt, 125e6 / 2 ** (LIVE_DIV + DIV_MIN_SHIFT)
+    fpga.go_live(p)
+    return abs(rate - want) <= 0.1 * want, f"{total} counts in {dt:.2f} s = {rate:.2f} Hz (expected {want:.2f})"
+
+
+def check_ram_readback(p, ctx):
+    """ram.v written through the design (INTEST, 64 clocks of the source trace), then
+    stopped with JPROGRAM (GWE = 0) and its BRAM read back over USER4 == the memory
+    model.py computed for the same clocks; the chain read back == the .bit."""
+    import cfgplane
+    import cli
+    import fpga
+    import model
+    from bitstream import FABRIC_CFG_W, Bitstream
+    path, word, contents, tr = cli.build([os.path.join(ROOT, "examples", "ram.v")], "ram", None,
+                                         os.path.join(ROOT, "build", "bit", "ram.bit"), log=lambda *_: None)
+    ok, msg = cli.load(p, path, log=lambda *_: None)
+    if not ok:
+        return False, msg
+    trace = tr["trace"][:SYNTH_HW_CYCLES]
+    m = model.Fabric(Bitstream(word))
+    m.clock(gsr=1)
+    for b, words in contents.items():
+        m.brams[b].mem = list(words)
+    cfgplane.user1(p, 0x10)
+    cfgplane.ir(p, "INTEST")
+    p.shift_dr_fast(fpga.BSR_W, fpga.bsr_word(trace[0][0]))
+    m.clock(pad_i=trace[0][0])
+    for k in range(1, len(trace)):
+        p.shift_dr_fast(fpga.BSR_W, fpga.bsr_word(trace[k][0]))
+        m.clock(pad_i=trace[k][0])
+    cfgplane.user1(p, 0)
+    back = cfgplane.cfg_out(p, FABRIC_CFG_W)
+    cfgplane.jprogram(p)                                   # stop: GWE = 0, BRAM reads allowed
+    bad = []
+    for b in range(len(m.brams)):
+        cfgplane.bram_select(p, b)
+        got = cfgplane.bram_read(p, 0, 8)
+        want = m.brams[b].mem[:8]
+        if got != want:
+            bad.append(f"bram{b}[0..7] = {got}, model {want}")
+    fpga.go_live(p)
+    if back != word:
+        bad.append("CFG_OUT readback differs from the .bit")
+    writes = sum(1 for v, _b, _a in trace if (v >> 2) & 1)
+    return not bad, (f"{len(trace)} clocks ({writes} with BTN0 write), bram0[0..3] = "
+                     f"{m.brams[0].mem[:4]} read back after JPROGRAM == model; chain readback == .bit"
+                     if not bad else "; ".join(bad))
+
+
 REGRESSION = [
     ("idcode", check_idcode),
     ("bypass", check_bypass),
@@ -981,6 +1140,17 @@ MILESTONE = {
             ("bob-ram", _bob_check("ram")),
             ("bob-mult", _bob_check("mult")),
             ("bob-gates-swapped", _bob_check("gates_swapped"))],
+    # M11: still no RTL change. The two new examples through the M10 golden check, then
+    # designs live on the free-running clock and the real switches.
+    "M11": [("chain-length", check_chain_length),
+            ("bob-switches", _bob_check("switches")),
+            ("bob-fir", _bob_check("fir")),
+            ("ram-readback", check_ram_readback),
+            ("blinky-rate", check_blinky_rate),
+            ("live-blinky", _live_check("blinky")),
+            ("live-fir", _live_check("fir")),
+            ("live-mult", _live_check("mult")),
+            ("live-switches", _live_check("switches"))],          # last: leaves switches.v running
 }
 
 

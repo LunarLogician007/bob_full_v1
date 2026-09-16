@@ -1,0 +1,27 @@
+Netlist_File: fir.net Netlist_ID: SHA256:4bd2d98fef7b92ef13a8b969304a93da4115ab1bc273e33c07a0f4e215f72361
+Array size: 8 x 6 logic blocks
+
+#block name	x	y	subblk	layer	block number
+#----------	--	--	------	-----	------------
+$mul$examples/fir.v:20$3	6	3	0	0	#0
+$mul$examples/fir.v:20$4	6	1	0	0	#1
+$auto$alumacc.cc:548:replace_alu$26.slice[2].add	4	2	0	0	#2
+$auto$alumacc.cc:548:replace_alu$26.slice[3].add	4	3	0	0	#3
+$auto$alumacc.cc:548:replace_alu$26.slice[4].add	4	4	0	0	#4
+ffd13		2	2	0	0	#5
+ffd14		2	4	0	0	#6
+ffd11		1	1	0	0	#7
+ffd12		2	3	0	0	#8
+$auto$alumacc.cc:548:replace_alu$26.slice[0].add	5	2	0	0	#9
+$auto$alumacc.cc:548:replace_alu$26.slice[1].add	5	3	0	0	#10
+bob_gen7	4	1	0	0	#11
+bob_tap5	5	4	0	0	#12
+out:led[0]	7	1	0	0	#13
+out:led[1]	7	2	0	0	#14
+out:led[2]	7	3	0	0	#15
+bob_gen1	5	1	0	0	#16
+clk		3	0	0	0	#17
+sw[0]		0	1	0	0	#18
+sw[1]		0	2	0	0	#19
+btn[2]		1	0	0	0	#20
+btn[3]		2	0	0	0	#21

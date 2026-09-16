@@ -153,3 +153,13 @@ Status: **same** = byte-identical to `bob/`, **moved** = same content at a new p
 | `hw/tb/bob_harness.vh` | `hw/tb/tb_synth.v` tasks | moved | shared by tb_synth and tb_cosim |
 | `sim/tb_cosim.v`, `sim/gen_cosim.py`, `sim/run_cosim_sim.sh` | `hw/tb/tb_synth.v` | new | golden co-simulation, source live |
 | `host/hwtest.py`, `tests/test_bitgen.py`, `tests/test_hwtest_fake.py`, `examples/gates_swapped.pcf`, `docs/hwtest/M10.md`, `docs/bitstream-format.md` | M9 | modified / new | hwtest M10 `bob-*`; FASM and `.bit` v2 documented |
+
+## M11: full hardware bring-up
+
+| File | From | Status | Notes |
+|---|---|---|---|
+| `examples/switches.v`, `examples/fir.v` | — | new | live logic + toggle register; 2-tap FIR on both DSP slices |
+| `host/hwtest.py` | `check_dsp_accum` (rate), M10 `_bob_check` | modified | M11: `ram-readback`, `blinky-rate`, `live-*` (CAPTURE/SAMPLE vs model) |
+| `tests/test_hwtest_fake.py` | M10 | modified | free-running clock in real time, SAMPLE, JPROGRAM, USER4 READ; pass and fail cases |
+| `tools/bob/report.py`, `docs/reports/M11/designs.md` | — | new | per-design resource/route/chain report |
+| `tools/bob/cli.py`, `tools/bob/vpr_run.py`, `Makefile` | M10 | modified | clock rate printed; switches/fir in the example set |

@@ -1,7 +1,8 @@
 """
-hwtest's M10 checks against a software stand-in for the board: FakeBob answers the
+hwtest's M10 and M11 checks against a software stand-in for the board: FakeBob answers the
 JTAG instructions the checks use (JPROGRAM, CFG_CTRL, CFG_IN/OUT, JSTART, USER1
-autostep, INTEST, CAPTURE, USER4 BRAM) from tools/bob/model.py. It cannot find
+autostep, INTEST, SAMPLE, CAPTURE, USER4 BRAM write/read) from tools/bob/model.py,
+and runs the free-running user clock in real time (ctrl.clk_mode / clk_div). It cannot find
 hardware problems; it proves the checks' own scan ordering, bit indexing and
 golden comparisons before they meet the board, and that they can fail.
 """
@@ -9,6 +10,7 @@ golden comparisons before they meet the board, and that they can fail.
 import os
 import shutil
 import sys
+import time
 
 import pytest
 
@@ -29,7 +31,7 @@ IR = {v: k for k, v in cfgplane.IR.items()}
 
 
 class FakeBob:
-    def __init__(self, corrupt_capture=False):
+    def __init__(self, corrupt_capture=False, corrupt_sample=False, rate_scale=1.0, switches=lambda t: 0):
         self.ir = "IDCODE"
         self.chain = 0
         self.expected = 0
@@ -42,10 +44,31 @@ class FakeBob:
         self.target = 0
         self.ptr = 0
         self.corrupt_capture = corrupt_capture
+        self.corrupt_sample = corrupt_sample
+        self.rate_scale = rate_scale
+        self.switches = switches            # time -> pad_i of the real board inputs
+        self.rdata = 0
+
+    def _pins(self):
+        return self.switches(time.time())
+
+    def _run(self):
+        """free-running clock: catch up on the edges that happened since JSTART"""
+        if not self.done or not (self.chain >> B.CTRL_FIELD["clk_mode"][0]) & 1:
+            return
+        off, w = B.CTRL_FIELD["clk_div"]
+        hz = 125e6 / 2 ** (((self.chain >> off) & ((1 << w) - 1)) + B.DIV_MIN_SHIFT) * self.rate_scale
+        due = int((time.time() - self.t_start) * hz)
+        while self.clocks < due:
+            self.fab.clock(pad_i=self._pins())
+            self.clocks += 1
 
     # --- probe API used by cfgplane / fpga / hwtest ---
     def shift_ir(self, code, width=6):
+        self._run()
         self.ir = IR[code]
+        if self.ir == "JPROGRAM":
+            self.done = self.committed = 0
         return 0b010001 | (self.done << 5) | (self.committed << 3)
 
     def pulse(self, tms=0, tdi=0):
@@ -55,6 +78,7 @@ class FakeBob:
             self.fab.clock(gsr=1)
             for b, words in self.brams.items():
                 self.fab.brams[b].mem = list(words)
+            self.t_start, self.clocks = time.time(), 0
 
     def reset_to_idle(self):
         self.ir = "IDCODE"
@@ -66,6 +90,7 @@ class FakeBob:
         return self.shift_dr(n, din)
 
     def shift_dr(self, n, din=0):
+        self._run()
         ir = self.ir
         if ir == "JPROGRAM":
             return 0
@@ -96,7 +121,11 @@ class FakeBob:
             elif cmd == 2:
                 self.brams.setdefault(self.target, [0] * 1024)[self.ptr] = payload
                 self.ptr += 1
-            return (self.target << 66) | (cfgplane.BRAM_VERSION << 88)
+            out = (self.target << 66) | (cfgplane.BRAM_VERSION << 88) | self.rdata
+            if cmd == 3 and not self.done:          # READ only while GWE = 0: memory as the design left it
+                self.rdata = self.fab.brams[self.target].mem[self.ptr]
+                self.ptr += 1
+            return out
         if ir == "INTEST":
             leds = self.fab.outputs(self.bsr_in)
             raw = sum(((leds >> k) & 1) << pad for k, pad in enumerate(B.BOARD_OUT))
@@ -104,8 +133,13 @@ class FakeBob:
             if self.user1 & 0x10:
                 self.fab.clock(pad_i=self.bsr_in)
             return raw
+        if ir == "SAMPLE":
+            pins = self._pins()
+            leds = self.fab.outputs(pins) ^ (1 if self.corrupt_sample else 0)
+            return (sum(((leds >> k) & 1) << pad for k, pad in enumerate(B.BOARD_OUT))
+                    | sum(((pins >> k) & 1) << (B.NPAD + pad) for k, pad in enumerate(B.BOARD_IN)))
         if ir == "CAPTURE":
-            v = self.fab.clb_o(0)            # IR is not INTEST: the pads read the real switches (0)
+            v = self.fab.clb_o(self._pins())      # IR is not INTEST: the pads read the real switches
             return v ^ ((1 << B.NCLB) - 1) if self.corrupt_capture else v
         return 0
 
@@ -119,3 +153,45 @@ def test_m10_check_passes_on_a_good_board(name):
 def test_m10_check_fails_when_capture_is_wrong():
     ok, msg = hwtest._bob_check("counter")(FakeBob(corrupt_capture=True), {})
     assert not ok and "CAPTURE" in msg
+
+
+def _wiggle(t):
+    """a person flipping switches and pressing buttons: a new input vector every 0.3 s"""
+    return (int(t / 0.3) * 0x2D) % 64
+
+
+@pytest.fixture
+def quick(monkeypatch):
+    monkeypatch.setattr(hwtest, "LIVE_SECONDS", 2.0)
+
+
+@pytest.mark.parametrize("name", ["switches", "fir"])
+def test_m11_live_passes_on_a_good_board(name, quick):
+    ok, msg = hwtest._live_check(name)(FakeBob(switches=_wiggle), {})
+    assert ok, msg
+    assert "live samples" in msg
+
+
+def test_m11_live_fails_when_leds_are_wrong(quick):
+    ok, msg = hwtest._live_check("switches")(FakeBob(switches=_wiggle, corrupt_sample=True), {})
+    assert not ok and "model" in msg
+
+
+def test_m11_rate():
+    assert hwtest.check_blinky_rate(FakeBob(), {})[0]
+    ok, msg = hwtest.check_blinky_rate(FakeBob(rate_scale=1.5), {})
+    assert not ok, msg
+
+
+def test_m11_ram_readback():
+    ok, msg = hwtest.check_ram_readback(FakeBob(), {})
+    assert ok, msg
+
+
+def test_m11_ram_readback_fails_when_memory_differs():
+    class BadRam(FakeBob):
+        def shift_dr(self, n, din=0):
+            out = super().shift_dr(n, din)
+            return out ^ 1 if self.ir == "BRAM" and not self.done else out
+    ok, msg = hwtest.check_ram_readback(BadRam(), {})
+    assert not ok and "bram0" in msg

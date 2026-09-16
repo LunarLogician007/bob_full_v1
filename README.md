@@ -19,7 +19,7 @@ For the detailed plan, conventions, gotchas and every milestone, read [`PLAN.md`
 | M8 | yosys synthesis onto bob cells → placed → runs on the fabric | **passed on the board 2026-09-17** (10/10, no rebuild) |
 | M9 | VPR packs, places and routes the examples → FASM → chain | **passed on the board 2026-09-17** (10/10, no rebuild) |
 | M10 | bitgen (FASM ⇄ chain, `.bit`), `bob build`/`bob load`, `.pcf` pins, golden co-simulation | **passed on the board 2026-09-17** (7/7, no rebuild) |
-| M11 | real designs live on the board (free-running clock, real switches) | next |
+| M11 | real designs live on the board (free-running clock, real switches): switches, FIR on DSPs, RAM readback, blinky rate | built and simulated 2026-09-17; board test pending (no rebuild) |
 | M12 | Python PnR, larger grid | planned |
 | M13 | frame-based configuration (UG470) replacing the scan chain | planned, last |
 
@@ -64,6 +64,7 @@ make hwtest M=M7        # regression + milestone checks; checklist in docs/hwtes
 make hwtest M=M8        # same bitstream: yosys-synthesised examples (docs/hwtest/M8.md)
 make hwtest M=M9        # same bitstream: the examples placed and routed by VPR (docs/hwtest/M9.md)
 make hwtest M=M10       # same bitstream: bob build/load, LEDs vs source, CAPTURE vs golden (docs/hwtest/M10.md)
+make hwtest M=M11       # same bitstream: designs live on the switches, RAM readback, clock rate (docs/hwtest/M11.md)
 ```
 
 Every run is appended to `docs/hwtest/results.log`. To test an older bitstream, use its frozen tools, e.g. `cd release/mac_M6/host && ./hwtest.py --milestone M6`.
@@ -79,12 +80,13 @@ tools/bob/fasm_from_vpr.py --check        # committed VPR results -> FASM -> cha
 ./bob build examples/counter.v            # M10: all of the above in one command -> build/bit/counter.bit
 ./bob build examples/gates.v --pcf examples/gates_swapped.pcf
 ./bob load build/bit/counter.bit          # CFG_IN + readback, BRAM contents, JSTART (Pico attached)
+./bob build examples/switches.v --clock run --div 15   # free-running user clock (14.9 Hz); then ./bob load
 ./bob info build/bit/counter.bit          # or: ./bob fasm build/bit/counter.bit
 sim/run_cosim_sim.sh                      # golden co-simulation: source live vs fabric RTL loaded from .bit
 sim/run_synth_sim.sh                      # the same bitstreams on the complete FPGA RTL
 ```
 
-Examples in `examples/`: `gates`, `adder`, `counter`, `blinky`, `ram`, `mult`. The hand-written designs in `host/designs.py` load with `host/fpga.py --load showcase`.
+Examples in `examples/`: `gates`, `adder`, `counter`, `blinky`, `ram`, `mult`, `switches`, `fir` (per-design report: `docs/reports/M11/designs.md`). The hand-written designs in `host/designs.py` load with `host/fpga.py --load showcase`.
 
 ## Folder map
 

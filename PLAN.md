@@ -33,7 +33,7 @@ Starting point: `/Users/sk/work/bob/` is a hardware-proven 4×4 CLB fabric (JTAG
 | M8 | yosys synthesis to bob cells | **done, passed on hardware 2026-09-17** (10/10 on the M7 bitstream: gates, adder, counter, blinky, ram, mult each match the source Verilog for 64 clocks). Built and simulated 2026-09-14: 6 examples, netlist == source (iverilog), placed model == source, fabric RTL == source (tb_synth 486); no rebuild, hardware test on the M7 bitstream after M7 passes |
 | M9 | PnR with VPR | **done, passed on hardware 2026-09-17** (10/10 on the M7 bitstream, no rebuild: vpr-gates/adder/counter/blinky/ram/mult each match the source Verilog for 64 clocks). All 6 examples packed/placed/routed by VPR on the committed rr graph (graph byte-identical after the arch change), FASM legal, same seed repeats, model == source 300 cycles, tb_synth 12 designs (6 VPR) == source |
 | M10 | bitgen + golden co-simulation | **done, passed on hardware 2026-09-17** (7/7 on the M7 bitstream, no rebuild: bob build/load, readback == FASM, 64 clocks LEDs == source, CAPTURE == golden registers). `bob build`/`load`/`info`/`fasm`, FASM ⇄ chain exact, `.bit` v2 with BRAM contents, `.pcf` pins, golden co-sim of 7 designs (source live vs fabric RTL loaded from `.bit`, LEDs + CAPTURE every cycle, mutation-checked) |
-| M11 | full hardware bring-up of real designs | planned |
+| M11 | full hardware bring-up of real designs | **built and simulated 2026-09-17, hardware test pending** (`make hwtest M=M11` on the M7 bitstream, no rebuild): switches.v and fir.v (2 DSPs), live checks on the free-running clock and real switches (CAPTURE + SAMPLE vs model), blinky rate, RAM readback after JPROGRAM, design reports |
 | M12 | Python PnR (checked against VPR) + optimisation | planned |
 | M13 | frame-based configuration (UG470), replacing the scan chain | planned, deliberately last |
 
@@ -642,6 +642,26 @@ Not done yet (belongs to M7): pads and chain order for non-CLB tiles.
 ### M11: full hardware bring-up
 
 blinky, switches → LEDs, RAM and FIR on the PYNQ-Z2, verified by readback and CAPTURE. Reports committed.
+
+**As built (2026-09-17):**
+- **Examples:**
+  - `switches.v`: live logic, plus a BTN3 toggle through a synchroniser and edge detector (6 CLBs).
+  - `fir.v`: a 2-tap FIR with button coefficients on both DSP slices (12 CLBs). A 3-bit sample needed 17 CLBs, so the sample is SW1..0.
+
+  Both are in `vpr_run.EXAMPLES`, so they are in `make vpr`, tb_cosim (now 9 designs), test_vpr and test_bitgen. The M8 hand placer's list is unchanged.
+- **hwtest M11** (still on the M7 bitstream):
+  - `bob-switches` / `bob-fir`: the M10 golden check.
+  - `ram-readback`: 64 INTEST clocks, then JPROGRAM (GWE = 0 makes USER4 READ legal; BRAM contents survive). `bram_read` == `model.py` memory, and chain readback == `.bit`.
+  - `blinky-rate`: CAPTURE of the 8 counter registers over 4 s == 14.9 Hz ± 10 %.
+  - `live-*` (blinky, fir, mult, switches) on `--clock run --div 15` with the real switches: repeated CAPTURE → SAMPLE → CAPTURE bursts. When the registers are stable, `model.py` with those registers and the sampled pins == the sampled LEDs. CFG_OUT readback while running == `.bit`. Each result reports the input vectors and register states seen.
+- **Stand-in board:** `tests/test_hwtest_fake.py` now models the free-running clock in real time, SAMPLE, JPROGRAM and USER4 READ, with a simulated person on the switches. Every M11 check passes on it, and fails on wrong LEDs, a clock 1.5× too fast, or wrong BRAM contents.
+- **`bob build --clock run`** prints the user clock rate. At M10 a `--div 26` build (one clock per 137 s) looked like a dead board.
+- **Reports:** `tools/bob/report.py` → `docs/reports/M11/designs.md`, with cells, CLBs/BRAM/DSP, pins, wirelength, VPR path, FASM features and muxes, registers on CAPTURE, chain CRC and VPR result for all 9 designs. The chain CRCs equal the ones the board loaded at M10.
+- **Why the live check is a model consistency check and not a trace comparison:** a person's inputs are unknown in advance. SAMPLE takes pins and LEDs in one Capture-DR, and CAPTURE gives the registers. A burst in which the registers moved (the 14.9 Hz clock ticked) is skipped, not failed.
+- **Not at M11:**
+  - live consistency for BRAM designs (the BRAM output latch isn't observable while running; the RAM is verified by readback instead)
+  - DSP registers (opmode M only)
+  - designs larger than 16 CLBs (M12's larger grid)
 
 ### M12: Python PnR + optimisation
 
