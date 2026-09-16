@@ -22,11 +22,11 @@
     ["E2IR", "SIR", 0], ["E2IR", "UIR", 1], ["UIR", "RTI", 0], ["UIR", "SDS", 1]
   ];
   const TAP = { st: "TLR", ir: "IDCODE", last: null };
-  const IRS = [["IDCODE", "001001", "32-bit 0x9BEEF093"], ["USERCODE", "001000", "milestone number"], ["BYPASS", "111111", "1 bit"],
+  const IRS = [["IDCODE", "001001", "32-bit 0xABEEF093"], ["USERCODE", "001000", "milestone number"], ["BYPASS", "111111", "1 bit"],
     ["CFG_IN", "000101", "chain write · commits if CRC+len"], ["CFG_OUT", "000100", "chain readback"], ["USER2 CFG_CTRL", "000011", "64-bit CRC/status"],
-    ["USER1", "000010", "ce sr cin step autostep"], ["USER3 CAPTURE", "100010", "48 CLB outputs"], ["USER4 BRAM", "100011", "96-bit contents/drive"],
+    ["USER1", "000010", "ce sr cin step autostep"], ["USER3 CAPTURE", "100010", "16 CLB outputs"], ["USER4 BRAM", "100011", "96-bit contents/drive"],
     ["DSP (private)", "101000", "256-bit drive / P"], ["JPROGRAM", "001011", "clears at Update-IR"], ["JSTART", "001100", "startup in RTI"],
-    ["SAMPLE · EXTEST", "000001 · 100110", "64-cell boundary"], ["INTEST (private)", "000111", "cells drive the fabric"]];
+    ["SAMPLE · EXTEST", "000001 · 100110", "40-cell boundary"], ["INTEST (private)", "000111", "cells drive the fabric"]];
 
   SCHEM.jtag = function () {
     S = [];
@@ -109,7 +109,7 @@
   function suJprogram() { Object.assign(SU, { phase: 0, committed: 0, crc_ok: 0, crc_err: 0, len_err: 0, gsr: 1, gts: 1, gwe: 0, done: 0, log: "JPROGRAM: cfg cleared" }); }
   function suLoad(crc, len) {
     SU.crc_ok = +(crc && len); SU.crc_err = +!crc; SU.len_err = +!len;
-    if (crc && len) { SU.committed = 1; SU.log = "CFG_IN Update-DR: count = 9400, ~crc = expected → COMMIT"; }
+    if (crc && len) { SU.committed = 1; SU.log = "CFG_IN Update-DR: count = 4216, ~crc = expected → COMMIT"; }
     else SU.log = `CFG_IN refused (${!crc ? "CRC_ERR " : ""}${!len ? "LEN_ERR" : ""}) — previous configuration kept`;
   }
   function suTick() {
@@ -125,14 +125,14 @@
     hdr(0, 16, "cfg_ctrl.v — the commit guard and the startup phase counter");
     /* commit decision */
     frame(10, 40, 1044, 150, "COMMIT DECISION  (CFG_IN Update-DR, falling edge)", { bg: "#fdfdfb" });
-    block(40, 70, 170, 44, "count == 9400", "16-bit counter per Shift-DR", C.CFG, { size: 9, cs: 6.6 });
+    block(40, 70, 170, 44, "count == 4216", "16-bit counter per Shift-DR", C.CFG, { size: 9, cs: 6.6 });
     block(40, 128, 170, 44, "~crc == expected", "CRC-32C 0x82F63B78 · key 0xC5", C.CFG, { size: 9, cs: 6.6 });
     val(232, 92, SU.len_err ? 0 : (SU.crc_ok || SU.committed ? 1 : null), { label: "len_good" });
     val(232, 150, SU.crc_err ? 0 : (SU.crc_ok || SU.committed ? 1 : null), { label: "crc_good" });
     const g = gate("and", 300, 100, 46, 50, {});
     wire([[210, 92], [270, 92], [270, 114], [300, 114]]); wire([[210, 150], [270, 150], [270, 136], [300, 136]]);
     wire([[346, 125], [440, 125]], { s: SU.crc_ok ? C.GRN : C.WIRE, sw: 1.8, marker: SU.crc_ok ? "ahg" : "ah" });
-    block(446, 100, 190, 50, "cfg_commit", "sr → cfg shadow (9400 bits)", SU.crc_ok ? C.BRAM : C.CFG, { size: 9.4, cs: 6.6 });
+    block(446, 100, 190, 50, "cfg_commit", "sr → cfg shadow (4216 bits)", SU.crc_ok ? C.BRAM : C.CFG, { size: 9.4, cs: 6.6 });
     block(680, 72, 170, 40, "CRC_ERR / LEN_ERR", "old cfg kept, INIT_B low", C.CFG, { size: 8.6, cs: 6.4 });
     block(680, 130, 170, 40, "COMMITTED", "enables JSTART", C.CFG, { size: 8.6, cs: 6.4 });
     val(870, 92, SU.crc_err | SU.len_err); val(870, 150, SU.committed);
@@ -161,7 +161,7 @@
   };
   DEMO.startup = {
     html: `<div class="demo"><h4>Live — <span>walk a load the way cfgplane.load does</span></h4><div class="ctl">
-      <div class="grp"><button class="act" id="sujp">JPROGRAM</button><button class="act" id="sugood">CFG_IN good chain</button><button class="act" id="sucrc">CFG_IN corrupted bit</button><button class="act" id="sulen">CFG_IN 9399 bits</button><button class="act" id="sutick">JSTART tick</button></div>
+      <div class="grp"><button class="act" id="sujp">JPROGRAM</button><button class="act" id="sugood">CFG_IN good chain</button><button class="act" id="sucrc">CFG_IN corrupted bit</button><button class="act" id="sulen">CFG_IN 4215 bits</button><button class="act" id="sutick">JSTART tick</button></div>
       <div class="grp" style="margin-left:auto"><span class="hexout">LD3 DONE</span><span class="led" id="suled">0</span></div></div></div>`,
     wire(redraw) {
       const sync = () => { const l = document.getElementById("suled"); l.textContent = SU.done; l.classList.toggle("hi", !!SU.done); };

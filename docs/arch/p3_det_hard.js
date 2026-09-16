@@ -1,5 +1,5 @@
   D("bram", {
-    title: "BRAM — 1024 × 18 true dual port", sub: "column x=3 · bram0 rows 1–4 · bram1 rows 5–8 · one RAMB18 each", k: "BRAM", stage: "hw/src/tiles/bram_core.v",
+    title: "BRAM — 1024 × 18 true dual port", sub: "column x=3 · bram0 rows 1–2 · bram1 rows 3–4 · one RAMB18 each", k: "BRAM", stage: "hw/src/tiles/bram_core.v",
     rows: [
       F("port A (port B identical)",
         ["64 IPIN MUXES", "addr·di·we·en·rst·regce from routing", "cbox", "GTX"],
@@ -15,7 +15,7 @@
       "M8 infers it from Verilog through yosys <code>memory_libmap</code> (<code>tools/bob/synth/bob_brams.txt</code>)."],
     src: [["AMD UG473 (RAMB18E1)", "true dual port, write modes, DOx_REG/REGCE, output latch semantics"], ["Vivado RAM inference template (UG901)", "the RTL shape that maps to RAMB18"],
       ["AMD UG470", "BRAM contents as their own block type, written before startup"], ["OpenFPGA arch memory tile", "a height>1 block in its own column"], ["yosys brams_xc4v.txt / brams_xc6v_map.v", "M8 memory library pattern"]],
-    why: ["UG473 behaviour + the Vivado template means the guest BRAM is a real hard RAM on the host, not 18k flip-flops.", "A column block height 4 is what VPR/OpenFPGA tileable layouts support."],
+    why: ["UG473 behaviour + the Vivado template means the guest BRAM is a real hard RAM on the host, not 18k flip-flops.", "A tall column block is what VPR/OpenFPGA tileable layouts support (height 2 on the 16-CLB board profile, 4 on the 8×8 profile)."],
     files: [["hw/src/tiles/bram_core.v", "memory + modes"], ["hw/src/tiles/bram_block.v", "fabric/JTAG pin choice"], ["hw/src/tiles/bram_jtag.v", "USER4, SELECT, contents CDC"],
       ["tools/bob/model.py", "class Bram"], ["tools/bob/synth/bob_brams.txt", "memory_libmap"], ["host/cfgplane.py", "bram_scan/select/write/read"]],
     tb: [["hw/tb/tb_bram.v", "5292 checks, all 36 mode × register combinations vs model.py"], [TB + " [12]–[15][19]", "contents, ROM, lock, modes, two BRAMs via SELECT"],
@@ -24,7 +24,7 @@
   });
 
   D("dsp", {
-    title: "DSP — DSP48E1-style slice", sub: "column x=6 · dsp0 rows 1–4 · dsp1 rows 5–8 · PCOUT → PCIN direct", k: "DSP", stage: "hw/src/tiles/dsp_core.v",
+    title: "DSP — DSP48E1-style slice", sub: "column x=6 · dsp0 rows 1–2 · dsp1 rows 3–4 · PCOUT → PCIN direct", k: "DSP", stage: "hw/src/tiles/dsp_core.v",
     rows: [
       F("datapath",
         ["A25 · B18 · C48 · D25", "IPIN muxes or DSP drive word", "cbox", "GTX"],
@@ -46,7 +46,7 @@
   });
 
   D("io", {
-    title: "I/O pad — VPR io block + two boundary cells", sub: "32 pads round the ring · 9 wired to the PYNQ-Z2 · the rest boundary-scan only", k: "IO", stage: "hw/src/fabric/bob_fpga.v",
+    title: "I/O pad — VPR io block + two boundary cells", sub: "20 pads round the ring · 9 wired to the PYNQ-Z2 · the rest boundary-scan only", k: "IO", stage: "hw/src/fabric/bob_fpga.v",
     rows: [
       F("in", ["BOARD PIN", "SW/BTN or 0", "board", "BRD"], ["INPUT CELL", "BSR bit NPAD+k", "bsr", "CFG"], ["inpad OPIN", "onto the channels", "sbox", "GTX"]),
       F("out", ["outpad IPIN MUX", "routed", "cbox", "GTX"], ["GTS GATE", "0 until startup", "startup", "CFG"], ["OUTPUT CELL", "BSR bit k", "bsr", "CFG"], ["BOARD PIN", "LD0–2", "board", "BRD"])],
@@ -63,8 +63,8 @@
   D("board", {
     title: "PYNQ-Z2 — the host board", sub: "XC7Z020 PL · Pico DirtyJTAG on PMODA · sysclk H16", k: "BRD", stage: "hw/constr/pynq_z2.xdc",
     rows: [B("pins", ["TCK U18 (MRCC)", "TMS Y18 · TDI Y19 · TDO Y16", "jtag", "CFG"], ["SYSCLK H16", "125 MHz", "clock", "CMT"],
-        ["SW0 M20 · SW1 M19", "pads 8, 10", "io", "IO"], ["BTN0–3 D19 D20 L20 L19", "pads 12–18", "io", "IO"], ["LD0–2 R14 P14 N16", "pads 9 11 13 · LD3 M14 = DONE", "io", "IO"])],
-    notes: ["TCK must sit on a clock-capable pin; moving it needs CLOCK_DEDICATED_ROUTE.", "The Pico runs DirtyJTAG; host/dirtyjtag.py bulk-shifts the 9400-bit chain in well under a second."],
+        ["SW0 M20 · SW1 M19", "pads 6, 8", "io", "IO"], ["BTN0–3 D19 D20 L20 L19", "pads 10, 12, 0, 1", "io", "IO"], ["LD0–2 R14 P14 N16", "pads 7 9 11 · LD3 M14 = DONE", "io", "IO"])],
+    notes: ["TCK must sit on a clock-capable pin; moving it needs CLOCK_DEDICATED_ROUTE.", "The Pico runs DirtyJTAG; host/dirtyjtag.py bulk-shifts the 4216-bit chain in well under a second."],
     src: [["Xilinx PYNQ boards/Pynq-Z2 base.xdc", "pin numbers"], ["pico-dirtyJtag", "probe firmware and USB protocol"]],
     why: ["Official constraints avoid guessing pins; DirtyJTAG is the proven probe from bob."],
     files: [["hw/constr/pynq_z2.xdc", "pins, clocks, multicycles"], ["hw/src/top/bob_top.v", "BUFGs, pad map"], ["host/dirtyjtag.py", "probe"], ["host/hwtest.py", "hardware test"]],

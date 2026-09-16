@@ -1,9 +1,10 @@
   /* ============================================================================
-     FLOORPLAN  —  the home screen: bob's real 10 × 10 VPR grid inside the XC7Z020 PL
+     FLOORPLAN  —  the home screen: bob's real 8 × 6 VPR grid (16-CLB board profile) inside the XC7Z020 PL
      ========================================================================= */
   const W = 1700, H = 1112;
   const DIE = { x: 44, y: 70, w: 1196, h: 818 };
   const HITS = [];
+  const NCLB = BOB.blocks.filter(b => b[1] === "clb").length;
 
   txt(44, 30, "BOB — AN FPGA INSIDE AN FPGA", { size: 20, w: 680, anchor: "start", ls: -.45 });
   txt(44, 50, "DIE SLICE · TOP VIEW · M7 FABRIC GENERATED FROM VPR'S ROUTING-RESOURCE GRAPH",
@@ -103,10 +104,10 @@
     ["CFG_CTRL  ·  cfg_ctrl.v", "CRC-32C + length guard · key 0xC5", "cfgctrl", C.CFG],
     ["STARTUP FSM", "GSR → GTS → GWE → DONE (LD3)", "startup", C.CFG],
     [`CONFIG CHAIN  ·  ${BOB.chain} bits`, "shift + shadow · cfg_tile_sr.v", "chain", C.CFG],
-    ["USER1 / CAPTURE", "ce · step · autostep · 48 CLB outs", "capture", C.CFG],
+    ["USER1 / CAPTURE", "ce · step · autostep · 16 CLB outs", "capture", C.CFG],
     ["USER4  ·  bram_jtag.v", "contents · drive · SELECT", "user4", C.CFG],
     ["DSP REGISTER  ·  101000", "drive A/B/C/D · read P0 P1", "dspjtag", C.CFG],
-    ["BOUNDARY SCAN  ·  64 BC_1", "2 cells per pad · EXTEST INTEST SAMPLE", "bsr", C.CFG],
+    ["BOUNDARY SCAN  ·  40 BC_1", "2 cells per pad · EXTEST INTEST SAMPLE", "bsr", C.CFG],
     ["USER CLOCK  ·  clock_ctrl.v", "sysclk 125 MHz · gce enable", "clock", C.CMT]
   ];
   const cph = (BOB.H * GP - (GP - GT) - (cp.length - 1) * 8) / cp.length;
@@ -117,7 +118,7 @@
     if (i < cp.length - 1 && i < 3) line(CPX + CPW / 2, y + cph + 1, CPX + CPW / 2, y + cph + 7, { s: "#8e8e86", sw: 1.1, marker: "ah" });
   });
   line(CPX - 10, GY + 3 * (cph + 8) + cph / 2, gx(BOB.W - 1) + GT + 6, GY + 3 * (cph + 8) + cph / 2, { s: C.CFG.s, sw: 1.5, dash: "5 3", marker: "ah" });
-  txt(CPX - 14, GY + 3 * (cph + 8) + cph / 2 - 6, "cfg[9399:0] → every tile", { size: 7, anchor: "end", fill: C.CFG.t, mono: true, w: 600 });
+  txt(CPX - 14, GY + 3 * (cph + 8) + cph / 2 - 6, `cfg[${BOB.chain - 1}:0] → every tile`, { size: 7, anchor: "end", fill: C.CFG.t, mono: true, w: 600 });
 
   /* ── legend panel ── */
   (function legend() {
@@ -126,10 +127,10 @@
     txt(LX + 15, LY + 23, "LEGEND", { size: 10.5, anchor: "start", w: 680, ls: 1.4 });
     line(LX + 15, LY + 31, LX + LW - 15, LY + 31, { s: C.RULE, sw: 1 });
     const sw = [
-      ["CLB  ×48", "1 BLE · LUT6 + carry + FDRE/FDSE", C.CLB, "clb"],
+      ["CLB  ×16", "1 BLE · LUT6 + carry + FDRE/FDSE", C.CLB, "clb"],
       ["BRAM  ×2", "1024×18 true dual port", C.BRAM, "bram"],
       ["DSP  ×2", "DSP48E1-style · cascaded", C.DSP, "dsp"],
-      ["I/O PAD  ×32", "9 board pins · rest JTAG only", C.IO, "io"],
+      ["I/O PAD  ×20", "9 board pins · rest JTAG only", C.IO, "io"],
       ["ROUTING", `${BOB.nmux} muxes · ${BOB.mbits} bits · L4 W=${BOB.chanw}`, C.GTX, "routing"],
       ["CONFIG / JTAG", "scan chain · CRC · startup", C.CFG, "chain"],
       ["USER CLOCK", "sysclk + gce", C.CMT, "clock"]
@@ -145,7 +146,7 @@
     });
     rect(LX + 15, y, 26, 15, { f: C.SOFT.f, s: C.SOFT.s, sw: 1.6, dash: "5 3", rx: 2.5 });
     txt(LX + 49, y + 8, "GUEST FLOW (Mac)", { size: 8.6, anchor: "start", w: 640, fill: C.SOFT.t });
-    txt(LX + 49, y + 18.5, "yosys · place · load · hwtest", { size: 7, anchor: "start", fill: C.MUTE, mono: true });
+    txt(LX + 49, y + 18.5, "yosys · VPR · bitgen · bob load", { size: 7, anchor: "start", fill: C.MUTE, mono: true });
     HITS.push(["flow", LX + 13, y - 2, LW - 28, 24]);
     y += 34;
 
@@ -171,7 +172,7 @@
     y += 16;
     line(LX + 15, y, LX + LW - 15, y, { s: C.RULE, sw: 1 }); y += 19;
     txt(LX + 15, y, "ONE CHAIN, BY THE NUMBERS", { size: 9.2, anchor: "start", w: 680, ls: .9 }); y += 16;
-    [["ctrl tile", "8"], ["48 CLB words", String(48 * 71)], ["BRAM + DSP fields", "48"], ["routing muxes", String(BOB.mbits)], ["tail pad", String(BOB.chain - 8 - 48 * 71 - 48 - BOB.mbits)], ["total", String(BOB.chain)]]
+    [["ctrl tile", "8"], [`${NCLB} CLB words`, String(NCLB * 71)], ["BRAM + DSP fields", "48"], ["routing muxes", String(BOB.mbits)], ["tail pad", String(BOB.chain - 8 - NCLB * 71 - 48 - BOB.mbits)], ["total", String(BOB.chain)]]
       .forEach(([a, b], i) => {
         txt(LX + 15, y, a, { size: 8, anchor: "start", fill: i === 5 ? C.INK : C.MUTE, w: i === 5 ? 680 : 400 });
         txt(LX + LW - 15, y, b, { size: 8.4, anchor: "end", mono: true, w: 700, fill: i === 5 ? C.CFG.t : C.INK });
@@ -191,13 +192,13 @@
     const dev = [
       ["PICO DirtyJTAG", "USB probe on PMODA", "TCK U18 · TMS TDI TDO", "JTAG TAP", "jtag", false],
       ["125 MHz OSC", "board clock", "sysclk H16 · BUFG", "clock_ctrl", "clock", false],
-      ["SLIDE SWITCHES", "SW0 · SW1", "M20 · M19", "pads 8, 10", "io", false],
-      ["PUSH BUTTONS", "BTN0–BTN3", "D19 D20 L20 L19", "pads 12–18", "io", false],
-      ["LEDs LD0–LD3", "LD3 = DONE", "R14 P14 N16 M14", "pads 9 11 13", "io", false],
+      ["SLIDE SWITCHES", "SW0 · SW1", "M20 · M19", "pads 6, 8", "io", false],
+      ["PUSH BUTTONS", "BTN0–BTN3", "D19 D20 L20 L19", "pads 10 12 0 1", "io", false],
+      ["LEDs LD0–LD3", "LD3 = DONE", "R14 P14 N16 M14", "pads 7 9 11", "io", false],
       ["VIVADO (Windows)", "hw/ → bitstream", "build.tcl · reuse project", "bob_top.bit", "board", true],
       ["VPR (Docker)", "rr graph builder", "make rrgraph", "bob_fabric.v", "routing", true],
-      ["MAC TOOLS", "yosys · place · load", "synth.py · cfgplane.py", "the chain", "flow", true],
-      ["hwtest.py", "every milestone", "INTEST · CAPTURE", "results.log", "flow", true]
+      ["MAC TOOLS", "bob build · bob load", "yosys · VPR · bitgen", ".bit → chain", "flow", true],
+      ["hwtest.py", "every milestone", "INTEST · SAMPLE · CAPTURE", "results.log", "verify", true]
     ];
     const gap = 10, dw = (BW - 34 - gap * (dev.length - 1)) / dev.length;
     dev.forEach(([n, c2, sig, dst, id, soft], i) => {

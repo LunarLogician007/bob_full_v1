@@ -16,11 +16,11 @@
   });
 
   D("cfgctrl", {
-    title: "CFG_CTRL — CRC-32C commit guard", sub: "commit only if count == 9400 AND ~crc == expected", k: "CFG", stage: "hw/src/core/cfg_ctrl.v",
+    title: "CFG_CTRL — CRC-32C commit guard", sub: "commit only if count == 4216 AND ~crc == expected", k: "CFG", stage: "hw/src/core/cfg_ctrl.v",
     rows: [F("one load", ["JPROGRAM", "clear cfg, GSR=GTS=1", "startup", "CFG"], ["CFG_CTRL write", "key 0xC5 + expected CRC", null, "CFG"],
         ["CFG_IN shift", "CRC + count per bit", "chain", "CFG"], ["Update-DR", "commit ⇔ len_good ∧ crc_good", null, "CFG"], ["CFG_OUT", "readback, never commits", "chain", "CFG"], ["JSTART", "phases", "startup", "CFG"]),
       B("status register (64)", ["[31:0] ~crc", "", null, "CFG"], ["[47:32] count", "", null, "CFG"], ["[55:48] flags", "DONE GWE GTS GSR COMMITTED LEN_ERR CRC_ERR CRC_OK", null, "CFG"], ["[63:56] 0x02", "version", null, "CFG"])],
-    notes: ["CRC-32C reflected 0x82F63B78, init/xorout 0xFFFFFFFF, bit-serial in shift order; 9400 is byte aligned so it equals the byte-wise CRC-32C.",
+    notes: ["CRC-32C reflected 0x82F63B78, init/xorout 0xFFFFFFFF, bit-serial in shift order; 4216 is byte aligned so it equals the byte-wise CRC-32C.",
       "A corrupted chain sets CRC_ERR and the <b>running design keeps working</b> (tb section [4], hwtest crc-reject-live)."],
     src: [["AMD UG470", "CRC before startup, write-protected registers (the key idea)"], ["CRC-32C (Castagnoli)", "polynomial 0x1EDC6F41"]],
     why: ["A scan chain has no framing: without length + CRC a dropped bit silently loads a different design."],
@@ -42,10 +42,10 @@
   });
 
   D("chain", {
-    title: "Configuration chain — 9400 bits", sub: "one shift register + shadow register · ctrl | 96 grid tiles row-major | tail", k: "CFG", stage: "hw/src/core/cfg_tile_sr.v",
-    rows: [F("per bit", ["TDI", "enters bit 9399", null, "CFG"], ["sr (posedge)", "capture ← cfg · shift", null, "CFG"], ["cfg shadow (negedge)", "commit / clear", null, "CFG"], ["fabric", "sees only cfg", "routing", "GTX"]),
+    title: "Configuration chain — 4216 bits", sub: "one shift register + shadow register · ctrl | 48 grid tiles row-major | tail", k: "CFG", stage: "hw/src/core/cfg_tile_sr.v",
+    rows: [F("per bit", ["TDI", "enters bit 4215", null, "CFG"], ["sr (posedge)", "capture ← cfg · shift", null, "CFG"], ["cfg shadow (negedge)", "commit / clear", null, "CFG"], ["fabric", "sees only cfg", "routing", "GTX"]),
       B("order", ["ctrl 8", "clk_mode, clk_div", "clock", "CMT"], ["grid tiles", "block fields, then muxes by node id", "routing", "GTX"], ["tail", "byte pad", null, "CFG"])],
-    notes: ["Chain bit k is the k-th bit shifted in. Tile boundaries exist only in device.json — the RTL is one 9400-bit <code>cfg_tile_sr</code>.",
+    notes: ["Chain bit k is the k-th bit shifted in. Tile boundaries exist only in device.json — the RTL is one 4216-bit <code>cfg_tile_sr</code>.",
       "Shadow register: the fabric never sees bits sliding past, and CFG_OUT readback is non-destructive.",
       "M13 replaces exactly this module with UG470 frames; tiles, VPR and the tools stay."],
     src: [["OpenFPGA config_protocol scan_chain", "chain through every tile's configuration flops"], ["Aegis docs/arch/configuration.md", "shift register + shadow config register"]],
@@ -70,7 +70,7 @@
   });
 
   D("capture", {
-    title: "CAPTURE / USER1 — user-state readback", sub: "USER3: all 48 CLB outputs · USER1: ce/sr/cin/step/autostep + first 16", k: "CFG", stage: "hw/src/core/capture_chain.v",
+    title: "CAPTURE / USER1 — user-state readback", sub: "USER3: all 16 CLB outputs · USER1: ce/sr/cin/step/autostep + first 16", k: "CFG", stage: "hw/src/core/capture_chain.v",
     rows: [F("scan", ["Capture-DR", "snapshot clb_o[47:0]", null, "CFG"], ["Shift-DR", "LSB first", null, "CFG"], ["Update-DR", "nothing", null, "CFG"])],
     notes: ["AMD readback capture in scan form: nothing in the design is disturbed.", "Bit i is CLB i in row-major order (device.json capture.order)."],
     src: [["AMD UG470 readback capture", "snapshot user state over JTAG"]], why: ["Lets hardware checks see flip-flops without spending pads."],
@@ -101,25 +101,13 @@
   });
 
   D("bsr", {
-    title: "Boundary scan — 64 BC_1 cells", sub: "cell k < 32: output of pad k · cell 32+k: input of pad k", k: "CFG", stage: "hw/src/core/bsc_cell.v",
+    title: "Boundary scan — 40 BC_1 cells", sub: "cell k < 20: output of pad k · cell 20+k: input of pad k", k: "CFG", stage: "hw/src/core/bsc_cell.v",
     rows: [F("one cell", ["capture_reg (posedge)", "data_in or scan_in", null, "CFG"], ["update_reg (negedge)", "", null, "CFG"], ["mode mux", "EXTEST/INTEST drive, else transparent", null, "CFG"])],
     notes: ["The capture/update split is what lets a scan change pins once, as a unit.", "Test-Logic-Reset is sampled synchronously — the fix proven on the PYNQ-Z2."],
     src: [["IEEE 1149.1 BC_1", "cell structure"], ["bob/rtl/bsc_cell.v", "hardware-proven cell with the TLR fix"]], why: ["Proven on this exact board; INTEST is the hardware test harness."],
-    files: [["hw/src/core/bsc_cell.v", "cell"], ["hw/src/fabric/bob_fpga.v", "64-cell ring"], ["host/fpga.py", "intest_sweep, sample"]],
+    files: [["hw/src/core/bsc_cell.v", "cell"], ["hw/src/fabric/bob_fpga.v", "40-cell ring"], ["host/fpga.py", "intest_sweep, sample"]],
     tb: [[TB + " [5][9]", "EXTEST/SAMPLE/INTEST"], ["hwtest selftest / ce-sr / synth-*", "board"]],
     drill: ["io", "jtag"]
   });
 
-  D("flow", {
-    title: "Guest flow — Verilog to a running bob", sub: "M8 built · M9 VPR PnR · M10 bitgen (next)", k: "SOFT", stage: "tools/bob/synth.py",
-    rows: [F("today (M8)", ["design.v", "board ports sw/btn/led/clk", null, "BRD"], ["synth.py", "yosys → bob cells", null, "SOFT"], ["equiv.py", "netlist == source (iverilog)", null, "SOFT"],
-        ["place.py", "pack · place · route (Design)", "routing", "GTX"], ["cfgplane.load", "CRC · CFG_IN · readback · JSTART", "cfgctrl", "CFG"], ["hwtest", "LEDs == source every clock", "board", "BRD"]),
-      F("next", ["synth BLIF", "", null, "SOFT"], ["VPR pack/place/route", "on the committed rr graph (M9)", "routing", "GTX"], ["bitgen", "routes → mux values (M10)", "chain", "CFG"])],
-    notes: ["Cells: <code>$lut</code>, <code>BOB_FDRE/FDSE</code>, <code>BOB_ADD</code>, <code>BOB_BRAM18</code>, <code>BOB_DSP</code>. Anything else fails synthesis.",
-      "Every example is checked three ways: netlist vs source, placed bitstream on model.py vs source, placed bitstream on the fabric RTL vs source."],
-    src: [["yosys synth_xilinx", "pass order"], ["yosys xilinx ff/arith/dsp maps, brams_xc4v", "mapping patterns"], ["Aegis synth-equiv", "cell simulation models for equivalence"]],
-    why: ["synth_xilinx is yosys' most-used FPGA flow; bob's fabric deliberately mirrors 7-series cells so the patterns carry over."],
-    files: [["tools/bob/synth.py", "flow"], ["tools/bob/synth/*", "cells, maps, BRAM library"], ["tools/bob/equiv.py", "equivalence"], ["tools/bob/place.py", "placer"], ["examples/*.v", "designs"]],
-    tb: [["tests/test_synth.py", "flow for every example"], ["hw/tb/tb_synth.v", "486 checks on the fabric RTL"], ["hwtest M8 synth-*", "board, on the M7 bitstream"]],
-    drill: ["routing", "cfgctrl", "clb"]
-  });
+

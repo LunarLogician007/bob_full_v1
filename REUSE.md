@@ -163,3 +163,12 @@ Status: **same** = byte-identical to `bob/`, **moved** = same content at a new p
 | `tests/test_hwtest_fake.py` | M10 | modified | free-running clock in real time, SAMPLE, JPROGRAM, USER4 READ; pass and fail cases |
 | `tools/bob/report.py`, `docs/reports/M11/designs.md` | — | new | per-design resource/route/chain report |
 | `tools/bob/cli.py`, `tools/bob/vpr_run.py`, `Makefile` | M10 | modified | clock rate printed; switches/fir in the example set |
+
+## Pre-M12 refresh (2026-09-17)
+
+| File | From | Status | Notes |
+|---|---|---|---|
+| `PLAN.md`, `CLAUDE.md`, `README.md` | — | modified | current state after M11; folder map, commands, conventions, gotchas M7–M11; M12 plan (M12a/M12b) |
+| `docs/arch/p2…p8`, `docs/arch/p4b_det_flow.js`, `arch.html` | M7 arch page | modified / new | 16-CLB profile facts; guest flow, VPR, FASM/bitgen and verification detail pages |
+| `docs/bitstream-format.md` | M10 | unchanged since M10 | |
+

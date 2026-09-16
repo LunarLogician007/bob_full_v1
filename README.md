@@ -19,11 +19,11 @@ For the detailed plan, conventions, gotchas and every milestone, read [`PLAN.md`
 | M8 | yosys synthesis onto bob cells → placed → runs on the fabric | **passed on the board 2026-09-17** (10/10, no rebuild) |
 | M9 | VPR packs, places and routes the examples → FASM → chain | **passed on the board 2026-09-17** (10/10, no rebuild) |
 | M10 | bitgen (FASM ⇄ chain, `.bit`), `bob build`/`bob load`, `.pcf` pins, golden co-simulation | **passed on the board 2026-09-17** (7/7, no rebuild) |
-| M11 | real designs live on the board (free-running clock, real switches): switches, FIR on DSPs, RAM readback, blinky rate | built and simulated 2026-09-17; board test pending (no rebuild) |
-| M12 | Python PnR, larger grid | planned |
+| M11 | real designs live on the board (free-running clock, real switches): switches, FIR on DSPs, RAM readback, blinky rate | **passed on the board 2026-09-17** (12/12, no rebuild) |
+| M12 | **next:** Python pack/place/route checked against VPR (no rebuild), then area and a larger grid (rebuild) | planned in `PLAN.md` |
 | M13 | frame-based configuration (UG470) replacing the scan chain | planned, last |
 
-After M7 the Vivado bitstream stays the same through M11: those milestones only load new configuration chains over JTAG. The next Vivado rebuilds come at M12 (bigger grid) and M13 (new config plane), or earlier if a later step shows the fabric needs a change.
+After M7 the Vivado bitstream stayed the same through M11: those milestones only load new configuration chains over JTAG. M12a (Python PnR) needs no rebuild either; the next Vivado rebuilds come at M12b (area, bigger grid) and M13 (new config plane).
 
 ## The M7 device (16-CLB profile)
 

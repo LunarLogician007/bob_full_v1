@@ -69,7 +69,7 @@
   };
 
   /* ============================================================================
-     CHAIN  —  all 9400 bits laid out, pick a tile
+     CHAIN  —  every chain bit laid out, pick a tile
      ========================================================================= */
   const CH = { pick: "t_x4y4" };
   SCHEM.chain = function () {
