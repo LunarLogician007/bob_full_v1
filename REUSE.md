@@ -189,7 +189,7 @@ Status: **same** = byte-identical to `bob/`, **moved** = same content at a new p
 |---|---|---|---|
 | `hw/src/core/cfg_frames.v` | AMD UG470 ch. 5 (packets, registers, CMD, FAR); `resourses/04-config-bitstream/CONFIG-CONTROLLER.md`; prjxray `crc.py` | new | packet parser, register file, frame writer, readback queue |
 | `hw/src/core/cfg_store.v` | `cfg_tile_sr.v` (M2, hardware-proven) | new, derived | the chain protocol plus a frame write port on one memory |
-| `hw/src/core/jtag_tap6.v`, `cfg_ctrl.v`, `clock_ctrl.v`, `hw/src/fabric/bob_fpga.v`, `hw/src/top/cfg_test_top.v` | M2–M7 | modified | CHAIN_IN/CHAIN_OUT; commit only while GWE=0; startup after either path; gce gap guard; wiring, keep_hierarchy |
+| `hw/src/core/jtag_tap6.v`, `cfg_ctrl.v`, `clock_ctrl.v`, `hw/src/fabric/bob_fpga.v`, `hw/src/top/cfg_test_top.v` | M2–M7 | modified | CHAIN_IN/CHAIN_OUT; commit only while GWE=0; startup after either path; gce gap guard; wiring, keep_hierarchy on u_clk/u_bram_jtag |
 | `hw/constr/pynq_z2.xdc`, `host/dirtyjtag.py` | M7 | modified | TCK 100 kHz; 256-cycle multicycle on `u_fabric`; TCK ceiling |
 | `tools/bob/device.py` | M7 | modified | column-major frames, `frames` in device.json, FAR table |
 | `tools/bob/packets.py`, `host/cfgplane.py`, `tools/bob/cli.py`, `host/hwtest.py` | M10–M12 | new / modified | streams + Controller model; load_frames; `--mode`; hwtest M13 |

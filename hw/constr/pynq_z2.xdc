@@ -96,14 +96,23 @@ set_clock_groups -asynchronous -group [get_clocks tck] -group [get_clocks sysclk
 # pulse, and clock_ctrl.v guarantees gce pulses >= 256 sysclk cycles apart in both
 # clock modes (tb_clock_gap.v). A path from fabric register to fabric register -
 # however many unconfigured routing muxes the static analysis walks through (M7:
-# 1202 logic levels, 1110 ns) - therefore has 256 cycles = 2048 ns. The fabric's
-# hierarchy is kept (keep_hierarchy on u_fabric in bob_fpga.v): M7's filters named
-# cells that synthesis had flattened and renamed, so the worst paths escaped them.
-set_multicycle_path -setup 256 -from [get_cells -hier -filter {IS_SEQUENTIAL && NAME =~ *u_fabric/*}] -to [get_cells -hier -filter {IS_SEQUENTIAL && NAME =~ *u_fabric/*}]
-set_multicycle_path -hold  255 -from [get_cells -hier -filter {IS_SEQUENTIAL && NAME =~ *u_fabric/*}] -to [get_cells -hier -filter {IS_SEQUENTIAL && NAME =~ *u_fabric/*}]
-# USER1 cin enters the carry chains from its synchroniser and changes only by JTAG
-set_multicycle_path -setup 256 -from [get_cells -hier -filter {NAME =~ *u_clk/cin_m_reg*}] -to [get_cells -hier -filter {IS_SEQUENTIAL && NAME =~ *u_fabric/*}]
-set_multicycle_path -hold  255 -from [get_cells -hier -filter {NAME =~ *u_clk/cin_m_reg*}] -to [get_cells -hier -filter {IS_SEQUENTIAL && NAME =~ *u_fabric/*}]
+# 1202 logic levels, 1110 ns) - therefore has 256 cycles = 2048 ns.
+#
+# The fabric is flattened (keeping its hierarchy crashed Vivado on the routing
+# loops), and M7 showed flattening renames its registers, so the relaxation is by
+# clock: every sysclk -> sysclk path gets 256 cycles. The only sysclk logic outside
+# the fabric is u_clk (clock_ctrl.v: gce, dividers, synchronisers) and the sysclk
+# half of u_bram_jtag (BRAM INIT/readback strobes). Both keep their hierarchy
+# (bob_fpga.v), and cell-based exceptions take precedence over clock-based ones
+# (UG903), so every path starting or ending there is held back to one cycle.
+set_multicycle_path -setup 256 -from [get_clocks sysclk] -to [get_clocks sysclk]
+set_multicycle_path -hold  255 -from [get_clocks sysclk] -to [get_clocks sysclk]
+set_multicycle_path -setup 1 -from [get_cells -hier -filter {IS_SEQUENTIAL && (NAME =~ *u_bram_jtag/* || (NAME =~ *u_clk/* && NAME !~ *u_clk/cin_m_reg*))}]
+set_multicycle_path -hold  0 -from [get_cells -hier -filter {IS_SEQUENTIAL && (NAME =~ *u_bram_jtag/* || (NAME =~ *u_clk/* && NAME !~ *u_clk/cin_m_reg*))}]
+set_multicycle_path -setup 1 -to   [get_cells -hier -filter {IS_SEQUENTIAL && (NAME =~ *u_bram_jtag/* || NAME =~ *u_clk/*)}]
+set_multicycle_path -hold  0 -to   [get_cells -hier -filter {IS_SEQUENTIAL && (NAME =~ *u_bram_jtag/* || NAME =~ *u_clk/*)}]
+# USER1 cin (u_clk/cin_m_reg) enters the carry chains and changes only by JTAG, so
+# its paths into the fabric keep the 256 cycles.
 
 # The switches, buttons and LEDs are the fabric's pads, asynchronous to TCK.
 set_false_path -to   [get_ports {led[*]}]

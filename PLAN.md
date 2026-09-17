@@ -768,11 +768,11 @@ User, 2026-09-17: "frame based writing just like AMD (slightly simplified) … l
   - `jtag_tap6.v`: CFG_IN/CFG_OUT → packets; private CHAIN_IN `110101` / CHAIN_OUT `110100` → chain.
   - `cfg_ctrl.v`: chain commit only while GWE = 0; startup after the chain or after `frames_ok`; frame errors in the IR capture.
   - `clock_ctrl.v`: gce ≥ 2^GAP_SHIFT sysclk cycles apart in both modes, with one pending request.
-  - `bob_fpga.v`: wiring, `keep_hierarchy` on `u_fabric`.
+  - `bob_fpga.v`: wiring; the fabric is flattened (keeping its hierarchy crashed Vivado 2025.2 on the routing loops); `keep_hierarchy` on the small, loop-free `u_clk` and `u_bram_jtag`.
   - `cfg_test_top.v`: the chain on CHAIN codes.
 - **Timing** (`pynq_z2.xdc`):
   - TCK at 10 µs; `dirtyjtag.py` MAX_TCK_KHZ = 100.
-  - One 256/255 multicycle over `IS_SEQUENTIAL && NAME =~ *u_fabric/*` (plus the cin synchroniser), replacing M7's 20 filters.
+  - sysclk → sysclk gets 256/255 cycles by clock, replacing M7's 20 name filters. Every path starting or ending in `u_clk` or `u_bram_jtag` is held back to 1 cycle by cell, except those starting at the cin synchroniser.
   - Analysis of M7's report: sysclk WNS came from a 1202-level path through unconfigured routing loops whose flattened source escaped the 120-cycle filters (and 960 ns < 1110 ns anyway). tck WNS came from a real IR → boundary → fabric → DSP-capture path under a 1 MHz constraint.
   - `tests/test_reports.py` now requires WNS ≥ 0, 0 failing endpoints, WHS ≥ 0 and no "No valid object" from M13 on.
 - **Host:**
