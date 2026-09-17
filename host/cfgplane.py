@@ -204,17 +204,25 @@ def step(p):
 
 
 def measure_chain(p, limit):
-    """Chain length through CFG_OUT (never commits): shift a 32-bit marker in
-    front of zeros and see where it comes out. Returns None if not within limit.
+    """Chain length through CHAIN_OUT (never writes). Returns None if not within limit.
 
-    The first bits out are the current configuration, which can contain the
-    marker pattern by chance; everything after the true length is marker then
-    zeros. So the LAST position where the marker appears is the length."""
+    M12b: CHAIN_OUT streams the memory frame by frame and, after the last frame, is a
+    FRAME_BITS-long delay line from TDI (a pure shift register before M12b was a
+    W-long one). Both pass a marker REPEATED every 32 bits through unchanged once
+    the memory is out, because W is a multiple of 32. So shift the repeated marker
+    and return the first position from which every bit out equals the bit in: that
+    is W, unless the memory's own last bits happen to continue the pattern."""
     marker = 0xA5C35A3C
+    n = limit + 256
+    stream = 0
+    for k in range(0, n, 32):
+        stream |= marker << k
+    stream &= (1 << n) - 1
     ir(p, "CHAIN_OUT")
-    out = _shift(p, limit + 32, marker, True)
-    hits = [n for n in range(1, limit + 1) if (out >> n) & 0xFFFFFFFF == marker]
-    return hits[-1] if hits else None
+    out = _shift(p, n, stream, True)
+    diff = out ^ stream
+    first = diff.bit_length()                  # every bit at or above this matches
+    return first if first <= limit else None
 
 
 # --- M13: the frame path (UG470-style packets on CFG_IN / CFG_OUT, tools/bob/packets.py) ----

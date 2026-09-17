@@ -237,7 +237,7 @@ module tb_bob;
             tick(1'b0, 1'b0);
             clk_on = 1'b0;
             for (k = 0; k < CFG_W + 31; k = k + 1) begin
-                tick(1'b0, (k < 32) ? MARKER[k] : 1'b0);
+                tick(1'b0, MARKER[k % 32]);      // M12b: repeated; CHAIN_OUT is an FB-bit delay after the last frame
                 if (k >= CFG_W) tail[k - CFG_W] = tdo_s;
             end
             clk_on = 1'b1;
@@ -562,7 +562,7 @@ module tb_bob;
               {63'h0, (cfgrx === `RT_WORD) && (cfg === `RT_WORD)}, 64'h1);
         shift_ir(IR_CHAIN_OUT, irc);
         shift_marker(tail);
-        check("marker emerges after exactly the chain width", {32'h0, tail}, {32'h0, MARKER});
+        check("repeated marker emerges from exactly the chain width on", {32'h0, tail}, {32'h0, MARKER});
         check("GTS: committed but not started, every pad forced 0", {63'h0, (pads_o === {NPAD{1'b0}})}, 64'h1);
         check("GSR/GTS still asserted",
               {62'h0, dut.u_ctrl.gsr, dut.u_ctrl.gts}, {62'h0, 2'b11});

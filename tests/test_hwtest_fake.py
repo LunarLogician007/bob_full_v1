@@ -118,16 +118,22 @@ class FakeBob:
             if din >> 56 == chainbits.CTRL_KEY:          # only the expected CRC (cfg_ctrl.v)
                 self.expected = din & 0xFFFFFFFF
             return out
-        if ir == "CHAIN_IN":                         # commits only while GWE = 0 (M13)
+        if ir == "CHAIN_IN":                         # M12b: frames streamed, only while GWE = 0
             self.count = n
             good = chainbits.crc32c_bits(din, n) == self.expected and n == B.CHAIN_W
-            if good and not self.done:
-                self.chain = din
-                self.committed = 1
+            if not self.done:
+                fb = B.DEVICE["frames"]["bits"]
+                for f in range(min(n // fb, B.CHAIN_W // fb)):
+                    mask = ((1 << fb) - 1) << (f * fb)
+                    self.chain = (self.chain & ~mask) | (din & mask)
+                if good:
+                    self.committed = 1
             self.brams = {}
             return 0
-        if ir == "CHAIN_OUT":
-            return self.chain
+        if ir == "CHAIN_OUT":                        # memory, then TDI delayed by one frame
+            fb = B.DEVICE["frames"]["bits"]
+            low = (1 << B.CHAIN_W) - 1
+            return (self.chain & low) | ((din << fb) & ~low & ((1 << n) - 1))
         if ir == "USER1":
             self.user1 = din
             return 0

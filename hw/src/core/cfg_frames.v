@@ -9,7 +9,7 @@
 //   register CRC  compare with the running CRC-32C over {reg[4:0], data}
 //            FAR  frame address (7-series layout), auto-increment
 //            FDRI frame data: 4 words fill a frame; the 4th loads it into cfg_store's
-//                 shift register (frame_load) and the memory takes it on the falling edge
+//                 frame buffer (frame_load) and the memory takes it on the falling edge
 //            CMD  NULL WCFG LFRM RCFG START RCRC DESYNC
 //            IDCODE must match before FDRI is accepted
 //   CFG_OUT  READ packets queue words (FDRO frames from FAR, STAT, FAR, IDCODE,
@@ -33,8 +33,7 @@ module cfg_frames #(
     parameter integer NFRAMES      = 4,
     parameter integer NCOLS        = 2,            // FAR columns
     parameter [16*NCOLS-1:0] FAR_TABLE = 0,        // column c: [16c+7:16c] base, [16c+15:16c+8] count
-    parameter integer FIDX_W       = 8,
-    parameter integer MEM_W        = 32 * FW * NFRAMES
+    parameter integer FIDX_W       = 8
 )(
     input  wire              tck,
     input  wire              tdi,
@@ -48,13 +47,13 @@ module cfg_frames #(
     input  wire              gts,
     input  wire              gwe,
     input  wire              done,
-    input  wire [MEM_W-1:0]  mem,           // the configuration memory, for FDRO
+    input  wire [32*FW-1:0]  rd_frame,      // cfg_store's read mux at rd_idx, for FDRO
+    output wire [FIDX_W-1:0] rd_idx,
 
     output wire              so,
-    output wire              frame_load,     // this rising edge: frame_load_data into the shift register
-    output wire [FIDX_W-1:0] frame_load_idx,
+    output wire              frame_load,     // this rising edge: frame_load_data into the frame buffer
     output wire [32*FW-1:0]  frame_load_data,
-    output reg               frame_we,       // next falling edge: shift register frame -> memory
+    output reg               frame_we,       // next falling edge: frame buffer -> memory
     output reg  [FIDX_W-1:0] frame_idx,
     output reg               start_ok,
     output wire              any_error,
@@ -175,26 +174,23 @@ module cfg_frames #(
                            (w[17:13] == R_IDCODE) || (w[17:13] == R_CRC);
     wire        hdr1_ok  = (w[26:18] == 9'd0) && (w[12:11] == 2'd0);
 
-    // the 4th word of a frame, accepted: written into cfg_store's shift register on this
+    // the 4th word of a frame, accepted: written into cfg_store's frame buffer on this
     // edge (the same condition as the FDRI branch below)
     wire   fdri_ok         = wcfg && id_ok && !gwe && far_valid && !any_error;
     assign frame_load      = wv && (st == ST_DATA) && (rsel == R_FDRI) && fdri_ok && ({30'd0, widx} == FW - 1);
-    assign frame_load_idx  = far_fidx;
     assign frame_load_data = {w, fbuf};
 
-    // FDRO source: the memory as an array of words, indexed by frame*FW + word (an
-    // explicit word mux; a computed part-select over the whole memory is a shifter)
-    localparam integer NWORDS = FW * NFRAMES;
-    wire [31:0] mem_word [0:NWORDS-1];
+    // FDRO source: cfg_store's frame read mux at the FAR frame, then one of FW words
+    // (M12b: shared with CHAIN_OUT; M13 had its own FW*NFRAMES-way word mux)
+    assign rd_idx = far_fidx;
+    wire [31:0] rd_frame_word [0:FW-1];
     genvar gw;
     generate
-        for (gw = 0; gw < NWORDS; gw = gw + 1) begin : g_word
-            assign mem_word[gw] = mem[gw*32 +: 32];
+        for (gw = 0; gw < FW; gw = gw + 1) begin : g_word
+            assign rd_frame_word[gw] = rd_frame[gw*32 +: 32];
         end
     endgenerate
-    localparam integer WIDX_W = $clog2(NWORDS);
-    wire [31:0] rd_widx32 = {{(32-FIDX_W){1'b0}}, far_fidx} * FW + {30'd0, rwidx};
-    wire [WIDX_W-1:0] rd_widx = rd_widx32[WIDX_W-1:0];
+    wire fdro_in_range = ({{(32-FIDX_W){1'b0}}, far_fidx} < NFRAMES);
 
     // word CFG_OUT hands out next (for the current read request)
     reg [31:0] rword;
@@ -202,7 +198,7 @@ module cfg_frames #(
         rword = stat;
         if (rd_cnt != 27'd0) begin
             case (rd_reg)
-                R_FDRO:   rword = (rcfg && far_valid && rd_widx32 < NWORDS) ? mem_word[rd_widx] : 32'h0;
+                R_FDRO:   rword = (rcfg && far_valid && fdro_in_range) ? rd_frame_word[rwidx] : 32'h0;
                 R_FAR:    rword = far;
                 R_IDCODE: rword = IDCODE_VALUE;
                 R_CRC:    rword = crc;

@@ -77,7 +77,8 @@ module bob_fpga #(
     wire [CHAIN_W-1:0]  chain_cfg;                    // chain bit k = chain_cfg[k] = memory bit k
     localparam integer  FIDX_W = 8;
     wire                frame_we, frame_load, frames_ok, frames_error, frames_crc_error;
-    wire [FIDX_W-1:0]   frame_idx, frame_load_idx;
+    wire [FIDX_W-1:0]   frame_idx, fdro_idx;
+    wire [`BOB_FRAME_BITS-1:0] rd_frame;
     wire [`BOB_FRAME_BITS-1:0] frame_load_data;
     wire [31:0]         frames_stat;
     wire [CTRL_W-1:0]   ctrl_cfg = chain_cfg[CTRL_W-1:0];
@@ -189,10 +190,10 @@ module bob_fpga #(
         .gts        (gts),
         .gwe        (gwe),
         .done       (done),
-        .mem        (chain_cfg),
+        .rd_frame   (rd_frame),
+        .rd_idx     (fdro_idx),
         .so         (pkt_so),
         .frame_load      (frame_load),
-        .frame_load_idx  (frame_load_idx),
         .frame_load_data (frame_load_data),
         .frame_we   (frame_we),
         .frame_idx  (frame_idx),
@@ -205,17 +206,20 @@ module bob_fpga #(
     // chain: TDI -> memory bit CHAIN_W-1 ... bit 0 -> TDO; frames: frame f = bits [FB*f +: FB]
     cfg_store #(.FB(`BOB_FRAME_BITS), .NFRAMES(`BOB_NFRAMES), .FIDX_W(FIDX_W)) u_store (
         .tck        (tck),
+        .chain_in   (sel_chain_in),
+        .chain_out  (sel_chain_out),
         .capture    (cfg_capture),
         .shift      (cfg_shift),
-        .commit     (cfg_commit),
+        .wen        (~gwe),                    // chain writes only before startup
         .clear      (cfg_clear),
         .si         (tdi),
         .so         (cfg_so),
         .load       (frame_load),
-        .load_idx   (frame_load_idx),
         .load_data  (frame_load_data),
         .frame_we   (frame_we),
         .frame_idx  (frame_idx),
+        .fdro_idx   (fdro_idx),
+        .rd_frame   (rd_frame),
         .cfg        (chain_cfg)
     );
 
@@ -352,7 +356,7 @@ module bob_fpga #(
     assign configured = done;
 
     // USER1 sr is superseded by the routed per-CLB SR (M4).
-    wire _unused = &{1'b0, committed, ir_value, sr, frames_stat,
+    wire _unused = &{1'b0, committed, cfg_commit, ir_value, sr, frames_stat,
                      ctrl_cfg[CTRL_W-1:`BOB_CTRL_CLK_DIV_LO + `BOB_CTRL_CLK_DIV_W]};
 
 endmodule

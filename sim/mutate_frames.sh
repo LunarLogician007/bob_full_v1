@@ -20,8 +20,8 @@ run() {                      # run <name> <file under hw/> <perl expression> [tb
     else
         local SRC=()
         while read -r l; do if [[ "$l" == */$file ]]; then SRC+=("$mut"); else SRC+=("$l"); fi; done < <(sim/hwfiles.sh)
-        iverilog -g2012 -DSIMULATION -Ihw/src/generated -Ihw/tb -s tb_frames -o "$WORK/$name.vvp" \
-            "${SRC[@]}" hw/tb/tb_frames.v 2>"$WORK/$name.err" || {
+        iverilog -g2012 -DSIMULATION -Ihw/src/generated -Ihw/tb -s "$tb" -o "$WORK/$name.vvp" \
+            "${SRC[@]}" "hw/tb/$tb.v" 2>"$WORK/$name.err" || {
             echo "  ERROR   $name: does not compile"; head -3 "$WORK/$name.err"; survivors=$((survivors+1)); return; }
     fi
     if (cd "$WORK" && vvp "$name.vvp" 2>&1 | grep -q 'ALL TESTS PASSED'); then
@@ -40,13 +40,15 @@ run fdri-without-wcfg   $F 's/fdri_ok         = wcfg && id_ok && !gwe/fdri_ok   
 run far-no-increment    $F 's/far        <= far_next;/far        <= far;/'
 run start-without-crc   $F 's/C_START:  if \(crc_ok && id_ok/C_START:  if (id_ok/'
 run type2-without-type1 $F 's/pkt_err <= 1.b1; st <= ST_ERR;\n/pkt_err <= pkt_err; st <= ST_HDR;\n/ if /end else begin$/../end$/'
-run fdro-without-rcfg   $F 's/R_FDRO:   rword = \(rcfg && far_valid && rd_widx32/R_FDRO:   rword = (far_valid \&\& rd_widx32/'
+run fdro-without-rcfg   $F 's/R_FDRO:   rword = \(rcfg && far_valid && fdro_in_range\)/R_FDRO:   rword = (far_valid \&\& fdro_in_range)/'
 run wrong-sync-word     $F "s/32'hAA995566/32'hAA995567/"
 run readback-lsb-first  $F 's/assign so = out\[31\];/assign so = out[0];/'
-run chain-commits-live  src/core/cfg_ctrl.v 's/assign cfg_commit = sel_cfg_in & dr_update & load_good & ~gwe;/assign cfg_commit = sel_cfg_in \& dr_update \& load_good;/'
+run chain-writes-live   src/fabric/bob_fpga.v 's/\.wen        \(~gwe\),/.wen        (1'"'"'b1),/'
 run startup-ignores-frames src/core/cfg_ctrl.v 's/\(committed \| frames_ok\) & \(phase/(committed) \& (phase/'
-run frame-write-dropped src/core/cfg_store.v 's/else if \(commit \|\| we\)/else if (commit)/'
-run frame-load-dropped  src/core/cfg_store.v 's/else if \(ld\)/else if (1'"'"'b0)/'
+run frame-write-dropped src/core/cfg_store.v 's/ \|\| \(frame_we && frame_idx == f\[FIDX_W-1:0\]\);/;/'
+run frame-load-dropped  src/core/cfg_store.v 's/end else if \(load\)/end else if (1'"'"'b0)/'
+run chain-write-dropped src/core/cfg_store.v 's/wire we = \(cwe && cidx == f\[FIDX_W-1:0\]\) \|\| /wire we = /'
+run chain-out-no-reload src/core/cfg_store.v 's/if \(chain_out && wrap && more\)/if (1'"'"'b0)/' tb_bob
 run gce-gap-ignored     src/core/clock_ctrl.v 's/if \(\(req \| pend\) && \(gap >= min_gap\)\) begin/if (req | pend) begin/' tb_clock_gap
 run gce-pending-lost    src/core/clock_ctrl.v 's/if \(req\) pend <= 1.b1;/if (req) pend <= 1'"'"'b0;/' tb_clock_gap
 
