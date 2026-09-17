@@ -63,7 +63,7 @@ def test_no_constraint_file_critical_warnings(d):
 def test_timing_closes_from_m13(d):
     """M7 reported WNS -1102 ns (TNS -1.6e6 ns): paths through unconfigured routing loops
     under 120-cycle multicycles that synthesis had renamed away, and a TCK path under a
-    1 MHz clock. M13 guarantees the 256-cycle gce gap in RTL, keeps the fabric hierarchy
+    1 MHz clock. M13 guarantees the 256-cycle gce gap in RTL, relaxes sysclk by clock
     and constrains TCK at 100 kHz, so setup and hold must close, and every multicycle
     must name real cells (docs/bitstream-format.md section 11)."""
     if int(os.path.basename(d)[1:]) < 13:
@@ -77,3 +77,15 @@ def test_timing_closes_from_m13(d):
     assert whs >= 0, f"hold: WHS {whs} ns"
     logs = _read(d, "synth_1.log") + _read(d, "impl_1.log")
     assert "No valid object" not in logs, "a timing constraint names no cells (see the logs)"
+
+
+@pytest.mark.parametrize("d", REPORTS, ids=[os.path.basename(d) for d in REPORTS])
+def test_single_cycle_filter_caught_its_registers(d):
+    """From M13 sysclk -> sysclk is 256 cycles by clock, and only u_clk / u_bram_jtag are
+    held to one cycle, by name, in a flattened netlist. gce (the one-cycle enable of every
+    fabric register) and the BRAM INIT strobes must still carry those names."""
+    if int(os.path.basename(d)[1:]) < 13:
+        pytest.skip("the by-clock multicycle is an M13 constraint")
+    cells = _read(d, "sysclk_1cycle.txt")
+    for want in ("u_clk/gce_reg", "u_bram_jtag/init_go_reg", "u_bram_jtag/rdata_reg"):
+        assert want in cells, f"{want} was renamed out of the XDC single-cycle filter"

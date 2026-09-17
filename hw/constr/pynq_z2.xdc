@@ -102,9 +102,11 @@ set_clock_groups -asynchronous -group [get_clocks tck] -group [get_clocks sysclk
 # loops), and M7 showed flattening renames its registers, so the relaxation is by
 # clock: every sysclk -> sysclk path gets 256 cycles. The only sysclk logic outside
 # the fabric is u_clk (clock_ctrl.v: gce, dividers, synchronisers) and the sysclk
-# half of u_bram_jtag (BRAM INIT/readback strobes). Both keep their hierarchy
-# (bob_fpga.v), and cell-based exceptions take precedence over clock-based ones
-# (UG903), so every path starting or ending there is held back to one cycle.
+# half of u_bram_jtag (BRAM INIT/readback strobes). Cell-based exceptions take
+# precedence over clock-based ones (UG903), so every path starting or ending there
+# is held back to one cycle. Their hierarchy is flattened (keep_hierarchy anywhere
+# crashed Vivado), so build.tcl writes the cells these filters caught to
+# sysclk_1cycle.txt and tests/test_reports.py requires gce and the BRAM strobes in it.
 set_multicycle_path -setup 256 -from [get_clocks sysclk] -to [get_clocks sysclk]
 set_multicycle_path -hold  255 -from [get_clocks sysclk] -to [get_clocks sysclk]
 set_multicycle_path -setup 1 -from [get_cells -hier -filter {IS_SEQUENTIAL && (NAME =~ *u_bram_jtag/* || (NAME =~ *u_clk/* && NAME !~ *u_clk/cin_m_reg*))}]

@@ -418,6 +418,11 @@ open_run impl_1
 report_timing_summary -file $out_dir/timing.rpt
 report_utilization    -file $out_dir/util.rpt
 report_drc            -file $out_dir/drc.rpt
+# The sysclk registers the XDC holds to one cycle by name (u_clk, u_bram_jtag);
+# the fabric is flattened, so check none of them was renamed out of the filter.
+set fh [open $out_dir/sysclk_1cycle.txt w]
+foreach c [lsort [get_cells -quiet -hier -filter {IS_SEQUENTIAL && (NAME =~ *u_bram_jtag/* || NAME =~ *u_clk/*)}]] { puts $fh $c }
+close $fh
 foreach run {synth_1 impl_1} {
     set log [get_property DIRECTORY [get_runs $run]]/runme.log
     if {[file exists $log]} { file copy -force $log $out_dir/$run.log }

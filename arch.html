@@ -968,11 +968,11 @@
         ["TCK 10 µs", "dirtyjtag.py refuses > 100 kHz", "jtag", "CFG"],
         ["config only while GWE = 0", "chain and frames", "cfgctrl", "CFG"])],
     notes: ["The static analyser cannot know a configuration, so it walks paths through routing muxes that no legal (loop-free) configuration uses. Those paths are bounded by the user clock, which is an enable on sysclk: guaranteeing the enable spacing in RTL turns the multicycle from an assumption into a fact (tb_clock_gap.v).",
-      "M7's constraints named cells by patterns like *u_bram*/u_core/*; synthesis flattened and renamed some registers (hold_qb_reg[17]_i_5__0), so the worst paths were timed as single-cycle. Keeping the fabric's hierarchy crashed Vivado 2025.2 while it broke the routing loops, so the fabric stays flattened and sysclk is relaxed by clock; only the small, loop-free u_clk and u_bram_jtag keep their hierarchy and are held to one cycle by name.",
+      "M7's constraints named cells by patterns like *u_bram*/u_core/*; synthesis flattened and renamed some registers (hold_qb_reg[17]_i_5__0), so the worst paths were timed as single-cycle. Keeping the fabric's hierarchy crashed Vivado 2025.2 while it broke the routing loops, so the fabric stays flattened and sysclk is relaxed by clock; only u_clk and u_bram_jtag are held to one cycle by name, and build.tcl lists the registers that filter caught (sysclk_1cycle.txt, checked by test_reports.py).",
       "tests/test_reports.py now requires WNS ≥ 0, no failing endpoint, WHS ≥ 0 and no 'No valid object' for M13 builds."],
     src: [["docs/reports/M7/timing.rpt", "the failing paths"], ["AMD UG903 / UG949", "multicycle paths on clock-enabled logic; enables over derived clocks"]],
     why: ["Honest constraints: every relaxation is backed by an RTL guarantee or a host limit, and each has a test."],
-    files: [["hw/src/core/clock_ctrl.v", "gce gap guard"], ["hw/src/fabric/bob_fpga.v", "keep_hierarchy on u_clk, u_bram_jtag"], ["hw/constr/pynq_z2.xdc", "TCK period, multicycles"], ["host/dirtyjtag.py", "MAX_TCK_KHZ"]],
+    files: [["hw/src/core/clock_ctrl.v", "gce gap guard"], ["hw/src/fabric/bob_fpga.v", "fully flattened (keep_hierarchy crashed Vivado)"], ["hw/constr/pynq_z2.xdc", "TCK period, multicycles"], ["host/dirtyjtag.py", "MAX_TCK_KHZ"]],
     tb: [["hw/tb/tb_clock_gap.v", "spacing in both modes"], ["tests/test_reports.py", "timing closure from M13"], ["sim/mutate_frames.sh", "gap guard mutants"]],
     drill: ["clock", "frames", "routing"]
   });

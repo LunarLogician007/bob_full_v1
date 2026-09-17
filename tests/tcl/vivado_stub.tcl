@@ -128,6 +128,7 @@ proc get_timing_paths {args} { return "" }
 proc report_timing_summary {args} { close [open [lindex $args end] w] }
 proc report_utilization {args}    { close [open [lindex $args end] w] }
 proc report_drc {args}            { close [open [lindex $args end] w] }
+proc get_cells {args}             { return {} }
 proc launch_simulation {args} { stub_log "launch_simulation $args" }
 proc run {args} { stub_log "run $args" }
 proc close_sim {} {}

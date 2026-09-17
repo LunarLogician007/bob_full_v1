@@ -768,7 +768,7 @@ User, 2026-09-17: "frame based writing just like AMD (slightly simplified) … l
   - `jtag_tap6.v`: CFG_IN/CFG_OUT → packets; private CHAIN_IN `110101` / CHAIN_OUT `110100` → chain.
   - `cfg_ctrl.v`: chain commit only while GWE = 0; startup after the chain or after `frames_ok`; frame errors in the IR capture.
   - `clock_ctrl.v`: gce ≥ 2^GAP_SHIFT sysclk cycles apart in both modes, with one pending request.
-  - `bob_fpga.v`: wiring; the fabric is flattened (keeping its hierarchy crashed Vivado 2025.2 on the routing loops); `keep_hierarchy` on the small, loop-free `u_clk` and `u_bram_jtag`.
+  - `bob_fpga.v`: wiring; no `keep_hierarchy` anywhere, as at M7 (any kept hierarchy, even on `u_clk`/`u_bram_jtag`, crashed Vivado 2025.2 on the routing loops). `build.tcl` writes `sysclk_1cycle.txt`, the registers the single-cycle filter caught, and `test_reports.py` requires gce and the BRAM strobes in it.
   - `cfg_test_top.v`: the chain on CHAIN codes.
 - **Timing** (`pynq_z2.xdc`):
   - TCK at 10 µs; `dirtyjtag.py` MAX_TCK_KHZ = 100.

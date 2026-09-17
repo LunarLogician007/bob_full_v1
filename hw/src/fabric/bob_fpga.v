@@ -228,9 +228,6 @@ module bob_fpga #(
         .so      (cap_so)
     );
 
-    // Kept as its own hierarchy (small, loop-free) so the XDC can hold its
-    // registers to one sysclk cycle by name (hw/constr/pynq_z2.xdc).
-    (* keep_hierarchy = "yes" *)
     clock_ctrl #(
         .DIV_W     (`BOB_CTRL_CLK_DIV_W),
         .MIN_SHIFT (DIV_MIN_SHIFT),
@@ -291,7 +288,6 @@ module bob_fpga #(
     // ---------------------------------------------------------------------
     // BRAM contents / drive (USER4) and DSP drive (private DSP instruction)
     // ---------------------------------------------------------------------
-    (* keep_hierarchy = "yes" *)            // named single-cycle in the XDC, as u_clk
     bram_jtag #(.ADDR_W(`BOB_BRAM_ADDR_W), .DATA_W(DATA_W), .NPIN(64), .NBRAM(NBRAM)) u_bram_jtag (
         .tck        (tck),
         .tdi        (tdi),
@@ -325,9 +321,10 @@ module bob_fpga #(
     );
 
     // ---------------------------------------------------------------------
-    // The generated fabric (tools/bob/fabric_gen.py). Flattened, as at M7: keeping
-    // its hierarchy made Vivado 2025.2 crash while breaking the unconfigured routing
-    // loops (M13 first build). The XDC relaxes sysclk by clock, not by fabric names
+    // The generated fabric (tools/bob/fabric_gen.py). Nothing in bob_top keeps its
+    // hierarchy, as at M7: any keep_hierarchy (on u_fabric, or even on u_clk and
+    // u_bram_jtag) made Vivado 2025.2 crash while breaking the unconfigured routing
+    // loops (M13 builds 1 and 2). The XDC relaxes sysclk by clock, not by fabric names
     // (docs/bitstream-format.md section 11).
     // ---------------------------------------------------------------------
     bob_fabric u_fabric (
