@@ -349,6 +349,19 @@ if {[dict exists $cfg synth_directive] && [dict get $cfg synth_directive] ne ""}
     puts "synth_1 directive: [dict get $cfg synth_directive]"
 }
 
+# M13: synthesis crashed Vivado (and later restarted the Windows machine) three
+# times, each time at the same step: "Applying XDC Timing Constraints", then
+# breaking the fabric's combinational routing loops against those clocks, before
+# Technology Mapping. Synthesis needs no clocks here: the fabric is multicycle by
+# construction and the directive is RuntimeOptimized anyway. So the XDC is used by
+# implementation only (pins, IOSTANDARDs and every timing constraint are applied
+# there, and timing.rpt still has to close).
+set xdc_objs [get_files -quiet -of_objects [get_filesets constrs_1]]
+if {[llength $xdc_objs]} {
+    set_property USED_IN_SYNTHESIS  false $xdc_objs
+    set_property USED_IN_IMPLEMENTATION true $xdc_objs
+}
+
 # --- simulation ---------------------------------------------------------------
 
 if {$action eq "sim"} {

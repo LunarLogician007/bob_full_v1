@@ -770,7 +770,7 @@ User, 2026-09-17: "frame based writing just like AMD (slightly simplified) … l
   - `clock_ctrl.v`: gce ≥ 2^GAP_SHIFT sysclk cycles apart in both modes, with one pending request.
   - `bob_fpga.v`: wiring; no `keep_hierarchy` anywhere, as at M7 (any kept hierarchy, even on `u_clk`/`u_bram_jtag`, crashed Vivado 2025.2 on the routing loops). `build.tcl` writes `sysclk_1cycle.txt`, the registers the single-cycle filter caught, and `test_reports.py` requires gce and the BRAM strobes in it.
   - `cfg_test_top.v`: the chain on CHAIN codes.
-- **Timing** (`pynq_z2.xdc`):
+- **Timing** (`pynq_z2.xdc`, implementation only: `build.tcl` sets `USED_IN_SYNTHESIS false`, since synthesis with clocks crashed Vivado in loop breaking):
   - TCK at 10 µs; `dirtyjtag.py` MAX_TCK_KHZ = 100.
   - sysclk → sysclk gets 256/255 cycles by clock, replacing M7's 20 name filters. Every path starting or ending in `u_clk` or `u_bram_jtag` is held back to 1 cycle by cell, except those starting at the cin synchroniser.
   - Analysis of M7's report: sysclk WNS came from a 1202-level path through unconfigured routing loops whose flattened source escaped the 120-cycle filters (and 960 ns < 1110 ns anyway). tck WNS came from a real IR → boundary → fabric → DSP-capture path under a 1 MHz constraint.
