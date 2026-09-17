@@ -1,5 +1,5 @@
   /* ============================================================================
-     FLOORPLAN  —  the home screen: bob's real 8 × 6 VPR grid (16-CLB board profile) inside the XC7Z020 PL
+     FLOORPLAN  —  the home screen: bob's real VPR grid (M12b: 10 × 8 with the io ring, 36 CLBs) inside the XC7Z020 PL
      ========================================================================= */
   const W = 1700, H = 1112;
   const DIE = { x: 44, y: 70, w: 1196, h: 818 };
@@ -7,7 +7,7 @@
   const NCLB = BOB.blocks.filter(b => b[1] === "clb").length;
 
   txt(44, 30, "BOB — AN FPGA INSIDE AN FPGA", { size: 20, w: 680, anchor: "start", ls: -.45 });
-  txt(44, 50, "DIE SLICE · TOP VIEW · M7 FABRIC GENERATED FROM VPR'S ROUTING-RESOURCE GRAPH",
+  txt(44, 50, "DIE SLICE · TOP VIEW · M15 FABRIC GENERATED FROM VPR'S ROUTING-RESOURCE GRAPH",
     { size: 9, anchor: "start", fill: C.MUTE, mono: true, ls: 1.1 });
   line(44, 58, 760, 58, { s: C.RULE, sw: 1 });
   txt(930, 50, "▸ CLICK ANY TILE, CHANNEL OR BLOCK", { size: 9, anchor: "end", fill: C.HOT2, mono: true, w: 700, ls: .7 });
@@ -102,11 +102,12 @@
   const cp = [
     ["JTAG TAP  ·  jtag_tap6.v", "IEEE 1149.1 FSM · 6-bit AMD IR", "jtag", C.CFG],
     ["FRAMES  ·  cfg_frames.v", "UG470 packets · FAR FDRI FDRO CRC", "frames", C.CFG],
+    ["PARTIAL  ·  AGHIGH / LFRM", "M14: freeze gce, changed frames only", "partial", C.CFG],
     ["CFG_CTRL  ·  cfg_ctrl.v", "chain CRC + length · startup", "cfgctrl", C.CFG],
     ["STARTUP FSM", "GSR → GTS → GWE → DONE (LD3)", "startup", C.CFG],
-    [`CONFIG CHAIN  ·  ${BOB.chain} bits`, "shift + shadow · cfg_tile_sr.v", "chain", C.CFG],
+    [`CONFIG MEMORY  ·  ${BOB.chain} bits`, "M12b: one frame buffer · cfg_store.v", "area", C.CFG],
     ["USER1 / CAPTURE", "ce · step · autostep · 16 CLB outs", "capture", C.CFG],
-    ["USER4  ·  bram_jtag.v", "contents · drive · SELECT", "user4", C.CFG],
+    ["USER4 + BRAM FRAMES  ·  bram_jtag.v", "M15: FAR type 001 · contents · drive", "bramframes", C.CFG],
     ["DSP REGISTER  ·  101000", "drive A/B/C/D · read P0 P1", "dspjtag", C.CFG],
     ["BOUNDARY SCAN  ·  40 BC_1", "2 cells per pad · EXTEST INTEST SAMPLE", "bsr", C.CFG],
     ["USER CLOCK  ·  clock_ctrl.v", "sysclk 125 MHz · gce enable", "clock", C.CMT]

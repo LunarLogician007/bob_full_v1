@@ -1,5 +1,5 @@
 <meta charset="utf-8">
-<title>bob — Interactive Die Slice (M7)</title>
+<title>bob — Interactive Die Slice</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
   @page { size: A3 landscape; margin: 8mm }
@@ -215,7 +215,7 @@
 
 <div class="bar">
   <span class="dot"></span>
-  <span class="brand">bob — FPGA inside the XC7Z020 · M7 fabric</span>
+  <span class="brand">bob — FPGA inside the XC7Z020 · M15 fabric (36 CLBs)</span>
   <span class="tip">▸ click any block to open it</span>
   <span class="sp"></span>
   <span class="meta">A3 landscape · ⌘P → Save as PDF</span>
@@ -489,7 +489,7 @@
       + `${DEFS}${S.join("\n")}</svg>`;
   }
 
-  const BOB = {"chain":4216,"W":8,"H":6,"chanw":24,"heights":{"bram":2,"dsp":2},"nmux":1095,"mbits":3019,"ntype":{"IPIN":524,"CHANX":277,"CHANY":294},"tiles":[["ctrl",null,null,0,8,0,0],["t_x1y0",1,0,8,26,16,26],["t_x2y0",2,0,34,23,7,23],["t_x3y0",3,0,57,27,7,27],["t_x4y0",4,0,84,23,7,23],["t_x5y0",5,0,107,23,7,23],["t_x6y0",6,0,130,36,16,36],["t_x0y1",0,1,166,26,16,26],["t_x1y1",1,1,192,161,37,90],["t_x2y1",2,1,353,166,38,95],["t_x3y1",3,1,519,136,47,128],["t_x4y1",4,1,655,161,37,90],["t_x5y1",5,1,816,168,38,97],["t_x6y1",6,1,984,220,77,204],["t_x7y1",7,1,1204,3,1,3],["t_x0y2",0,2,1207,23,7,23],["t_x1y2",1,2,1230,151,28,80],["t_x2y2",2,2,1381,142,20,71],["t_x3y2",3,2,1523,138,44,138],["t_x4y2",4,2,1661,142,20,71],["t_x5y2",5,2,1803,142,20,71],["t_x6y2",6,2,1945,242,83,242],["t_x7y2",7,2,2187,3,1,3],["t_x0y3",0,3,2190,23,7,23],["t_x1y3",1,3,2213,151,28,80],["t_x2y3",2,3,2364,154,29,83],["t_x3y3",3,3,2518,124,38,116],["t_x4y3",4,3,2642,151,28,80],["t_x5y3",5,3,2793,154,29,83],["t_x6y3",6,3,2947,211,68,195],["t_x7y3",7,3,3158,3,1,3],["t_x0y4",0,4,3161,26,16,26],["t_x1y4",1,4,3187,155,38,84],["t_x2y4",2,4,3342,153,29,82],["t_x3y4",3,4,3495,150,53,150],["t_x4y4",4,4,3645,152,29,81],["t_x5y4",5,4,3797,154,29,83],["t_x6y4",6,4,3951,239,92,239],["t_x7y4",7,4,4190,3,1,3],["t_x1y5",1,5,4193,3,1,3],["t_x2y5",2,5,4196,3,1,3],["t_x3y5",3,5,4199,3,1,3],["t_x4y5",4,5,4202,3,1,3],["t_x5y5",5,5,4205,3,1,3],["t_x6y5",6,5,4208,3,1,3],["tail",null,null,4211,5,0,0]],"blocks":[["io_x1y0","io",1,0,0,-1],["io_x2y0","io",2,0,1,-1],["io_x3y0","io",3,0,2,-1],["io_x4y0","io",4,0,3,-1],["io_x5y0","io",5,0,4,-1],["io_x6y0","io",6,0,5,-1],["io_x0y1","io",0,1,6,-1],["clb_x1y1","clb",1,1,0,192],["clb_x2y1","clb",2,1,1,353],["bram0","bram",3,1,0,519],["clb_x4y1","clb",4,1,2,655],["clb_x5y1","clb",5,1,3,816],["dsp0","dsp",6,1,0,984],["io_x7y1","io",7,1,7,-1],["io_x0y2","io",0,2,8,-1],["clb_x1y2","clb",1,2,4,1230],["clb_x2y2","clb",2,2,5,1381],["clb_x4y2","clb",4,2,6,1661],["clb_x5y2","clb",5,2,7,1803],["io_x7y2","io",7,2,9,-1],["io_x0y3","io",0,3,10,-1],["clb_x1y3","clb",1,3,8,2213],["clb_x2y3","clb",2,3,9,2364],["bram1","bram",3,3,1,2518],["clb_x4y3","clb",4,3,10,2642],["clb_x5y3","clb",5,3,11,2793],["dsp1","dsp",6,3,1,2947],["io_x7y3","io",7,3,11,-1],["io_x0y4","io",0,4,12,-1],["clb_x1y4","clb",1,4,12,3187],["clb_x2y4","clb",2,4,13,3342],["clb_x4y4","clb",4,4,14,3645],["clb_x5y4","clb",5,4,15,3797],["io_x7y4","io",7,4,13,-1],["io_x1y5","io",1,5,14,-1],["io_x2y5","io",2,5,15,-1],["io_x3y5","io",3,5,16,-1],["io_x4y5","io",4,5,17,-1],["io_x5y5","io",5,5,18,-1],["io_x6y5","io",6,5,19,-1]],"pads":{"6":"SW0","8":"SW1","10":"BTN0","12":"BTN1","0":"BTN2","1":"BTN3","7":"LD0","9":"LD1","11":"LD2"},"chanfanin":[[1,73],[2,166],[3,72],[4,13],[5,7],[6,12],[7,33],[8,27],[9,28],[10,32],[11,54],[12,27],[13,10],[14,8],[15,6],[16,2],[17,1]],"ipinfanin":[[2,80],[4,444]]};
+  const BOB = {"chain":8320,"W":10,"H":8,"chanw":24,"heights":{"bram":3,"dsp":3},"nmux":1723,"mbits":4813,"ntype":{"IPIN":692,"CHANY":486,"CHANX":545},"tiles":[["ctrl",null,null,0,8,0,0],["pad_c0",null,null,8,120,0,0],["t_x0y1",0,1,128,26,16,26],["t_x0y2",0,2,154,23,7,23],["t_x0y3",0,3,177,23,7,23],["t_x0y4",0,4,200,23,7,23],["t_x0y5",0,5,223,23,7,23],["t_x0y6",0,6,246,26,16,26],["pad_c1",null,null,272,112,0,0],["t_x1y0",1,0,384,26,16,26],["t_x1y1",1,1,410,161,37,90],["t_x1y2",1,2,571,151,28,80],["t_x1y3",1,3,722,151,28,80],["t_x1y4",1,4,873,151,28,80],["t_x1y5",1,5,1024,151,28,80],["t_x1y6",1,6,1175,155,38,84],["t_x1y7",1,7,1330,3,1,3],["pad_c2",null,null,1333,75,0,0],["t_x2y0",2,0,1408,23,7,23],["t_x2y1",2,1,1431,166,38,95],["t_x2y2",2,2,1597,154,29,83],["t_x2y3",2,3,1751,142,20,71],["t_x2y4",2,4,1893,154,29,83],["t_x2y5",2,5,2047,154,29,83],["t_x2y6",2,6,2201,152,29,81],["t_x2y7",2,7,2353,3,1,3],["pad_c3",null,null,2356,76,0,0],["t_x3y0",3,0,2432,27,7,27],["t_x3y1",3,1,2459,113,39,105],["t_x3y2",3,2,2572,68,22,68],["t_x3y3",3,3,2640,118,36,118],["t_x3y4",3,4,2758,100,30,92],["t_x3y5",3,5,2858,68,22,68],["t_x3y6",3,6,2926,130,45,130],["t_x3y7",3,7,3056,3,1,3],["pad_c4",null,null,3059,13,0,0],["t_x4y0",4,0,3072,23,7,23],["t_x4y1",4,1,3095,161,37,90],["t_x4y2",4,2,3256,151,28,80],["t_x4y3",4,3,3407,142,20,71],["t_x4y4",4,4,3549,151,28,80],["t_x4y5",4,5,3700,151,28,80],["t_x4y6",4,6,3851,152,29,81],["t_x4y7",4,7,4003,3,1,3],["pad_c5",null,null,4006,90,0,0],["t_x5y0",5,0,4096,23,7,23],["t_x5y1",5,1,4119,166,38,95],["t_x5y2",5,2,4285,154,29,83],["t_x5y3",5,3,4439,142,20,71],["t_x5y4",5,4,4581,154,29,83],["t_x5y5",5,5,4735,154,29,83],["t_x5y6",5,6,4889,153,29,82],["t_x5y7",5,7,5042,3,1,3],["pad_c6",null,null,5045,75,0,0],["t_x6y0",6,0,5120,27,7,27],["t_x6y1",6,1,5147,185,62,169],["t_x6y2",6,2,5332,112,37,112],["t_x6y3",6,3,5444,177,58,177],["t_x6y4",6,4,5621,173,53,157],["t_x6y5",6,5,5794,112,37,112],["t_x6y6",6,6,5906,189,67,189],["t_x6y7",6,7,6095,3,1,3],["pad_c7",null,null,6098,46,0,0],["t_x7y0",7,0,6144,23,7,23],["t_x7y1",7,1,6167,161,37,90],["t_x7y2",7,2,6328,151,28,80],["t_x7y3",7,3,6479,142,20,71],["t_x7y4",7,4,6621,151,28,80],["t_x7y5",7,5,6772,151,28,80],["t_x7y6",7,6,6923,152,29,81],["t_x7y7",7,7,7075,3,1,3],["pad_c8",null,null,7078,90,0,0],["t_x8y0",8,0,7168,26,16,26],["t_x8y1",8,1,7194,155,38,84],["t_x8y2",8,2,7349,152,29,81],["t_x8y3",8,3,7501,152,29,81],["t_x8y4",8,4,7653,152,29,81],["t_x8y5",8,5,7805,152,29,81],["t_x8y6",8,6,7957,144,38,73],["t_x8y7",8,7,8101,3,1,3],["pad_c9",null,null,8104,88,0,0],["t_x9y1",9,1,8192,3,1,3],["t_x9y2",9,2,8195,3,1,3],["t_x9y3",9,3,8198,3,1,3],["t_x9y4",9,4,8201,3,1,3],["t_x9y5",9,5,8204,3,1,3],["t_x9y6",9,6,8207,3,1,3],["pad_c10",null,null,8210,110,0,0]],"blocks":[["io_x1y0","io",1,0,0,-1],["io_x2y0","io",2,0,1,-1],["io_x3y0","io",3,0,2,-1],["io_x4y0","io",4,0,3,-1],["io_x5y0","io",5,0,4,-1],["io_x6y0","io",6,0,5,-1],["io_x7y0","io",7,0,6,-1],["io_x8y0","io",8,0,7,-1],["io_x0y1","io",0,1,8,-1],["clb_x1y1","clb",1,1,0,410],["clb_x2y1","clb",2,1,1,1431],["bram0","bram",3,1,0,2459],["clb_x4y1","clb",4,1,2,3095],["clb_x5y1","clb",5,1,3,4119],["dsp0","dsp",6,1,0,5147],["clb_x7y1","clb",7,1,4,6167],["clb_x8y1","clb",8,1,5,7194],["io_x9y1","io",9,1,9,-1],["io_x0y2","io",0,2,10,-1],["clb_x1y2","clb",1,2,6,571],["clb_x2y2","clb",2,2,7,1597],["clb_x4y2","clb",4,2,8,3256],["clb_x5y2","clb",5,2,9,4285],["clb_x7y2","clb",7,2,10,6328],["clb_x8y2","clb",8,2,11,7349],["io_x9y2","io",9,2,11,-1],["io_x0y3","io",0,3,12,-1],["clb_x1y3","clb",1,3,12,722],["clb_x2y3","clb",2,3,13,1751],["clb_x4y3","clb",4,3,14,3407],["clb_x5y3","clb",5,3,15,4439],["clb_x7y3","clb",7,3,16,6479],["clb_x8y3","clb",8,3,17,7501],["io_x9y3","io",9,3,13,-1],["io_x0y4","io",0,4,14,-1],["clb_x1y4","clb",1,4,18,873],["clb_x2y4","clb",2,4,19,1893],["bram1","bram",3,4,1,2758],["clb_x4y4","clb",4,4,20,3549],["clb_x5y4","clb",5,4,21,4581],["dsp1","dsp",6,4,1,5621],["clb_x7y4","clb",7,4,22,6621],["clb_x8y4","clb",8,4,23,7653],["io_x9y4","io",9,4,15,-1],["io_x0y5","io",0,5,16,-1],["clb_x1y5","clb",1,5,24,1024],["clb_x2y5","clb",2,5,25,2047],["clb_x4y5","clb",4,5,26,3700],["clb_x5y5","clb",5,5,27,4735],["clb_x7y5","clb",7,5,28,6772],["clb_x8y5","clb",8,5,29,7805],["io_x9y5","io",9,5,17,-1],["io_x0y6","io",0,6,18,-1],["clb_x1y6","clb",1,6,30,1175],["clb_x2y6","clb",2,6,31,2201],["clb_x4y6","clb",4,6,32,3851],["clb_x5y6","clb",5,6,33,4889],["clb_x7y6","clb",7,6,34,6923],["clb_x8y6","clb",8,6,35,7957],["io_x9y6","io",9,6,19,-1],["io_x1y7","io",1,7,20,-1],["io_x2y7","io",2,7,21,-1],["io_x3y7","io",3,7,22,-1],["io_x4y7","io",4,7,23,-1],["io_x5y7","io",5,7,24,-1],["io_x6y7","io",6,7,25,-1],["io_x7y7","io",7,7,26,-1],["io_x8y7","io",8,7,27,-1]],"pads":{"8":"SW0","10":"SW1","12":"BTN0","14":"BTN1","16":"BTN2","18":"BTN3","9":"LD0","11":"LD1","13":"LD2"},"chanfanin":[[1,116],[2,321],[3,111],[4,8],[5,7],[7,60],[8,78],[9,90],[10,12],[11,128],[12,67],[13,21],[14,6],[15,6]],"ipinfanin":[[2,100],[4,592]]};
   /* ============================ DRILL-DOWN CONTENT (bob) ============================ */
   /* item = [name, caption, drillId|null, kindKey|null]  ·  row = {t:"flow"|"row", label, items}
      bob pages add: src [[source, what was taken]], why [..], files [[file, role]], tb [[testbench, what]] */
@@ -744,7 +744,7 @@
       B("order", ["ctrl 8", "clk_mode, clk_div", "clock", "CMT"], ["grid tiles", "block fields, then muxes by node id", "routing", "GTX"], ["tail", "byte pad", null, "CFG"])],
     notes: ["Chain bit k is the k-th bit shifted in. Tile boundaries exist only in device.json — the RTL is one 4216-bit <code>cfg_tile_sr</code>.",
       "Shadow register: the fabric never sees bits sliding past, and CHAIN_OUT readback is non-destructive.",
-      "M13: the same memory is laid out in 128-bit frames (39 of them); the chain is all frames end to end, so a chain word loads identically over CHAIN_IN or as frames over CFG_IN.",
+      `M13: the same memory is laid out in 128-bit frames (${BOB.chain / 128} of them since M12b); the chain is all frames end to end, so a chain word loads identically over CHAIN_IN or as frames over CFG_IN. M12b replaced this per-tile shift + shadow structure in the complete FPGA with one 128-bit frame buffer (cfg_store.v); the M2 test top keeps it.`,
       "M13 replaces exactly this module with UG470 frames; tiles, VPR and the tools stay."],
     src: [["OpenFPGA config_protocol scan_chain", "chain through every tile's configuration flops"], ["Aegis docs/arch/configuration.md", "shift register + shadow config register"]],
     why: ["Scan chain is the simplest protocol proven in both projects; frames come last (M13) once everything else is solid."],
@@ -937,19 +937,82 @@
         ["register write", "CRC-32C over {reg, data}", "cfgctrl", "CFG"]),
       B("registers",
         ["FAR", "block · row · column · minor, auto-increment", null, "CFG"],
-        ["FDRI", "4 words → one 128-bit frame into cfg_store", "chain", "CFG"],
+        ["FDRI", "4 words → one 128-bit frame into cfg_store", "area", "CFG"],
         ["FDRO", "frame words out on CFG_OUT (needs RCFG)", null, "CFG"],
-        ["CMD", "WCFG RCFG RCRC LFRM START DESYNC", "startup", "CFG"],
+        ["CMD", "WCFG RCFG RCRC LFRM START AGHIGH DESYNC", "partial", "CFG"],
         ["STAT · IDCODE · CRC", "errors CRC/ID/PKT/WR, INIT_B, DONE", null, "CFG"])],
     notes: ["The configuration memory is column-major frames: FAR column 0 = the ctrl tile, FAR column x+1 = grid column x, each padded to whole frames. The chain is exactly all frames end to end, so both paths write one memory and read it back identically (hwtest frames-vs-chain).",
       "Writes need WCFG, a matched IDCODE and GWE = 0; START needs a CRC match after the last frame. Any error parks the parser until JPROGRAM, as a 7-series device does.",
-      "Simplified against 7-series: a frame lands when its 4th word arrives (no pad frame on load, no garbage frame on readback); no encryption, compression, COR/CTL, ECC or multiboot; BRAM contents stay on USER4 (FAR block type 001 reserved).",
+      "Simplified against 7-series: a frame lands when its 4th word arrives (no pad frame on load, no garbage frame on readback); no encryption, compression, COR/CTL, ECC or multiboot. BRAM contents became frames at M15 (FAR block type 001).",
       "tools/bob/packets.py builds the streams and holds a bit-level Python model of this controller; every expected value in tb_frames comes from it."],
     src: [["AMD UG470 chapter 5", "sync word, packet headers, register and CMD codes, FAR layout"], ["resourses/04-config-bitstream/CONFIG-CONTROLLER.md", "parser states, frame writer, gotchas"], ["prjxray crc.py", "CRC over {address, data}"]],
     why: ["The user asked for frames 'just like AMD, slightly simplified', keeping the chain as an option: frames make the stream self-synchronising, addressable and readable per frame, which the chain is not."],
     files: [["hw/src/core/cfg_frames.v", "parser, registers, frame writer, readback"], ["hw/src/core/cfg_store.v", "one memory, chain and frame write paths"], ["hw/src/core/jtag_tap6.v", "CFG_IN/CFG_OUT vs CHAIN_IN/CHAIN_OUT"], ["tools/bob/packets.py", "streams, model, dump"], ["host/cfgplane.py", "load_frames, frames_readback, frames_stat"], ["docs/bitstream-format.md §9–10", "specification"]],
-    tb: [["hw/tb/tb_frames.v", "34 checks: load, readback, split stream, CRC/ID/PKT/WR errors, GWE refusal, chain after frames"], ["sim/mutate_frames.sh", "16 guard mutants, all killed"], ["hwtest M13 frames-*", "board"]],
-    drill: ["chain", "cfgctrl", "startup", "timing"]
+    tb: [["hw/tb/tb_frames.v", "71 checks (M15): load, readback, split stream, CRC/ID/PKT/WR errors, GWE refusal, chain after frames, partial reconfiguration, BRAM frames"], ["sim/mutate_frames.sh", "34 guard mutants, all killed"], ["hwtest M13/M15 frames-*", "board"]],
+    drill: ["area", "partial", "bramframes", "cfgctrl", "startup", "timing"]
+  });
+
+  /* ============================ M12b / M14 / M15 ============================ */
+  D("area", {
+    title: "Configuration memory — one frame buffer (M12b)", sub: `cfg_store.v · ${BOB.chain} bits = ${BOB.chain / 128} frames · chain streamed frame by frame · paid for 16 → 36 CLBs`, k: "CFG", stage: "hw/src/core/cfg_store.v",
+    rows: [F("M13 (yosys: cfg_store 5.1k LUT, 10.0k FF)",
+        ["W-bit shift register", "capture / shift / frame load: a LUT per bit", null, "CFG"],
+        ["W-bit memory", "commit at Update-DR after the CRC", null, "CFG"],
+        ["FDRO word mux", "156 words × 32 bits in cfg_frames", "frames", "CFG"]),
+      F("M12b (store + controller 4.1k LUT, 5.5k FF)",
+        ["128-bit frame buffer", "CHAIN_IN: every 128th bit writes frame n (GWE = 0)", null, "CFG"],
+        ["W-bit memory", "D = buffer, CE per frame: no LUT per bit", null, "CFG"],
+        ["one frame read mux", "shared by CHAIN_OUT and FDRO", "frames", "CFG"])],
+    notes: ["Half of M13's logic was configuration bookkeeping, not fabric. Streaming the chain like the frame path removed a W-bit register and its per-bit mux: store + controller went from 7 755 LUT / 10 309 FF to 4 104 / 5 469 (yosys).",
+      "Semantics now match the frame path (UG470): bits land as they arrive, the CRC gates COMMITTED and startup. A bad chain leaves new bits in memory but JSTART refuses; nothing is written while GWE = 1.",
+      "The savings bought an 8 × 6 core (VPR 10 × 8): 36 CLBs, 2 BRAMs and 2 DSPs of height 3, 28 pads, W = 24. The whole design estimates at 15.9k LUT / 11.1k FF, M13-sized, which Vivado built in 3.5 min.",
+      "CHAIN_OUT after the last frame is a 128-bit delay line, so a repeated 32-bit marker measures the chain length exactly."],
+    src: [["AMD UG470 chapter 5", "frames written as they arrive; CRC gates startup"], ["ZUMA (FCCM 2012) / OpenFPGA scan_chain", "area of configuration memory in an overlay"]],
+    why: ["Measure first (yosys per module), then remove the biggest cost without touching the proven protocol on the wire."],
+    files: [["hw/src/core/cfg_store.v", "buffer, per-frame write enables, read mux"], ["tools/bob/device.py", "ARCH_8X6"], ["examples/wide.v", "31 CLBs: needs the bigger grid"], ["host/cfgplane.py", "measure_chain (repeated marker)"]],
+    tb: [["hw/tb/tb_bob.v", "852 checks on the 36-CLB fabric"], ["sim/tb_cosim.v", "5 220 checks incl. wide (VPR and Python PnR)"], ["sim/mutate_frames.sh", "chain-write-dropped, chain-out-no-reload, chain-writes-live"], ["hwtest M15 bob-wide, pnr-wide", "board"]],
+    drill: ["frames", "chain", "routing"]
+  });
+
+  D("partial", {
+    title: "Partial reconfiguration — AGHIGH … LFRM (M14)", sub: "freeze the user clock · write only the changed frames · CRC · release · state kept", k: "CFG", stage: "docs/bitstream-format.md §12",
+    rows: [F("the sequence (packets.partial_streams)",
+        ["AGHIGH", "CMD 8, needs IDCODE", null, "CFG"],
+        ["freeze → clock_ctrl", "gce held, frozen set on the same edge", "clock", "CMT"],
+        ["STAT GHIGH_B = 0", "acknowledged in the TCK domain", null, "CFG"],
+        ["FAR + FDRI", "only the frames that differ (CHAIN_OUT read)", "frames", "CFG"],
+        ["CRC, LFRM", "release only after a CRC match", null, "CFG"]),
+      B("on error",
+        ["no CRC / bad CRC", "WR_ERROR / CRC_ERROR, stays frozen", null, "CFG"],
+        ["frames before ack", "WR_ERROR, nothing written", null, "CFG"],
+        ["recovery", "JPROGRAM + full load", "startup", "CFG"])],
+    notes: ["Every fabric register - CLB flip-flops, BRAM and DSP registers - is enabled only by gce. Holding gce keeps the whole design's state exactly while any configuration bits change; bits changing under a held enable cannot be captured.",
+      "A one-LUT change is one frame of 65; a re-routed guest design (gates → gates_swapped) about 26.",
+      "Not in M14: region protection, BRAM writes while frozen, pad hold during the write."],
+    src: [["AMD UG470 CMD AGHIGH / DGHIGH-LFRM, STAT GHIGH_B", "the command sequence around a partial bitstream"], ["AMD UG909", "dynamic function exchange flow"]],
+    why: ["Frames are addressable, so reconfiguring part of a running design is the capability the chain could never give."],
+    files: [["hw/src/core/cfg_frames.v", "AGHIGH, LFRM release, GHIGH_B, acknowledgement synchroniser"], ["hw/src/core/clock_ctrl.v", "freeze: gce held, frozen"], ["tools/bob/packets.py", "partial_streams, changed_frames, model"], ["host/cfgplane.py", "load_partial"], ["tools/bob/cli.py", "bob load --partial"]],
+    tb: [["hw/tb/tb_frames.v [13]-[17]", "counter holds and continues, gate changes, no CRC, bad CRC, no IDCODE, early frames"], ["hw/tb/tb_clock_gap.v [4]", "no gce while frozen"], ["sim/mutate_frames.sh", "5 M14 mutants"], ["hwtest M15 partial-*", "swap, live, bad-crc, guest"]],
+    drill: ["frames", "clock", "startup"]
+  });
+
+  D("bramframes", {
+    title: "BRAM contents as frames — FAR block type 001 (M15)", sub: "column = BRAM · frame n = addresses 4n..4n+3 · 256 frames per BRAM · one CRC-covered stream with the configuration", k: "BRAM", stage: "docs/bitstream-format.md §13",
+    rows: [F("write (GWE = 0)",
+        ["FAR <- type 1, BRAM b, frame n", "auto-increments into the next BRAM", null, "CFG"],
+        ["FDRI 4 words", "{14'b0, data[17:0]}", "frames", "CFG"],
+        ["toggle → sysclk", "bram_jtag sequencer, 4 words via port A", "user4", "BRAM"]),
+      F("read (FDRO, GWE = 0)",
+        ["prefetch", "the frame FAR points at, before its first word", null, "CFG"],
+        ["4 reads via port A", "bf_rdata", "user4", "BRAM"],
+        ["CFG_OUT", "words MSB first", null, "CFG"])],
+    notes: ["bob load (frames) now carries every word of every BRAM the design uses inside the load stream, under the same CRC, and reads them back over FDRO. USER4 stays as the second path (bob load --mode chain), as the chain stays beside frames.",
+      "Timing rule: frame requests are at least 32 TCK periods apart (320 µs at 100 kHz) and the sysclk side needs ~12 cycles."],
+    src: [["AMD UG470 FAR block types", "BRAM contents as their own block type"], ["UG473", "RAMB18E1 contents"]],
+    why: ["One stream, one CRC for the whole design, the way a 7-series bitstream is."],
+    files: [["hw/src/core/cfg_frames.v", "type-1 FAR decode, FDRI/FDRO, prefetch"], ["hw/src/tiles/bram_jtag.v", "content-frame sequencer"], ["tools/bob/packets.py", "bram_far, bram_readback_stream, load_stream(brams)"], ["host/cfgplane.py", "load_frames(brams), bram_frames_read"]],
+    tb: [["hw/tb/tb_frames.v [18]-[19]", "bram0 → bram1 crossing, FDRO readback, refusal while running"], ["sim/mutate_frames.sh", "5 M15 mutants"], ["hwtest M15 frames-bram-*, ram-readback-frames", "board"]],
+    drill: ["frames", "user4", "bram"]
   });
 
   D("timing", {
@@ -978,7 +1041,7 @@
   });
 
   /* ============================================================================
-     FLOORPLAN  —  the home screen: bob's real 8 × 6 VPR grid (16-CLB board profile) inside the XC7Z020 PL
+     FLOORPLAN  —  the home screen: bob's real VPR grid (M12b: 10 × 8 with the io ring, 36 CLBs) inside the XC7Z020 PL
      ========================================================================= */
   const W = 1700, H = 1112;
   const DIE = { x: 44, y: 70, w: 1196, h: 818 };
@@ -986,7 +1049,7 @@
   const NCLB = BOB.blocks.filter(b => b[1] === "clb").length;
 
   txt(44, 30, "BOB — AN FPGA INSIDE AN FPGA", { size: 20, w: 680, anchor: "start", ls: -.45 });
-  txt(44, 50, "DIE SLICE · TOP VIEW · M7 FABRIC GENERATED FROM VPR'S ROUTING-RESOURCE GRAPH",
+  txt(44, 50, "DIE SLICE · TOP VIEW · M15 FABRIC GENERATED FROM VPR'S ROUTING-RESOURCE GRAPH",
     { size: 9, anchor: "start", fill: C.MUTE, mono: true, ls: 1.1 });
   line(44, 58, 760, 58, { s: C.RULE, sw: 1 });
   txt(930, 50, "▸ CLICK ANY TILE, CHANNEL OR BLOCK", { size: 9, anchor: "end", fill: C.HOT2, mono: true, w: 700, ls: .7 });
@@ -1081,11 +1144,12 @@
   const cp = [
     ["JTAG TAP  ·  jtag_tap6.v", "IEEE 1149.1 FSM · 6-bit AMD IR", "jtag", C.CFG],
     ["FRAMES  ·  cfg_frames.v", "UG470 packets · FAR FDRI FDRO CRC", "frames", C.CFG],
+    ["PARTIAL  ·  AGHIGH / LFRM", "M14: freeze gce, changed frames only", "partial", C.CFG],
     ["CFG_CTRL  ·  cfg_ctrl.v", "chain CRC + length · startup", "cfgctrl", C.CFG],
     ["STARTUP FSM", "GSR → GTS → GWE → DONE (LD3)", "startup", C.CFG],
-    [`CONFIG CHAIN  ·  ${BOB.chain} bits`, "shift + shadow · cfg_tile_sr.v", "chain", C.CFG],
+    [`CONFIG MEMORY  ·  ${BOB.chain} bits`, "M12b: one frame buffer · cfg_store.v", "area", C.CFG],
     ["USER1 / CAPTURE", "ce · step · autostep · 16 CLB outs", "capture", C.CFG],
-    ["USER4  ·  bram_jtag.v", "contents · drive · SELECT", "user4", C.CFG],
+    ["USER4 + BRAM FRAMES  ·  bram_jtag.v", "M15: FAR type 001 · contents · drive", "bramframes", C.CFG],
     ["DSP REGISTER  ·  101000", "drive A/B/C/D · read P0 P1", "dspjtag", C.CFG],
     ["BOUNDARY SCAN  ·  40 BC_1", "2 cells per pad · EXTEST INTEST SAMPLE", "bsr", C.CFG],
     ["USER CLOCK  ·  clock_ctrl.v", "sysclk 125 MHz · gce enable", "clock", C.CMT]

@@ -167,20 +167,22 @@ def write_brams(p, brams):
 
 
 def load(p, path, start=True, log=print, mode="frames"):
-    """.bit -> configuration memory -> BRAM contents over USER4 -> JSTART.
-    mode "frames" (M13 default): UG470-style packets on CFG_IN, STAT, FDRO readback;
-    mode "chain": CHAIN_IN with CFG_CTRL CRC, CHAIN_OUT readback."""
+    """.bit -> configuration memory + BRAM contents -> JSTART.
+    mode "frames" (M13 default): UG470-style packets on CFG_IN, STAT, FDRO readback; since
+    M15 the BRAM contents travel in the same stream as block-type-1 frames (under the CRC);
+    mode "chain": CHAIN_IN with CFG_CTRL CRC, CHAIN_OUT readback, BRAM contents over USER4."""
     import cfgplane
     c = bitgen.read_bit(path)
     if mode == "frames":
-        ok, msg = cfgplane.load_frames(p, c["word"], start=False)
+        ok, msg = cfgplane.load_frames(p, c["word"], start=False, brams=c["brams"])
     elif mode == "chain":
         ok, msg = cfgplane.load(p, c["word"], B.CHAIN_W, start=False)
     else:
         return False, f"mode is frames or chain, not {mode}"
     if not ok:
         return False, msg
-    msg += write_brams(p, c["brams"])
+    if mode == "chain":
+        msg += write_brams(p, c["brams"])
     if start:
         cfgplane.jstart(p)
         st = cfgplane.status(p)
@@ -188,6 +190,15 @@ def load(p, path, start=True, log=print, mode="frames"):
             return False, f"{msg}; DONE did not rise: {st}"
         msg += ", DONE"
     return True, msg
+
+
+def load_partial(p, path, log=print):
+    """M14: reconfigure the running design to this .bit, rewriting only the frames that
+    differ, with the user clock held (AGHIGH ... LFRM). BRAM contents are not touched."""
+    import cfgplane
+    c = bitgen.read_bit(path)
+    ok, msg, _n = cfgplane.load_partial(p, c["word"])
+    return ok, msg
 
 
 def main():
@@ -210,6 +221,8 @@ def main():
     ld.add_argument("--freq", type=int, default=100, help="TCK kHz (at most 100)")
     ld.add_argument("--mode", default="frames", choices=("frames", "chain"),
                     help="configuration path: UG470-style frames on CFG_IN (default) or the chain")
+    ld.add_argument("--partial", action="store_true",
+                    help="M14: reconfigure the RUNNING design, only the changed frames, user clock held")
     sub.add_parser("info").add_argument("bit")
     sub.add_parser("fasm").add_argument("bit")
     args = ap.parse_args()
@@ -239,9 +252,9 @@ def main():
             p = Probe(freq_khz=args.freq)
             idcode = p.read_idcode()
             if idcode != fpga.IDCODE_FABRIC:
-                print(f"IDCODE 0x{idcode:08X}, expected 0x{fpga.IDCODE_FABRIC:08X}: program the M7 bitstream")
+                print(f"IDCODE 0x{idcode:08X}, expected 0x{fpga.IDCODE_FABRIC:08X}: program the matching bob bitstream")
                 return 1
-            ok, msg = load(p, args.bit, mode=args.mode)
+            ok, msg = load_partial(p, args.bit) if args.partial else load(p, args.bit, mode=args.mode)
             fpga.go_live(p)
             print(f"{'PASS' if ok else 'FAIL'}  load {args.bit}: {msg}")
             if ok and args.watch:

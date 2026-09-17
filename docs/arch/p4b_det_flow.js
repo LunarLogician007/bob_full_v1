@@ -125,19 +125,82 @@
         ["register write", "CRC-32C over {reg, data}", "cfgctrl", "CFG"]),
       B("registers",
         ["FAR", "block · row · column · minor, auto-increment", null, "CFG"],
-        ["FDRI", "4 words → one 128-bit frame into cfg_store", "chain", "CFG"],
+        ["FDRI", "4 words → one 128-bit frame into cfg_store", "area", "CFG"],
         ["FDRO", "frame words out on CFG_OUT (needs RCFG)", null, "CFG"],
-        ["CMD", "WCFG RCFG RCRC LFRM START DESYNC", "startup", "CFG"],
+        ["CMD", "WCFG RCFG RCRC LFRM START AGHIGH DESYNC", "partial", "CFG"],
         ["STAT · IDCODE · CRC", "errors CRC/ID/PKT/WR, INIT_B, DONE", null, "CFG"])],
     notes: ["The configuration memory is column-major frames: FAR column 0 = the ctrl tile, FAR column x+1 = grid column x, each padded to whole frames. The chain is exactly all frames end to end, so both paths write one memory and read it back identically (hwtest frames-vs-chain).",
       "Writes need WCFG, a matched IDCODE and GWE = 0; START needs a CRC match after the last frame. Any error parks the parser until JPROGRAM, as a 7-series device does.",
-      "Simplified against 7-series: a frame lands when its 4th word arrives (no pad frame on load, no garbage frame on readback); no encryption, compression, COR/CTL, ECC or multiboot; BRAM contents stay on USER4 (FAR block type 001 reserved).",
+      "Simplified against 7-series: a frame lands when its 4th word arrives (no pad frame on load, no garbage frame on readback); no encryption, compression, COR/CTL, ECC or multiboot. BRAM contents became frames at M15 (FAR block type 001).",
       "tools/bob/packets.py builds the streams and holds a bit-level Python model of this controller; every expected value in tb_frames comes from it."],
     src: [["AMD UG470 chapter 5", "sync word, packet headers, register and CMD codes, FAR layout"], ["resourses/04-config-bitstream/CONFIG-CONTROLLER.md", "parser states, frame writer, gotchas"], ["prjxray crc.py", "CRC over {address, data}"]],
     why: ["The user asked for frames 'just like AMD, slightly simplified', keeping the chain as an option: frames make the stream self-synchronising, addressable and readable per frame, which the chain is not."],
     files: [["hw/src/core/cfg_frames.v", "parser, registers, frame writer, readback"], ["hw/src/core/cfg_store.v", "one memory, chain and frame write paths"], ["hw/src/core/jtag_tap6.v", "CFG_IN/CFG_OUT vs CHAIN_IN/CHAIN_OUT"], ["tools/bob/packets.py", "streams, model, dump"], ["host/cfgplane.py", "load_frames, frames_readback, frames_stat"], ["docs/bitstream-format.md §9–10", "specification"]],
-    tb: [["hw/tb/tb_frames.v", "34 checks: load, readback, split stream, CRC/ID/PKT/WR errors, GWE refusal, chain after frames"], ["sim/mutate_frames.sh", "16 guard mutants, all killed"], ["hwtest M13 frames-*", "board"]],
-    drill: ["chain", "cfgctrl", "startup", "timing"]
+    tb: [["hw/tb/tb_frames.v", "71 checks (M15): load, readback, split stream, CRC/ID/PKT/WR errors, GWE refusal, chain after frames, partial reconfiguration, BRAM frames"], ["sim/mutate_frames.sh", "34 guard mutants, all killed"], ["hwtest M13/M15 frames-*", "board"]],
+    drill: ["area", "partial", "bramframes", "cfgctrl", "startup", "timing"]
+  });
+
+  /* ============================ M12b / M14 / M15 ============================ */
+  D("area", {
+    title: "Configuration memory — one frame buffer (M12b)", sub: `cfg_store.v · ${BOB.chain} bits = ${BOB.chain / 128} frames · chain streamed frame by frame · paid for 16 → 36 CLBs`, k: "CFG", stage: "hw/src/core/cfg_store.v",
+    rows: [F("M13 (yosys: cfg_store 5.1k LUT, 10.0k FF)",
+        ["W-bit shift register", "capture / shift / frame load: a LUT per bit", null, "CFG"],
+        ["W-bit memory", "commit at Update-DR after the CRC", null, "CFG"],
+        ["FDRO word mux", "156 words × 32 bits in cfg_frames", "frames", "CFG"]),
+      F("M12b (store + controller 4.1k LUT, 5.5k FF)",
+        ["128-bit frame buffer", "CHAIN_IN: every 128th bit writes frame n (GWE = 0)", null, "CFG"],
+        ["W-bit memory", "D = buffer, CE per frame: no LUT per bit", null, "CFG"],
+        ["one frame read mux", "shared by CHAIN_OUT and FDRO", "frames", "CFG"])],
+    notes: ["Half of M13's logic was configuration bookkeeping, not fabric. Streaming the chain like the frame path removed a W-bit register and its per-bit mux: store + controller went from 7 755 LUT / 10 309 FF to 4 104 / 5 469 (yosys).",
+      "Semantics now match the frame path (UG470): bits land as they arrive, the CRC gates COMMITTED and startup. A bad chain leaves new bits in memory but JSTART refuses; nothing is written while GWE = 1.",
+      "The savings bought an 8 × 6 core (VPR 10 × 8): 36 CLBs, 2 BRAMs and 2 DSPs of height 3, 28 pads, W = 24. The whole design estimates at 15.9k LUT / 11.1k FF, M13-sized, which Vivado built in 3.5 min.",
+      "CHAIN_OUT after the last frame is a 128-bit delay line, so a repeated 32-bit marker measures the chain length exactly."],
+    src: [["AMD UG470 chapter 5", "frames written as they arrive; CRC gates startup"], ["ZUMA (FCCM 2012) / OpenFPGA scan_chain", "area of configuration memory in an overlay"]],
+    why: ["Measure first (yosys per module), then remove the biggest cost without touching the proven protocol on the wire."],
+    files: [["hw/src/core/cfg_store.v", "buffer, per-frame write enables, read mux"], ["tools/bob/device.py", "ARCH_8X6"], ["examples/wide.v", "31 CLBs: needs the bigger grid"], ["host/cfgplane.py", "measure_chain (repeated marker)"]],
+    tb: [["hw/tb/tb_bob.v", "852 checks on the 36-CLB fabric"], ["sim/tb_cosim.v", "5 220 checks incl. wide (VPR and Python PnR)"], ["sim/mutate_frames.sh", "chain-write-dropped, chain-out-no-reload, chain-writes-live"], ["hwtest M15 bob-wide, pnr-wide", "board"]],
+    drill: ["frames", "chain", "routing"]
+  });
+
+  D("partial", {
+    title: "Partial reconfiguration — AGHIGH … LFRM (M14)", sub: "freeze the user clock · write only the changed frames · CRC · release · state kept", k: "CFG", stage: "docs/bitstream-format.md §12",
+    rows: [F("the sequence (packets.partial_streams)",
+        ["AGHIGH", "CMD 8, needs IDCODE", null, "CFG"],
+        ["freeze → clock_ctrl", "gce held, frozen set on the same edge", "clock", "CMT"],
+        ["STAT GHIGH_B = 0", "acknowledged in the TCK domain", null, "CFG"],
+        ["FAR + FDRI", "only the frames that differ (CHAIN_OUT read)", "frames", "CFG"],
+        ["CRC, LFRM", "release only after a CRC match", null, "CFG"]),
+      B("on error",
+        ["no CRC / bad CRC", "WR_ERROR / CRC_ERROR, stays frozen", null, "CFG"],
+        ["frames before ack", "WR_ERROR, nothing written", null, "CFG"],
+        ["recovery", "JPROGRAM + full load", "startup", "CFG"])],
+    notes: ["Every fabric register - CLB flip-flops, BRAM and DSP registers - is enabled only by gce. Holding gce keeps the whole design's state exactly while any configuration bits change; bits changing under a held enable cannot be captured.",
+      "A one-LUT change is one frame of 65; a re-routed guest design (gates → gates_swapped) about 26.",
+      "Not in M14: region protection, BRAM writes while frozen, pad hold during the write."],
+    src: [["AMD UG470 CMD AGHIGH / DGHIGH-LFRM, STAT GHIGH_B", "the command sequence around a partial bitstream"], ["AMD UG909", "dynamic function exchange flow"]],
+    why: ["Frames are addressable, so reconfiguring part of a running design is the capability the chain could never give."],
+    files: [["hw/src/core/cfg_frames.v", "AGHIGH, LFRM release, GHIGH_B, acknowledgement synchroniser"], ["hw/src/core/clock_ctrl.v", "freeze: gce held, frozen"], ["tools/bob/packets.py", "partial_streams, changed_frames, model"], ["host/cfgplane.py", "load_partial"], ["tools/bob/cli.py", "bob load --partial"]],
+    tb: [["hw/tb/tb_frames.v [13]-[17]", "counter holds and continues, gate changes, no CRC, bad CRC, no IDCODE, early frames"], ["hw/tb/tb_clock_gap.v [4]", "no gce while frozen"], ["sim/mutate_frames.sh", "5 M14 mutants"], ["hwtest M15 partial-*", "swap, live, bad-crc, guest"]],
+    drill: ["frames", "clock", "startup"]
+  });
+
+  D("bramframes", {
+    title: "BRAM contents as frames — FAR block type 001 (M15)", sub: "column = BRAM · frame n = addresses 4n..4n+3 · 256 frames per BRAM · one CRC-covered stream with the configuration", k: "BRAM", stage: "docs/bitstream-format.md §13",
+    rows: [F("write (GWE = 0)",
+        ["FAR <- type 1, BRAM b, frame n", "auto-increments into the next BRAM", null, "CFG"],
+        ["FDRI 4 words", "{14'b0, data[17:0]}", "frames", "CFG"],
+        ["toggle → sysclk", "bram_jtag sequencer, 4 words via port A", "user4", "BRAM"]),
+      F("read (FDRO, GWE = 0)",
+        ["prefetch", "the frame FAR points at, before its first word", null, "CFG"],
+        ["4 reads via port A", "bf_rdata", "user4", "BRAM"],
+        ["CFG_OUT", "words MSB first", null, "CFG"])],
+    notes: ["bob load (frames) now carries every word of every BRAM the design uses inside the load stream, under the same CRC, and reads them back over FDRO. USER4 stays as the second path (bob load --mode chain), as the chain stays beside frames.",
+      "Timing rule: frame requests are at least 32 TCK periods apart (320 µs at 100 kHz) and the sysclk side needs ~12 cycles."],
+    src: [["AMD UG470 FAR block types", "BRAM contents as their own block type"], ["UG473", "RAMB18E1 contents"]],
+    why: ["One stream, one CRC for the whole design, the way a 7-series bitstream is."],
+    files: [["hw/src/core/cfg_frames.v", "type-1 FAR decode, FDRI/FDRO, prefetch"], ["hw/src/tiles/bram_jtag.v", "content-frame sequencer"], ["tools/bob/packets.py", "bram_far, bram_readback_stream, load_stream(brams)"], ["host/cfgplane.py", "load_frames(brams), bram_frames_read"]],
+    tb: [["hw/tb/tb_frames.v [18]-[19]", "bram0 → bram1 crossing, FDRO readback, refusal while running"], ["sim/mutate_frames.sh", "5 M15 mutants"], ["hwtest M15 frames-bram-*, ram-readback-frames", "board"]],
+    drill: ["frames", "user4", "bram"]
   });
 
   D("timing", {

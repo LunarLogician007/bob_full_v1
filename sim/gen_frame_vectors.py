@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "tools", "bob"))
 import bitstream as B                    # noqa: E402
 import packets as P                      # noqa: E402
 from chainbits import crc32c_bits        # noqa: E402
-from designs import d_showcase, d_counter  # noqa: E402
+from designs import d_showcase, d_counter, d_partial  # noqa: E402
 
 W = B.CHAIN_W
 SW = 16384                               # stream vector width in the testbench
@@ -142,11 +142,118 @@ def main():
     assert c.flags["wr_err"]
     out += stream("NORCFG", norcfg) + [f"`define NORCFG_STAT 32'h{c.stat():08x}"]
 
+    # [13] M14 partial reconfiguration of a running design: a free-running 4-bit counter
+    # up column 1 and a gate on LD1; only the gate's LUT changes (AND -> OR)
+    pra = d_partial("and", "run", 0).build().to_int()
+    prb = d_partial("or", "run", 0).build().to_int()
+    changed = P.changed_frames(pra, prb)
+    assert 1 <= len(changed) <= 2, changed
+    out += [f"`define PRA_W {hexw(pra)}", f"`define PRB_W {hexw(prb)}",
+            f"`define PR_Q {{dut.clb_o[{B.CLB_XY_INDEX[(1, 4)]}], dut.clb_o[{B.CLB_XY_INDEX[(1, 3)]}], "
+            f"dut.clb_o[{B.CLB_XY_INDEX[(1, 2)]}], dut.clb_o[{B.CLB_XY_INDEX[(1, 1)]}]}}"]
+    prload = P.load_stream(pra)
+    c = run(prload)
+    assert c.mem == pra and c.flags["start_ok"]
+    out += stream("PRLOAD", prload)
+    freeze, frames, nfr = P.partial_streams(pra, prb)
+    c = P.Controller(mem=pra)
+    c.shift_in(*P.to_jtag(prload))
+    c.gwe = 1
+    c.shift_in(*P.to_jtag(freeze))
+    assert c.frozen() and not c.errors()
+    out += stream("PRFRZ", freeze) + [f"`define PRFRZ_STAT 32'h{c.stat(gsr=0, gts=0, gwe=1, done=1):08x}"]
+    c.shift_in(*P.to_jtag(frames))
+    assert c.mem == prb and not c.frozen() and not c.errors()
+    out += stream("PRFRM", frames) + [f"`define PRFRM_STAT 32'h{c.stat(gsr=0, gts=0, gwe=1, done=1):08x}",
+                                      f"`define PR_NFRAMES {nfr}"]
+    # [14] (continuing from [13]) a partial with no CRC write: frames land, LFRM refuses,
+    # WR_ERROR, the fabric stays frozen
+    nfreeze, nframes, _ = P.partial_streams(prb, pra)
+    k = nframes.index(P.type1(P.OP_WRITE, P.REG["CRC"], 1))
+    del nframes[k:k + 2]
+    c.shift_in(*P.to_jtag(nfreeze))
+    c.shift_in(*P.to_jtag(nframes))
+    assert c.frozen() and c.flags["wr_err"] and c.mem == pra
+    out += stream("PRNCF", nfreeze) + stream("PRNC", nframes)
+    out += [f"`define PRNC_STAT 32'h{c.stat(gsr=0, gts=0, gwe=1, done=1):08x}"]
+
+    # [15] AGHIGH without a matched IDCODE (right after JPROGRAM): refused, nothing frozen
+    noid = [P.DUMMY, P.SYNC, P.NOP] + P.write("CMD", P.CMD["RCRC"]) + P.write("CMD", P.CMD["AGHIGH"]) + [P.NOP]
+    c2 = P.Controller()
+    c2.shift_in(*P.to_jtag(noid))
+    assert c2.flags["wr_err"] and not c2.frozen()
+    out += stream("PRNOID", noid) + [f"`define PRNOID_STAT 32'h{c2.stat():08x}"]
+
+    # [16] a fresh load of A, then a partial with a bad CRC: CRC_ERROR, stays frozen
+    bfreeze, bframes, _ = P.partial_streams(pra, prb, crc_override=0x12345678)
+    c = P.Controller()
+    c.shift_in(*P.to_jtag(prload))
+    c.gwe = 1
+    c.shift_in(*P.to_jtag(bfreeze))
+    c.shift_in(*P.to_jtag(bframes))
+    assert c.frozen() and c.flags["crc_err"] and c.mem == prb
+    out += stream("PRBADF", bfreeze) + stream("PRBAD", bframes)
+    out += [f"`define PRBAD_STAT 32'h{c.stat(gsr=0, gts=0, gwe=1, done=1):08x}"]
+
+    # [17] freeze and frames in ONE scan with sysclk stopped (the testbench stops it during
+    # long scans): the acknowledgement cannot arrive, so every frame is refused
+    c = P.Controller()
+    c.shift_in(*P.to_jtag(prload))
+    c.gwe = 1
+    c.ack = False
+    one = P.partial_streams(pra, prb)[0] + P.partial_streams(pra, prb)[1]
+    c.shift_in(*P.to_jtag(one))
+    assert c.flags["wr_err"] and c.mem == pra
+    c.ack = True
+    out += stream("PRONE", one) + [f"`define PRONE_STAT 32'h{c.stat(gsr=0, gts=0, gwe=1, done=1):08x}"]
+
+    # [18] M15: BRAM contents as frames (FAR block type 1), before startup: 3 frames of bram0 from
+    # frame 3, then 2 frames from bram0's last frame (FAR auto-increment crosses into bram1)
+    rng = random.Random(15)
+    idc = P.device_idcode()
+    d0 = [rng.getrandbits(18) for _ in range(12)]
+    d1 = [rng.getrandbits(18) for _ in range(8)]
+    brw = [P.DUMMY, P.SYNC, P.NOP] + P.write("CMD", P.CMD["RCRC"]) + P.write("IDCODE", idc)
+    brw += P.write("CMD", P.CMD["WCFG"]) + P.write("FAR", P.bram_far(0, 3))
+    brw += [P.type1(P.OP_WRITE, P.REG["FDRI"], 12)] + d0
+    brw += P.write("FAR", P.bram_far(0, 255)) + [P.type1(P.OP_WRITE, P.REG["FDRI"], 8)] + d1
+    crc = 0
+    for reg, val in [(P.REG["IDCODE"], idc), (P.REG["CMD"], P.CMD["WCFG"]), (P.REG["FAR"], P.bram_far(0, 3))] + \
+            [(P.REG["FDRI"], x) for x in d0] + [(P.REG["FAR"], P.bram_far(0, 255))] + [(P.REG["FDRI"], x) for x in d1]:
+        crc = P.crc37(crc, reg, val)
+    brw += P.write("CRC", crc) + P.write("CMD", P.CMD["DESYNC"]) + [P.NOP]
+    c = P.Controller()
+    c.shift_in(*P.to_jtag(brw))
+    assert not c.errors() and c.flags["crc_ok"]
+    assert c.brams[0][12:24] == d0 and c.brams[0][1020:1024] == d1[:4] and c.brams[1][0:4] == d1[4:]
+    out += stream("BRW", brw) + [f"`define BRW_STAT 32'h{c.stat():08x}"]
+    for k in range(12):
+        out += [f"`define BR0_{k} 18'h{d0[k]:05x}"]
+    for k in range(8):
+        out += [f"`define BR1_{k} 18'h{d1[k]:05x}"]
+    rb = P.bram_readback_stream(0, 255, 2)            # bram0 1020..1023, then bram1 0..3 (all written)
+    c.shift_in(*P.to_jtag(rb))
+    words = [c.read_word() for _ in range(8)]
+    assert words == d1
+    out += stream("BRRB", rb) + [f"`define BRRB_EXP {hexw(P.to_jtag(words)[1], 32 * 8)}"]
+    out += [f"`define BRRB_STAT 32'h{c.stat():08x}"]
+
+    # [19] a BRAM content frame while the design runs: WR_ERROR, contents unchanged
+    live_b = [P.DUMMY, P.SYNC, P.NOP] + P.write("CMD", P.CMD["RCRC"]) + P.write("IDCODE", idc)
+    live_b += P.write("CMD", P.CMD["WCFG"]) + P.write("FAR", P.bram_far(0, 3))
+    live_b += [P.type1(P.OP_WRITE, P.REG["FDRI"], 4)] + [0x3FFFF] * 4
+    c = P.Controller()
+    c.shift_in(*P.to_jtag(prload))
+    c.gwe = 1
+    c.shift_in(*P.to_jtag(live_b))
+    assert c.flags["wr_err"]
+    out += stream("BRLIVE", live_b) + [f"`define BRLIVE_STAT 32'h{c.stat(gsr=0, gts=0, gwe=1, done=1):08x}"]
+
     # STAT read stream
     out += stream("RDSTAT", P.read_stream("STAT", 1))
     path = os.path.join(HERE, "..", "hw", "tb", "frame_vectors.vh")
     open(path, "w").write("\n".join(out) + "\n")
-    print(f"wrote {os.path.normpath(path)}: 8 frame-path scenarios, {P.NFRAMES} frames x {P.FW} words")
+    print(f"wrote {os.path.normpath(path)}: frame-path scenarios incl. M14 partial reconfiguration, {P.NFRAMES} frames x {P.FW} words")
 
 
 if __name__ == "__main__":

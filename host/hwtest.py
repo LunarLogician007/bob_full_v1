@@ -1396,6 +1396,160 @@ MILESTONE = {
 # M13: a Vivado rebuild (frames, timing fixes), so the complete regression runs again:
 # every M7 fabric check (loaded over the CHAIN path, CHAIN_IN / CHAIN_OUT), then the frame
 # path on its own, then the guest designs, which bob load now sends as frames.
+# --- M14: partial reconfiguration (docs/bitstream-format.md section 12) -------------------
+
+def _partial_q(p):
+    """the M14 pair's 4-bit counter, from CAPTURE"""
+    import cfgplane
+    from bitstream import CLB_XY_INDEX, NCLB
+    from designs import PARTIAL_Q
+    cap = cfgplane.capture(p, NCLB)
+    return sum(((cap >> CLB_XY_INDEX[xy]) & 1) << k for k, xy in enumerate(PARTIAL_Q))
+
+
+def _autostep(p, n):
+    """n user clocks on the JTAG-stepped clock: USER1 autostep, one INTEST scan each"""
+    import cfgplane
+    import fpga
+    cfgplane.user1(p, 0x14)                          # autostep + cin
+    cfgplane.ir(p, "INTEST")
+    for _ in range(n):
+        p.shift_dr_fast(fpga.BSR_W, fpga.bsr_word(0))
+    cfgplane.user1(p, 0x04)                          # cin only: no more clocks
+
+
+def _gate_sweep(p, gate):
+    """LD1 for SW = 00, 01, 10, 11 on the board (INTEST, no clocks), and what the gate must give"""
+    import fpga
+    got = [(v >> 1) & 1 for v in fpga.intest_sweep(p, range(4))]
+    want = [(v & 1) & (v >> 1) if gate == "and" else (v & 1) | (v >> 1) for v in range(4)]
+    return got, want
+
+
+def check_partial_swap(p, ctx):
+    """M14 on the JTAG-stepped clock: design A (counter + AND) loaded and stepped 5 clocks;
+    a partial reload to B (the same counter + OR) rewrites only the changed frame(s) with
+    the design running; the counter still reads 5 (no clock, no reset), LD1 is now OR, and
+    3 more clocks give 8: the state survived the reconfiguration."""
+    import cfgplane
+    import fpga
+    import packets
+    from designs import d_partial
+    a, b = d_partial("and").build(), d_partial("or").build()
+    ok, msg = cfgplane.load_frames(p, a.to_int())
+    if not ok:
+        return False, "load A: " + msg
+    _autostep(p, 5)
+    q5 = _partial_q(p)
+    ga, wa = _gate_sweep(p, "and")
+    ok, msg, n = cfgplane.load_partial(p, b.to_int())
+    if not ok:
+        fpga.go_live(p)
+        return False, "partial: " + msg
+    q_after = _partial_q(p)
+    gb, wb = _gate_sweep(p, "or")
+    _autostep(p, 3)
+    q8 = _partial_q(p)
+    done = cfgplane.status(p)["done"]
+    fpga.go_live(p)
+    good = q5 == 5 and q_after == 5 and q8 == 8 and ga == wa and gb == wb and done and 1 <= n <= 2
+    return good, (f"{n} of {packets.NFRAMES} frames rewritten; counter 5 -> {q_after} across the partial -> {q8} "
+                  f"after 3 clocks; LD1 A (AND) {ga} (model {wa}), B (OR) {gb} (model {wb}); DONE={done}")
+
+
+def check_partial_live(p, ctx):
+    """M14 on the FREE-RUNNING clock (div 17, ~3.7 counts/s): while frozen (AGHIGH acknowledged)
+    the counter does not move for a second; the partial lands; after LFRM it counts again and
+    LD1 has changed from AND to OR."""
+    import time
+    import cfgplane
+    import fpga
+    import packets
+    from designs import d_partial
+    a, b = d_partial("and", "run", 17).build(), d_partial("or", "run", 17).build()
+    ok, msg = cfgplane.load_frames(p, a.to_int())
+    if not ok:
+        return False, "load A: " + msg
+    cfgplane.user1(p, 0x04)                                  # cin: count
+    q0 = _partial_q(p)
+    time.sleep(1.2)
+    moving = _partial_q(p) != q0
+    freeze, frames, n = packets.partial_streams(a.to_int(), b.to_int())
+    cfgplane.frames_send(p, freeze)
+    st = cfgplane.frames_stat(p)
+    f0 = _partial_q(p)
+    time.sleep(1.2)
+    f1 = _partial_q(p)
+    cfgplane.frames_send(p, frames)
+    st2 = cfgplane.frames_stat(p)
+    time.sleep(1.2)
+    r1 = _partial_q(p)
+    gb, wb = _gate_sweep(p, "or")
+    fpga.go_live(p)
+    held = st["GHIGH_B"] == 0 and f0 == f1
+    released = st2["GHIGH_B"] == 1 and not any(st2[k] for k in ("CRC_ERROR", "WR_ERROR", "PKT_ERROR")) and r1 != f1
+    good = moving and held and released and gb == wb
+    return good, (f"before: counting={moving}; frozen (GHIGH_B={st['GHIGH_B']}): {f0} -> {f1} over 1.2 s; "
+                  f"{n} frame(s) written; released (GHIGH_B={st2['GHIGH_B']}): {f1} -> {r1}; LD1 {gb} (OR model {wb})")
+
+
+def check_partial_bad_crc(p, ctx):
+    """M14: a partial with a wrong CRC is refused at LFRM and the fabric STAYS frozen (the
+    free-running counter does not move, DONE stays), until JPROGRAM + a full load."""
+    import time
+    import cfgplane
+    import fpga
+    from designs import d_partial
+    a, b = d_partial("and", "run", 17).build(), d_partial("or", "run", 17).build()
+    ok, msg = cfgplane.load_frames(p, a.to_int())
+    if not ok:
+        return False, "load A: " + msg
+    cfgplane.user1(p, 0x04)
+    ok, msg, _n = cfgplane.load_partial(p, b.to_int(), old=a.to_int(), crc_override=0x12345678)
+    st = cfgplane.frames_stat(p)
+    f0 = _partial_q(p)
+    time.sleep(1.2)
+    f1 = _partial_q(p)
+    done = cfgplane.status(p)["done"]
+    ok2, msg2 = cfgplane.load_frames(p, a.to_int())          # recovery
+    cfgplane.user1(p, 0x04)
+    r0 = _partial_q(p)
+    time.sleep(1.2)
+    recovered = ok2 and _partial_q(p) != r0
+    fpga.go_live(p)
+    good = (not ok) and st["CRC_ERROR"] and st["GHIGH_B"] == 0 and f0 == f1 and done and recovered
+    return good, (f"refused={not ok} CRC_ERROR={st['CRC_ERROR']} GHIGH_B={st['GHIGH_B']}; frozen counter {f0} -> {f1}; "
+                  f"DONE={done}; JPROGRAM + full load counts again={recovered}")
+
+
+def check_partial_guest(p, ctx):
+    """M14 through the guest flow: `bob load` gates, then `bob load --partial` gates_swapped
+    (different routing, same pins file flow): only the changed frames, LEDs == the new design."""
+    import cfgplane
+    import cli
+    import fpga
+    import packets
+    from bitstream import Bitstream, simulate
+    paths = {}
+    for name in ("gates", "gates_swapped"):
+        import vpr_run
+        top, pcf = vpr_run.VARIANTS.get(name, (name, None))
+        paths[name] = cli.build([os.path.join(ROOT, "examples", f"{top}.v")], top, pcf,
+                                os.path.join(ROOT, "build", "bit", f"{name}.bit"), name=name,
+                                log=lambda *_: None)[0]
+    ok, msg = cli.load(p, paths["gates"], log=lambda *_: None)
+    if not ok:
+        return False, "load gates: " + msg
+    import bitgen
+    new = bitgen.read_bit(paths["gates_swapped"])["word"]
+    ok, msg = cli.load_partial(p, paths["gates_swapped"], log=lambda *_: None)
+    got = fpga.intest_sweep(p, range(4))
+    want = [simulate(Bitstream(new), v) for v in range(4)]
+    fpga.go_live(p)
+    n = len(packets.changed_frames(bitgen.read_bit(paths["gates"])["word"], new))
+    return ok and got == want, f"{msg}; LEDs {got} == gates_swapped model {want}: {got == want} ({n} frames differ)"
+
+
 MILESTONE["M13"] = (
     [c for c in MILESTONE["M7"] if c[0] != "pipeline-live"] +
     [("frames-load", check_frames_load),
@@ -1413,6 +1567,130 @@ MILESTONE["M13"] = (
      ("blinky-rate", check_blinky_rate),
      ("pipeline-live", dict(MILESTONE["M7"])["pipeline-live"])])      # last: leaves the pipeline on the switches
 
+
+# --- M15: BRAM contents as frames (FAR block type 1) ----------------------------------------
+
+def check_frames_bram_load(p, ctx):
+    """M15: the BRAM ROM design with random contents in BOTH BRAMs, all in one frame stream:
+    FDRO reads every content word back, USER4 (the other path) reads the same words, and
+    after JSTART the ROM shows mem[SW][2:0] on the LEDs."""
+    import random
+    import time
+    import cfgplane
+    import fpga
+    from designs import d_bram_rom
+    rng = random.Random()
+    brams = {b: [rng.getrandbits(18) for _ in range(1024)] for b in range(2)}
+    rom = d_bram_rom(0).build().to_int()
+    ok, msg = cfgplane.load_frames(p, rom, start=False, brams=brams)
+    if not ok:
+        return False, msg
+    cross = []
+    for b in range(2):
+        cfgplane.bram_select(p, b)
+        if cfgplane.bram_read(p, 1000, 8) != brams[b][1000:1008]:
+            cross.append(b)
+    cfgplane.jstart(p)
+    got = []
+    cfgplane.ir(p, "INTEST")
+    for v in range(4):                       # apply the address, let the free-running ROM read it
+        p.shift_dr_fast(fpga.BSR_W, fpga.bsr_word(v))
+        time.sleep(0.05)
+        got.append(fpga.bsr_leds(p.shift_dr_fast(fpga.BSR_W, fpga.bsr_word(v))))
+    want = [brams[0][v] & 7 for v in range(4)]
+    fpga.go_live(p)
+    good = not cross and got == want
+    return good, f"{msg}; USER4 reads the same words: {not cross}; ROM LEDs {got} == mem[SW] {want}"
+
+
+def check_frames_bram_live_refused(p, ctx):
+    """M15: while the ROM runs, a BRAM content frame is refused (WR_ERROR) and, read back
+    after JPROGRAM, the contents are unchanged."""
+    import random
+    import cfgplane
+    import fpga
+    import packets
+    from designs import d_bram_rom
+    rng = random.Random()
+    words = [rng.getrandbits(18) for _ in range(1024)]
+    ok, msg = cfgplane.load_frames(p, d_bram_rom(0).build().to_int(), brams={0: words})
+    if not ok:
+        return False, msg
+    other = [w ^ 0x3FFFF for w in words[:32]]
+    stream = ([packets.DUMMY, packets.SYNC, packets.NOP] + packets.write("IDCODE", packets.device_idcode()) +
+              packets.write("CMD", packets.CMD["WCFG"]) + packets.write("FAR", packets.bram_far(0)) +
+              [packets.type1(packets.OP_WRITE, packets.REG["FDRI"], len(other))] + other +
+              packets.write("CMD", packets.CMD["DESYNC"]) + [packets.NOP])
+    cfgplane.frames_send(p, stream)
+    st = cfgplane.frames_stat(p)
+    cfgplane.jprogram(p)
+    back = cfgplane.bram_frames_read(p, 0, 0, 8)
+    fpga.go_live(p)
+    kept = back == words[:32]
+    return st["WR_ERROR"] and kept, f"WR_ERROR={st['WR_ERROR']}; bram0[0..31] after JPROGRAM unchanged={kept}"
+
+
+def check_ram_readback_frames(p, ctx):
+    """M15: ram.v written by the design itself (64 INTEST clocks), stopped with JPROGRAM, and
+    its BRAM read back over FDRO (block type 1) == model.py; the same words over USER4."""
+    import cfgplane
+    import cli
+    import fpga
+    import model
+    from bitstream import Bitstream
+    path, word, contents, tr, _work = cli.build([os.path.join(ROOT, "examples", "ram.v")], "ram", None,
+                                                os.path.join(ROOT, "build", "bit", "ram.bit"), log=lambda *_: None)
+    ok, msg = cli.load(p, path, log=lambda *_: None)
+    if not ok:
+        return False, msg
+    trace = tr["trace"][:SYNTH_HW_CYCLES]
+    m = model.Fabric(Bitstream(word))
+    m.clock(gsr=1)
+    for b, words in contents.items():
+        m.brams[b].mem = list(words)
+    cfgplane.user1(p, 0x10)
+    cfgplane.ir(p, "INTEST")
+    p.shift_dr_fast(fpga.BSR_W, fpga.bsr_word(trace[0][0]))
+    m.clock(pad_i=trace[0][0])
+    for k in range(1, len(trace)):
+        p.shift_dr_fast(fpga.BSR_W, fpga.bsr_word(trace[k][0]))
+        m.clock(pad_i=trace[k][0])
+    cfgplane.user1(p, 0)
+    cfgplane.jprogram(p)
+    bad = []
+    for b in sorted(contents):
+        got = cfgplane.bram_frames_read(p, b, 0, 4)
+        want = m.brams[b].mem[:16]
+        if got != want:
+            bad.append(f"bram{b} FDRO [0..15] = {got}, model {want}")
+        cfgplane.bram_select(p, b)
+        if cfgplane.bram_read(p, 0, 16) != got:
+            bad.append(f"bram{b}: USER4 and FDRO disagree")
+    fpga.go_live(p)
+    return not bad, (f"bram0[0..15] = {m.brams[0].mem[:16]} over FDRO block type 1 after JPROGRAM == model, "
+                     f"== USER4" if not bad else "; ".join(bad))
+
+
+MILESTONE_M15_EXTRA = [("frames-bram-load", check_frames_bram_load),
+                       ("frames-bram-live-refused", check_frames_bram_live_refused),
+                       ("ram-readback-frames", check_ram_readback_frames)]
+
+# M12b (8x6 grid, streamed chain) + M14 (partial reconfiguration): the M13 regression on the
+# new bitstream, a design that needs the bigger grid through both PnR flows, and the partial
+# reconfiguration checks. pipeline-live stays last.
+MILESTONE["M14"] = (
+    MILESTONE["M13"][:-1] +
+    [("bob-wide", _bob_check("wide")),
+     ("pnr-wide", _bob_check("wide", pnr="python")),
+     ("partial-swap", check_partial_swap),
+     ("partial-live", check_partial_live),
+     ("partial-bad-crc", check_partial_bad_crc),
+     ("partial-guest", check_partial_guest),
+     MILESTONE["M13"][-1]])
+
+# M15: everything above on the final bitstream, plus BRAM contents as frames. The build handed
+# over for M12b, M14 and M15 together is this one.
+MILESTONE["M15"] = MILESTONE["M14"][:-1] + MILESTONE_M15_EXTRA + [MILESTONE["M14"][-1]]
 
 # --- runner ------------------------------------------------------------------
 

@@ -55,7 +55,7 @@ Bits 5 and 4 follow 7-series usage (openFPGALoader reads DONE and INIT_B there).
 
 ## 4. The configuration chain
 
-- **Width W** comes from the device description (`tools/bob/device.json` `chain.width`). The M2 test top uses 64 = 4 tiles × 16; the fabric used 2896 at M3, 3064 at M4, 3488 at M5, 3720 at M6, **4216 from M7 on the board profile** (16 CLBs, `ARCH_6X4`; 3352 at K=4). The frozen 48-CLB profile (`release/M7_8x8/`) is 9400 (6808 at K=4).
+- **Width W** comes from the device description (`tools/bob/device.json` `chain.width`). The M2 test top uses 64 = 4 tiles × 16; the fabric used 2896 at M3, 3064 at M4, 3488 at M5, 3720 at M6, **4216 from M7 on the board profile** (16 CLBs, `ARCH_6X4`; 3352 at K=4), 4992 at M13 (padded to frames), and **8320 from M12b** (8×6 core, 36 CLBs, 28 pads, `ARCH_8X6`: 65 frames; 6016 = 47 frames at K=4). The frozen 48-CLB profile (`release/M7_8x8/`) is 9400 (6808 at K=4).
 - **M7 layout** (replaces the M4–M6 tile description below, kept for the frozen bundles). Bits come in this order:
   - the 8-bit **ctrl tile**
   - one entry per **grid location**, row-major from VPR (0,0) (x East, y North): first the fields of the block rooted there, then that location's routing muxes in ascending rr node id
@@ -87,12 +87,13 @@ Bits 5 and 4 follow 7-series usage (openFPGALoader reads DONE and INIT_B there).
   | 7:6 | reserved | 0 |
 
 - **Fabric tile (M4), K=6:** CLB 71 (INIT 64 + 7 flags) · connection box 40 (K LUT inputs + CE + SR, 5 bits each) · switch box 80 = 191 bits. With K=4: 23 + 30 + 80 = 133.
-- **Structure:** each tile has a shift register `sr` and a shadow register `cfg`. TDI enters the MSB of the **last** tile. Each tile's `sr[0]` feeds the next-lower tile's MSB, and tile 0's `sr[0]` drives TDO. Tiles and the fabric see **only** `cfg`.
-- **Capture-DR** (CFG_IN or CFG_OUT): every `sr` ← its `cfg`. So the first W bits out of any chain scan are the current configuration, LSB first.
-- **Shift-DR:** shift by one per TCK. `cfg` doesn't change while shifting.
-- **Update-DR in CFG_OUT:** nothing. Readback is non-destructive and never commits, whatever was shifted in.
-- **Update-DR in CFG_IN:** `cfg` ← `sr` for all tiles **only if** the number of bits shifted in this scan equals W **and** the CRC equals the expected CRC. Otherwise nothing changes and CRC_ERR and/or LEN_ERR is set.
-- **Scans longer than W** through CFG_OUT (a marker after W bits) measure the chain length without side effects.
+- **Structure up to M13** (and still in the M2 test top `cfg_test_top.v`): each tile has a shift register `sr` and a shadow register `cfg`. TDI enters the MSB of the **last** tile. Each tile's `sr[0]` feeds the next-lower tile's MSB, and tile 0's `sr[0]` drives TDO. Tiles and the fabric see **only** `cfg`. Capture-DR loads every `sr` from its `cfg`; Update-DR in CFG_IN copies `sr` to `cfg` only if the count equals W and the CRC matches; otherwise nothing changes.
+- **Structure from M12b** (`cfg_store.v`, the complete FPGA; the chain is on CHAIN_IN / CHAIN_OUT since M13): the memory `cfg` and **one 128-bit frame buffer**. A full-width `sr` cost W flip-flops and W LUTs (5.1k LUT / 10k FF of M13's 15.4k LUT / 12.2k FF in yosys), which is what paid for the bigger grid.
+  - **Capture-DR** (either instruction): frame counter ← 0; CHAIN_OUT also loads frame 0 into the buffer.
+  - **Shift-DR, CHAIN_IN:** bits enter the buffer LSB first; every 128th bit completes frame n (n = 0, 1, …), which is written to `cfg` on the next falling edge **only while GWE = 0**. Bits beyond W are ignored.
+  - **Shift-DR, CHAIN_OUT:** the buffer shifts out LSB first and reloads the next frame every 128 bits, so the first W bits out are the memory, LSB first. After the last frame the buffer is a plain **128-bit delay line** from TDI. Readback never writes.
+  - **Update-DR in CHAIN_IN:** COMMITTED and CRC_OK are set **only if** the count equals W **and** the CRC matches (and GWE = 0). The memory already holds the new bits either way; after a bad CRC or length COMMITTED stays 0, CRC_ERR / LEN_ERR is set and JSTART refuses to start, exactly as the frame path treats a bad CRC (UG470: frames are written as they arrive, and the CRC gates startup). A running design is never touched: while GWE = 1 nothing is written.
+- **Length measurement:** shift a 32-bit marker **repeated** on TDI through CHAIN_OUT; from bit W on, every output bit equals the input bit (a delay of 128 = 4 × 32 before M12b's W), so the first position from which output == input is W (`cfgplane.measure_chain`).
 
 ## 5. Integrity: CRC-32C and CFG_CTRL
 
@@ -283,7 +284,7 @@ From M13 the configuration memory is organised in **frames**, as in AMD 7-series
 | **frames** (default) | CFG_IN / CFG_OUT (the AMD codes) | 32-bit words in type-1/type-2 packets; frames of 4 words | CRC-32C over `{register, data}` of every write, IDCODE check | section 10; `bob load` |
 | **chain** | CHAIN_IN / CHAIN_OUT (private) + CFG_CTRL | the whole memory in one DR scan | CRC-32C + length (section 5) | sections 4, 5, 8; `bob load --mode chain` |
 
-Both write the same shadow register the fabric reads, both are refused while GWE = 1 (a running design is never reconfigured underneath itself), both are cleared by JPROGRAM, and both feed the same startup (section 6: JSTART after a good load).
+Both write the same memory the fabric reads, both are refused while GWE = 1 (a running design is never reconfigured underneath itself) - **except** M14 partial reconfiguration on the frame path, which first freezes the user clock (section 12) - both are cleared by JPROGRAM, and both feed the same startup (section 6: JSTART after a good load).
 
 **Frame layout of the memory.** The memory is cut into **frames of FRAME_WORDS = 4 words = 128 bits**. Frames are column-major, like the 7-series configuration columns:
 
@@ -320,21 +321,21 @@ A type-1 header with count 0 must be followed by a type-2 header carrying the co
 | `00111` | STAT | R | status, below |
 | `01100` | IDCODE | W | must equal the device IDCODE; a mismatch sets ID_ERROR (parser stops). FDRI is refused until it has matched |
 
-**FAR** (7-series layout, UG470 Table 5-24): `[25:23]` block type (`000` configuration; `001` BRAM contents, reserved: writing it is a write error), `[22]` top/bottom (0), `[21:17]` row (0), `[16:7]` column, `[6:0]` minor (frame within the column). After each frame the minor advances; past the column's last frame it moves to minor 0 of the next column with frames. Writing or reading at an address outside the memory is a write error.
+**FAR** (7-series layout, UG470 Table 5-24): `[25:23]` block type (`000` configuration; `001` BRAM contents from M15, section 13), `[22]` top/bottom (0), `[21:17]` row (0 for configuration), `[16:7]` column, `[6:0]` minor (frame within the column). After each frame the minor advances; past the column's last frame it moves to minor 0 of the next column with frames. Writing or reading at an address outside the memory is a write error.
 
-**CMD** (UG470 Table 5-25 codes): `00000` NULL · `00001` **WCFG** arm frame writes · `00011` **LFRM** last frame (accepted, recorded) · `00100` **RCFG** arm frame reads · `00101` **START** allow startup: requires CRC_OK after the last FDRI word, the IDCODE match and no error · `00111` **RCRC** reset the CRC · `01101` **DESYNC** back to hunting. Any other value is a packet error.
+**CMD** (UG470 Table 5-25 codes): `00000` NULL · `00001` **WCFG** arm frame writes · `00011` **LFRM** (DGHIGH/LFRM) last frame; with a freeze pending it releases the freeze only after CRC_OK (section 12) · `00100` **RCFG** arm frame reads · `00101` **START** allow startup: requires CRC_OK after the last FDRI word, the IDCODE match and no error · `00111` **RCRC** reset the CRC · `01000` **AGHIGH** (M14) freeze the user clock for partial reconfiguration, needs the IDCODE match · `01101` **DESYNC** back to hunting. Any other value is a packet error.
 
 **CRC.** CRC-32C (reflected polynomial `0x82F63B78`), initial value 0, no final inversion. Every WRITE data word except those written to CRC updates it with the 37-bit value `{register[4:0], data[31:0]}`, least significant bit first. RCRC sets it to 0 (after its own update). READs and headers do not contribute. (prjxray `crc.py` computes the 7-series CRC this way.)
 
-**Frame writes** are accepted only while WCFG is armed, IDCODE has matched, GWE = 0, no error is set and FAR is valid; otherwise the words are dropped and WR_ERROR is set. Any FDRI data word clears CRC_OK, so a CRC check must follow the frames before START.
+**Frame writes** are accepted only while WCFG is armed, IDCODE has matched, no error is set, FAR is valid and **GWE = 0 or the freeze is acknowledged** (M14, section 12; BRAM content frames always need GWE = 0); otherwise the words are dropped and WR_ERROR is set. Any FDRI data word clears CRC_OK, so a CRC check must follow the frames before START.
 
-**Simplifications against 7-series:** a frame is written the moment its last word arrives, so bitstreams need **no trailing pad frame**, and readback returns **no leading pad frame**; no encryption, compression (MFWR), bus-width detection, COR/CTL options, per-frame ECC or multiboot; BRAM contents stay on USER4 (FAR block type `001` reserved for them); a parser error is left only by JPROGRAM.
+**Simplifications against 7-series:** a frame is written the moment its last word arrives, so bitstreams need **no trailing pad frame**, and readback returns **no leading pad frame**; no encryption, compression (MFWR), bus-width detection, COR/CTL options, per-frame ECC or multiboot; FAR auto-increment does not cross from block type 0 into block type 1 (the stream writes FAR before the BRAM frames); a parser error is left only by JPROGRAM.
 
 **STAT** (32 bits; positions follow 7-series where the meaning exists):
 
-| bit | 0 | 5 | 6 | 11 | 12 | 14 | 15 | 23:16 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| meaning | CRC_ERROR | GTS_CFG_B (= not GTS) | GWE | INIT_COMPLETE (1) | INIT_B (no error) | DONE | ID_ERROR | version `0x13` | PKT_ERROR | WR_ERROR | SYNCED | WCFG | CRC_OK | GSR | START accepted | RCFG |
+| bit | 0 | 5 | 6 | 7 | 11 | 12 | 14 | 15 | 23:16 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| meaning | CRC_ERROR | GTS_CFG_B (= not GTS) | GWE | GHIGH_B (M14: 0 = freeze acknowledged) | INIT_COMPLETE (1) | INIT_B (no error) | DONE | ID_ERROR | version (`0x13` M13, `0x14` M14, **`0x15`** M15) | PKT_ERROR | WR_ERROR | SYNCED | WCFG | CRC_OK | GSR | START accepted | RCFG |
 
 **Readback (CFG_OUT).** Each READ packet queues words: FDRO gives frame words from FAR (advancing FAR per frame); STAT, FAR, IDCODE and CRC give one current value per word. A CFG_OUT DR scan shifts the queued words out MSB first, 32 bits per word; with nothing queued (and past the queue) each word reads STAT, so a bare 32-bit CFG_OUT scan is a status read. FDRO needs RCFG armed (else WR_ERROR, zeros).
 
@@ -350,6 +351,9 @@ AA995566                   sync
 30008001 00000001          CMD    <- WCFG
 30004000 5000xxxx          FDRI, type-2 count = 4 x NFRAMES
 <4 x NFRAMES words>        frames 0 .. NFRAMES-1 (FAR advances by itself)
+30002001 00800000          FAR    <- BRAM 0, frame 0              } M15, per BRAM the design
+30004000 50000400          FDRI, type-2 count = 1024              } uses: all 1024 words,
+<1024 words>               {14'b0, data[17:0]}                    } section 13
 30000001 <CRC>             CRC    <- expected
 30008001 00000003          CMD    <- LFRM
 30008001 00000005          CMD    <- START
@@ -357,12 +361,45 @@ AA995566                   sync
 20000000 20000000          NOP
 ```
 
-then JTAG: CFG_IN READ of STAT and CFG_OUT (START accepted, no error), BRAM contents over USER4, JSTART + 12 TCK in Run-Test/Idle, DONE. Readback sends `sync, CMD <- RCFG, FAR <- 0, 28006000 4800xxxx (READ FDRO, type-2), DESYNC` on CFG_IN and shifts `32 × 4 × NFRAMES` bits out of CFG_OUT.
+then JTAG: CFG_IN READ of STAT and CFG_OUT (START accepted, no error), FDRO readback of the memory and (M15) of every BRAM's content frames, JSTART + 12 TCK in Run-Test/Idle, DONE. (Up to M14 the BRAM contents went over USER4 at this point; `bob load --mode chain` still does that.) Readback sends `sync, CMD <- RCFG, FAR <- 0, 28006000 4800xxxx (READ FDRO, type-2), DESYNC` on CFG_IN and shifts `32 × 4 × NFRAMES` bits out of CFG_OUT.
 
 ## 11. Host-to-fabric timing assumptions (M13)
 
-Three rules make the Vivado timing constraints true (hw/constr/pynq_z2.xdc):
+These rules make the Vivado timing constraints true (hw/constr/pynq_z2.xdc):
 
 1. **User-clock enables are at least 256 sysclk cycles apart** (2048 ns), enforced in `clock_ctrl.v` for both clock modes (a JTAG step arriving earlier waits). Every path from a fabric register through the fabric to a fabric register is therefore a 256-cycle multicycle. The fabric is flattened (keeping its hierarchy crashed Vivado 2025.2 on the routing loops) and flattening renames its registers, so the constraint is by clock (sysclk → sysclk); the only other sysclk logic, `u_clk` and `u_bram_jtag`, is held to one cycle by cell name (build.tcl lists the caught registers in `sysclk_1cycle.txt`; `tests/test_reports.py` requires gce and the BRAM strobes there), except the cin synchroniser's paths into the fabric.
 2. **TCK is at most 100 kHz** (`host/dirtyjtag.py` refuses more) and is constrained at that period, so TCK-to-TCK paths through the fabric (boundary cell → fabric → DSP/BRAM/CAPTURE capture register) have 10 µs.
-3. **Configuration changes only while GWE = 0**, so the fabric never samples configuration bits while they change.
+3. **Configuration changes only while GWE = 0**, so the fabric never samples configuration bits while they change - or (M14) while the user clock is frozen and the freeze has been acknowledged in the TCK domain: then no fabric register, BRAM or DSP register is enabled (every one of them is gated by gce), so bits changing under a held enable cannot be captured.
+4. **(M15) BRAM content frame requests are at least 32 TCK periods apart** (one frame word at 100 kHz = 320 µs; a frame on the sysclk side takes ~12 cycles = 96 ns). Requests travel as a toggle through a two-flop synchroniser with their data stable, as the USER4 commands always did.
+5. **(M14) The freeze handshake:** AGHIGH → `freeze` (TCK) → 2-flop synchroniser → `gce` forced low and `frozen` set on the same sysclk edge → 2-flop synchroniser on TCK → GHIGH_B = 0. The host reads STAT and sends frames only after GHIGH_B = 0; frames that arrive earlier are refused (WR_ERROR).
+
+## 12. Partial reconfiguration of a running design (M14)
+
+AMD 7-series devices reconfigure part of a running design by writing only that region's frames, with GHIGH_B asserted around the write (UG470 CMD AGHIGH / DGHIGH-LFRM; UG909 for the flow). bob follows the same command sequence; what bob's GHIGH_B holds is its user clock: every fabric flip-flop, BRAM and DSP register is enabled only by gce, so a held gce keeps the **whole** fabric's state exactly while any frames change.
+
+**Sequence** (`tools/bob/packets.py` `partial_streams(old, new)`, `host/cfgplane.py` `load_partial`, `bob load --partial x.bit`):
+
+```
+scan 1 (CFG_IN):  dummy, AA995566, NOP, CMD <- RCRC, IDCODE <- device, CMD <- AGHIGH, NOP
+scan 2 (CFG_OUT): STAT; require GHIGH_B = 0 and no error
+scan 3 (CFG_IN):  CMD <- WCFG, for each run of consecutive changed frames: FAR <- first, FDRI <- the run,
+                  CRC <- over everything since RCRC, CMD <- LFRM, CMD <- DESYNC
+scan 4 (CFG_OUT): STAT; require GHIGH_B = 1 and no error; CHAIN_OUT == new
+```
+
+- **Only changed frames** are written (the host reads the current memory over CHAIN_OUT, non-destructively). A LUT truth-table change in one CLB is one frame; a re-routed guest design typically 20-30 of 65.
+- **State:** registers keep their values across the partial (no GSR); a design that needs a reset after reconfiguration must do it itself.
+- **Release:** LFRM releases the freeze only if the CRC written after the last FDRI word matched. A wrong CRC, a missing CRC or any write error leaves the fabric **frozen** with the error in STAT; only JPROGRAM (and a full load) recovers. A half-written design never runs.
+- **Refusals:** AGHIGH without a matched IDCODE, frames while GWE = 1 without an acknowledged freeze, frames sent before the acknowledgement (all WR_ERROR).
+- **Not in M14:** region protection (any frame may be rewritten; the host decides), BRAM content writes while frozen, pad hold during the write (pads follow the changing logic combinationally).
+- **Verification:** `tb_frames` [13]-[17] (a free-running counter holds while frozen and continues from its value; the gate changes; no CRC, bad CRC, no IDCODE, frames before acknowledgement), `tb_clock_gap` [4], 5 mutants in `sim/mutate_frames.sh`; board: `partial-swap`, `partial-live`, `partial-bad-crc`, `partial-guest`.
+
+## 13. BRAM contents as frames (M15)
+
+UG470 carries BRAM initial contents in the bitstream as their own block type. From M15 bob does too, and the whole design (configuration + contents) is one CRC-covered packet stream; USER4 (section 7a) stays as the second path, as the chain stays beside frames.
+
+- **FAR block type `001`:** `[16:7]` column = BRAM index (0 .. NBRAM−1), frame n = `[22:17]` row × 128 + `[6:0]` minor, n = 0 .. 255. Frame n holds BRAM addresses 4n .. 4n+3, word w = `{14'b0, mem[4n+w][17:0]}` (the top 14 bits are written as 0 and read as 0). Auto-increment: n+1, then frame 0 of the next BRAM, then past the end (invalid).
+- **Writes (FDRI):** WCFG, IDCODE matched, no error and **GWE = 0** (as USER4); otherwise WR_ERROR. The 4th word of a frame hands the 4 words to `bram_jtag.v`'s sysclk side, which writes them through bram_core's port A (timing rule 4, section 11).
+- **Readback (FDRO):** RCFG and GWE = 0 (after JPROGRAM the contents are as the design left them). The controller prefetches each frame's 4 words through the same port while FAR points at it; with GWE = 1 FDRO of block type 1 reads zeros.
+- **Load:** `load_stream(word, brams)` writes every word of every BRAM the design uses (all 1024: contents survive JPROGRAM, so a skipped word would keep the previous design's value), under the same CRC as the configuration frames.
+- **Verification:** `tb_frames` [18]-[19] (bram0 frames, FAR crossing into bram1, FDRO readback, refusal while running), 5 mutants; board: `frames-bram-load` (both BRAMs, FDRO == contents, USER4 reads the same words, ROM LEDs), `frames-bram-live-refused`, `ram-readback-frames` (a design's own writes read back over FDRO == model.py == USER4), and every `bob-*` design load now sends its BRAMs as frames.

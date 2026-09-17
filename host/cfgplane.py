@@ -254,12 +254,21 @@ def frames_readback(p):
     return packets.word_from_frames(frames_read(p, packets.NFRAMES * packets.FW))
 
 
-def load_frames(p, word, start=True, idcode=None):
-    """JPROGRAM, the frame load stream on CFG_IN, STAT (START accepted, no error),
-    FDRO readback == word, then optionally JSTART and DONE. Returns (ok, message)."""
+def bram_frames_read(p, b, first=0, n=None):
+    """M15: n content frames of BRAM b from frame `first` over FDRO (GWE = 0 only), as words"""
+    import packets
+    n = packets.BRAM_FRAMES - first if n is None else n
+    frames_send(p, packets.bram_readback_stream(b, first, n))
+    return [w & 0x3FFFF for w in frames_read(p, packets.FW * n)]
+
+
+def load_frames(p, word, start=True, idcode=None, brams=None):
+    """JPROGRAM, the frame load stream on CFG_IN (M15: with every word of each BRAM in
+    `brams` as block-type-1 frames), STAT (START accepted, no error), FDRO readback ==
+    word (and == the BRAM contents), then optionally JSTART and DONE. Returns (ok, message)."""
     import packets
     jprogram(p)
-    frames_send(p, packets.load_stream(word, idcode=idcode))
+    frames_send(p, packets.load_stream(word, idcode=idcode, brams=brams))
     st = frames_stat(p)
     errs = [k for k in ("CRC_ERROR", "ID_ERROR", "PKT_ERROR", "WR_ERROR") if st[k]]
     if errs or not st["START_OK"]:
@@ -267,14 +276,48 @@ def load_frames(p, word, start=True, idcode=None):
     back = frames_readback(p)
     if back != word:
         return False, f"FDRO readback differs in {bin(back ^ word).count('1')} bits"
-    msg = (f"loaded {packets.NFRAMES} frames ({packets.NFRAMES * packets.FW} words) through CFG_IN, "
-           f"CRC {packets.expected_crc(word, idcode):08X}, FDRO readback verified")
+    for b, words in sorted((brams or {}).items()):
+        if bram_frames_read(p, b) != packets.bram_words(words):
+            return False, f"bram{b}: FDRO readback of its content frames differs"
+    nb = len(brams or {})
+    msg = (f"loaded {packets.NFRAMES} frames ({packets.NFRAMES * packets.FW} words) through CFG_IN"
+           + (f" + {nb * packets.BRAM_FRAMES} BRAM content frames ({nb} BRAM{'s' if nb != 1 else ''}, all 1024 words)"
+              if nb else "")
+           + f", CRC {packets.expected_crc(word, idcode, brams):08X}, FDRO readback verified")
     if start:
         jstart(p)
         if not status(p)["done"]:
             return False, f"{msg}; DONE did not rise"
         msg += ", DONE"
     return True, msg
+
+
+def load_partial(p, new, old=None, idcode=None, crc_override=None):
+    """M14 partial reconfiguration of the RUNNING design (docs/bitstream-format.md section
+    12): read the memory over CHAIN_OUT (non-destructive) unless `old` is given, send
+    AGHIGH, require STAT GHIGH_B = 0 (the user clock is held, every fabric register keeps
+    its value), send only the frames that differ + CRC + LFRM, require GHIGH_B = 1 again
+    and no error, and check CHAIN_OUT == new. Returns (ok, message, frames written).
+    On a CRC or write error the fabric STAYS frozen: JPROGRAM and a full load recover."""
+    import packets
+    if old is None:
+        old = cfg_out(p, packets.NFRAMES * packets.FB)
+    freeze, frames, n = packets.partial_streams(old, new, idcode=idcode, crc_override=crc_override)
+    frames_send(p, freeze)
+    st = frames_stat(p)
+    errs = [k for k in ("CRC_ERROR", "ID_ERROR", "PKT_ERROR", "WR_ERROR") if st[k]]
+    if errs or st["GHIGH_B"]:
+        return False, f"freeze not acknowledged: STAT {errs} GHIGH_B={st['GHIGH_B']}", 0
+    frames_send(p, frames)
+    st = frames_stat(p)
+    errs = [k for k in ("CRC_ERROR", "ID_ERROR", "PKT_ERROR", "WR_ERROR") if st[k]]
+    if errs or not st["GHIGH_B"]:
+        return False, (f"partial refused: STAT {errs} GHIGH_B={st['GHIGH_B']} "
+                       f"(the fabric stays frozen until JPROGRAM)"), n
+    back = cfg_out(p, packets.NFRAMES * packets.FB)
+    if back != new:
+        return False, f"after the partial the memory differs in {bin(back ^ new).count('1')} bits", n
+    return True, f"partial: {n} of {packets.NFRAMES} frames rewritten with the design running, released", n
 
 
 def load(p, word, width, start=True, fast_first=True):

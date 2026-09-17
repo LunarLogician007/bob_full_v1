@@ -28,6 +28,13 @@
 // Commands are latched in the TCK domain and handed to the sysclk domain with a
 // toggle through a two-flop synchroniser; the payload and target are stable long
 // before the toggle arrives. Reads and writes go through bram_core's port A.
+//
+// M15: BRAM content FRAMES from cfg_frames.v (FAR block type 1) use the same port:
+// bf_wr_t / bf_rd_t toggle with bf_tgt, bf_addr and (write) bf_data stable; the
+// sequencer here writes or reads the frame's 4 words on consecutive pairs of sysclk
+// cycles (reads land in bf_rdata), only while GWE = 0. A frame takes ~12 sysclk
+// cycles; consecutive frame requests are >= 32 TCK periods apart (docs/
+// bitstream-format.md section 11, rule 4).
 // -----------------------------------------------------------------------------
 
 `timescale 1ns / 1ps
@@ -58,7 +65,15 @@ module bram_jtag #(
     output reg  [NBRAM-1:0]         init_go,
     output reg                      init_wr,
     output reg  [ADDR_W-1:0]        init_addr,
-    output reg  [DATA_W-1:0]        init_data
+    output reg  [DATA_W-1:0]        init_data,
+
+    // M15: content frames (TCK-domain request, sysclk-domain result)
+    input  wire                     bf_wr_t,
+    input  wire                     bf_rd_t,
+    input  wire [3:0]               bf_tgt,
+    input  wire [ADDR_W-1:0]        bf_addr,
+    input  wire [4*DATA_W-1:0]      bf_data,
+    output reg  [4*DATA_W-1:0]      bf_rdata
 );
 
     localparam [7:0] VERSION = 8'h07;
@@ -125,7 +140,28 @@ module bram_jtag #(
         end
     endgenerate
 
+    // M15 frame sequencer
+    (* ASYNC_REG = "TRUE" *) reg [1:0] bfw_m = 2'b00;
+    (* ASYNC_REG = "TRUE" *) reg [1:0] bfr_m = 2'b00;
+    reg              bfw_d = 1'b0, bfr_d = 1'b0;
+    reg [3:0]        bstep = 4'd0;                 // 0 idle; 1,3,5,7 issue word 0..3
+    reg              bwr   = 1'b0;
+    reg [3:0]        btgt  = 4'd0;
+    reg [ADDR_W-1:0] baddr = {ADDR_W{1'b0}};
+    reg [4*DATA_W-1:0] bdata = {(4*DATA_W){1'b0}};
+    reg              brd1 = 1'b0, brd2 = 1'b0;
+    reg [1:0]        bk1 = 2'd0, bk2 = 2'd0;
+    wire [1:0]       bk = bstep[2:1];              // (bstep - 1) / 2 for odd steps
+    wire [NBRAM-1:0] btgt_onehot;
+    generate
+        for (gi = 0; gi < NBRAM; gi = gi + 1) begin : g_btgt
+            localparam [3:0] BIDX = gi;
+            assign btgt_onehot[gi] = (btgt == BIDX);
+        end
+    endgenerate
+
     initial begin
+        bf_rdata  = {(4*DATA_W){1'b0}};
         init_go   = {NBRAM{1'b0}};
         init_wr   = 1'b0;
         init_addr = {ADDR_W{1'b0}};
@@ -157,6 +193,35 @@ module bram_jtag #(
         end
         rd_d <= |init_go & ~init_wr;
         if (rd_d) rdata <= ram_a_q[tgt_q*DATA_W +: DATA_W];
+
+        // ---- M15 content frames ----
+        bfw_m <= {bfw_m[0], bf_wr_t};
+        bfr_m <= {bfr_m[0], bf_rd_t};
+        bfw_d <= bfw_m[1];
+        bfr_d <= bfr_m[1];
+        brd1  <= 1'b0;
+        brd2  <= brd1;
+        bk2   <= bk1;
+        if (bstep == 4'd0) begin
+            if ((bfw_m[1] ^ bfw_d) || (bfr_m[1] ^ bfr_d)) begin
+                bwr   <= bfw_m[1] ^ bfw_d;
+                btgt  <= bf_tgt;
+                baddr <= bf_addr;
+                bdata <= bf_data;
+                if (!gwe_s) bstep <= 4'd1;
+            end
+        end else begin
+            bstep <= (bstep == 4'd9) ? 4'd0 : bstep + 4'd1;
+            if (bstep[0] && bstep <= 4'd7) begin
+                init_go   <= btgt_onehot;
+                init_wr   <= bwr;
+                init_addr <= baddr + {{(ADDR_W-2){1'b0}}, bk};
+                init_data <= bdata[bk*DATA_W +: DATA_W];
+                brd1      <= ~bwr;
+                bk1       <= bk;
+            end
+        end
+        if (brd2) bf_rdata[bk2*DATA_W +: DATA_W] <= ram_a_q[btgt*DATA_W +: DATA_W];
     end
 
     wire _unused = &{1'b0, pay_q[63:DATA_W]};

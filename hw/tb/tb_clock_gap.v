@@ -8,13 +8,17 @@
 //       and no request lost while the gap allows one per window
 //   [2] slow steps (every 40 cycles): one gce per step, none delayed past the gap
 //   [3] free-running with the shortest divider: spacing exactly 2**MIN_SHIFT
+//   [4] M14 freeze: while frozen no gce at all (free-running and steps), frozen rises
+//       with gce held; after release pulses resume at the divider rate
 // -----------------------------------------------------------------------------
 `timescale 1ns / 1ps
 `default_nettype none
 
 module tb_clock_gap;
     localparam integer GAP = 4;                   // 2**4 = 16 cycles
-    reg sysclk = 1'b0, tck = 1'b0, mode = 1'b0, ce = 1'b0, step = 1'b0;
+    reg sysclk = 1'b0, tck = 1'b0, mode = 1'b0, ce = 1'b0, step = 1'b0, freeze = 1'b0;
+    wire frozen;
+    integer bad_frozen = 0;
     reg [4:0] div = 5'd0;
     wire gce, gsr_s, gwe_s, cin_s;
     integer errors = 0, checks = 0, last = -1000, mingap = 1000000, pulses = 0, cyc = 0;
@@ -31,7 +35,10 @@ module tb_clock_gap;
 
     clock_ctrl #(.DIV_W(5), .MIN_SHIFT(GAP), .GAP_SHIFT(GAP)) dut (
         .sysclk(sysclk), .tck(tck), .clk_mode(mode), .clk_div(div), .ce(ce), .step(step),
-        .cin(1'b0), .gsr(1'b0), .gwe(1'b1), .gce(gce), .gsr_s(gsr_s), .gwe_s(gwe_s), .cin_s(cin_s));
+        .cin(1'b0), .gsr(1'b0), .gwe(1'b1), .freeze(freeze), .gce(gce), .frozen(frozen),
+        .gsr_s(gsr_s), .gwe_s(gwe_s), .cin_s(cin_s));
+
+    always @(posedge sysclk) if (frozen && gce) bad_frozen = bad_frozen + 1;   // never both
 
     task check(input [255:0] what, input integer got, input integer lo, input integer hi);
         begin
@@ -46,7 +53,7 @@ module tb_clock_gap;
 
     integer i;
     initial begin
-        $display("\n=== clock_ctrl: user-clock enables at least 2**GAP_SHIFT sysclk cycles apart (M13) ===");
+        $display("\n=== clock_ctrl: user-clock enables at least 2**GAP_SHIFT sysclk cycles apart (M13), freeze (M14) ===");
         repeat (40) @(posedge sysclk);
         mingap = 1000000; pulses = 0;
         for (i = 0; i < 60; i = i + 1) begin                     // a step request every 6 cycles
@@ -70,6 +77,28 @@ module tb_clock_gap;
         repeat (16 * 30) @(posedge sysclk);
         mode = 1'b0;
         check("[3] free-running div 0: spacing", mingap, 16, 16);
+
+        // [4] freeze in free-running mode, with step requests on top
+        mode = 1'b1;
+        repeat (16 * 4) @(posedge sysclk);
+        freeze = 1'b1;
+        repeat (4) @(posedge sysclk);                            // two-flop synchroniser + one edge
+        check("[4] frozen acknowledged", frozen, 1, 1);
+        pulses = 0;
+        for (i = 0; i < 20; i = i + 1) begin
+            step = 1'b1; repeat (3) @(posedge sysclk);
+            step = 1'b0; repeat (13) @(posedge sysclk);
+        end
+        check("[4] no gce while frozen", pulses, 0, 0);
+        check("[4] never frozen and gce", bad_frozen, 0, 0);
+        freeze = 1'b0;
+        repeat (4) @(posedge sysclk);
+        check("[4] released", frozen, 0, 0);
+        mingap = 1000000; pulses = 0;
+        repeat (16 * 10) @(posedge sysclk);
+        mode = 1'b0;
+        check("[4] after release: pulses resume", pulses, 9, 11);
+        check("[4] after release: spacing", mingap, 16, 16);
 
         $display("\n    %0d checks", checks);
         if (errors == 0) $display("=== ALL TESTS PASSED ===");

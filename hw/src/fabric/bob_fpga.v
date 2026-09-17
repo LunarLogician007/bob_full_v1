@@ -81,6 +81,11 @@ module bob_fpga #(
     wire [`BOB_FRAME_BITS-1:0] rd_frame;
     wire [`BOB_FRAME_BITS-1:0] frame_load_data;
     wire [31:0]         frames_stat;
+    wire                freeze, frozen;               // M14: partial reconfiguration hold
+    wire                bf_wr_t, bf_rd_t;             // M15: BRAM content frames
+    wire [3:0]          bf_tgt;
+    wire [9:0]          bf_addr;
+    wire [71:0]         bf_data, bf_rdata;
     wire [CTRL_W-1:0]   ctrl_cfg = chain_cfg[CTRL_W-1:0];
 
     // user clock
@@ -177,7 +182,8 @@ module bob_fpga #(
         .NFRAMES      (`BOB_NFRAMES),
         .NCOLS        (`BOB_FAR_NCOLS),
         .FAR_TABLE    (`BOB_FAR_TABLE),
-        .FIDX_W       (FIDX_W)
+        .FIDX_W       (FIDX_W),
+        .NBRAM        (NBRAM)
     ) u_frames (
         .tck        (tck),
         .tdi        (tdi),
@@ -190,8 +196,16 @@ module bob_fpga #(
         .gts        (gts),
         .gwe        (gwe),
         .done       (done),
+        .frozen_ack (frozen),
+        .freeze     (freeze),
         .rd_frame   (rd_frame),
         .rd_idx     (fdro_idx),
+        .bf_wr_t    (bf_wr_t),
+        .bf_rd_t    (bf_rd_t),
+        .bf_tgt     (bf_tgt),
+        .bf_addr    (bf_addr),
+        .bf_data    (bf_data),
+        .bf_rdata   (bf_rdata),
         .so         (pkt_so),
         .frame_load      (frame_load),
         .frame_load_data (frame_load_data),
@@ -246,6 +260,8 @@ module bob_fpga #(
         .cin      (cin),
         .gsr      (gsr),
         .gwe      (gwe),
+        .freeze   (freeze),
+        .frozen   (frozen),
         .gce      (gce),
         .gsr_s    (gsr_s),
         .gwe_s    (gwe_s),
@@ -309,7 +325,13 @@ module bob_fpga #(
         .init_go    (bram_init_go),
         .init_wr    (bram_init_wr),
         .init_addr  (bram_init_addr),
-        .init_data  (bram_init_data)
+        .init_data  (bram_init_data),
+        .bf_wr_t    (bf_wr_t),
+        .bf_rd_t    (bf_rd_t),
+        .bf_tgt     (bf_tgt),
+        .bf_addr    (bf_addr),
+        .bf_data    (bf_data),
+        .bf_rdata   (bf_rdata)
     );
 
     dsp_jtag #(.NDSP(NDSP)) u_dsp_jtag (

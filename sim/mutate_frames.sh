@@ -35,12 +35,12 @@ F=src/core/cfg_frames.v
 run crc-never-fails     $F 's/if \(w == crc\) crc_ok <= 1.b1;/if (1) crc_ok <= 1'"'"'b1;/'
 run crc-data-only       $F 's/v = \{r, d\};/v = {5'"'"'d0, d};/'
 run idcode-not-checked  $F 's/if \(w == IDCODE_VALUE\) id_ok <= 1.b1;/if (1) id_ok <= 1'"'"'b1;/'
-run fdri-ignores-gwe    $F 's/fdri_ok         = wcfg && id_ok && !gwe && far_valid/fdri_ok         = wcfg \&\& id_ok \&\& far_valid/'
-run fdri-without-wcfg   $F 's/fdri_ok         = wcfg && id_ok && !gwe/fdri_ok         = id_ok \&\& !gwe/'
+run fdri-ignores-gwe    $F 's/fdri_ok         = wcfg && id_ok && \(!gwe \|\| frozen\) && far_valid/fdri_ok         = wcfg \&\& id_ok \&\& far_valid/'
+run fdri-without-wcfg   $F 's/fdri_ok         = wcfg && id_ok && \(!gwe/fdri_ok         = id_ok \&\& (!gwe/'
 run far-no-increment    $F 's/far        <= far_next;/far        <= far;/'
 run start-without-crc   $F 's/C_START:  if \(crc_ok && id_ok/C_START:  if (id_ok/'
 run type2-without-type1 $F 's/pkt_err <= 1.b1; st <= ST_ERR;\n/pkt_err <= pkt_err; st <= ST_HDR;\n/ if /end else begin$/../end$/'
-run fdro-without-rcfg   $F 's/R_FDRO:   rword = \(rcfg && far_valid && fdro_in_range\)/R_FDRO:   rword = (far_valid \&\& fdro_in_range)/'
+run fdro-without-rcfg   $F 's/\(rcfg && far_valid && fdro_in_range\) \? rd_frame_word/(far_valid \&\& fdro_in_range) ? rd_frame_word/'
 run wrong-sync-word     $F "s/32'hAA995566/32'hAA995567/"
 run readback-lsb-first  $F 's/assign so = out\[31\];/assign so = out[0];/'
 run chain-writes-live   src/fabric/bob_fpga.v 's/\.wen        \(~gwe\),/.wen        (1'"'"'b1),/'
@@ -49,6 +49,18 @@ run frame-write-dropped src/core/cfg_store.v 's/ \|\| \(frame_we && frame_idx ==
 run frame-load-dropped  src/core/cfg_store.v 's/end else if \(load\)/end else if (1'"'"'b0)/'
 run chain-write-dropped src/core/cfg_store.v 's/wire we = \(cwe && cidx == f\[FIDX_W-1:0\]\) \|\| /wire we = /'
 run chain-out-no-reload src/core/cfg_store.v 's/if \(chain_out && wrap && more\)/if (1'"'"'b0)/' tb_bob
+# M14 partial reconfiguration
+run freeze-ignored      src/core/clock_ctrl.v 's/if \(frz_m\[1\]\) begin/if (1'"'"'b0) begin/'
+run lfrm-ignores-crc    $F 's/if \(crc_ok && !any_error\) freeze <= 1.b0;/if (1'"'"'b1) freeze <= 1'"'"'b0;/'
+run fdri-without-ack    $F 's/wire frozen = freeze & ack_m\[1\];/wire frozen = freeze;/'
+run aghigh-without-id   $F 's/if \(id_ok\) freeze <= 1.b1;/if (1'"'"'b1) freeze <= 1'"'"'b1;/'
+run ghigh-b-stuck       $F 's/3.b000, ~frozen, gwe,/3'"'"'b000, 1'"'"'b1, gwe,/'
+# M15 BRAM content frames
+run bram-frames-live    $F 's/if \(wcfg && id_ok && !gwe && !any_error\) begin/if (wcfg \&\& id_ok \&\& !any_error) begin/'
+run bram-far-no-cross   $F 's/else if \(far_col \+ 32.d1 < NBRAM\)/else if (1'"'"'b0)/'
+run bram-read-word0     src/tiles/bram_jtag.v 's/if \(brd2\) bf_rdata\[bk2\*DATA_W \+: DATA_W\]/if (brd2) bf_rdata[0 +: DATA_W]/'
+run bram-no-prefetch    $F 's/                bf_rd_t <= ~bf_rd_t;//'
+run bram-write-addr     src/tiles/bram_jtag.v 's/init_addr <= baddr \+ \{\{\(ADDR_W-2\)\{1.b0\}\}, bk\};/init_addr <= baddr;/'
 run gce-gap-ignored     src/core/clock_ctrl.v 's/if \(\(req \| pend\) && \(gap >= min_gap\)\) begin/if (req | pend) begin/' tb_clock_gap
 run gce-pending-lost    src/core/clock_ctrl.v 's/if \(req\) pend <= 1.b1;/if (req) pend <= 1'"'"'b0;/' tb_clock_gap
 

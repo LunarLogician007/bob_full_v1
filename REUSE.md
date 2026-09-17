@@ -196,3 +196,20 @@ Status: **same** = byte-identical to `bob/`, **moved** = same content at a new p
 | `hw/tb/tb_frames.v`, `hw/tb/tb_clock_gap.v`, `hw/tb/bob_harness.vh`, `sim/gen_frame_vectors.py`, `sim/run_frames_sim.sh`, `sim/mutate_frames.sh` | `tb_synth` harness | new / modified | frame-path and gap tests, mutants |
 | `tests/test_device.py`, `tests/test_reports.py`, `tests/test_hwtest_fake.py`, `docs/bitstream-format.md`, `docs/hwtest/M13.md` | — | modified / new | sizes, timing closure from M13, fake-board frame controller; spec; checklist |
 
+
+
+## M12b, M14, M15: smaller store, 36-CLB grid, partial reconfiguration, BRAM content frames
+
+| File | From | Status | Notes |
+|---|---|---|---|
+| `hw/src/core/cfg_store.v` | M13 `cfg_store.v`; UG470 (frames written as they arrive) | modified | one 128-bit frame buffer, streamed chain, shared frame read mux |
+| `hw/src/core/cfg_frames.v` | M13; UG470 CMD AGHIGH/LFRM, STAT GHIGH_B, FAR block type 001 | modified | freeze + acknowledgement, BRAM content frames, FDRO via the shared mux |
+| `hw/src/core/clock_ctrl.v` | M13 | modified | freeze: gce held, `frozen` |
+| `hw/src/tiles/bram_jtag.v` | M5/M7 (USER4 toggle handshake) | modified | content-frame sequencer on the same port |
+| `hw/src/fabric/bob_fpga.v`, `hw/src/generated/*` | M13; VPR rr graph | modified / regenerated | wiring; 8×6 core |
+| `tools/bob/device.py`, `tools/bob/arch/*`, `tools/bob/vpr/*` | M7 | modified / regenerated | `ARCH_8X6`; rr graphs; VPR results incl. `wide` |
+| `examples/wide.v` | — | new | 31-CLB example |
+| `tools/bob/packets.py`, `host/cfgplane.py`, `tools/bob/cli.py`, `host/designs.py`, `host/hwtest.py` | M13 | modified | partial streams, BRAM frames, fast bit packing; `load_partial`, `load_frames(brams)`; `--partial`; `d_partial`; hwtest M14/M15 |
+| `hw/tb/tb_frames.v`, `hw/tb/tb_clock_gap.v`, `hw/tb/tb_bob.v`, `sim/gen_frame_vectors.py`, `sim/mutate_frames.sh` | M13 | modified | scenarios [13]-[19], freeze checks, repeated marker, 34 mutants |
+| `tests/test_hwtest_fake.py`, `tests/test_device.py`, `tests/test_pnr.py`, `tools/bob/pnr/compare.py` | M12/M13 | modified | stand-in freeze, partial and BRAM frames (+ cin, INTEST pads); 36-CLB sizes |
+| `docs/bitstream-format.md`, `docs/hwtest/M15.md`, `docs/reports/M12b/pnr_vs_vpr.md`, `docs/arch/*`, `arch.html` | M13 | modified / new | sections 4, 9-13; checklist; PnR report; arch pages area / partial / bramframes |

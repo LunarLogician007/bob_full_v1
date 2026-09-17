@@ -47,7 +47,7 @@
       B("order", ["ctrl 8", "clk_mode, clk_div", "clock", "CMT"], ["grid tiles", "block fields, then muxes by node id", "routing", "GTX"], ["tail", "byte pad", null, "CFG"])],
     notes: ["Chain bit k is the k-th bit shifted in. Tile boundaries exist only in device.json — the RTL is one 4216-bit <code>cfg_tile_sr</code>.",
       "Shadow register: the fabric never sees bits sliding past, and CHAIN_OUT readback is non-destructive.",
-      "M13: the same memory is laid out in 128-bit frames (39 of them); the chain is all frames end to end, so a chain word loads identically over CHAIN_IN or as frames over CFG_IN.",
+      `M13: the same memory is laid out in 128-bit frames (${BOB.chain / 128} of them since M12b); the chain is all frames end to end, so a chain word loads identically over CHAIN_IN or as frames over CFG_IN. M12b replaced this per-tile shift + shadow structure in the complete FPGA with one 128-bit frame buffer (cfg_store.v); the M2 test top keeps it.`,
       "M13 replaces exactly this module with UG470 frames; tiles, VPR and the tools stay."],
     src: [["OpenFPGA config_protocol scan_chain", "chain through every tile's configuration flops"], ["Aegis docs/arch/configuration.md", "shift register + shadow config register"]],
     why: ["Scan chain is the simplest protocol proven in both projects; frames come last (M13) once everything else is solid."],

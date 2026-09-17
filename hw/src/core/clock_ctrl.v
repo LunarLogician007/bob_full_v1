@@ -46,9 +46,11 @@ module clock_ctrl #(
     input  wire             cin,
     input  wire             gsr,
     input  wire             gwe,
+    input  wire             freeze,          // M14: hold gce (partial reconfiguration)
 
     // sysclk domain
     output reg              gce,
+    output reg              frozen,          // gce is held; to cfg_frames (synchronised there)
     output wire             gsr_s,
     output wire             gwe_s,
     output wire             cin_s
@@ -61,6 +63,7 @@ module clock_ctrl #(
     (* ASYNC_REG = "TRUE" *) reg [1:0]       gsr_m  = 2'b11;
     (* ASYNC_REG = "TRUE" *) reg [1:0]       gwe_m  = 2'b00;
     (* ASYNC_REG = "TRUE" *) reg [1:0]       mode_m = 2'b00;
+    (* ASYNC_REG = "TRUE" *) reg [1:0]       frz_m  = 2'b00;
     (* ASYNC_REG = "TRUE" *) reg [DIV_W-1:0] div_m0 = {DIV_W{1'b0}};
     (* ASYNC_REG = "TRUE" *) reg [DIV_W-1:0] div_m1 = {DIV_W{1'b0}};
 
@@ -78,6 +81,7 @@ module clock_ctrl #(
         gsr_m  <= {gsr_m[0],  gsr};
         gwe_m  <= {gwe_m[0],  gwe};
         mode_m <= {mode_m[0], clk_mode};
+        frz_m  <= {frz_m[0],  freeze};
         div_m0 <= clk_div;
         div_m1 <= div_m0;
         tck_d  <= tck_m[1];
@@ -94,7 +98,10 @@ module clock_ctrl #(
 
     wire [31:0] min_gap  = (32'h1 << GAP_SHIFT) - 32'h1;
 
-    initial gce = 1'b0;
+    initial begin
+        gce    = 1'b0;
+        frozen = 1'b0;
+    end
 
     reg req;
     always @(*) begin
@@ -108,7 +115,15 @@ module clock_ctrl #(
         else
             cnt <= 32'h0;
 
-        if ((req | pend) && (gap >= min_gap)) begin
+        frozen <= frz_m[1];
+        if (frz_m[1]) begin
+            // M14: frozen. No enable, and requests that arrive now are dropped, so the
+            // fabric is exactly as it was when the freeze arrived; frozen rises on the
+            // same edge gce is forced low.
+            gce  <= 1'b0;
+            pend <= 1'b0;
+            if (gap != 32'hFFFFFFFF) gap <= gap + 32'h1;
+        end else if ((req | pend) && (gap >= min_gap)) begin
             gce  <= 1'b1;
             gap  <= 32'h0;
             pend <= 1'b0;

@@ -32,7 +32,8 @@ IR = {v: k for k, v in cfgplane.IR.items()}
 
 
 class FakeBob:
-    def __init__(self, corrupt_capture=False, corrupt_sample=False, rate_scale=1.0, switches=lambda t: 0):
+    def __init__(self, corrupt_capture=False, corrupt_sample=False, rate_scale=1.0, switches=lambda t: 0,
+                 ignore_freeze=False, wipe_on_partial=False):
         self.ir = "IDCODE"
         self.chain = 0
         self.expected = 0
@@ -50,19 +51,39 @@ class FakeBob:
         self.rate_scale = rate_scale
         self.switches = switches            # time -> pad_i of the real board inputs
         self.rdata = 0
+        self.ignore_freeze = ignore_freeze          # broken board: the user clock runs on while frozen
+        self.wipe_on_partial = wipe_on_partial      # broken board: a partial reload loses the state
+        self.t_last = time.time()
 
     def _pins(self):
         return self.switches(time.time())
 
+    def _sync_brams_to_frames(self):
+        """the frame model sees the BRAM contents as the design (or the last load) left them"""
+        for b in range(B.NBRAM):
+            if self.fab:
+                self.frames.brams[b] = list(self.fab.brams[b].mem) + [0] * (1024 - len(self.fab.brams[b].mem))
+            elif b in self.brams:
+                self.frames.brams[b] = list(self.brams[b]) + [0] * (1024 - len(self.brams[b]))
+
+    def _held(self):
+        return self.frames.frozen() and not self.ignore_freeze
+
     def _run(self):
         """free-running clock: catch up on the edges that happened since JSTART"""
+        now, last = time.time(), self.t_last
+        self.t_last = now
         if not self.done or not (self.chain >> B.CTRL_FIELD["clk_mode"][0]) & 1:
+            return
+        if self._held():                             # M14: frozen time does not count
+            self.t_start += now - last
             return
         off, w = B.CTRL_FIELD["clk_div"]
         hz = 125e6 / 2 ** (((self.chain >> off) & ((1 << w) - 1)) + B.DIV_MIN_SHIFT) * self.rate_scale
         due = int((time.time() - self.t_start) * hz)
+        pins = self.bsr_in if self.ir == "INTEST" else self._pins()     # INTEST: the boundary drives the fabric
         while self.clocks < due:
-            self.fab.clock(pad_i=self._pins())
+            self.fab.clock(pad_i=pins, cin=(self.user1 >> 2) & 1)
             self.clocks += 1
 
     # --- probe API used by cfgplane / fpga / hwtest ---
@@ -103,10 +124,25 @@ class FakeBob:
         if ir == "CFG_IN":                           # M13 frame path
             self.frames.gwe = int(self.done)
             self.frames.mem = self.chain
+            self._sync_brams_to_frames()
+            before = [list(x) for x in self.frames.brams]
             self.frames.shift_in(n, din)
+            for b in range(B.NBRAM):                 # M15: BRAM content frames
+                if self.frames.brams[b] != before[b]:
+                    self.brams[b] = list(self.frames.brams[b])
+                    if self.fab:
+                        self.fab.brams[b].mem = list(self.frames.brams[b])
+            if self.done and self.frames.mem != self.chain:     # M14: partial while running
+                old = self.fab
+                self.fab = model.Fabric(B.Bitstream(self.frames.mem))
+                if not self.wipe_on_partial:
+                    self.fab.q, self.fab.brams, self.fab.dsp = old.q, old.brams, old.dsp
+                    self.fab.bram_drive, self.fab.dsp_drive = old.bram_drive, old.dsp_drive
+                    self.fab.bram = self.fab.brams[0] if self.fab.brams else None
             self.chain = self.frames.mem
             return 0
         if ir == "CFG_OUT":
+            self._sync_brams_to_frames()
             words = [self.frames.read_word(gsr=int(not self.done), gts=int(not self.done),
                                            gwe=int(self.done), done=int(self.done))
                      for _ in range((n + 31) // 32)]
@@ -148,15 +184,16 @@ class FakeBob:
                 self.ptr += 1
             out = (self.target << 66) | (cfgplane.BRAM_VERSION << 88) | self.rdata
             if cmd == 3 and not self.done:          # READ only while GWE = 0: memory as the design left it
-                self.rdata = self.fab.brams[self.target].mem[self.ptr]
+                mem = self.fab.brams[self.target].mem if self.fab else self.brams.get(self.target, [0] * 1024)
+                self.rdata = mem[self.ptr]
                 self.ptr += 1
             return out
         if ir == "INTEST":
-            leds = self.fab.outputs(self.bsr_in)
+            leds = self.fab.outputs(self.bsr_in, cin=(self.user1 >> 2) & 1)
             raw = sum(((leds >> k) & 1) << pad for k, pad in enumerate(B.BOARD_OUT))
             self.bsr_in = sum(((din >> (B.NPAD + pad)) & 1) << k for k, pad in enumerate(B.BOARD_IN))
-            if self.user1 & 0x10:
-                self.fab.clock(pad_i=self.bsr_in)
+            if self.user1 & 0x10 and not self._held():
+                self.fab.clock(pad_i=self.bsr_in, cin=(self.user1 >> 2) & 1)
             return raw
         if ir == "SAMPLE":
             pins = self._pins()
@@ -164,7 +201,7 @@ class FakeBob:
             return (sum(((leds >> k) & 1) << pad for k, pad in enumerate(B.BOARD_OUT))
                     | sum(((pins >> k) & 1) << (B.NPAD + pad) for k, pad in enumerate(B.BOARD_IN)))
         if ir == "CAPTURE":
-            v = self.fab.clb_o(self._pins())      # IR is not INTEST: the pads read the real switches
+            v = self.fab.clb_o(self._pins(), cin=(self.user1 >> 2) & 1)      # IR is not INTEST: the pads read the real switches
             return v ^ ((1 << B.NCLB) - 1) if self.corrupt_capture else v
         return 0
 
@@ -298,4 +335,56 @@ def test_m13_crc_reject_fails_if_the_board_ignores_the_crc():
                 self.frames.st = "hdr"
             return out
     ok, msg = hwtest.check_frames_crc_reject(NoCrc(), {})
+    assert not ok, msg
+
+
+# --- M14: partial reconfiguration --------------------------------------------------------
+
+@pytest.mark.parametrize("check", ["check_partial_swap", "check_partial_bad_crc", "check_partial_guest"])
+def test_m14_partial_checks_pass_on_a_good_board(check):
+    ok, msg = getattr(hwtest, check)(FakeBob(), {})
+    assert ok, msg
+
+
+def test_m14_partial_live_passes_on_a_good_board():
+    ok, msg = hwtest.check_partial_live(FakeBob(rate_scale=1.0), {})
+    assert ok, msg
+
+
+def test_m14_partial_swap_fails_when_state_is_lost():
+    ok, msg = hwtest.check_partial_swap(FakeBob(wipe_on_partial=True), {})
+    assert not ok, msg
+
+
+def test_m14_partial_live_fails_when_the_freeze_does_not_hold():
+    ok, msg = hwtest.check_partial_live(FakeBob(ignore_freeze=True), {})
+    assert not ok, msg
+
+
+def test_m14_bad_crc_fails_when_the_freeze_does_not_hold():
+    ok, msg = hwtest.check_partial_bad_crc(FakeBob(ignore_freeze=True), {})
+    assert not ok, msg
+
+
+# --- M15: BRAM contents as frames ---------------------------------------------------------
+
+@pytest.mark.parametrize("check", ["check_frames_bram_load", "check_frames_bram_live_refused",
+                                   "check_ram_readback_frames"])
+def test_m15_bram_frame_checks_pass_on_a_good_board(check):
+    ok, msg = getattr(hwtest, check)(FakeBob(rate_scale=1e-4), {})     # the ROM runs free at div 0
+    assert ok, msg
+
+
+def test_m15_bram_live_refused_fails_if_frames_write_while_running():
+    class Leaky(FakeBob):
+        def shift_dr(self, n, din=0):
+            if self.ir == "CFG_IN":
+                self.frames.gwe = 0                  # broken: ignores GWE for everything
+                done, self.done = self.done, 0
+                try:
+                    return super().shift_dr(n, din)
+                finally:
+                    self.done = done
+            return super().shift_dr(n, din)
+    ok, msg = hwtest.check_frames_bram_live_refused(Leaky(rate_scale=1e-4), {})
     assert not ok, msg

@@ -19,6 +19,17 @@
 //  [10] a good chain sent while the design runs (GWE = 1) does not commit
 //  [11] frames with no CRC write: written, but START refused and DONE never rises
 //  [12] FDRO without RCFG: zeros and WR_ERROR
+//  [13] M14 partial reconfiguration of a running design (free-running counter + a
+//       gate): AGHIGH -> STAT GHIGH_B = 0 -> changed frames only -> CRC -> LFRM.
+//       No user-clock enable while frozen, the counter continues from where it was,
+//       the gate is now OR, memory == the new design
+//  [14] a partial with no CRC write: WR_ERROR at LFRM, the fabric stays frozen
+//  [15] AGHIGH without a matched IDCODE: WR_ERROR, nothing frozen
+//  [16] a partial with a bad CRC: CRC_ERROR, the fabric stays frozen
+//  [17] frames sent before the freeze is acknowledged: WR_ERROR, nothing written
+//  [18] M15 BRAM contents as frames (FAR block type 1) before startup: bram0 and, by FAR
+//       auto-increment past bram0's last frame, bram1; FDRO readback of the same frames
+//  [19] a BRAM content frame while the design runs: WR_ERROR, contents unchanged
 // -----------------------------------------------------------------------------
 
 `timescale 1ns / 1ps
@@ -38,6 +49,12 @@ module tb_frames;
     reg [31:0]       statw;
     reg [SW-1:0]     want_rb;
     integer          k;
+    wire [3:0]       prq = `PR_Q;
+    reg  [3:0]       prq0;
+    integer          pulses = 0, p_rel = -1;
+    reg              count_en = 1'b0;
+    always @(posedge sysclk) if (count_en && dut.gce) pulses = pulses + 1;
+    always @(negedge dut.freeze) if (count_en) p_rel = pulses;
 
     task check(input [1023:0] what, input [63:0] got, input [63:0] want);
         begin
@@ -59,6 +76,32 @@ module tb_frames;
             clk_on = 1'b1;
             tick(1'b1, v[n-1]);                                              // Exit1-DR
             tick(1'b1, 1'b0); tick(1'b0, 1'b0);                              // Update-DR, Run-Test/Idle
+        end
+    endtask
+
+    // M15: the BRAM side runs on sysclk, so these scans keep it running
+    task shift_stream_clk(input integer n, input [SW-1:0] v);
+        integer i;
+        begin
+            tick(1'b1, 1'b0); tick(1'b0, 1'b0); tick(1'b0, 1'b0);
+            for (i = 0; i < n - 1; i = i + 1) tick(1'b0, v[i]);
+            tick(1'b1, v[n-1]);
+            tick(1'b1, 1'b0); tick(1'b0, 1'b0);
+        end
+    endtask
+
+    task read_out_clk(input integer n, output [SW-1:0] v);
+        integer i;
+        begin
+            v = {SW{1'b0}};
+            tick(1'b1, 1'b0); tick(1'b0, 1'b0); tick(1'b0, 1'b0);
+            for (i = 0; i < n - 1; i = i + 1) begin
+                tick(1'b0, 1'b0);
+                v[i] = tdo_s;
+            end
+            tick(1'b1, 1'b0);
+            v[n-1] = tdo_s;
+            tick(1'b1, 1'b0); tick(1'b0, 1'b0);
         end
     endtask
 
@@ -217,6 +260,122 @@ module tb_frames;
         check("reads zeros", {63'h0, big[32*`RB_WORDS-1:0] === {(32*`RB_WORDS){1'b0}}}, 64'h1);
         read_stat(statw);
         check("STAT: WR_ERROR", {32'h0, statw}, {32'h0, `NORCFG_STAT});
+
+        $display("[13] M14: partial reconfiguration of a running design");
+        jprogram;
+        send(`PRLOAD_N, `PRLOAD_V);
+        start;
+        write_user1(32'h4);                                   // USER1 cin = 1: the counter counts
+        pad_i = 6'b000001; #40;
+        check("design A: LD1 = SW0 AND SW1 (01)", {63'h0, pad_o[1]}, 64'h0);
+        prq0 = prq; #400;
+        check("design A: the counter runs", {63'h0, prq !== prq0}, 64'h1);
+        send(`PRFRZ_N, `PRFRZ_V);
+        read_stat(statw);
+        check("STAT after AGHIGH: GHIGH_B = 0 (frozen), no error", {32'h0, statw}, {32'h0, `PRFRZ_STAT});
+        prq0 = prq; pulses = 0; p_rel = -1; count_en = 1'b1;
+        #400;
+        check("frozen: no gce in 400 ns", pulses, 0);
+        check("frozen: counter holds", {60'h0, prq}, {60'h0, prq0});
+        send(`PRFRM_N, `PRFRM_V);
+        count_en = 1'b0;
+        check("no gce between the freeze and LFRM (whole partial write)", p_rel, 0);
+        check("memory == design B", {63'h0, dut.chain_cfg === `PRB_W}, 64'h1);
+        count_en = 1'b1;
+        #400;
+        count_en = 1'b0;
+        check("counter continued from its frozen value", {60'h0, prq}, {60'h0, prq0 + pulses[3:0]});
+        check("  (enables after release)", {63'h0, pulses > 10}, 64'h1);
+        read_stat(statw);
+        check("STAT after LFRM: released (GHIGH_B = 1), no error", {32'h0, statw}, {32'h0, `PRFRM_STAT});
+        check("still DONE", {63'h0, configured}, 64'h1);
+        pad_i = 6'b000001; #40;
+        check("design B: LD1 = SW0 OR SW1 (01)", {63'h0, pad_o[1]}, 64'h1);
+        pad_i = 6'b000000; #40;
+        check("design B: LD1 (00)", {63'h0, pad_o[1]}, 64'h0);
+        $display("        %0d changed frame(s) written", `PR_NFRAMES);
+
+        $display("[14] partial with no CRC write: LFRM refused, stays frozen");
+        send(`PRNCF_N, `PRNCF_V);
+        read_stat(statw);
+        send(`PRNC_N, `PRNC_V);
+        read_stat(statw);
+        check("STAT: WR_ERROR, GHIGH_B = 0", {32'h0, statw}, {32'h0, `PRNC_STAT});
+        check("frames landed: memory == design A", {63'h0, dut.chain_cfg === `PRA_W}, 64'h1);
+        prq0 = prq; pulses = 0; count_en = 1'b1;
+        #400;
+        count_en = 1'b0;
+        check("still frozen: no gce", pulses, 0);
+        check("still frozen: counter holds", {60'h0, prq}, {60'h0, prq0});
+        check("DONE kept", {63'h0, configured}, 64'h1);
+
+        $display("[15] AGHIGH without IDCODE");
+        jprogram;
+        write_user1(32'h0);
+        send(`PRNOID_N, `PRNOID_V);
+        read_stat(statw);
+        check("STAT: WR_ERROR, GHIGH_B = 1", {32'h0, statw}, {32'h0, `PRNOID_STAT});
+        check("freeze not requested", {63'h0, dut.freeze}, 64'h0);
+
+        $display("[16] partial with a bad CRC: stays frozen");
+        jprogram;
+        send(`PRLOAD_N, `PRLOAD_V);
+        start;
+        write_user1(32'h4);
+        send(`PRBADF_N, `PRBADF_V);
+        read_stat(statw);
+        send(`PRBAD_N, `PRBAD_V);
+        read_stat(statw);
+        check("STAT: CRC_ERROR, GHIGH_B = 0", {32'h0, statw}, {32'h0, `PRBAD_STAT});
+        prq0 = prq; pulses = 0; count_en = 1'b1;
+        #400;
+        count_en = 1'b0;
+        check("still frozen: no gce", pulses, 0);
+        check("still frozen: counter holds", {60'h0, prq}, {60'h0, prq0});
+
+        $display("[17] frames before the freeze is acknowledged (one scan, sysclk stopped)");
+        jprogram;
+        send(`PRLOAD_N, `PRLOAD_V);
+        start;
+        send(`PRONE_N, `PRONE_V);
+        read_stat(statw);
+        check("STAT: WR_ERROR", {32'h0, statw}, {32'h0, `PRONE_STAT});
+        check("memory unchanged: design A", {63'h0, dut.chain_cfg === `PRA_W}, 64'h1);
+
+        $display("[18] M15: BRAM contents as frames, before startup");
+        jprogram;
+        write_user1(32'h0);
+        shift_ir(IR_PKT_IN, irc);
+        shift_stream_clk(`BRW_N, `BRW_V);
+        idle(4);
+        read_stat(statw);
+        check("STAT after the BRAM frames: CRC_OK, no error", {32'h0, statw}, {32'h0, `BRW_STAT});
+        check("bram0[12]", {46'h0, dut.u_fabric.u_bram0.u_core.mem[12]}, {46'h0, `BR0_0});
+        check("bram0[17]", {46'h0, dut.u_fabric.u_bram0.u_core.mem[17]}, {46'h0, `BR0_5});
+        check("bram0[23]", {46'h0, dut.u_fabric.u_bram0.u_core.mem[23]}, {46'h0, `BR0_11});
+        check("bram0[1020] (last frame)", {46'h0, dut.u_fabric.u_bram0.u_core.mem[1020]}, {46'h0, `BR1_0});
+        check("bram0[1023]", {46'h0, dut.u_fabric.u_bram0.u_core.mem[1023]}, {46'h0, `BR1_3});
+        check("bram1[0] (FAR crossed into bram1)", {46'h0, dut.u_fabric.u_bram1.u_core.mem[0]}, {46'h0, `BR1_4});
+        check("bram1[3]", {46'h0, dut.u_fabric.u_bram1.u_core.mem[3]}, {46'h0, `BR1_7});
+        shift_ir(IR_PKT_IN, irc);
+        shift_stream_clk(`BRRB_N, `BRRB_V);
+        shift_ir(IR_PKT_OUT, irc);
+        read_out_clk(32 * 8, big);
+        check("FDRO readback of 2 BRAM frames (bram0 1020..1023, bram1 0..3)", {63'h0, big[255:0] === `BRRB_EXP}, 64'h1);
+        if (big[255:0] !== `BRRB_EXP) $display("        got  %h\n        want %h", big[255:0], `BRRB_EXP);
+        read_stat(statw);
+        check("STAT after the BRAM readback", {32'h0, statw}, {32'h0, `BRRB_STAT});
+
+        $display("[19] a BRAM content frame while running");
+        jprogram;
+        send(`PRLOAD_N, `PRLOAD_V);
+        start;
+        shift_ir(IR_PKT_IN, irc);
+        shift_stream_clk(`BRLIVE_N, `BRLIVE_V);
+        idle(4);
+        read_stat(statw);
+        check("STAT: WR_ERROR", {32'h0, statw}, {32'h0, `BRLIVE_STAT});
+        check("bram0[12] unchanged", {46'h0, dut.u_fabric.u_bram0.u_core.mem[12]}, {46'h0, `BR0_0});
 
         $display("");
         $display("    %0d checks", checks);

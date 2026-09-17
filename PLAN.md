@@ -43,8 +43,10 @@ The 8×8 profile (48 CLBs, 9400 bits, `0x9BEEF093`) is frozen in `release/M7_8x8
 | M9 | pack/place/route with VPR on the committed rr graph | **passed on hardware 2026-09-17** (10/10, no rebuild) |
 | M10 | FASM ⇄ chain, `.bit` v2, `./bob build/load`, `.pcf`, golden netlist + co-simulation | **passed on hardware 2026-09-17** (7/7, no rebuild) |
 | M11 | real designs live: free-running clock, real switches, RAM readback, clock rate, FIR on DSPs | **passed on hardware 2026-09-17** (12/12 on the second run, every live goal reached; the first run found stale BRAM words, fixed in `bob load`) |
-| M12 | M12a: Python PnR checked against VPR (no rebuild); M12b area/larger grid | **M12a passed on hardware 2026-09-17** (13/13 on the M7 bitstream: pnr-* ×9, live-fir-py, live-switches-py; wirelength 0.99× VPR). **M12b deferred by the user** (area/larger grid later) |
+| M12 | M12a: Python PnR checked against VPR (no rebuild); M12b area/larger grid | **M12a passed on hardware 2026-09-17** (13/13 on the M7 bitstream: pnr-* ×9, live-fir-py, live-switches-py; wirelength 0.99× VPR). **M12b built and simulated 2026-09-17** (streamed chain store, 8×6 core with 36 CLBs; Vivado build and board test together with M15) |
 | M13 | frame-based configuration (UG470-style packets and frames) next to the kept chain, with the M7 timing fixes | **passed on hardware 2026-09-17** (39/39: full regression through the chain, 5 frame checks, every guest design loaded as frames; timing closes, WNS +0.877 ns / WHS +0.030 ns, M7 was −1102 ns; 11 607 LUTs, 12 287 FFs; synthesis only built with the XDC kept to implementation) |
+| M14 | partial reconfiguration of a running design (UG470 AGHIGH … LFRM, changed frames only, state kept) | **built and simulated 2026-09-17**; Vivado build + board test together with M15 |
+| M15 | BRAM contents as frames (FAR block type 001), one CRC-covered stream for the whole design | **built and simulated 2026-09-17** (tb_frames 71, 34 frame mutants killed, whole-design yosys 15.9k LUT / 11.1k FF); **Vivado build + `make hwtest M=M15` pending** (one build for M12b, M14, M15; `docs/hwtest/M15.md`) |
 
 Hardware results are in `docs/hwtest/results.log`; Vivado reports are in `docs/reports/Mx/`; per-design guest reports in `docs/reports/M11/designs.md`.
 
@@ -177,7 +179,7 @@ What `build.tcl` guarantees (tested on the Mac with the stub): the project lives
 - **New top** → `parameter [31:0] IDCODE_VALUE` and the board ports `tck tms tdi tdo sw[1:0] btn[3:0] led[3:0]`; add it to `sim/lint.sh`.
 - **Per milestone with RTL changes:** bump `hw/build.cfg` `tag`, `idcode` version nibble and `usercode`; add `docs/hwtest/Mx.md`; register checks in `host/hwtest.py` `MILESTONE["Mx"]`; update `REUSE.md`, this file's status table and `README.md`.
 - **Per milestone without RTL changes:** same, except `build.cfg` stays tagged with the bitstream in the PL (hwtest prints a note).
-- **IDCODE map:** `0x1BEEF093` bare TAP, `0x2BEEF093` single CLB, `0x3BEEF093` 4×4 fabric (M0–M1), `0x4BEEF093` M2 cfg test top, `0x5BEEF093` M3, `0x6BEEF093` M4, `0x7BEEF093` M5, `0x8BEEF093` M6, `0x9BEEF093` M7 8×8 profile (`release/M7_8x8`), `0xABEEF093` M7 16-CLB board profile (M7–M12), `0xBBEEF093` M13 (frames); next free nibble `0xC`.
+- **IDCODE map:** `0x1BEEF093` bare TAP, `0x2BEEF093` single CLB, `0x3BEEF093` 4×4 fabric (M0–M1), `0x4BEEF093` M2 cfg test top, `0x5BEEF093` M3, `0x6BEEF093` M4, `0x7BEEF093` M5, `0x8BEEF093` M6, `0x9BEEF093` M7 8×8 profile (`release/M7_8x8`), `0xABEEF093` M7 16-CLB board profile (M7–M12), `0xBBEEF093` M13 (frames), `0xEBEEF093` M15 (one build for M12b + M14 + M15; nibbles C and D were never built alone); next free nibble `0xF`.
 - **Architecture numbers live only in `tools/bob/device.py`.** Consumers read `device.json` or `bob_params.vh`. After editing it: `make device`, or `make rrgraph` if the VPR architecture changed (sha256 stamps make stale graphs fail). Then `make vpr` if the arch sha changed (committed VPR results are stamped too).
 - **Guest designs** (`examples/*.v`): ports `clk`, `sw[1:0]`, `btn[3:0]`, `led[2:0]`, or any ports with a `.pcf`. A new example goes into `vpr_run.EXAMPLES` (or `VARIANTS` for a pin file), then `make vpr`.
 - **Committed generated data** (rr graphs, VPR results) carries a stamp of what it was built from; tools refuse stale data with the command that rebuilds it. Docker is needed only to rebuild.
@@ -799,3 +801,29 @@ User, 2026-09-17: "frame based writing just like AMD (slightly simplified) … l
   - **Rule:** never write a computed part-select over the configuration memory; decode per frame. Before a Vivado handoff, run `tools/bob/synth_estimate.sh $PWD build/est` (yosys, whole design) and compare with the last build.
 - **Not in M13:** BRAM content frames (FAR block type 001 reserved); MFWR compression, encryption, COR/CTL options, per-frame ECC, multiboot; area (M12b).
 
+
+
+### M12b: area, then a bigger grid (as built, 2026-09-17)
+
+User, 2026-09-17: "implement everything all till m15 and we will run them in vivado, also make sure the vivado doesn't crash like it did for m7 and m13".
+
+- **Measured first** (yosys per module on M13): `cfg_store` 5 106 LUT + 9 984 FF and `cfg_frames` 2 649 LUT, half of the design's 15 358 LUT / 12 220 FF. The 16-CLB fabric itself is the smaller half.
+- **`cfg_store.v` streams the chain** through one 128-bit frame buffer (CHAIN_IN writes every 128th bit's frame while GWE = 0; CHAIN_OUT reloads frames and is a 128-bit delay line afterwards). One frame read mux is shared by CHAIN_OUT and FDRO. Store + controller: 4 104 LUT / 5 469 FF. The chain's semantics now match frames: a bad CRC leaves new bits but COMMITTED = 0 and JSTART refuses.
+- **Grid** `ARCH_8X6`: 8×6 core (VPR 10×8), BRAM x=3 and DSP x=6 at height 3, 36 CLBs, 28 pads, W=24; 8320 bits = 65 frames (K=4: 6016 = 47). `make rrgraph`, `make vpr`, `make pnr` re-run (Python PnR 1 304 vs VPR 1 405 wirelength, `docs/reports/M12b/pnr_vs_vpr.md`). `examples/wide.v` packs into 31 CLBs.
+- **No-crash budget:** whole-design yosys estimate of the final (M15) RTL 15 941 LUT / 11 069 FF / 152 s / 1.36 GB against M13's 15 358 / 12 220 / 143 s / 1.04 GB; M13 built in Vivado in 3.5 min at 2.0 GB with the XDC out of synthesis and no keep_hierarchy, both kept.
+- **Tests changed:** `tb_bob`'s marker check uses a repeated marker; `cfgplane.measure_chain` likewise; stand-in board streams the chain; device sizes re-pinned; frame mutants retargeted (+3).
+
+### M14: partial reconfiguration (as built)
+
+- `cfg_frames.v`: CMD **AGHIGH** (8) → `freeze` (needs IDCODE); `clock_ctrl.v` holds gce and sets `frozen` on the same edge; a 2-flop synchroniser brings it back; STAT bit 7 **GHIGH_B** = 0 when acknowledged; FDRI allowed with GWE = 1 only then; **LFRM** releases only after CRC_OK, else WR_ERROR and stays frozen; JPROGRAM clears. STAT version 0x14.
+- Host: `packets.partial_streams`, `changed_frames`, Controller freeze model; `cfgplane.load_partial`; `bob load --partial`; `designs.d_partial` (counter + AND/OR gate differing in one LUT).
+- Verification: `tb_frames` [13]-[17], `tb_clock_gap` [4], 5 mutants; stand-in board models freeze and state-keeping partials with failing cases; hwtest `partial-swap`, `partial-live`, `partial-bad-crc`, `partial-guest`.
+- Found on the way: a freeze and frames in one scan with sysclk stopped (the testbench stops it during long scans) were correctly refused: the acknowledgement guard works, and became scenario [17]. A bad-CRC test alone could not catch "LFRM ignores the CRC" (the CRC error stops the parser first): scenario [14] sends no CRC at all.
+
+### M15: BRAM contents as frames (as built)
+
+- `cfg_frames.v`: FAR block type 1 (column = BRAM, frame n = row·128 + minor, n < 256 = addresses 4n..4n+3), FDRI (GWE = 0) hands 4 words to `bram_jtag.v`'s new sysclk sequencer; FDRO prefetches the frame FAR points at; auto-increment crosses into the next BRAM. STAT version 0x15.
+- Host: `packets.load_stream(word, brams)` (all 1024 words per used BRAM under the CRC), `bram_readback_stream`; `cfgplane.load_frames(brams)` verifies contents over FDRO; `bob load` (frames) no longer uses USER4; `--mode chain` still does.
+- Verification: `tb_frames` [18]-[19] (scans with sysclk running), 5 mutants; hwtest `frames-bram-load`, `frames-bram-live-refused`, `ram-readback-frames`.
+- Gotchas: never-written BRAM addresses read X in simulation (read back only written frames); `list.index(FAR value)` matched a configuration data word (build streams explicitly); the stand-in board's free-running clock read the real switches during INTEST and never modelled USER1 `cin`; bit packing in `packets.py` was quadratic on 70k-bit streams.
+- **Hand-off:** one Vivado build (`tag = M15`, IDCODE `0xEBEEF093`), then `make hwtest M=M15` (M13 regression + bob-wide, pnr-wide, 4 partial checks, 3 BRAM-frame checks), checklist `docs/hwtest/M15.md`.

@@ -193,6 +193,25 @@ def d_counter(mode="jtag", div=0, x=COUNTER_X, bits=4):
     return d
 
 
+def d_partial(gate="and", mode="jtag", div=0):
+    """M14 partial reconfiguration pair: a 4-bit counter up column 1 (as d_counter) and
+    one gate of the two switches at clb(4,1). gate 'and' / 'or' differ only in that
+    LUT's INIT, so a partial reload rewrites one frame and the counter keeps counting.
+    LD0 = q3, LD1 = the gate, LD2 = q2."""
+    d = Design()
+    d.set_clock(mode, div)
+    for r in range(4):
+        d.lut(1, 1 + r, LUT.buf(0), [Cell(1, 1 + r, "o")], ff_en=1, cy_en=1)
+    a, b = d.input(0), d.input(1)
+    d.output(0, Cell(1, 4, "o"))
+    d.output(1, d.lut(4, 1, {"and": LUT.and2(), "or": LUT.or2()}[gate], [a, b]))
+    d.output(2, Cell(1, 3, "o"))
+    return d
+
+
+PARTIAL_Q = [(1, 1), (1, 2), (1, 3), (1, 4)]          # counter bits 0..3
+
+
 # --- M5: BRAM ---------------------------------------------------------------------------
 
 def d_bram_rom(bram=0):

@@ -20,26 +20,28 @@ For the detailed plan, conventions, gotchas and every milestone, read [`PLAN.md`
 | M9 | VPR packs, places and routes the examples → FASM → chain | **passed on the board 2026-09-17** (10/10, no rebuild) |
 | M10 | bitgen (FASM ⇄ chain, `.bit`), `bob build`/`bob load`, `.pcf` pins, golden co-simulation | **passed on the board 2026-09-17** (7/7, no rebuild) |
 | M11 | real designs live on the board (free-running clock, real switches): switches, FIR on DSPs, RAM readback, blinky rate | **passed on the board 2026-09-17** (12/12, no rebuild) |
-| M12 | bob's own Python pack/place/route (`--pnr python`), 0.99× VPR's wirelength | **M12a passed on the board 2026-09-17** (13/13, no rebuild); M12b (area, larger grid) deferred |
+| M12 | bob's own Python pack/place/route (`--pnr python`), 0.99× VPR's wirelength; M12b smaller configuration store → 36-CLB grid | **M12a passed on the board 2026-09-17** (13/13, no rebuild); M12b built and simulated, in the M15 build |
 | M13 | frame-based configuration (UG470 packets on CFG_IN/CFG_OUT) next to the kept chain (CHAIN_IN/CHAIN_OUT), M7 timing fixed | **passed on the board 2026-09-17** (39/39, timing closes: WNS +0.877 ns) |
+| M14 | partial reconfiguration of a running design (`bob load --partial`) | built and simulated, in the M15 build |
+| M15 | BRAM contents as frames: one CRC-covered stream for the whole design | built and simulated 2026-09-17; **Vivado build + `make hwtest M=M15` pending** |
 
-After M7 the Vivado bitstream stayed the same through M11: those milestones only load new configuration chains over JTAG. M12a (Python PnR) needed no rebuild either. M13 (frames + timing fixes) is the current bitstream (IDCODE `0xBBEEF093`); M12b (area, bigger grid) is deferred.
+After M7 the Vivado bitstream stayed the same through M11: those milestones only load new configuration chains over JTAG. M12a (Python PnR) needed no rebuild either. M13 (frames + timing fixes, IDCODE `0xBBEEF093`) is on the board; the next build is M15 (IDCODE `0xEBEEF093`), carrying M12b, M14 and M15.
 
-## The M7 device (16-CLB profile)
+## The device (M12b: 36-CLB profile)
 
 | | |
 |---|---|
-| VPR grid | 8 × 6 (6 × 4 core inside an I/O ring, corners empty) |
-| CLBs | 16 (columns x = 1, 2, 4, 5; one BLE each: LUT6 O6/O5, MUXCY/XORCY carry, FDRE/FDSE) |
-| BRAM | 2 × 1024×18 true dual port (column x = 3, 2 rows tall), contents over USER4 |
-| DSP | 2 × DSP48E1-style slices (column x = 6), PCOUT→PCIN cascade |
-| I/O | 20 pads; SW0 SW1 BTN0 BTN1 on the West edge, BTN2 BTN3 South, LD0–LD2 East, LD3 = DONE |
-| Routing | L4 unidirectional, W = 24, Wilton Fs = 3 (from OpenFPGA's k6_frac_N10 tileable arch); 1095 muxes |
-| Configuration | 4216-bit chain, CRC-32C + length guard, GSR → GTS → GWE → DONE startup |
-| JTAG | 6-bit AMD 7-series IR, IDCODE `0xABEEF093` |
-| Host utilisation (yosys estimate) | ~11.4k LUTs, ~10.3k FFs, 2 RAMB18, 2 DSP48E1 |
+| VPR grid | 10 × 8 (8 × 6 core inside an I/O ring, corners empty); M7–M13 had 8 × 6 with 16 CLBs |
+| CLBs | 36 (columns x = 1, 2, 4, 5, 7, 8; one BLE each: LUT6 O6/O5, MUXCY/XORCY carry, FDRE/FDSE) |
+| BRAM | 2 × 1024×18 true dual port (column x = 3, 3 rows tall); contents as frames (FAR type 001) or over USER4 |
+| DSP | 2 × DSP48E1-style slices (column x = 6, 3 rows tall), PCOUT→PCIN cascade |
+| I/O | 28 pads; board switches, buttons and LEDs on fixed pads, LD3 = DONE |
+| Routing | L4 unidirectional, W = 24, Wilton Fs = 3 (from OpenFPGA's k6_frac_N10 tileable arch); 1723 muxes |
+| Configuration | 8320 bits = 65 frames of 4 × 32; UG470-style packets on CFG_IN/CFG_OUT (CRC-32C, IDCODE, partial reconfiguration, BRAM content frames) or the streamed chain on CHAIN_IN/CHAIN_OUT; GSR → GTS → GWE → DONE startup |
+| JTAG | 6-bit AMD 7-series IR, IDCODE `0xEBEEF093` (M15) |
+| Host utilisation (yosys estimate, M15) | ~15.9k LUTs, ~11.1k FFs, 2 RAMB18, 2 DSP48E1 |
 
-A 48-CLB profile (8 × 8 core, 9400-bit chain, IDCODE `0x9BEEF093`) is fully built and simulated but was too slow to synthesise on the build machine. It is frozen complete in [`release/M7_8x8/`](release/M7_8x8/) to build later on a faster machine. Changing the grid is one setting (`ARCH` in `tools/bob/device.py`) followed by `make rrgraph`.
+A 48-CLB M7 profile (8 × 8 core, 9400-bit chain, IDCODE `0x9BEEF093`) is frozen in [`release/M7_8x8/`](release/M7_8x8/); it was synthesised with the XDC loop breaking that later crashed Vivado. M12b's 36-CLB profile costs no more logic than M13 thanks to the smaller configuration store. Changing the grid is one setting (`ARCH` in `tools/bob/device.py`) followed by `make rrgraph`.
 
 ## Build and test it (every milestone)
 

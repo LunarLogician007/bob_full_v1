@@ -2,7 +2,7 @@
 
 **Read `PLAN.md` first.** It has the status table, folder structure, commands, conventions, gotchas and every milestone in detail. `arch.html` is the interactive picture of the fabric and the guest flow.
 
-Where it stands: M0–M13 passed on the PYNQ-Z2 (git tags `m7`…`m13`). The board runs the M13 bitstream (IDCODE `0xBBEEF093`, 39 frames = 4992 bits); M8–M12 needed no rebuild. M12a (Python PnR, `./bob build --pnr python`) passed (tag `m12`); M12b (area/larger grid) is deferred by the user. M13 (frames on CFG_IN/CFG_OUT, the chain kept on private CHAIN_IN/CHAIN_OUT, timing fixes) passed (39/39, timing closes). Vivado synthesis must run without the XDC (`build.tcl`): with clocks it crashed in timing-loop breaking.
+Where it stands: M0–M13 passed on the PYNQ-Z2 (git tags `m7`…`m13`); the board runs the M13 bitstream (IDCODE `0xBBEEF093`). M12b (streamed chain store → 8×6 core, 36 CLBs), M14 (partial reconfiguration, `bob load --partial`) and M15 (BRAM contents as frames) are built and simulated and go to Vivado as ONE build (`tag = M15`, IDCODE `0xEBEEF093`), then `make hwtest M=M15` (`docs/hwtest/M15.md`). Vivado synthesis must run without the XDC (`build.tcl`) and with no `keep_hierarchy`: both crashed it in timing-loop breaking. Before a hand-off compare `tools/bob/synth_estimate.sh $PWD $PWD/build/est` with the last build.
 
 The short version:
 - This is an FPGA fabric ("bob") running inside a PYNQ-Z2 (XC7Z020), configured over JTAG from a Pico (DirtyJTAG). `/Users/sk/work/bob/` is the frozen original; work only here.
@@ -10,7 +10,7 @@ The short version:
 - **Every milestone ends with a hardware test** on the PYNQ-Z2: `make hwtest M=Mx` (interactive; `ONLY=check` reruns one), with a checklist in `docs/hwtest/Mx.md`. Anything the user does by hand needs a guide: what to press and what the LEDs must show, and time to do it.
 - **Every Vivado build is the complete FPGA plus the new feature**, never a standalone block. The hardware test runs the full regression plus the new checks.
 - Base designs on AMD UG470/473/474/479 and OpenFPGA/VPR, and say so where you diverge. Reuse existing verified code.
-- Configuration has **two paths** from M13: UG470-style frames (default, `bob load`) and the scan chain (`--mode chain`); keep both working.
+- Configuration has **two paths** from M13: UG470-style frames (default, `bob load`; partial reconfiguration `--partial` from M14; BRAM contents as frames from M15) and the scan chain (`--mode chain`, BRAM contents over USER4); keep both working.
 - Vivado runs on the user's Windows machine. Everything it needs lives in `hw/`. The user replaces `E:\bob_full_v1\hw` and runs `build.tcl`, which reuses the project in `E:\bob_full_v1\bob_vivado` (never delete it).
 - New RTL goes into `hw/sources.f`. Architecture numbers live only in `tools/bob/device.py` (`make device`; `make rrgraph` for VPR arch changes, then `make vpr`). The XDC must be plain XDC with no Tcl.
 - Guest flow: `./bob build design.v` → `./bob load x.bit`. VPR results and rr graphs are committed with stamps; Docker (Colima) is only needed to rebuild them (`make rrgraph`, `make vpr`).
