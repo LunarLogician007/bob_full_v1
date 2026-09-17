@@ -2,7 +2,7 @@
 
 **Read `PLAN.md` first.** It has the status table, folder structure, commands, conventions, gotchas and every milestone in detail. `arch.html` is the interactive picture of the fabric and the guest flow.
 
-Where it stands: M0–M11 passed on the PYNQ-Z2 (git tags `m7`…`m11`). The board runs the M7 16-CLB bitstream (IDCODE `0xABEEF093`, 4216-bit chain); M8–M11 needed no rebuild. M12a (Python PnR, `./bob build --pnr python`) passed (tag `m12`); M12b (area/larger grid) is deferred by the user. M13 (frames on CFG_IN/CFG_OUT, the chain kept on private CHAIN_IN/CHAIN_OUT, timing fixes) is built and simulated and needs the Vivado rebuild + `make hwtest M=M13`.
+Where it stands: M0–M13 passed on the PYNQ-Z2 (git tags `m7`…`m13`). The board runs the M13 bitstream (IDCODE `0xBBEEF093`, 39 frames = 4992 bits); M8–M12 needed no rebuild. M12a (Python PnR, `./bob build --pnr python`) passed (tag `m12`); M12b (area/larger grid) is deferred by the user. M13 (frames on CFG_IN/CFG_OUT, the chain kept on private CHAIN_IN/CHAIN_OUT, timing fixes) passed (39/39, timing closes). Vivado synthesis must run without the XDC (`build.tcl`): with clocks it crashed in timing-loop breaking.
 
 The short version:
 - This is an FPGA fabric ("bob") running inside a PYNQ-Z2 (XC7Z020), configured over JTAG from a Pico (DirtyJTAG). `/Users/sk/work/bob/` is the frozen original; work only here.

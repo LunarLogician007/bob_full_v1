@@ -21,9 +21,9 @@ For the detailed plan, conventions, gotchas and every milestone, read [`PLAN.md`
 | M10 | bitgen (FASM ⇄ chain, `.bit`), `bob build`/`bob load`, `.pcf` pins, golden co-simulation | **passed on the board 2026-09-17** (7/7, no rebuild) |
 | M11 | real designs live on the board (free-running clock, real switches): switches, FIR on DSPs, RAM readback, blinky rate | **passed on the board 2026-09-17** (12/12, no rebuild) |
 | M12 | bob's own Python pack/place/route (`--pnr python`), 0.99× VPR's wirelength | **M12a passed on the board 2026-09-17** (13/13, no rebuild); M12b (area, larger grid) deferred |
-| M13 | frame-based configuration (UG470 packets on CFG_IN/CFG_OUT) next to the kept chain (CHAIN_IN/CHAIN_OUT), M7 timing fixed | built and simulated 2026-09-17; **Vivado rebuild** + board test pending |
+| M13 | frame-based configuration (UG470 packets on CFG_IN/CFG_OUT) next to the kept chain (CHAIN_IN/CHAIN_OUT), M7 timing fixed | **passed on the board 2026-09-17** (39/39, timing closes: WNS +0.877 ns) |
 
-After M7 the Vivado bitstream stayed the same through M11: those milestones only load new configuration chains over JTAG. M12a (Python PnR) needed no rebuild either. M13 (frames + timing fixes) is the next Vivado build; M12b (area, bigger grid) is deferred.
+After M7 the Vivado bitstream stayed the same through M11: those milestones only load new configuration chains over JTAG. M12a (Python PnR) needed no rebuild either. M13 (frames + timing fixes) is the current bitstream (IDCODE `0xBBEEF093`); M12b (area, bigger grid) is deferred.
 
 ## The M7 device (16-CLB profile)
 

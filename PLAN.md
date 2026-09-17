@@ -44,7 +44,7 @@ The 8×8 profile (48 CLBs, 9400 bits, `0x9BEEF093`) is frozen in `release/M7_8x8
 | M10 | FASM ⇄ chain, `.bit` v2, `./bob build/load`, `.pcf`, golden netlist + co-simulation | **passed on hardware 2026-09-17** (7/7, no rebuild) |
 | M11 | real designs live: free-running clock, real switches, RAM readback, clock rate, FIR on DSPs | **passed on hardware 2026-09-17** (12/12 on the second run, every live goal reached; the first run found stale BRAM words, fixed in `bob load`) |
 | M12 | M12a: Python PnR checked against VPR (no rebuild); M12b area/larger grid | **M12a passed on hardware 2026-09-17** (13/13 on the M7 bitstream: pnr-* ×9, live-fir-py, live-switches-py; wirelength 0.99× VPR). **M12b deferred by the user** (area/larger grid later) |
-| M13 | frame-based configuration (UG470-style packets and frames) next to the kept chain, with the M7 timing fixes | **built and simulated 2026-09-17, Vivado build + hardware test pending** (`tb_frames` 34, `tb_clock_gap` 5, all earlier sims pass, 16 frame mutants killed; `make hwtest M=M13`) |
+| M13 | frame-based configuration (UG470-style packets and frames) next to the kept chain, with the M7 timing fixes | **passed on hardware 2026-09-17** (39/39: full regression through the chain, 5 frame checks, every guest design loaded as frames; timing closes, WNS +0.877 ns / WHS +0.030 ns, M7 was −1102 ns; 11 607 LUTs, 12 287 FFs; synthesis only built with the XDC kept to implementation) |
 
 Hardware results are in `docs/hwtest/results.log`; Vivado reports are in `docs/reports/Mx/`; per-design guest reports in `docs/reports/M11/designs.md`.
 
