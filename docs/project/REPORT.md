@@ -1,6 +1,6 @@
 # bob: an FPGA inside an FPGA
 
-**Project report, M0–M15** · 2026-09-17 · `bob_full_v1`
+**Project report, M0–M15** · 2026-09-17 · `bob_full_v1` · **every milestone passed on the PYNQ-Z2**
 
 Interactive companion: [`project.html`](../../project.html) (timeline, architecture, configuration streams, verification and hardware data, problems and fixes). The per-block die slice is [`arch.html`](../../arch.html). The specification is [`docs/bitstream-format.md`](../bitstream-format.md), and the working plan with every milestone's as-built notes is [`PLAN.md`](../../PLAN.md). The numbers in this report come from [`docs/project/data.json`](data.json), which `docs/project/collect.py` builds from the repository (board log, Vivado reports, device description, VPR stamps, check logs).
 
@@ -48,12 +48,11 @@ A user design goes from Verilog to LEDs with two commands, `./bob build design.v
 
 | | |
 |---|---|
-| Guest device (current RTL, M12b) | 36 CLBs (LUT6 + carry + FF), 2 × 1024×18 BRAM, 2 DSP48E1-style slices, 28 pads, L4 routing W = 24, 1723 routing muxes |
+| Guest device (on the board, M15) | 36 CLBs (LUT6 + carry + FF), 2 × 1024×18 BRAM, 2 DSP48E1-style slices, 28 pads, L4 routing W = 24, 1723 routing muxes |
 | Configuration memory | 8320 bits = 65 frames × 4 × 32-bit words |
 | Configuration paths | UG470-style packets (CFG_IN/CFG_OUT: CRC, IDCODE, FAR/FDRI/FDRO, STAT, **partial reconfiguration**, **BRAM content frames**), and a streamed scan chain (CHAIN_IN/CHAIN_OUT + CRC) |
-| On the board now | M13 bitstream (16 CLBs, frames, timing closed: WNS +0.877 ns) |
-| Next build | M15 (M12b + M14 + M15 in one build), `make hwtest M=M15` |
-| Hardware test runs logged | 56 runs; M0–M13 all ended in a full pass (M13: 39/39) |
+| On the board | M15 bitstream (36 CLBs, frames, partial reconfiguration, BRAM content frames): **48/48**, WNS +0.585 ns, 10 411 LUT / 11 097 FF |
+| Hardware test runs logged | 57 runs; every milestone M0–M15 ended in a full pass (M15: 48/48) |
 | Simulation (last `make check`) | 28 744 testbench checks in 11 testbenches + 183 pytest tests; 59 mutants, all killed |
 | Code (hand-written) | Python 13.5k lines, Verilog/SV 6.7k, Tcl 0.9k, shell 0.6k, docs 3.2k + generated fabric (2.3k lines of Verilog from VPR's routing graph) |
 
@@ -64,7 +63,7 @@ The main results:
 4. **AMD 7-series-style frame configuration** (M13): sync word, type-1/2 packets, CRC-32C over `{register, data}`, FAR auto-increment, readback. The chain is kept beside it. M7's −1102 ns timing failure was analysed and closed.
 5. **Partial reconfiguration of a running design** (M14). AGHIGH freezes the user clock, only the changed frames are written, and LFRM releases after the CRC matches. Every register keeps its state.
 6. **BRAM contents inside the configuration stream** (M15), under the same CRC.
-7. **The 16 → 36 CLB grid** (M12b) was paid for by streaming the chain through one frame buffer instead of a full-width shift register. The whole design stays at M13's size.
+7. **The 16 → 36 CLB grid** (M12b) was paid for by streaming the chain through one frame buffer instead of a full-width shift register. On Vivado the whole design is even smaller than M13 (10 411 vs 11 607 LUTs).
 
 ---
 
@@ -121,7 +120,7 @@ Later requests added:
                               └──────────────────────────────────────────────────────────────────┘
 ```
 
-- **Host flow.** bob's RTL goes through Vivado to an AMD bitstream for the XC7Z020. Once it is programmed, the PL *is* bob. It is rebuilt only when bob's hardware changes: M0–M7, M13, and next M15.
+- **Host flow.** bob's RTL goes through Vivado to an AMD bitstream for the XC7Z020. Once it is programmed, the PL *is* bob. It is rebuilt only when bob's hardware changes: M0–M7, M13 and M15.
 - **Guest flow.** A user design goes through bob's tools to a bob `.bit`, loaded over JTAG into the running fabric. No Vivado and no rebuild; M8–M12a used the M7 bitstream unchanged.
 - **Wiring.** The Pico runs DirtyJTAG and connects to PMODA (TCK, TMS, TDI, TDO, GND). `host/dirtyjtag.py` drives it and refuses TCK above 100 kHz from M13.
 
@@ -147,9 +146,9 @@ M0–M6 were built on 2026-09-14 and M7–M15 on 2026-09-16/17.
 | M11 | Real designs live: free-running clock, real switches, RAM readback, clock-rate check, FIR on both DSPs | 12/12 on the 5th run (stale BRAM words and too-short live checks fixed; one USB disconnect) | M7 |
 | M12a | bob's own pack (VPR patterns), annealing placer, PathFinder router; compared with VPR | 15/15, wirelength 0.99× VPR (16-CLB grid) | M7 |
 | M13 | UG470-style frames on CFG_IN/CFG_OUT, chain moved to CHAIN_IN/CHAIN_OUT; M7 timing analysed and fixed; four Vivado synthesis crashes diagnosed | **39/39**; 11 607 LUT / 12 287 FF; **WNS +0.877 ns**, WHS +0.030 ns | `0xBBEEF093` |
-| M12b | Chain streamed through one frame buffer (−3.6k LUT, −4.8k FF); 8×6 core, 36 CLBs; `wide` example (31 CLBs) | built and simulated; in the M15 build | (C) |
-| M14 | Partial reconfiguration: AGHIGH/GHIGH_B freeze, changed frames only, LFRM after CRC; `bob load --partial` | built and simulated; in the M15 build | (D) |
-| M15 | BRAM contents as FAR block type 001 frames, one CRC-covered stream | built and simulated; **Vivado build + `make hwtest M=M15` pending** | `0xEBEEF093` |
+| M12b | Chain streamed through one frame buffer (−3.6k LUT, −4.8k FF); 8×6 core, 36 CLBs; `wide` example (31 CLBs) | **48/48 in the M15 build**: bob-wide, pnr-wide (31 CLBs) | (C, in M15) |
+| M14 | Partial reconfiguration: AGHIGH/GHIGH_B freeze, changed frames only, LFRM after CRC; `bob load --partial` | **48/48 in the M15 build**: partial-swap, partial-live, partial-bad-crc, partial-guest | (D, in M15) |
+| M15 | BRAM contents as FAR block type 001 frames, one CRC-covered stream | **48/48**: frames-bram-load, frames-bram-live-refused, ram-readback-frames + full regression; 10 411 LUT / 11 097 FF / 2 RAMB18 / 2 DSP48E1; **WNS +0.585 ns**, WHS +0.065 ns; synthesis 5.1 min at 2.0 GB | `0xEBEEF093` |
 
 ---
 
@@ -550,7 +549,7 @@ Every mutant is killed. Two guards survived their first mutation run and got new
 
 ### 16.1 Board runs
 
-`docs/hwtest/results.log` holds **56 runs** (466 passing check results); 19 runs passed completely and 37 had a failure. Every milestone M0–M13 ended with its checks passing on the board (M5's through the M6 run). The failing runs, in order:
+`docs/hwtest/results.log` holds **57 runs** (514 passing check results); 20 runs passed completely and 37 had a failure. Every milestone M0–M15 ended with its checks passing on the board (M5's through the M6 run; M12b, M14 and M15 in the one M15 run, 48/48, first try). The failing runs, in order:
 
 | when | what failed | cause | fix |
 |---|---|---|---|
@@ -570,7 +569,7 @@ Every mutant is killed. Two guards survived their first mutation run and got new
 | M4 | fpga4x4_top | 4 187 | 6 510 | 0 | 0 | +0.843 | +0.055 | 0 |
 | M7 | bob_top (16 CLB) | 7 670 | 10 362 | 2 | 2 | **−1102.283** | +0.031 | 1858 |
 | M13 | bob_top (16 CLB, frames) | 11 607 | 12 287 | 2 | 2 | **+0.877** | +0.030 | 0 |
-| M15 | bob_top (36 CLB) | *pending* | | | | | | |
+| M15 | bob_top (36 CLB, partial, BRAM frames) | 10 411 | 11 097 | 2 | 2 | **+0.585** | +0.065 | 0 |
 
 M5 and M6 reports were not copied into `docs/reports`. Their board tests passed, and `tests/test_reports.py` required RAMB18/DSP48E1 from them on.
 
@@ -782,9 +781,7 @@ python3 docs/project/collect.py && python3 docs/project/build.py   # this report
 
 ## 23. Open items and what comes next
 
-**Pending now:**
-- The **M15 Vivado build** (M12b + M14 + M15) and `make hwtest M=M15`.
-- Then: tag `m12b`/`m14`/`m15`, copy `out/M15` into `docs/reports/M15`, and add the utilisation and timing row to §16.2.
+**Done:** every milestone M0–M15 passed on the PYNQ-Z2; tags `m7`…`m15`.
 
 **Known limits:**
 - **Timing-driven PnR:** VPR's timing uses the reference 40 nm delays, not the emulated fabric.
@@ -799,7 +796,7 @@ python3 docs/project/collect.py && python3 docs/project/build.py   # this report
 2. **Region-protected partial bitstreams:** `bob build --partial --region` with PnR constrained to a column range, and host checks that a partial touches only its region.
 3. **ZUMA-style LUTRAM routing memory:** a larger area step for a bigger grid.
 4. **Timing-driven placement** in bob's PnR with a delay model of the emulated fabric.
-5. **A larger board device** once the M15 build shows its real utilisation (22% LUTs at M13).
+5. **A larger board device:** M15 uses 19.6% of the LUTs and 10.4% of the registers with 36 CLBs, synthesising in 5 minutes; a 64-CLB grid looks affordable.
 
 ---
 

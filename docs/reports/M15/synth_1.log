@@ -1,0 +1,726 @@
+
+*** Running vivado
+    with args -log bob_top.vds -m64 -product Vivado -mode batch -messageDb vivado.pb -notrace -source bob_top.tcl
+
+
+
+****** Vivado v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Thu Sep 17 22:39:25 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source bob_top.tcl -notrace
+create_project: Time (s): cpu = 00:00:12 ; elapsed = 00:00:09 . Memory (MB): peak = 629.102 ; gain = 208.586
+Command: read_checkpoint -auto_incremental -incremental E:/bob_full_v1/bob_vivado/bob.srcs/utils_1/imports/synth_1/fpga4x4_top.dcp
+INFO: [Vivado 12-5825] Read reference checkpoint from E:/bob_full_v1/bob_vivado/bob.srcs/utils_1/imports/synth_1/fpga4x4_top.dcp for incremental synthesis
+INFO: [Vivado 12-7989] Please ensure there are no constraint changes
+Command: synth_design -top bob_top -part xc7z020clg400-1 -directive RuntimeOptimized
+Starting synth_design
+Attempting to get a license for feature 'Synthesis' and/or device 'xc7z020'
+INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xc7z020'
+INFO: [Designutils 20-5440] No compile time benefit to using incremental synthesis; A full resynthesis will be run
+INFO: [Designutils 20-4379] Flow is switching to default flow due to incremental criteria not met. If you would like to alter this behaviour and have the flow terminate instead, please set the following parameter config_implementation {autoIncr.Synth.RejectBehavior Terminate}
+INFO: [Synth 8-7079] Multithreading enabled for synth_design using a maximum of 2 processes.
+INFO: [Synth 8-7078] Launching helper process for spawning children vivado processes
+INFO: [Synth 8-7075] Helper process launched with PID 4896
+---------------------------------------------------------------------------------
+Starting Synthesize : Time (s): cpu = 00:00:09 ; elapsed = 00:00:10 . Memory (MB): peak = 1179.863 ; gain = 533.395
+---------------------------------------------------------------------------------
+INFO: [Synth 8-6157] synthesizing module 'bob_top' [E:/bob_full_v1/hw/src/top/bob_top.v:15]
+	Parameter IDCODE_VALUE bound to: 32'b11101011111011101111000010010011 
+	Parameter USERCODE_VALUE bound to: 32'b00000000000000000000000000001111 
+INFO: [Synth 8-6157] synthesizing module 'BUFG' [E:/amd/2025.2/Vivado/scripts/rt/data/unisim_comp.v:2678]
+INFO: [Synth 8-6155] done synthesizing module 'BUFG' (0#1) [E:/amd/2025.2/Vivado/scripts/rt/data/unisim_comp.v:2678]
+INFO: [Synth 8-6157] synthesizing module 'bob_fpga' [E:/bob_full_v1/hw/src/fabric/bob_fpga.v:34]
+	Parameter IDCODE_VALUE bound to: 32'b11101011111011101111000010010011 
+	Parameter USERCODE_VALUE bound to: 32'b00000000000000000000000000001111 
+INFO: [Synth 8-6157] synthesizing module 'bsc_cell' [E:/bob_full_v1/hw/src/core/bsc_cell.v:76]
+INFO: [Synth 8-6155] done synthesizing module 'bsc_cell' (0#1) [E:/bob_full_v1/hw/src/core/bsc_cell.v:76]
+INFO: [Synth 8-6157] synthesizing module 'jtag_tap6' [E:/bob_full_v1/hw/src/core/jtag_tap6.v:33]
+	Parameter IDCODE_VALUE bound to: 32'b11101011111011101111000010010011 
+	Parameter USERCODE_VALUE bound to: 32'b00000000000000000000000000001111 
+	Parameter STATUS_W bound to: 16 - type: integer 
+	Parameter BSR_PRESENT bound to: 1 - type: integer 
+INFO: [Synth 8-226] default block is never used [E:/bob_full_v1/hw/src/core/jtag_tap6.v:167]
+INFO: [Synth 8-6155] done synthesizing module 'jtag_tap6' (0#1) [E:/bob_full_v1/hw/src/core/jtag_tap6.v:33]
+INFO: [Synth 8-6157] synthesizing module 'cfg_ctrl' [E:/bob_full_v1/hw/src/core/cfg_ctrl.v:24]
+	Parameter CHAIN_W bound to: 8320 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'cfg_ctrl' (0#1) [E:/bob_full_v1/hw/src/core/cfg_ctrl.v:24]
+INFO: [Synth 8-6157] synthesizing module 'cfg_frames' [E:/bob_full_v1/hw/src/core/cfg_frames.v:41]
+	Parameter IDCODE_VALUE bound to: 32'b11101011111011101111000010010011 
+	Parameter FW bound to: 4 - type: integer 
+	Parameter NFRAMES bound to: 65 - type: integer 
+	Parameter NCOLS bound to: 11 - type: integer 
+	Parameter FAR_TABLE bound to: 176'b00000001010000000000100000111000000010000011000000001000001010000000100000100000000010000001100000000101000100110000100000001011000010000000001100000010000000010000000100000000 
+	Parameter FIDX_W bound to: 8 - type: integer 
+	Parameter NBRAM bound to: 2 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'cfg_frames' (0#1) [E:/bob_full_v1/hw/src/core/cfg_frames.v:41]
+INFO: [Synth 8-6157] synthesizing module 'cfg_store' [E:/bob_full_v1/hw/src/core/cfg_store.v:38]
+	Parameter FB bound to: 128 - type: integer 
+	Parameter NFRAMES bound to: 65 - type: integer 
+	Parameter FIDX_W bound to: 8 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'cfg_store' (0#1) [E:/bob_full_v1/hw/src/core/cfg_store.v:38]
+INFO: [Synth 8-6157] synthesizing module 'capture_chain' [E:/bob_full_v1/hw/src/core/capture_chain.v:12]
+	Parameter N bound to: 36 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'capture_chain' (0#1) [E:/bob_full_v1/hw/src/core/capture_chain.v:12]
+INFO: [Synth 8-6157] synthesizing module 'clock_ctrl' [E:/bob_full_v1/hw/src/core/clock_ctrl.v:33]
+	Parameter DIV_W bound to: 5 - type: integer 
+	Parameter MIN_SHIFT bound to: 8 - type: integer 
+	Parameter GAP_SHIFT bound to: 8 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'clock_ctrl' (0#1) [E:/bob_full_v1/hw/src/core/clock_ctrl.v:33]
+INFO: [Synth 8-6157] synthesizing module 'bram_jtag' [E:/bob_full_v1/hw/src/tiles/bram_jtag.v:43]
+	Parameter ADDR_W bound to: 10 - type: integer 
+	Parameter DATA_W bound to: 18 - type: integer 
+	Parameter NPIN bound to: 64 - type: integer 
+	Parameter NBRAM bound to: 2 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'bram_jtag' (0#1) [E:/bob_full_v1/hw/src/tiles/bram_jtag.v:43]
+INFO: [Synth 8-6157] synthesizing module 'dsp_jtag' [E:/bob_full_v1/hw/src/tiles/dsp_jtag.v:18]
+	Parameter NDSP bound to: 2 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'dsp_jtag' (0#1) [E:/bob_full_v1/hw/src/tiles/dsp_jtag.v:18]
+INFO: [Synth 8-6157] synthesizing module 'bob_fabric' [E:/bob_full_v1/hw/src/generated/bob_fabric.v:14]
+INFO: [Synth 8-6157] synthesizing module 'bob_mux' [E:/bob_full_v1/hw/src/fabric/bob_mux.v:17]
+	Parameter N bound to: 4 - type: integer 
+	Parameter W bound to: 3 - type: integer 
+	Parameter C1 bound to: 1 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'bob_mux' (0#1) [E:/bob_full_v1/hw/src/fabric/bob_mux.v:17]
+INFO: [Synth 8-6157] synthesizing module 'bob_mux__parameterized0' [E:/bob_full_v1/hw/src/fabric/bob_mux.v:17]
+	Parameter N bound to: 2 - type: integer 
+	Parameter W bound to: 2 - type: integer 
+	Parameter C1 bound to: 1 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'bob_mux__parameterized0' (0#1) [E:/bob_full_v1/hw/src/fabric/bob_mux.v:17]
+INFO: [Synth 8-6157] synthesizing module 'bob_mux__parameterized1' [E:/bob_full_v1/hw/src/fabric/bob_mux.v:17]
+	Parameter N bound to: 2 - type: integer 
+	Parameter W bound to: 2 - type: integer 
+	Parameter C1 bound to: 0 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'bob_mux__parameterized1' (0#1) [E:/bob_full_v1/hw/src/fabric/bob_mux.v:17]
+INFO: [Synth 8-6157] synthesizing module 'bob_mux__parameterized2' [E:/bob_full_v1/hw/src/fabric/bob_mux.v:17]
+	Parameter N bound to: 8 - type: integer 
+	Parameter W bound to: 4 - type: integer 
+	Parameter C1 bound to: 0 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'bob_mux__parameterized2' (0#1) [E:/bob_full_v1/hw/src/fabric/bob_mux.v:17]
+INFO: [Synth 8-6157] synthesizing module 'bob_mux__parameterized3' [E:/bob_full_v1/hw/src/fabric/bob_mux.v:17]
+	Parameter N bound to: 1 - type: integer 
+	Parameter W bound to: 1 - type: integer 
+	Parameter C1 bound to: 0 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'bob_mux__parameterized3' (0#1) [E:/bob_full_v1/hw/src/fabric/bob_mux.v:17]
+INFO: [Synth 8-6157] synthesizing module 'bob_mux__parameterized4' [E:/bob_full_v1/hw/src/fabric/bob_mux.v:17]
+	Parameter N bound to: 9 - type: integer 
+	Parameter W bound to: 4 - type: integer 
+	Parameter C1 bound to: 0 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'bob_mux__parameterized4' (0#1) [E:/bob_full_v1/hw/src/fabric/bob_mux.v:17]
+INFO: [Synth 8-6157] synthesizing module 'bob_mux__parameterized5' [E:/bob_full_v1/hw/src/fabric/bob_mux.v:17]
+	Parameter N bound to: 7 - type: integer 
+	Parameter W bound to: 3 - type: integer 
+	Parameter C1 bound to: 0 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'bob_mux__parameterized5' (0#1) [E:/bob_full_v1/hw/src/fabric/bob_mux.v:17]
+INFO: [Synth 8-6157] synthesizing module 'bob_mux__parameterized6' [E:/bob_full_v1/hw/src/fabric/bob_mux.v:17]
+	Parameter N bound to: 10 - type: integer 
+	Parameter W bound to: 4 - type: integer 
+	Parameter C1 bound to: 0 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'bob_mux__parameterized6' (0#1) [E:/bob_full_v1/hw/src/fabric/bob_mux.v:17]
+INFO: [Synth 8-6157] synthesizing module 'bob_mux__parameterized7' [E:/bob_full_v1/hw/src/fabric/bob_mux.v:17]
+	Parameter N bound to: 12 - type: integer 
+	Parameter W bound to: 4 - type: integer 
+	Parameter C1 bound to: 0 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'bob_mux__parameterized7' (0#1) [E:/bob_full_v1/hw/src/fabric/bob_mux.v:17]
+INFO: [Synth 8-6157] synthesizing module 'bob_mux__parameterized8' [E:/bob_full_v1/hw/src/fabric/bob_mux.v:17]
+	Parameter N bound to: 3 - type: integer 
+	Parameter W bound to: 2 - type: integer 
+	Parameter C1 bound to: 0 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'bob_mux__parameterized8' (0#1) [E:/bob_full_v1/hw/src/fabric/bob_mux.v:17]
+INFO: [Synth 8-6157] synthesizing module 'bob_mux__parameterized9' [E:/bob_full_v1/hw/src/fabric/bob_mux.v:17]
+	Parameter N bound to: 11 - type: integer 
+	Parameter W bound to: 4 - type: integer 
+	Parameter C1 bound to: 0 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'bob_mux__parameterized9' (0#1) [E:/bob_full_v1/hw/src/fabric/bob_mux.v:17]
+INFO: [Synth 8-6157] synthesizing module 'bob_mux__parameterized10' [E:/bob_full_v1/hw/src/fabric/bob_mux.v:17]
+	Parameter N bound to: 14 - type: integer 
+	Parameter W bound to: 4 - type: integer 
+	Parameter C1 bound to: 0 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'bob_mux__parameterized10' (0#1) [E:/bob_full_v1/hw/src/fabric/bob_mux.v:17]
+INFO: [Synth 8-6157] synthesizing module 'bob_mux__parameterized11' [E:/bob_full_v1/hw/src/fabric/bob_mux.v:17]
+	Parameter N bound to: 13 - type: integer 
+	Parameter W bound to: 4 - type: integer 
+	Parameter C1 bound to: 0 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'bob_mux__parameterized11' (0#1) [E:/bob_full_v1/hw/src/fabric/bob_mux.v:17]
+INFO: [Synth 8-6157] synthesizing module 'bob_mux__parameterized12' [E:/bob_full_v1/hw/src/fabric/bob_mux.v:17]
+	Parameter N bound to: 15 - type: integer 
+	Parameter W bound to: 4 - type: integer 
+	Parameter C1 bound to: 0 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'bob_mux__parameterized12' (0#1) [E:/bob_full_v1/hw/src/fabric/bob_mux.v:17]
+INFO: [Synth 8-6157] synthesizing module 'bob_mux__parameterized13' [E:/bob_full_v1/hw/src/fabric/bob_mux.v:17]
+	Parameter N bound to: 5 - type: integer 
+	Parameter W bound to: 3 - type: integer 
+	Parameter C1 bound to: 0 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'bob_mux__parameterized13' (0#1) [E:/bob_full_v1/hw/src/fabric/bob_mux.v:17]
+INFO: [Synth 8-6157] synthesizing module 'bob_mux__parameterized14' [E:/bob_full_v1/hw/src/fabric/bob_mux.v:17]
+	Parameter N bound to: 4 - type: integer 
+	Parameter W bound to: 3 - type: integer 
+	Parameter C1 bound to: 0 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'bob_mux__parameterized14' (0#1) [E:/bob_full_v1/hw/src/fabric/bob_mux.v:17]
+INFO: [Synth 8-6157] synthesizing module 'clb' [E:/bob_full_v1/hw/src/clb/clb.sv:21]
+INFO: [Synth 8-6157] synthesizing module 'lutk' [E:/bob_full_v1/hw/src/clb/lutk.sv:20]
+	Parameter K bound to: 6 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'lutk' (0#1) [E:/bob_full_v1/hw/src/clb/lutk.sv:20]
+INFO: [Synth 8-6155] done synthesizing module 'clb' (0#1) [E:/bob_full_v1/hw/src/clb/clb.sv:21]
+INFO: [Synth 8-6157] synthesizing module 'bram_block' [E:/bob_full_v1/hw/src/tiles/bram_block.v:23]
+INFO: [Synth 8-6157] synthesizing module 'bram_core' [E:/bob_full_v1/hw/src/tiles/bram_core.v:33]
+	Parameter ADDR_W bound to: 10 - type: integer 
+	Parameter DATA_W bound to: 18 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'bram_core' (0#1) [E:/bob_full_v1/hw/src/tiles/bram_core.v:33]
+INFO: [Synth 8-6155] done synthesizing module 'bram_block' (0#1) [E:/bob_full_v1/hw/src/tiles/bram_block.v:23]
+INFO: [Synth 8-6157] synthesizing module 'dsp_block' [E:/bob_full_v1/hw/src/tiles/dsp_block.v:24]
+INFO: [Synth 8-6157] synthesizing module 'dsp_core' [E:/bob_full_v1/hw/src/tiles/dsp_core.v:30]
+INFO: [Synth 8-6155] done synthesizing module 'dsp_core' (0#1) [E:/bob_full_v1/hw/src/tiles/dsp_core.v:30]
+INFO: [Synth 8-6155] done synthesizing module 'dsp_block' (0#1) [E:/bob_full_v1/hw/src/tiles/dsp_block.v:24]
+INFO: [Synth 8-6155] done synthesizing module 'bob_fabric' (0#1) [E:/bob_full_v1/hw/src/generated/bob_fabric.v:14]
+INFO: [Synth 8-6155] done synthesizing module 'bob_fpga' (0#1) [E:/bob_full_v1/hw/src/fabric/bob_fpga.v:34]
+INFO: [Synth 8-6155] done synthesizing module 'bob_top' (0#1) [E:/bob_full_v1/hw/src/top/bob_top.v:15]
+WARNING: [Synth 8-6014] Unused sequential element lfrm_reg was removed.  [E:/bob_full_v1/hw/src/core/cfg_frames.v:269]
+WARNING: [Synth 8-7129] Port cfg[15] in module dsp_block is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8319] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8318] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8317] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8316] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8315] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8314] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8313] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8312] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8311] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8310] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8309] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8308] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8307] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8306] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8305] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8304] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8303] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8302] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8301] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8300] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8299] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8298] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8297] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8296] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8295] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8294] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8293] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8292] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8291] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8290] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8289] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8288] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8287] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8286] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8285] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8284] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8283] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8282] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8281] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8280] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8279] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8278] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8277] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8276] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8275] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8274] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8273] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8272] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8271] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8270] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8269] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8268] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8267] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8266] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8265] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8264] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8263] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8262] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8261] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8260] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8259] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8258] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8257] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8256] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8255] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8254] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8253] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8252] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8251] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8250] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8249] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8248] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8247] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8246] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8245] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8244] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8243] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8242] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8241] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8240] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8239] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8238] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8237] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8236] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8235] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8234] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8233] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8232] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8231] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8230] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8229] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8228] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8227] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8226] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8225] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8224] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8223] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8222] in module bob_fabric is either unconnected or has no load
+WARNING: [Synth 8-7129] Port cfg[8221] in module bob_fabric is either unconnected or has no load
+INFO: [Common 17-14] Message 'Synth 8-7129' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
+---------------------------------------------------------------------------------
+Finished Synthesize : Time (s): cpu = 00:00:15 ; elapsed = 00:00:24 . Memory (MB): peak = 1398.383 ; gain = 751.914
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Constraint Validation : Time (s): cpu = 00:00:16 ; elapsed = 00:00:26 . Memory (MB): peak = 1398.383 ; gain = 751.914
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Loading Part and Timing Information
+---------------------------------------------------------------------------------
+Loading part: xc7z020clg400-1
+---------------------------------------------------------------------------------
+Finished Loading Part and Timing Information : Time (s): cpu = 00:00:16 ; elapsed = 00:00:26 . Memory (MB): peak = 1398.383 ; gain = 751.914
+INFO: [Device 21-403] Loading part xc7z020clg400-1
+---------------------------------------------------------------------------------
+WARNING: [Synth 8-3936] Found unconnected internal register 'user_out_reg' and it is trimmed from '32' to '5' bits. [E:/bob_full_v1/hw/src/core/jtag_tap6.v:277]
+INFO: [Synth 8-802] inferred FSM for state register 'state_reg' in module 'jtag_tap6'
+WARNING: [Synth 8-3936] Found unconnected internal register 'pay_q_reg' and it is trimmed from '64' to '18' bits. [E:/bob_full_v1/hw/src/tiles/bram_jtag.v:116]
+---------------------------------------------------------------------------------------------------
+                   State |                     New Encoding |                Previous Encoding 
+---------------------------------------------------------------------------------------------------
+        TEST_LOGIC_RESET |                             1111 |                             1111
+           RUN_TEST_IDLE |                             1100 |                             1100
+               SELECT_DR |                             0111 |                             0111
+               SELECT_IR |                             0100 |                             0100
+              CAPTURE_IR |                             1110 |                             1110
+                SHIFT_IR |                             1010 |                             1010
+                EXIT1_IR |                             1001 |                             1001
+                PAUSE_IR |                             1011 |                             1011
+                EXIT2_IR |                             1000 |                             1000
+               UPDATE_IR |                             1101 |                             1101
+              CAPTURE_DR |                             0110 |                             0110
+                SHIFT_DR |                             0010 |                             0010
+                EXIT1_DR |                             0001 |                             0001
+                PAUSE_DR |                             0011 |                             0011
+                EXIT2_DR |                             0000 |                             0000
+               UPDATE_DR |                             0101 |                             0101
+---------------------------------------------------------------------------------------------------
+INFO: [Synth 8-3354] encoded FSM with state register 'state_reg' using encoding 'User encoding' in module 'jtag_tap6'
+WARNING: [Synth 8-13157] FSM with state register 'state_reg' is not having reset. This may cause incorrect behavior. User should consider using FSM_SAFE_STATE attribute on the register
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 2 : Time (s): cpu = 00:00:23 ; elapsed = 00:00:33 . Memory (MB): peak = 1398.383 ; gain = 751.914
+---------------------------------------------------------------------------------
+No constraint files found.
+---------------------------------------------------------------------------------
+Start RTL Component Statistics 
+---------------------------------------------------------------------------------
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input   48 Bit       Adders := 2     
+	   2 Input   32 Bit       Adders := 2     
+	   2 Input   27 Bit       Adders := 2     
+	   3 Input   25 Bit       Adders := 2     
+	   2 Input   11 Bit       Adders := 1     
+	   2 Input   10 Bit       Adders := 3     
+	   2 Input    9 Bit       Adders := 1     
+	   3 Input    9 Bit       Adders := 1     
+	   2 Input    8 Bit       Adders := 4     
+	   2 Input    7 Bit       Adders := 2     
+	   2 Input    6 Bit       Adders := 1     
+	   2 Input    5 Bit       Adders := 2     
+	   2 Input    4 Bit       Adders := 1     
+	   2 Input    3 Bit       Adders := 1     
+	   2 Input    2 Bit       Adders := 2     
++---XORs : 
+	   2 Input     32 Bit         XORs := 38    
+	   2 Input      1 Bit         XORs := 77    
++---Registers : 
+	              256 Bit    Registers := 1     
+	              248 Bit    Registers := 1     
+	              128 Bit    Registers := 67    
+	               96 Bit    Registers := 2     
+	               72 Bit    Registers := 3     
+	               64 Bit    Registers := 1     
+	               48 Bit    Registers := 4     
+	               43 Bit    Registers := 2     
+	               36 Bit    Registers := 1     
+	               32 Bit    Registers := 11    
+	               27 Bit    Registers := 2     
+	               25 Bit    Registers := 4     
+	               18 Bit    Registers := 21    
+	               10 Bit    Registers := 4     
+	                8 Bit    Registers := 3     
+	                7 Bit    Registers := 1     
+	                6 Bit    Registers := 2     
+	                5 Bit    Registers := 7     
+	                4 Bit    Registers := 6     
+	                3 Bit    Registers := 1     
+	                2 Bit    Registers := 19    
+	                1 Bit    Registers := 199   
++---RAMs : 
+	              18K Bit	(1024 X 18 bit)          RAMs := 2     
++---Muxes : 
+	   2 Input  256 Bit        Muxes := 1     
+	   2 Input  128 Bit        Muxes := 5     
+	   2 Input   96 Bit        Muxes := 6     
+	   6 Input   96 Bit        Muxes := 1     
+	   4 Input   96 Bit        Muxes := 1     
+	   2 Input   72 Bit        Muxes := 1     
+	   2 Input   64 Bit        Muxes := 1     
+	   2 Input   48 Bit        Muxes := 6     
+	   4 Input   48 Bit        Muxes := 2     
+	   2 Input   43 Bit        Muxes := 2     
+	   2 Input   36 Bit        Muxes := 1     
+	   2 Input   32 Bit        Muxes := 69    
+	   9 Input   32 Bit        Muxes := 1     
+	   6 Input   32 Bit        Muxes := 4     
+	   5 Input   32 Bit        Muxes := 1     
+	   4 Input   32 Bit        Muxes := 2     
+	   2 Input   28 Bit        Muxes := 1     
+	   4 Input   27 Bit        Muxes := 2     
+	   2 Input   27 Bit        Muxes := 2     
+	   2 Input   25 Bit        Muxes := 12    
+	   2 Input   18 Bit        Muxes := 41    
+	   4 Input   18 Bit        Muxes := 2     
+	   2 Input   10 Bit        Muxes := 5     
+	   3 Input   10 Bit        Muxes := 1     
+	   2 Input    8 Bit        Muxes := 4     
+	   2 Input    6 Bit        Muxes := 1     
+	   2 Input    5 Bit        Muxes := 1     
+	   4 Input    5 Bit        Muxes := 1     
+	   3 Input    4 Bit        Muxes := 1     
+	   2 Input    4 Bit        Muxes := 14    
+	  16 Input    4 Bit        Muxes := 1     
+	   2 Input    2 Bit        Muxes := 13    
+	   3 Input    2 Bit        Muxes := 2     
+	   9 Input    2 Bit        Muxes := 1     
+	   4 Input    2 Bit        Muxes := 3     
+	   2 Input    1 Bit        Muxes := 3039  
+	   3 Input    1 Bit        Muxes := 7     
+	   4 Input    1 Bit        Muxes := 30    
+	   9 Input    1 Bit        Muxes := 10    
+	   6 Input    1 Bit        Muxes := 19    
+---------------------------------------------------------------------------------
+Finished RTL Component Statistics 
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Part Resource Summary
+---------------------------------------------------------------------------------
+Part Resources:
+DSPs: 220 (col length:60)
+BRAMs: 280 (col length: RAMB18 60 RAMB36 30)
+---------------------------------------------------------------------------------
+Finished Part Resource Summary
+---------------------------------------------------------------------------------
+No constraint files found.
+---------------------------------------------------------------------------------
+Start Cross Boundary and Area Optimization
+---------------------------------------------------------------------------------
+INFO: [Synth 8-3971] The signal "u_fabric/u_bram0/u_core/mem_reg" was recognized as a true dual port RAM template.
+INFO: [Synth 8-3971] The signal "u_fabric/u_bram1/u_core/mem_reg" was recognized as a true dual port RAM template.
+---------------------------------------------------------------------------------
+Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:04:08 ; elapsed = 00:04:32 . Memory (MB): peak = 1981.543 ; gain = 1335.074
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+
+Block RAM: Preliminary Mapping Report (see note below)
++-----------------+----------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
+|Module Name      | RTL Object     | PORT A (Depth x Width) | W | R | PORT B (Depth x Width) | W | R | Ports driving FF | RAMB18 | RAMB36 | 
++-----------------+----------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
+|u_fabric/u_bram0 | u_core/mem_reg | 1 K x 18(READ_FIRST)   | W | R | 1 K x 18(READ_FIRST)   | W | R | Port A and B     | 1      | 0      | 
+|u_fabric/u_bram1 | u_core/mem_reg | 1 K x 18(READ_FIRST)   | W | R | 1 K x 18(READ_FIRST)   | W | R | Port A and B     | 1      | 0      | 
++-----------------+----------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
+
+Note: The table above is a preliminary report that shows the Block RAMs at the current stage of the synthesis flow. Some Block RAMs may be reimplemented as non Block RAM primitives later in the synthesis flow. Multiple instantiated Block RAMs are reported only once. 
+---------------------------------------------------------------------------------
+Finished ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+No constraint files found.
+---------------------------------------------------------------------------------
+Start ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+
+Block RAM: Final Mapping Report
++-----------------+----------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
+|Module Name      | RTL Object     | PORT A (Depth x Width) | W | R | PORT B (Depth x Width) | W | R | Ports driving FF | RAMB18 | RAMB36 | 
++-----------------+----------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
+|u_fabric/u_bram0 | u_core/mem_reg | 1 K x 18(READ_FIRST)   | W | R | 1 K x 18(READ_FIRST)   | W | R | Port A and B     | 1      | 0      | 
+|u_fabric/u_bram1 | u_core/mem_reg | 1 K x 18(READ_FIRST)   | W | R | 1 K x 18(READ_FIRST)   | W | R | Port A and B     | 1      | 0      | 
++-----------------+----------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
+
+---------------------------------------------------------------------------------
+Finished ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Technology Mapping
+---------------------------------------------------------------------------------
+INFO: [Synth 8-7052] The timing for the instance u_core/u_fabric/u_bram0/u_core/mem_reg (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_core/u_fabric/u_bram0/u_core/mem_reg (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_core/u_fabric/u_bram1/u_core/mem_reg (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_core/u_fabric/u_bram1/u_core/mem_reg (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+---------------------------------------------------------------------------------
+Finished Technology Mapping : Time (s): cpu = 00:04:15 ; elapsed = 00:04:39 . Memory (MB): peak = 1981.543 ; gain = 1335.074
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Flattening Before IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Flattening Before IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Final Netlist Cleanup
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Final Netlist Cleanup
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished IO Insertion : Time (s): cpu = 00:04:22 ; elapsed = 00:04:47 . Memory (MB): peak = 1981.543 ; gain = 1335.074
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Instances
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Instances : Time (s): cpu = 00:04:22 ; elapsed = 00:04:47 . Memory (MB): peak = 1981.543 ; gain = 1335.074
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Rebuilding User Hierarchy
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Rebuilding User Hierarchy : Time (s): cpu = 00:04:24 ; elapsed = 00:04:48 . Memory (MB): peak = 1981.543 ; gain = 1335.074
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Ports
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Ports : Time (s): cpu = 00:04:24 ; elapsed = 00:04:49 . Memory (MB): peak = 1981.543 ; gain = 1335.074
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Handling Custom Attributes
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Handling Custom Attributes : Time (s): cpu = 00:04:24 ; elapsed = 00:04:49 . Memory (MB): peak = 1981.543 ; gain = 1335.074
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Nets
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Nets : Time (s): cpu = 00:04:24 ; elapsed = 00:04:49 . Memory (MB): peak = 1981.543 ; gain = 1335.074
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+
+Static Shift Register Report:
++------------+---------------------------------+--------+-------+--------------+--------------------+-------------------+--------+---------+
+|Module Name | RTL Name                        | Length | Width | Reset Signal | Pull out first Reg | Pull out last Reg | SRL16E | SRLC32E | 
++------------+---------------------------------+--------+-------+--------------+--------------------+-------------------+--------+---------+
+|bob_top     | u_core/u_tap/idcode_dr_reg[8]   | 4      | 1     | YES          | NO                 | YES               | 1      | 0       | 
+|bob_top     | u_core/u_tap/usercode_dr_reg[4] | 27     | 1     | YES          | NO                 | YES               | 0      | 1       | 
++------------+---------------------------------+--------+-------+--------------+--------------------+-------------------+--------+---------+
+
+---------------------------------------------------------------------------------
+Finished ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Writing Synthesis Report
+---------------------------------------------------------------------------------
+
+DSP Final Report (the ' indicates corresponding REG is set)
++------------+-------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+|Module Name | DSP Mapping | A Size | B Size | C Size | D Size | P Size | AREG | BREG | CREG | DREG | ADREG | MREG | PREG | 
++------------+-------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+|dsp_core    | A*B         | 30     | 18     | -      | -      | 43     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|dsp_core    | A*B         | 30     | 18     | -      | -      | 43     | 0    | 0    | -    | -    | -     | 0    | 0    | 
++------------+-------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+
+
+Report BlackBoxes: 
++-+--------------+----------+
+| |BlackBox name |Instances |
++-+--------------+----------+
++-+--------------+----------+
+
+Report Cell Usage: 
++------+---------+------+
+|      |Cell     |Count |
++------+---------+------+
+|1     |BUFG     |     2|
+|2     |CARRY4   |    96|
+|3     |DSP48E1  |     2|
+|4     |LUT1     |    64|
+|5     |LUT2     |   323|
+|6     |LUT3     |  1548|
+|7     |LUT4     |  1365|
+|8     |LUT5     |  2068|
+|9     |LUT6     |  6036|
+|10    |MUXF7    |  1411|
+|11    |MUXF8    |    31|
+|12    |RAMB18E1 |     2|
+|13    |SRL16E   |     1|
+|14    |SRLC32E  |     1|
+|15    |FDRE     | 11015|
+|16    |FDSE     |    82|
+|17    |IBUF     |    10|
+|18    |OBUF     |     5|
++------+---------+------+
+
+Report Instance Areas: 
++------+-----------------------+--------------+------+
+|      |Instance               |Module        |Cells |
++------+-----------------------+--------------+------+
+|1     |top                    |              | 24062|
+|2     |  u_core               |bob_fpga      | 24007|
+|3     |    \g_bsr[0].u_cell   |bsc_cell      |     1|
+|4     |    \g_bsr[10].u_cell  |bsc_cell_0    |     1|
+|5     |    \g_bsr[11].u_cell  |bsc_cell_1    |     2|
+|6     |    \g_bsr[12].u_cell  |bsc_cell_2    |     1|
+|7     |    \g_bsr[13].u_cell  |bsc_cell_3    |     2|
+|8     |    \g_bsr[14].u_cell  |bsc_cell_4    |     1|
+|9     |    \g_bsr[15].u_cell  |bsc_cell_5    |     1|
+|10    |    \g_bsr[16].u_cell  |bsc_cell_6    |     1|
+|11    |    \g_bsr[17].u_cell  |bsc_cell_7    |     1|
+|12    |    \g_bsr[18].u_cell  |bsc_cell_8    |     1|
+|13    |    \g_bsr[19].u_cell  |bsc_cell_9    |     1|
+|14    |    \g_bsr[1].u_cell   |bsc_cell_10   |     1|
+|15    |    \g_bsr[20].u_cell  |bsc_cell_11   |     1|
+|16    |    \g_bsr[21].u_cell  |bsc_cell_12   |     1|
+|17    |    \g_bsr[22].u_cell  |bsc_cell_13   |     1|
+|18    |    \g_bsr[23].u_cell  |bsc_cell_14   |     1|
+|19    |    \g_bsr[24].u_cell  |bsc_cell_15   |     1|
+|20    |    \g_bsr[25].u_cell  |bsc_cell_16   |     1|
+|21    |    \g_bsr[26].u_cell  |bsc_cell_17   |     1|
+|22    |    \g_bsr[27].u_cell  |bsc_cell_18   |     1|
+|23    |    \g_bsr[28].u_cell  |bsc_cell_19   |     2|
+|24    |    \g_bsr[29].u_cell  |bsc_cell_20   |     2|
+|25    |    \g_bsr[2].u_cell   |bsc_cell_21   |     1|
+|26    |    \g_bsr[30].u_cell  |bsc_cell_22   |     2|
+|27    |    \g_bsr[31].u_cell  |bsc_cell_23   |     2|
+|28    |    \g_bsr[32].u_cell  |bsc_cell_24   |     2|
+|29    |    \g_bsr[33].u_cell  |bsc_cell_25   |     2|
+|30    |    \g_bsr[34].u_cell  |bsc_cell_26   |     2|
+|31    |    \g_bsr[35].u_cell  |bsc_cell_27   |     2|
+|32    |    \g_bsr[36].u_cell  |bsc_cell_28   |     2|
+|33    |    \g_bsr[37].u_cell  |bsc_cell_29   |     2|
+|34    |    \g_bsr[38].u_cell  |bsc_cell_30   |     2|
+|35    |    \g_bsr[39].u_cell  |bsc_cell_31   |     2|
+|36    |    \g_bsr[3].u_cell   |bsc_cell_32   |     1|
+|37    |    \g_bsr[40].u_cell  |bsc_cell_33   |     2|
+|38    |    \g_bsr[41].u_cell  |bsc_cell_34   |     2|
+|39    |    \g_bsr[42].u_cell  |bsc_cell_35   |     2|
+|40    |    \g_bsr[43].u_cell  |bsc_cell_36   |     2|
+|41    |    \g_bsr[44].u_cell  |bsc_cell_37   |     2|
+|42    |    \g_bsr[45].u_cell  |bsc_cell_38   |     2|
+|43    |    \g_bsr[46].u_cell  |bsc_cell_39   |     3|
+|44    |    \g_bsr[47].u_cell  |bsc_cell_40   |     2|
+|45    |    \g_bsr[48].u_cell  |bsc_cell_41   |     3|
+|46    |    \g_bsr[49].u_cell  |bsc_cell_42   |     2|
+|47    |    \g_bsr[4].u_cell   |bsc_cell_43   |     1|
+|48    |    \g_bsr[50].u_cell  |bsc_cell_44   |     3|
+|49    |    \g_bsr[51].u_cell  |bsc_cell_45   |     2|
+|50    |    \g_bsr[52].u_cell  |bsc_cell_46   |     3|
+|51    |    \g_bsr[53].u_cell  |bsc_cell_47   |     2|
+|52    |    \g_bsr[54].u_cell  |bsc_cell_48   |     3|
+|53    |    \g_bsr[55].u_cell  |bsc_cell_49   |     2|
+|54    |    \g_bsr[5].u_cell   |bsc_cell_50   |     1|
+|55    |    \g_bsr[6].u_cell   |bsc_cell_51   |     1|
+|56    |    \g_bsr[7].u_cell   |bsc_cell_52   |     1|
+|57    |    \g_bsr[8].u_cell   |bsc_cell_53   |     1|
+|58    |    \g_bsr[9].u_cell   |bsc_cell_54   |     2|
+|59    |    u_bram_jtag        |bram_jtag     |   779|
+|60    |    u_cap              |capture_chain |    36|
+|61    |    u_clk              |clock_ctrl    |   293|
+|62    |    u_ctrl             |cfg_ctrl      |   274|
+|63    |    u_dsp_jtag         |dsp_jtag      |   505|
+|64    |    u_fabric           |bob_fabric    |  1575|
+|65    |      u_bram0          |bram_block    |   380|
+|66    |        u_core         |bram_core_93  |   380|
+|67    |      u_bram1          |bram_block_55 |   375|
+|68    |        u_core         |bram_core     |   375|
+|69    |      u_clb_x1y1       |clb           |     1|
+|70    |      u_clb_x1y2       |clb_56        |     1|
+|71    |      u_clb_x1y3       |clb_57        |     1|
+|72    |      u_clb_x1y4       |clb_58        |     1|
+|73    |      u_clb_x1y5       |clb_59        |     1|
+|74    |      u_clb_x1y6       |clb_60        |     1|
+|75    |      u_clb_x2y1       |clb_61        |     1|
+|76    |      u_clb_x2y2       |clb_62        |     1|
+|77    |      u_clb_x2y3       |clb_63        |     1|
+|78    |      u_clb_x2y4       |clb_64        |     1|
+|79    |      u_clb_x2y5       |clb_65        |     1|
+|80    |      u_clb_x2y6       |clb_66        |     1|
+|81    |      u_clb_x4y1       |clb_67        |     1|
+|82    |      u_clb_x4y2       |clb_68        |     1|
+|83    |      u_clb_x4y3       |clb_69        |     1|
+|84    |      u_clb_x4y4       |clb_70        |     1|
+|85    |      u_clb_x4y5       |clb_71        |     1|
+|86    |      u_clb_x4y6       |clb_72        |     1|
+|87    |      u_clb_x5y1       |clb_73        |     1|
+|88    |      u_clb_x5y2       |clb_74        |     1|
+|89    |      u_clb_x5y3       |clb_75        |     1|
+|90    |      u_clb_x5y4       |clb_76        |     1|
+|91    |      u_clb_x5y5       |clb_77        |     1|
+|92    |      u_clb_x5y6       |clb_78        |     1|
+|93    |      u_clb_x7y1       |clb_79        |     1|
+|94    |      u_clb_x7y2       |clb_80        |     1|
+|95    |      u_clb_x7y3       |clb_81        |     1|
+|96    |      u_clb_x7y4       |clb_82        |     1|
+|97    |      u_clb_x7y5       |clb_83        |     1|
+|98    |      u_clb_x7y6       |clb_84        |     1|
+|99    |      u_clb_x8y1       |clb_85        |     1|
+|100   |      u_clb_x8y2       |clb_86        |     1|
+|101   |      u_clb_x8y3       |clb_87        |     1|
+|102   |      u_clb_x8y4       |clb_88        |     1|
+|103   |      u_clb_x8y5       |clb_89        |     1|
+|104   |      u_clb_x8y6       |clb_90        |     1|
+|105   |      u_dsp0           |dsp_block     |   415|
+|106   |        u_core         |dsp_core_92   |   415|
+|107   |      u_dsp1           |dsp_block_91  |   369|
+|108   |        u_core         |dsp_core      |   369|
+|109   |    u_frames           |cfg_frames    |  1328|
+|110   |    u_store            |cfg_store     | 18694|
+|111   |    u_tap              |jtag_tap6     |   396|
++------+-----------------------+--------------+------+
+---------------------------------------------------------------------------------
+Finished Writing Synthesis Report : Time (s): cpu = 00:04:24 ; elapsed = 00:04:49 . Memory (MB): peak = 1981.543 ; gain = 1335.074
+---------------------------------------------------------------------------------
+Synthesis finished with 0 errors, 0 critical warnings and 908 warnings.
+Synthesis Optimization Runtime : Time (s): cpu = 00:04:24 ; elapsed = 00:04:49 . Memory (MB): peak = 1981.543 ; gain = 1335.074
+Synthesis Optimization Complete : Time (s): cpu = 00:04:24 ; elapsed = 00:04:49 . Memory (MB): peak = 1981.543 ; gain = 1335.074
+INFO: [Project 1-571] Translating synthesized netlist
+Netlist sorting complete. Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.275 . Memory (MB): peak = 1981.543 ; gain = 0.000
+INFO: [Netlist 29-17] Analyzing 1542 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
+INFO: [Project 1-570] Preparing netlist for logic optimization
+INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.006 . Memory (MB): peak = 2021.797 ; gain = 0.000
+INFO: [Project 1-111] Unisim Transformation Summary:
+No Unisim elements were transformed.
+
+Synth Design complete | Checksum: 772e68fa
+INFO: [Common 17-83] Releasing license: Synthesis
+96 Infos, 104 Warnings, 0 Critical Warnings and 0 Errors encountered.
+synth_design completed successfully
+synth_design: Time (s): cpu = 00:04:35 ; elapsed = 00:05:04 . Memory (MB): peak = 2021.797 ; gain = 1386.281
+Write ShapeDB Complete: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.058 . Memory (MB): peak = 2021.797 ; gain = 0.000
+INFO: [Common 17-1381] The checkpoint 'E:/bob_full_v1/bob_vivado/bob.runs/synth_1/bob_top.dcp' has been generated.
+write_checkpoint: Time (s): cpu = 00:00:03 ; elapsed = 00:00:33 . Memory (MB): peak = 2021.797 ; gain = 0.000
+INFO: [Vivado 12-24828] Executing command : report_utilization -file bob_top_utilization_synth.rpt -pb bob_top_utilization_synth.pb
+INFO: [Common 17-206] Exiting Vivado at Thu Sep 17 22:45:21 2026...

@@ -2,7 +2,7 @@
 
 **Read `PLAN.md` first.** It has the status table, folder structure, commands, conventions, gotchas and every milestone in detail. `arch.html` is the interactive picture of the fabric and the guest flow.
 
-Where it stands: M0–M13 passed on the PYNQ-Z2 (git tags `m7`…`m13`); the board runs the M13 bitstream (IDCODE `0xBBEEF093`). M12b (streamed chain store → 8×6 core, 36 CLBs), M14 (partial reconfiguration, `bob load --partial`) and M15 (BRAM contents as frames) are built and simulated and go to Vivado as ONE build (`tag = M15`, IDCODE `0xEBEEF093`), then `make hwtest M=M15` (`docs/hwtest/M15.md`). Vivado synthesis must run without the XDC (`build.tcl`) and with no `keep_hierarchy`: both crashed it in timing-loop breaking. Before a hand-off compare `tools/bob/synth_estimate.sh $PWD $PWD/build/est` with the last build.
+Where it stands: M0–M15 all passed on the PYNQ-Z2 (git tags `m7`…`m15`); the board runs the M15 bitstream (IDCODE `0xEBEEF093`, 36 CLBs, frames + partial reconfiguration + BRAM content frames, chain kept). Vivado synthesis must run without the XDC (`build.tcl`) and with no `keep_hierarchy`: both crashed it in timing-loop breaking. Before a hand-off compare `tools/bob/synth_estimate.sh $PWD $PWD/build/est` with the last build. Whole-project report: `docs/project/REPORT.md`, `project.html` (rebuild with `docs/project/collect.py` + `build.py`).
 
 The short version:
 - This is an FPGA fabric ("bob") running inside a PYNQ-Z2 (XC7Z020), configured over JTAG from a Pico (DirtyJTAG). `/Users/sk/work/bob/` is the frozen original; work only here.

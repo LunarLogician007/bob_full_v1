@@ -20,12 +20,12 @@ For the detailed plan, conventions, gotchas and every milestone, read [`PLAN.md`
 | M9 | VPR packs, places and routes the examples → FASM → chain | **passed on the board 2026-09-17** (10/10, no rebuild) |
 | M10 | bitgen (FASM ⇄ chain, `.bit`), `bob build`/`bob load`, `.pcf` pins, golden co-simulation | **passed on the board 2026-09-17** (7/7, no rebuild) |
 | M11 | real designs live on the board (free-running clock, real switches): switches, FIR on DSPs, RAM readback, blinky rate | **passed on the board 2026-09-17** (12/12, no rebuild) |
-| M12 | bob's own Python pack/place/route (`--pnr python`), 0.99× VPR's wirelength; M12b smaller configuration store → 36-CLB grid | **M12a passed on the board 2026-09-17** (13/13, no rebuild); M12b built and simulated, in the M15 build |
+| M12 | bob's own Python pack/place/route (`--pnr python`), 0.99× VPR's wirelength; M12b smaller configuration store → 36-CLB grid | **M12a passed on the board 2026-09-17** (13/13, no rebuild); M12b **passed on the board** in the M15 build |
 | M13 | frame-based configuration (UG470 packets on CFG_IN/CFG_OUT) next to the kept chain (CHAIN_IN/CHAIN_OUT), M7 timing fixed | **passed on the board 2026-09-17** (39/39, timing closes: WNS +0.877 ns) |
-| M14 | partial reconfiguration of a running design (`bob load --partial`) | built and simulated, in the M15 build |
-| M15 | BRAM contents as frames: one CRC-covered stream for the whole design | built and simulated 2026-09-17; **Vivado build + `make hwtest M=M15` pending** |
+| M14 | partial reconfiguration of a running design (`bob load --partial`) | **passed on the board 2026-09-17** (in the M15 build) |
+| M15 | BRAM contents as frames: one CRC-covered stream for the whole design | **passed on the board 2026-09-17** (48/48, WNS +0.585 ns, 10 411 LUTs) |
 
-After M7 the Vivado bitstream stayed the same through M11: those milestones only load new configuration chains over JTAG. M12a (Python PnR) needed no rebuild either. M13 (frames + timing fixes, IDCODE `0xBBEEF093`) is on the board; the next build is M15 (IDCODE `0xEBEEF093`), carrying M12b, M14 and M15.
+After M7 the Vivado bitstream stayed the same through M11: those milestones only load new configuration chains over JTAG. M12a (Python PnR) needed no rebuild either. M15 (IDCODE `0xEBEEF093`), carrying M12b, M14 and M15, is on the board.
 
 ## The device (M12b: 36-CLB profile)
 
@@ -39,7 +39,7 @@ After M7 the Vivado bitstream stayed the same through M11: those milestones only
 | Routing | L4 unidirectional, W = 24, Wilton Fs = 3 (from OpenFPGA's k6_frac_N10 tileable arch); 1723 muxes |
 | Configuration | 8320 bits = 65 frames of 4 × 32; UG470-style packets on CFG_IN/CFG_OUT (CRC-32C, IDCODE, partial reconfiguration, BRAM content frames) or the streamed chain on CHAIN_IN/CHAIN_OUT; GSR → GTS → GWE → DONE startup |
 | JTAG | 6-bit AMD 7-series IR, IDCODE `0xEBEEF093` (M15) |
-| Host utilisation (yosys estimate, M15) | ~15.9k LUTs, ~11.1k FFs, 2 RAMB18, 2 DSP48E1 |
+| Host utilisation (Vivado, M15) | 10 411 LUTs (19.6%), 11 097 FFs, 2 RAMB18, 2 DSP48E1; WNS +0.585 ns |
 
 A 48-CLB M7 profile (8 × 8 core, 9400-bit chain, IDCODE `0x9BEEF093`) is frozen in [`release/M7_8x8/`](release/M7_8x8/); it was synthesised with the XDC loop breaking that later crashed Vivado. M12b's 36-CLB profile costs no more logic than M13 thanks to the smaller configuration store. Changing the grid is one setting (`ARCH` in `tools/bob/device.py`) followed by `make rrgraph`.
 

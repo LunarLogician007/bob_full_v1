@@ -3089,6 +3089,256 @@
      "SW1..0 = 00/01/10/11 should light LD0 / LD1 / LD2 / all three"
     ]
    ]
+  },
+  {
+   "date": "2026-09-17",
+   "time": "22:59:22",
+   "milestone": "M15",
+   "tag": "M15",
+   "pass": 48,
+   "fail": 0,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0xEBEEF093, build.cfg expects 0xEBEEF093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "selftest",
+     "12/12 designs match the model"
+    ],
+    [
+     "PASS",
+     "usercode",
+     "0x0000000F, build.cfg expects 0x0000000F"
+    ],
+    [
+     "PASS",
+     "chain-length",
+     "8320 bits, design intact after the marker scan"
+    ],
+    [
+     "PASS",
+     "ir-status",
+     "{'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}"
+    ],
+    [
+     "PASS",
+     "crc-reject-live",
+     "crc_err=1 DONE=1 config kept=True showcase vectors wrong=0"
+    ],
+    [
+     "PASS",
+     "gts",
+     "outputs before JSTART=000, after=011, model=011"
+    ],
+    [
+     "PASS",
+     "gsr-gwe",
+     "q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1"
+    ],
+    [
+     "PASS",
+     "capture-user1",
+     "CAPTURE=0x4080 USER1[19:4]=0x4080 (switches must not move during the check)"
+    ],
+    [
+     "PASS",
+     "jprogram",
+     "DONE=0 GTS=1 chain zero=True outputs=000"
+    ],
+    [
+     "PASS",
+     "showcase-live",
+     "pad_i=000001 LD2..0=110 model=110"
+    ],
+    [
+     "PASS",
+     "ce-sr",
+     "CE loads, SR clears (beats CE), both low holds - 7 steps match model.py"
+    ],
+    [
+     "PASS",
+     "counter-step",
+     "counts [15, 8, 1, 10, 3, 12] (steps [9, 9, 9, 9, 9], want 9 each); ce off: [3, 3, 3] (want constant)"
+    ],
+    [
+     "PASS",
+     "counter-run",
+     "23 counts in 3.01 s = 7.65/s (expected 7.45)"
+    ],
+    [
+     "PASS",
+     "bram-init",
+     "64/64 words read back"
+    ],
+    [
+     "PASS",
+     "bram-locked",
+     "err=1 gwe=1"
+    ],
+    [
+     "PASS",
+     "bram-rom",
+     "LEDs ['100', '011', '001', '011'] contents ['100', '011', '001', '011']"
+    ],
+    [
+     "PASS",
+     "bram-modes",
+     "72/72 stepped operations match model.py"
+    ],
+    [
+     "PASS",
+     "dsp-modes",
+     "60/60 stepped operations match model.py "
+    ],
+    [
+     "PASS",
+     "dsp-mult",
+     "LEDs ['000', '011', '110', '001'] expected ['000', '011', '110', '001']"
+    ],
+    [
+     "PASS",
+     "dsp-accum",
+     "P0 0 -> 23 in 3.03 s = 7.60/s (expected 7.45)"
+    ],
+    [
+     "PASS",
+     "bram-select",
+     "16 words each read back from bram0 and bram1; SELECT 9 ignored (target 0)"
+    ],
+    [
+     "PASS",
+     "pipeline",
+     "LEDs ['010', '101', '110', '110', '101', '010', '110', '110'] model ['010', '101', '110', '110', '101', '010', '110', '110']"
+    ],
+    [
+     "PASS",
+     "counter8",
+     "counts [15, 56, 33, 10, 51, 28, 5, 46, 23, 0, 41, 18] (steps [41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41], want 41 each)"
+    ],
+    [
+     "PASS",
+     "frames-load",
+     "loaded 65 frames (260 words) through CFG_IN, CRC 67C522F8, FDRO readback verified; CHAIN_OUT == word: True; DONE=1; 4/4 vectors == model"
+    ],
+    [
+     "PASS",
+     "frames-crc-reject",
+     "CRC_ERROR=1 START_OK=0 DONE=0 INIT_B=0"
+    ],
+    [
+     "PASS",
+     "frames-idcode-reject",
+     "ID_ERROR=1 memory empty=True"
+    ],
+    [
+     "PASS",
+     "frames-live-refused",
+     "frames: WR_ERROR=1 memory kept=True; chain while running kept=True; DONE=1; showcase 4/4 vectors == model"
+    ],
+    [
+     "PASS",
+     "frames-vs-chain",
+     "chain load -> FDRO == word: True; frame load -> CHAIN_OUT == word: True"
+    ],
+    [
+     "PASS",
+     "bob-gates",
+     "loaded 65 frames (260 words) through CFG_IN, CRC 71F26808, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 0 CAPTUREs x 0 registers == golden"
+    ],
+    [
+     "PASS",
+     "bob-counter",
+     "loaded 65 frames (260 words) through CFG_IN, CRC 891C443D, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 6 registers == golden"
+    ],
+    [
+     "PASS",
+     "bob-ram",
+     "loaded 65 frames (260 words) through CFG_IN + 256 BRAM content frames (1 BRAM, all 1024 words), CRC 690AA7F3, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 0 CAPTUREs x 0 registers == golden"
+    ],
+    [
+     "PASS",
+     "bob-mult",
+     "loaded 65 frames (260 words) through CFG_IN, CRC CAA193DC, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 7 registers == golden"
+    ],
+    [
+     "PASS",
+     "bob-fir",
+     "loaded 65 frames (260 words) through CFG_IN, CRC 86646BC9, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 7 registers == golden"
+    ],
+    [
+     "PASS",
+     "pnr-switches",
+     "loaded 65 frames (260 words) through CFG_IN, CRC 070A4341, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 3 registers == golden"
+    ],
+    [
+     "PASS",
+     "ram-readback",
+     "64 clocks (50 with BTN0 write), bram0[0..15] = [2, 2, 4, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] read back after JPROGRAM == model (all 1024 words were written at load, so no earlier design's words remain); chain readback"
+    ],
+    [
+     "PASS",
+     "blinky-rate",
+     "62 counts in 4.18 s = 14.85 Hz (expected 14.90)"
+    ],
+    [
+     "PASS",
+     "bob-wide",
+     "loaded 65 frames (260 words) through CFG_IN, CRC AD6E6371, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 20 registers == golden"
+    ],
+    [
+     "PASS",
+     "pnr-wide",
+     "loaded 65 frames (260 words) through CFG_IN, CRC FAA570BC, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 20 registers == golden"
+    ],
+    [
+     "PASS",
+     "partial-swap",
+     "1 of 65 frames rewritten; counter 5 -> 5 across the partial -> 8 after 3 clocks; LD1 A (AND) [0, 0, 0, 1] (model [0, 0, 0, 1]), B (OR) [0, 1, 1, 1] (model [0, 1, 1, 1]); DONE=1"
+    ],
+    [
+     "PASS",
+     "partial-live",
+     "before: counting=True; frozen (GHIGH_B=0): 5 -> 5 over 1.2 s; 1 frame(s) written; released (GHIGH_B=1): 5 -> 9; LD1 [0, 1, 1, 1] (OR model [0, 1, 1, 1])"
+    ],
+    [
+     "PASS",
+     "partial-bad-crc",
+     "refused=True CRC_ERROR=1 GHIGH_B=0; frozen counter 1 -> 1; DONE=1; JPROGRAM + full load counts again=True"
+    ],
+    [
+     "PASS",
+     "partial-guest",
+     "partial: 26 of 65 frames rewritten with the design running, released; LEDs [0, 2, 3, 5] == gates_swapped model [0, 2, 3, 5]: True (26 frames differ)"
+    ],
+    [
+     "PASS",
+     "frames-bram-load",
+     "loaded 65 frames (260 words) through CFG_IN + 512 BRAM content frames (2 BRAMs, all 1024 words), CRC 520433A2, FDRO readback verified; USER4 reads the same words: True; ROM LEDs [1, 5, 0, 1] == mem[SW] [1, 5, 0, 1]"
+    ],
+    [
+     "PASS",
+     "frames-bram-live-refused",
+     "WR_ERROR=1; bram0[0..31] after JPROGRAM unchanged=True"
+    ],
+    [
+     "PASS",
+     "ram-readback-frames",
+     "bram0[0..15] = [2, 2, 4, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] over FDRO block type 1 after JPROGRAM == model, == USER4"
+    ],
+    [
+     "PASS",
+     "pipeline-live",
+     "SW1..0 = 00/01/10/11 should light LD0 / LD1 / LD2 / all three"
+    ]
+   ]
   }
  ],
  "vivado": {
@@ -3133,6 +3383,20 @@
    "top": "bob_top",
    "idcode": "0xBBEEF093",
    "built": "2026-09-17 13:12:33"
+  },
+  "M15": {
+   "lut": 10411,
+   "ff": 11097,
+   "bram": 1.0,
+   "dsp": 2.0,
+   "wns": 0.585,
+   "tns": 0.0,
+   "failing": 0,
+   "endpoints": 31560,
+   "whs": 0.065,
+   "top": "bob_top",
+   "idcode": "0xEBEEF093",
+   "built": "2026-09-17 22:53:06"
   },
   "M2": {
    "lut": 175,
@@ -3418,8 +3682,8 @@
  "code": {
   "lines": {
    "other": 347,
-   "Markdown": 3238,
-   "Python": 13537,
+   "Markdown": 4058,
+   "Python": 13937,
    "JavaScript": 1608,
    "Tcl": 880,
    "SystemVerilog": 385,
@@ -3428,7 +3692,7 @@
    "XDC": 124
   },
   "generated_fabric_lines": 2296,
-  "commits": 23,
+  "commits": 24,
   "tags": [
    "m10",
    "m11",

@@ -2,7 +2,7 @@
 
 > **For any agent picking this up:** read this whole file before touching anything. It is the single current plan and records how the work is done.
 > `PLAN_v0.md` is the superseded first draft; don't follow it. `docs/README_M0.md` describes the M0 baseline inherited from `bob/`; `README.md` is the current overview.
-> Last updated 2026-09-17: M0–M13 passed on the PYNQ-Z2 (git tags `m7`…`m13`); M12b, M14 and M15 built and simulated, awaiting one Vivado build (`tag = M15`) and `make hwtest M=M15`. Whole-project report: `docs/project/REPORT.md`, interactive `project.html`.
+> Last updated 2026-09-17: M0–M15 passed on the PYNQ-Z2 (git tags `m7`…`m15`). Whole-project report: `docs/project/REPORT.md`, interactive `project.html`.
 
 ---
 
@@ -13,7 +13,7 @@ A complete FPGA **built inside an FPGA**. The guest fabric ("bob") is written in
 The flow works end to end: `design.v → yosys → VPR (pack/place/route on bob's own rr graph) → FASM → bob bitgen → .bit → Pico JTAG → running on the guest fabric`, checked at every step. It is one command each way: `./bob build design.v` and `./bob load design.bit`.
 
 Two flows, two bitstreams. Don't confuse them:
-- **Host flow (Vivado, on a separate Windows machine):** bob's RTL → Vivado → AMD `.bit` for the XC7Z020. Once loaded, the Zynq *is* bob. Host builds: M0–M7 each; M8–M12a needed none; M13 (frames, timing closed); next M15 (36-CLB grid, partial reconfiguration, BRAM content frames).
+- **Host flow (Vivado, on a separate Windows machine):** bob's RTL → Vivado → AMD `.bit` for the XC7Z020. Once loaded, the Zynq *is* bob. Host builds: M0–M7 each; M8–M12a needed none; M13 (frames, timing closed); M15 (36-CLB grid, partial reconfiguration, BRAM content frames) is on the board.
 - **Guest flow (ours, on the Mac):** a user design → our tools → a bob configuration chain (`.bit`, chain file v2). It is loaded over the Pico's JTAG into the running bob fabric.
 
 Starting point: `/Users/sk/work/bob/` is a hardware-proven 4×4 CLB fabric (JTAG TAP, boundary scan, 2896-bit config chain, 174 simulation checks). It was **copied whole** into `bob_full_v1/` and is **frozen**. All work happens in `bob_full_v1/`, which is a git repository (local only; milestone tags `m7`…`m11`).
@@ -43,10 +43,10 @@ The 8×8 profile (48 CLBs, 9400 bits, `0x9BEEF093`) is frozen in `release/M7_8x8
 | M9 | pack/place/route with VPR on the committed rr graph | **passed on hardware 2026-09-17** (10/10, no rebuild) |
 | M10 | FASM ⇄ chain, `.bit` v2, `./bob build/load`, `.pcf`, golden netlist + co-simulation | **passed on hardware 2026-09-17** (7/7, no rebuild) |
 | M11 | real designs live: free-running clock, real switches, RAM readback, clock rate, FIR on DSPs | **passed on hardware 2026-09-17** (12/12 on the second run, every live goal reached; the first run found stale BRAM words, fixed in `bob load`) |
-| M12 | M12a: Python PnR checked against VPR (no rebuild); M12b area/larger grid | **M12a passed on hardware 2026-09-17** (13/13 on the M7 bitstream: pnr-* ×9, live-fir-py, live-switches-py; wirelength 0.99× VPR). **M12b built and simulated 2026-09-17** (streamed chain store, 8×6 core with 36 CLBs; Vivado build and board test together with M15) |
+| M12 | M12a: Python PnR checked against VPR (no rebuild); M12b area/larger grid | **M12a passed on hardware 2026-09-17** (13/13 on the M7 bitstream: pnr-* ×9, live-fir-py, live-switches-py; wirelength 0.99× VPR). **M12b passed on hardware 2026-09-17** in the M15 build (streamed chain store, 8×6 core with 36 CLBs; bob-wide/pnr-wide) |
 | M13 | frame-based configuration (UG470-style packets and frames) next to the kept chain, with the M7 timing fixes | **passed on hardware 2026-09-17** (39/39: full regression through the chain, 5 frame checks, every guest design loaded as frames; timing closes, WNS +0.877 ns / WHS +0.030 ns, M7 was −1102 ns; 11 607 LUTs, 12 287 FFs; synthesis only built with the XDC kept to implementation) |
-| M14 | partial reconfiguration of a running design (UG470 AGHIGH … LFRM, changed frames only, state kept) | **built and simulated 2026-09-17**; Vivado build + board test together with M15 |
-| M15 | BRAM contents as frames (FAR block type 001), one CRC-covered stream for the whole design | **built and simulated 2026-09-17** (tb_frames 71, 29 frame mutants killed (59 across all suites), whole-design yosys 15.9k LUT / 11.1k FF); **Vivado build + `make hwtest M=M15` pending** (one build for M12b, M14, M15; `docs/hwtest/M15.md`) |
+| M14 | partial reconfiguration of a running design (UG470 AGHIGH … LFRM, changed frames only, state kept) | **passed on hardware 2026-09-17** in the M15 build (partial-swap, partial-live, partial-bad-crc, partial-guest) |
+| M15 | BRAM contents as frames (FAR block type 001), one CRC-covered stream for the whole design | **passed on hardware 2026-09-17** (48/48 first run, with M12b and M14; 10 411 LUT / 11 097 FF, fewer LUTs than M13 with 2.25× the CLBs; WNS +0.585 ns / WHS +0.065 ns; synthesis 5.1 min at 2.0 GB) |
 
 Hardware results are in `docs/hwtest/results.log`; Vivado reports are in `docs/reports/Mx/`; per-design guest reports in `docs/reports/M11/designs.md`.
 
