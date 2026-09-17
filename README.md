@@ -8,11 +8,13 @@ bob is a complete FPGA written in Verilog and running in the PL of a Zynq XC7Z02
 
 A Raspberry Pi Pico running DirtyJTAG on PMODA configures it from a Mac.
 
-For the detailed plan, conventions, gotchas and every milestone, read [`PLAN.md`](PLAN.md); the short agent rules are in [`CLAUDE.md`](CLAUDE.md). The interactive die slice with sources, files and testbenches per block is [`arch.html`](arch.html).
+**Start here:** [`guide.html`](guide.html) / [`docs/project/GUIDE.md`](docs/project/GUIDE.md) explain every part — what it is, why it is built that way, how to use it and how to tweak it — and compare bob with OpenFPGA, Aegis and ZUMA. [`project.html`](project.html) / [`docs/project/REPORT.md`](docs/project/REPORT.md) are the project report: what was built, measured and learned. [`arch.html`](arch.html) is the interactive die slice.
+
+For the working plan, conventions, gotchas and every milestone, read [`PLAN.md`](PLAN.md); the live state and next steps are in [`HANDOFF.md`](HANDOFF.md); the short agent rules are in [`CLAUDE.md`](CLAUDE.md).
 
 ## Where it stands (2026-09-18)
 
-M0–M15 passed on the board. **M16 (10 × 10 CLBs, 100 CLBs, 18 560 configuration bits) is in progress** — RTL, routing graph, VPR results and simulations are done; the Vivado build and board test are pending (`HANDOFF.md`).
+M0–M15 passed on the board. **M16 (10 × 10 CLBs = 100 CLBs, 18 560 configuration bits) is built and simulated** — RTL, routing graph, VPR and Python PnR results, and every simulation are green; the Vivado build and `make hwtest M=M16` are pending (`docs/hwtest/M16.md`, `HANDOFF.md`).
 
 | Milestone | What | Status |
 |---|---|---|
@@ -26,6 +28,7 @@ M0–M15 passed on the board. **M16 (10 × 10 CLBs, 100 CLBs, 18 560 configurati
 | M13 | frame-based configuration (UG470 packets on CFG_IN/CFG_OUT) next to the kept chain (CHAIN_IN/CHAIN_OUT), M7 timing fixed | **passed on the board 2026-09-17** (39/39, timing closes: WNS +0.877 ns) |
 | M14 | partial reconfiguration of a running design (`bob load --partial`) | **passed on the board 2026-09-17** (in the M15 build) |
 | M15 | BRAM contents as frames: one CRC-covered stream for the whole design | **passed on the board 2026-09-17** (48/48, WNS +0.585 ns, 10 411 LUTs) |
+| M16 | the 10 × 10 CLB grid: 100 CLBs, 145 frames, new 56-CLB example | built and simulated 2026-09-18; **Vivado build + board test pending** |
 
 After M7 the Vivado bitstream stayed the same through M11: those milestones only load new configuration chains over JTAG. M12a (Python PnR) needed no rebuild either. M15 (IDCODE `0xEBEEF093`), carrying M12b, M14 and M15, is on the board.
 

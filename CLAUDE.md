@@ -1,8 +1,8 @@
 # bob_full_v1: rules for agents
 
-**Read `HANDOFF.md` first** (live state and the next steps), then `PLAN.md`. It has the status table, folder structure, commands, conventions, gotchas and every milestone in detail. `arch.html` is the interactive picture of the fabric and the guest flow.
+**Read `HANDOFF.md` first** (live state and the next steps), then `PLAN.md`. It has the status table, folder structure, commands, conventions, gotchas and every milestone in detail. `arch.html` is the interactive picture of the fabric and the guest flow; `docs/project/GUIDE.md` + `guide.html` explain every part (what/why/how to use/how to tweak) and compare bob with OpenFPGA and Aegis; `docs/project/REPORT.md` + `project.html` are the project report. Rebuild both pages with `python3 docs/project/collect.py && python3 docs/project/build.py`.
 
-Where it stands: M0–M15 all passed on the PYNQ-Z2; **M16 (10 × 10 CLBs) is in progress**, see `HANDOFF.md`.
+Where it stands: M0–M15 all passed on the PYNQ-Z2; **M16 (10 × 10 CLBs, 100 CLBs) is built and simulated**; Vivado build + `make hwtest M=M16` pending, see `HANDOFF.md`.
 
 Where M15 stands: M0–M15 all passed on the PYNQ-Z2 (git tags `m7`…`m15`); the board runs the M15 bitstream (IDCODE `0xEBEEF093`, 36 CLBs, frames + partial reconfiguration + BRAM content frames, chain kept). Vivado synthesis must run without the XDC (`build.tcl`) and with no `keep_hierarchy`: both crashed it in timing-loop breaking. Before a hand-off compare `tools/bob/synth_estimate.sh $PWD $PWD/build/est` with the last build. Whole-project report: `docs/project/REPORT.md`, `project.html` (rebuild with `docs/project/collect.py` + `build.py`).
 

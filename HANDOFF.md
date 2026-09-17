@@ -52,7 +52,13 @@ Scaling by M15's yosys→Vivado ratio (0.65 for LUTs, ~1.0 for FFs): expect roug
 
 **Tell the user these numbers before the build**, and offer the fallback: an 8 × 8 core (64 CLBs) is roughly half the growth if the machine struggles. The Windows PC restarted once under load at M13, so this matters.
 
-### What is left for M16, in order
+### Status 2026-09-18 (updated)
+
+**Done:** everything below except the Vivado build. `make check` is green on the 100-CLB fabric (193 pytest tests, every testbench, lint); `make pnr` → `docs/reports/M16/pnr_vs_vpr.md` (VPR 4017 vs bob 3601 = 0.90×); `examples/big.v` (56 CLBs) routes through both flows; `hw/build.cfg` is M16 / `0xFBEEF093` / USERCODE 0x10; `docs/hwtest/M16.md`, PLAN, README, REUSE, CLAUDE and `arch.html` are updated; the carry mutant follows the last CLB column. `make mutate` was running when this was written.
+
+**Next:** `make hw`, then the Vivado build on Windows, `docs/reports/M16/` back on the Mac, `make check`, `make hwtest M=M16`; then tag `m16` and rerun `docs/project/collect.py` + `build.py`.
+
+### What was left for M16, in order
 
 1. **Wait for `make check`** (running in the background when this file was written; log `build/m16_check.log`). Co-simulation with 100 CLBs is slow — several minutes. Fix whatever it reports.
    - Expect failures in `tests/test_device.py` (`test_sizes` pins 8320 / 6016 and the block counts) — update the pinned numbers to 18560 / K=4's value, `(14, 12, 24)` and `{"io": 44, "clb": 100, "bram": 2, "dsp": 2}`.

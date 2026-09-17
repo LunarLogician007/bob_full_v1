@@ -166,21 +166,41 @@ def convert(md):
     return "\n".join(out), sections, tables
 
 
-def main():
-    md = open(os.path.join(HERE, "REPORT.md")).read()
+def chunks(body):
+    """the HTML under each heading, up to the next heading of any level: {id: html}"""
+    parts = re.split(r'(<h[1-6] id="[^"]+">.*?</h[1-6]>)', body, flags=re.S)
+    out, cur = {}, None
+    for piece in parts:
+        m = re.match(r'<h[1-6] id="([^"]+)">', piece)
+        if m:
+            cur = m.group(1)
+            out[cur] = ""
+        elif cur:
+            out[cur] += piece
+    return out
+
+
+def build_page(md_name, template_name, out_name, data):
+    md = open(os.path.join(HERE, md_name)).read()
     body, sections, tables = convert(md)
-    data = json.load(open(os.path.join(HERE, "data.json")))
-    template = open(os.path.join(HERE, "template.html")).read()
-    blob = json.dumps({"sections": sections, "tables": tables, "data": data}, separators=(",", ":"))
+    template = open(os.path.join(HERE, template_name)).read()
+    blob = json.dumps({"sections": sections, "tables": tables, "data": data,
+                       "chunks": chunks(body)}, separators=(",", ":"))
     blob = blob.replace("</", "<\\/")
     page = template.replace("/*__DATA__*/null", blob).replace("<!--__REPORT__-->", body)
-    out = os.path.join(ROOT, "project.html")
+    out = os.path.join(ROOT, out_name)
     open(out, "w").write(page)
     js = page.split("<script>", 1)[1].rsplit("</script>", 1)[0]
     os.makedirs(os.path.join(ROOT, "build"), exist_ok=True)
-    open(os.path.join(ROOT, "build", "project_check.js"), "w").write(js)
-    print(f"wrote {os.path.relpath(out, ROOT)} ({len(page)} bytes; {len(sections)} headings, "
+    open(os.path.join(ROOT, "build", out_name.replace(".html", "_check.js")), "w").write(js)
+    print(f"wrote {out_name} ({len(page)} bytes; {len(sections)} headings, "
           f"{sum(len(v) for v in tables.values())} tables)")
+
+
+def main():
+    data = json.load(open(os.path.join(HERE, "data.json")))
+    build_page("REPORT.md", "template.html", "project.html", data)
+    build_page("GUIDE.md", "template_guide.html", "guide.html", data)
 
 
 if __name__ == "__main__":

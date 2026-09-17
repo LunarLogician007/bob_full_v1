@@ -5,9 +5,11 @@
   const DIE = { x: 44, y: 70, w: 1196, h: 818 };
   const HITS = [];
   const NCLB = BOB.blocks.filter(b => b[1] === "clb").length;
+  const NTYPE = {bram: BOB.blocks.filter(b => b[1] === "bram").length, dsp: BOB.blocks.filter(b => b[1] === "dsp").length};
+  const NPAD = BOB.blocks.filter(b => b[1] === "io").length;
 
   txt(44, 30, "BOB — AN FPGA INSIDE AN FPGA", { size: 20, w: 680, anchor: "start", ls: -.45 });
-  txt(44, 50, "DIE SLICE · TOP VIEW · M15 FABRIC GENERATED FROM VPR'S ROUTING-RESOURCE GRAPH",
+  txt(44, 50, `DIE SLICE · TOP VIEW · ${NCLB}-CLB FABRIC GENERATED FROM VPR'S ROUTING-RESOURCE GRAPH`,
     { size: 9, anchor: "start", fill: C.MUTE, mono: true, ls: 1.1 });
   line(44, 58, 760, 58, { s: C.RULE, sw: 1 });
   txt(930, 50, "▸ CLICK ANY TILE, CHANNEL OR BLOCK", { size: 9, anchor: "end", fill: C.HOT2, mono: true, w: 700, ls: .7 });
@@ -34,7 +36,11 @@
   txt(DIE.x + DIE.w - 8, DIE.y + DIE.h + 14, "HOST: XILINX XC7Z020 PL  ·  PYNQ-Z2  ·  bob_top", { size: 7.2, anchor: "end", fill: C.MUTE, mono: true, ls: .8 });
 
   /* ── the bob grid ── */
-  const GP = 75, GT = 63, GX = 92, GY = 104;               // pitch, tile size, origin
+  // pitch, tile size, origin: the pitch shrinks so any grid fits left of the configuration
+  // column (M7: 8 x 6, M12b: 10 x 8, M16: 14 x 12)
+  const GX = 92, GY = 104, GPMAX = 75;
+  const GP = Math.min(GPMAX, Math.floor(740 / BOB.W), Math.floor(600 / BOB.H));
+  const GT = Math.round(GP * 0.84);
   const gx = x => GX + x * GP, gy = y => GY + (BOB.H - 1 - y) * GP;
   rect(GX - 14, GY - 18, BOB.W * GP + 16, BOB.H * GP + 22, { f: "#f5f7fa", s: "#d3dae2", sw: .9, rx: 5 });
   txt(GX - 6, GY - 5, `bob_fabric.v  ·  ${BOB.W} × ${BOB.H} VPR GRID  ·  x → East, y ↑ North`, { size: 7.4, anchor: "start", fill: C.MUTE, mono: true, ls: .6 });
@@ -109,7 +115,7 @@
     ["USER1 / CAPTURE", "ce · step · autostep · 16 CLB outs", "capture", C.CFG],
     ["USER4 + BRAM FRAMES  ·  bram_jtag.v", "M15: FAR type 001 · contents · drive", "bramframes", C.CFG],
     ["DSP REGISTER  ·  101000", "drive A/B/C/D · read P0 P1", "dspjtag", C.CFG],
-    ["BOUNDARY SCAN  ·  40 BC_1", "2 cells per pad · EXTEST INTEST SAMPLE", "bsr", C.CFG],
+    [`BOUNDARY SCAN  ·  ${2 * NPAD} BC_1`, "2 cells per pad · EXTEST INTEST SAMPLE", "bsr", C.CFG],
     ["USER CLOCK  ·  clock_ctrl.v", "sysclk 125 MHz · gce enable", "clock", C.CMT]
   ];
   const cph = (BOB.H * GP - (GP - GT) - (cp.length - 1) * 8) / cp.length;
@@ -129,10 +135,10 @@
     txt(LX + 15, LY + 23, "LEGEND", { size: 10.5, anchor: "start", w: 680, ls: 1.4 });
     line(LX + 15, LY + 31, LX + LW - 15, LY + 31, { s: C.RULE, sw: 1 });
     const sw = [
-      ["CLB  ×16", "1 BLE · LUT6 + carry + FDRE/FDSE", C.CLB, "clb"],
-      ["BRAM  ×2", "1024×18 true dual port", C.BRAM, "bram"],
-      ["DSP  ×2", "DSP48E1-style · cascaded", C.DSP, "dsp"],
-      ["I/O PAD  ×20", "9 board pins · rest JTAG only", C.IO, "io"],
+      [`CLB  ×${NCLB}`, "1 BLE · LUT6 + carry + FDRE/FDSE", C.CLB, "clb"],
+      [`BRAM  ×${NTYPE.bram}`, "1024×18 true dual port", C.BRAM, "bram"],
+      [`DSP  ×${NTYPE.dsp}`, "DSP48E1-style · cascaded", C.DSP, "dsp"],
+      [`I/O PAD  ×${NPAD}`, "9 board pins · rest JTAG only", C.IO, "io"],
       ["ROUTING", `${BOB.nmux} muxes · ${BOB.mbits} bits · L4 W=${BOB.chanw}`, C.GTX, "routing"],
       ["CONFIG / JTAG", "scan chain · CRC · startup", C.CFG, "chain"],
       ["USER CLOCK", "sysclk + gce", C.CMT, "clock"]

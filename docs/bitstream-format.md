@@ -55,7 +55,7 @@ Bits 5 and 4 follow 7-series usage (openFPGALoader reads DONE and INIT_B there).
 
 ## 4. The configuration chain
 
-- **Width W** comes from the device description (`tools/bob/device.json` `chain.width`). The M2 test top uses 64 = 4 tiles × 16; the fabric used 2896 at M3, 3064 at M4, 3488 at M5, 3720 at M6, **4216 from M7 on the board profile** (16 CLBs, `ARCH_6X4`; 3352 at K=4), 4992 at M13 (padded to frames), and **8320 from M12b** (8×6 core, 36 CLBs, 28 pads, `ARCH_8X6`: 65 frames; 6016 = 47 frames at K=4). The frozen 48-CLB profile (`release/M7_8x8/`) is 9400 (6808 at K=4).
+- **Width W** comes from the device description (`tools/bob/device.json` `chain.width`). The M2 test top uses 64 = 4 tiles × 16; the fabric used 2896 at M3, 3064 at M4, 3488 at M5, 3720 at M6, **4216 from M7 on the board profile** (16 CLBs, `ARCH_6X4`; 3352 at K=4), 4992 at M13 (padded to frames), **8320 from M12b** (8×6 core, 36 CLBs, 28 pads, `ARCH_8X6`: 65 frames; 6016 = 47 at K=4), and **18 560 from M16** (12×10 core, 100 CLBs, 44 pads, `ARCH_12X10`: 145 frames; 12 800 = 100 at K=4). The frozen 48-CLB profile (`release/M7_8x8/`) is 9400 (6808 at K=4).
 - **M7 layout** (replaces the M4–M6 tile description below, kept for the frozen bundles). Bits come in this order:
   - the 8-bit **ctrl tile**
   - one entry per **grid location**, row-major from VPR (0,0) (x East, y North): first the fields of the block rooted there, then that location's routing muxes in ascending rr node id

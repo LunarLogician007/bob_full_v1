@@ -213,3 +213,15 @@ Status: **same** = byte-identical to `bob/`, **moved** = same content at a new p
 | `hw/tb/tb_frames.v`, `hw/tb/tb_clock_gap.v`, `hw/tb/tb_bob.v`, `sim/gen_frame_vectors.py`, `sim/mutate_frames.sh` | M13 | modified | scenarios [13]-[19], freeze checks, repeated marker, 34 mutants |
 | `tests/test_hwtest_fake.py`, `tests/test_device.py`, `tests/test_pnr.py`, `tools/bob/pnr/compare.py` | M12/M13 | modified | stand-in freeze, partial and BRAM frames (+ cin, INTEST pads); 36-CLB sizes |
 | `docs/bitstream-format.md`, `docs/hwtest/M15.md`, `docs/reports/M12b/pnr_vs_vpr.md`, `docs/arch/*`, `arch.html` | M13 | modified / new | sections 4, 9-13; checklist; PnR report; arch pages area / partial / bramframes |
+
+
+## M16: the 10 × 10 CLB grid
+
+| File | From | Status | Notes |
+|---|---|---|---|
+| `tools/bob/device.py`, `tools/bob/arch/*`, `hw/src/generated/*`, `tools/bob/vpr/*` | M12b | modified / regenerated | `ARCH_12X10`: 100 CLBs, 44 pads, 145 frames; rr graphs and every VPR result rebuilt |
+| `examples/big.v` | — | new | 24-bit LFSR + 16-bit counter, 56 CLBs: does not fit the 36-CLB grid |
+| `hw/tb/tb_bob.v`, `hw/tb/tb_frames.v`, `sim/gen_vectors.py`, `sim/gen_frame_vectors.py` | M12b | modified | widths that the bigger grid broke (CAPTURE 100 bits, 10-bit column counter, 40 960-bit stream vectors) |
+| `tests/test_device.py`, `tests/test_synth.py`, `tests/test_hwtest_fake.py`, `sim/mutate_fabric.sh` | M12b | modified | pinned sizes; carry splitting uses `wide`; `big` on the stand-in board; carry mutant on column 12 |
+| `host/hwtest.py`, `docs/hwtest/M16.md`, `hw/build.cfg` | M15 | modified / new | `MILESTONE["M16"]` (M15 list + bob-big, pnr-big); checklist; tag M16, IDCODE `0xFBEEF093` |
+| `docs/arch/p5_floor.js`, `docs/arch/build.py`, `arch.html` | M12b | modified | floor-plan pitch scales with the grid; legend and title from `device.json` |

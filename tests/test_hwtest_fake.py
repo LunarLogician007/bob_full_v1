@@ -206,7 +206,7 @@ class FakeBob:
         return 0
 
 
-@pytest.mark.parametrize("name", ["counter", "ram", "gates_swapped"])
+@pytest.mark.parametrize("name", ["counter", "ram", "gates_swapped", "big"])
 def test_m10_check_passes_on_a_good_board(name):
     ok, msg = hwtest._bob_check(name)(FakeBob(), {})
     assert ok, msg

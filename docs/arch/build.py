@@ -11,6 +11,7 @@ data.json is the real M7 device (regenerate with --data after make device).
 
 import glob
 import json
+import re
 import os
 import sys
 
@@ -76,8 +77,12 @@ def build():
     head = open(os.path.join(HERE, "p1_head.html")).read()
     head = head.replace("<title>FPGA Architecture — Interactive Die Floorplan &amp; Schematics</title>",
                         '<meta charset="utf-8">\n<title>bob — Interactive Die Slice</title>')
+    data_json = json.load(open(os.path.join(HERE, "data.json")))
+    nclb = sum(1 for b in data_json["blocks"] if b[1] == "clb")
+    tag = open(os.path.join(ROOT, "hw", "build.cfg")).read()
+    tag = (re.search(r"^tag\s*=\s*(\S+)", tag, re.M) or [None, "?"])[1]
     head = head.replace('<span class="brand">FPGA Top-Level Architecture</span>',
-                        '<span class="brand">bob — FPGA inside the XC7Z020 · M15 fabric (36 CLBs)</span>')
+                        f'<span class="brand">bob — FPGA inside the XC7Z020 · {tag} fabric ({nclb} CLBs)</span>')
     head = head.replace("  /* ───────────────────────── print", EXTRA_CSS + "\n  /* ───────────────────────── print")
     head = head.replace('      <div class="lnk" id="dlnk"></div>', CARD_EXTRA + '      <div class="lnk" id="dlnk"></div>')
     for key in ("</style>", 'id="dsrc"', "const DEFS"):

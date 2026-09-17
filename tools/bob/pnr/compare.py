@@ -2,7 +2,7 @@
 """
 compare.py - bob's Python PnR against VPR, measured the same way (M12a).
 
-  tools/bob/pnr/compare.py [--seed N] [--out docs/reports/M12b/pnr_vs_vpr.md]
+  tools/bob/pnr/compare.py [--seed N] [--out docs/reports/M16/pnr_vs_vpr.md]
 
 For every example and variant: VPR's committed result (tools/bob/vpr/<name>/) and a
 fresh Python PnR run (build/pnr/<name>/). Both are measured by the same code from
@@ -67,7 +67,7 @@ def measure(work, name, top):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--seed", type=int, default=1)
-    ap.add_argument("--out", default=os.path.join(ROOT, "docs", "reports", "M12b", "pnr_vs_vpr.md"))
+    ap.add_argument("--out", default=os.path.join(ROOT, "docs", "reports", "M16", "pnr_vs_vpr.md"))
     args = ap.parse_args()
     rows, tot = [], {"v": 0, "p": 0}
     for name in vpr_run.EXAMPLES + list(vpr_run.VARIANTS):

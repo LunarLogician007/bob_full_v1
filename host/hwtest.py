@@ -1692,6 +1692,15 @@ MILESTONE["M14"] = (
 # over for M12b, M14 and M15 together is this one.
 MILESTONE["M15"] = MILESTONE["M14"][:-1] + MILESTONE_M15_EXTRA + [MILESTONE["M14"][-1]]
 
+# M16: the 10 x 10 CLB grid (100 CLBs). Everything M15 checks still applies - the board test
+# is the same regression on a bitstream with 2.8x the CLBs and 145 frames instead of 65 - plus
+# `big`, a design that does not fit the old grid, through both PnR flows.
+MILESTONE["M16"] = (
+    MILESTONE["M15"][:-1] +
+    [("bob-big", _bob_check("big")),
+     ("pnr-big", _bob_check("big", pnr="python"))] +
+    [MILESTONE["M15"][-1]])
+
 # --- runner ------------------------------------------------------------------
 
 def manual_steps(milestone):

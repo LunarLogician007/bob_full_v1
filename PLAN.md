@@ -48,7 +48,7 @@ The 8×8 profile (48 CLBs, 9400 bits, `0x9BEEF093`) is frozen in `release/M7_8x8
 | M14 | partial reconfiguration of a running design (UG470 AGHIGH … LFRM, changed frames only, state kept) | **passed on hardware 2026-09-17** in the M15 build (partial-swap, partial-live, partial-bad-crc, partial-guest) |
 | M15 | BRAM contents as frames (FAR block type 001), one CRC-covered stream for the whole design | **passed on hardware 2026-09-17** (48/48 first run, with M12b and M14; 10 411 LUT / 11 097 FF, fewer LUTs than M13 with 2.25× the CLBs; WNS +0.585 ns / WHS +0.065 ns; synthesis 5.1 min at 2.0 GB) |
 
-| M16 | 10 × 10 CLB grid (12 × 10 core, 100 CLBs, 145 frames = 18 560 bits) | **in progress 2026-09-18**: `ARCH_12X10`, rr graphs, generated RTL, VPR results and the frame/fabric testbenches done; `make check` running; Vivado build + `make hwtest M=M16` pending. yosys estimate 32 891 LUT / 21 485 FF (M15: 15 941 / 11 069 → 10 411 LUT in Vivado). See `HANDOFF.md` |
+| M16 | 10 × 10 CLB grid (12 × 10 core, 100 CLBs, 145 frames = 18 560 bits) | **built and simulated 2026-09-18** (`make check` green: 193 pytest, every testbench on the new fabric; VPR and Python PnR route all 11 examples; new example `big.v` = 56 CLBs). **Vivado build + `make hwtest M=M16` pending**; yosys estimate 32 891 LUT / 21 485 FF against M15's 15 941 / 11 069 → 10 411 LUT in Vivado. Checklist `docs/hwtest/M16.md` |
 Hardware results are in `docs/hwtest/results.log`; Vivado reports are in `docs/reports/Mx/`; per-design guest reports in `docs/reports/M11/designs.md`.
 
 ## 3. How the user wants this done (non-negotiable)
@@ -828,3 +828,22 @@ User, 2026-09-17: "implement everything all till m15 and we will run them in viv
 - Verification: `tb_frames` [18]-[19] (scans with sysclk running), 5 mutants; hwtest `frames-bram-load`, `frames-bram-live-refused`, `ram-readback-frames`.
 - Gotchas: never-written BRAM addresses read X in simulation (read back only written frames); `list.index(FAR value)` matched a configuration data word (build streams explicitly); the stand-in board's free-running clock read the real switches during INTEST and never modelled USER1 `cin`; bit packing in `packets.py` was quadratic on 70k-bit streams.
 - **Hand-off:** one Vivado build (`tag = M15`, IDCODE `0xEBEEF093`), then `make hwtest M=M15` (M13 regression + bob-wide, pnr-wide, 4 partial checks, 3 BRAM-frame checks), checklist `docs/hwtest/M15.md`.
+
+
+### M16: the 10 × 10 CLB grid (as built, 2026-09-18)
+
+User, 2026-09-18: "for now polish for sharing … also for now expand to 10x10 CLBs first".
+
+- **`ARCH_12X10`** (`device.py`): 12 × 10 core = 10 CLB columns × 10 rows = **100 CLBs**; BRAM column x = 3 and DSP column x = 8, height 5, so still 2 of each; 44 pads; W = 24; 3391 routing muxes; **18 560 bits = 145 frames** (K = 4: 12 800 = 100). VPR grid 14 × 12.
+- **Regenerated:** rr graphs (`make rrgraph`), `bob_fabric.v` (4416 lines), `device.json`, `bob_params.vh`, every VPR result and the Python PnR comparison (`docs/reports/M16/pnr_vs_vpr.md`: total wirelength VPR 4017, bob 3601 = 0.90×).
+- **New example `examples/big.v`** (24-bit LFSR + 16-bit counter, **56 CLBs**): impossible on the 36-CLB grid, so it is the check that proves the new fabric. Board checks `bob-big` and `pnr-big` are in `MILESTONE["M16"]`.
+- **Size gate:** whole-design yosys 32 891 LUT / 21 485 FF / 2.07 GB / 281 s against M15's 15 941 / 11 069 / 1.36 GB / 152 s. M15 became 10 411 LUT in Vivado (5.1 min, 2.0 GB), so expect roughly 21 k LUT (≈40%) and ≈21.5 k FF (≈20%). This is the first build bigger than M15; the fallback if the machine struggles is an 8 × 8 core (64 CLBs).
+- **Bugs found by the resize** (each one a real defect, not just a number):
+  - `tb_bob` used `` `CNT8_BITS `` above the `include` of `vectors.vh`; iverilog silently made the comparison register 2 bits wide and 298 checks failed. Comparison registers are plain 32-bit now. **Rule: never use a vector macro above its include.**
+  - The CAPTURE check compared 64-bit values, but CAPTURE is 100 bits here.
+  - `CNT8_MASK` was emitted with a fixed `8'h` width; it now follows the column height.
+  - `tb_frames`' stream vector `SW` (16 384 bits) could not hold a 145-frame load stream: 40 960 in both `sim/gen_frame_vectors.py` and `hw/tb/tb_frames.v`.
+  - `test_blinky_chain_crosses_columns`: with 10-row columns blinky fits one column, so the carry-splitting test uses `wide` and also checks each piece is a contiguous run of rows.
+  - `sim/mutate_fabric.sh` `carry-direct-cut` is pinned to the last CLB column: x = 12 now.
+- **`arch.html`:** the floor plan pitch now scales with the grid (it was fixed at 75 px and a 14 × 12 grid ran into the configuration column), and the legend, title and boundary-cell count come from `device.json`.
+- **IDCODE `0xFBEEF093`, USERCODE 0x10.** This is the **last free version nibble**; the next device needs a new numbering scheme.

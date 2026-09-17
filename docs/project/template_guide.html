@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>bob, explained</title>
+<style>
+  :root {
+    --ink: #17171a; --ink-2: #4a4a52; --mute: #74747e; --faint: #9a9aa4;
+    --rule: #e4e4dd; --rule-2: #f0efe9; --paper: #ffffff; --desk: #d6d4cd;
+    --accent: #b8500f; --accent-2: #d97a28; --accent-bg: #fdf6ef;
+    --ok: #2f7d52; --ok-bg: #e7f3ec; --bad: #b93a2e; --bad-bg: #fbeceb; --wait: #b07a0c; --wait-bg: #fcf3df;
+    --clb: #3563a0; --clb-bg: #e8eff8; --bram: #2f7d52; --bram-bg: #e6f2ea; --dsp: #7446a8; --dsp-bg: #f0e9f8;
+    --io: #7b7b72; --io-bg: #f1f0ea; --cfg: #b8500f; --cfg-bg: #fdf1e8; --sys: #1f6f86; --sys-bg: #e5f2f5;
+    --shadow: 0 1px 2px rgba(20,20,25,.05), 0 8px 30px rgba(20,20,25,.10);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
+  }
+  * { box-sizing: border-box }
+  html, body { margin: 0; padding: 0; background: var(--desk); color: var(--ink); font-family: var(--sans); -webkit-font-smoothing: antialiased }
+  a { color: var(--accent) }
+  code { font-family: var(--mono); font-size: .88em; background: #f4f3ef; padding: 1px 5px; border-radius: 4px }
+
+  .bar { position: sticky; top: 0; z-index: 30; display: flex; gap: 14px; align-items: center; padding: 0 18px;
+    height: 46px; background: #1e1e22; color: #eceae4; font-size: 13px; border-bottom: 1px solid #000 }
+  .bar .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-2); flex: none }
+  .bar .brand { font-weight: 640; letter-spacing: -.015em; font-size: 13.5px; white-space: nowrap }
+  .bar .tip { font-family: var(--mono); font-size: 11px; color: #c9a071; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+  .bar .sp { flex: 1 }
+  .bar a.btn { color: #eceae4; text-decoration: none; background: #303036; border: 1px solid #46464e; border-radius: 6px; padding: 5px 11px; font-size: 12px; white-space: nowrap }
+  .bar a.btn:hover { background: #3c3c44 }
+
+  .wrap { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 18px; max-width: 1480px; margin: 18px auto; padding: 0 16px }
+  nav.toc { position: sticky; top: 64px; align-self: start; background: var(--paper); border-radius: 8px; box-shadow: var(--shadow); padding: 12px 8px; max-height: calc(100vh - 84px); overflow-y: auto }
+  nav.toc .hd { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; color: var(--mute); padding: 4px 10px 8px }
+  nav.toc a { display: block; padding: 6px 10px; border-radius: 6px; color: var(--ink-2); text-decoration: none; font-size: 13px }
+  nav.toc a:hover { background: var(--rule-2); color: var(--ink) }
+  nav.toc a.on { background: var(--accent-bg); color: var(--accent); font-weight: 600 }
+  nav.toc .n { font-family: var(--mono); font-size: 10.5px; color: var(--faint); display: inline-block; width: 22px }
+
+  main { min-width: 0 }
+  section.sheet { background: var(--paper); border-radius: 8px; box-shadow: var(--shadow); padding: 26px 30px 28px; margin-bottom: 18px; scroll-margin-top: 64px }
+  .kicker { font-family: var(--mono); font-size: 10.5px; letter-spacing: .14em; color: var(--accent); text-transform: uppercase }
+  h1.title { font-size: 30px; letter-spacing: -.03em; margin: 6px 0 6px; line-height: 1.1 }
+  h2.st { font-size: 21px; letter-spacing: -.02em; margin: 4px 0 4px }
+  .lede { color: var(--ink-2); font-size: 15px; line-height: 1.55; max-width: 900px; margin: 6px 0 16px }
+  .sub { color: var(--mute); font-size: 13px; margin: 0 0 16px }
+  .hint { font-family: var(--mono); font-size: 10.5px; color: var(--faint); letter-spacing: .05em; text-transform: uppercase; margin: 14px 0 6px }
+
+  .layers { display: grid; gap: 10px; margin: 14px 0 }
+  .layer { border: 1px solid var(--rule); border-radius: 8px; padding: 10px 12px; background: #fcfcfa }
+  .layer .lh { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px }
+  .layer .ln { font-family: var(--mono); font-size: 11px; color: var(--accent); letter-spacing: .1em }
+  .layer .lt { font-weight: 640; font-size: 14px }
+  .layer .ld { color: var(--mute); font-size: 12.5px }
+  .parts { display: flex; flex-wrap: wrap; gap: 6px }
+  .part { font-size: 12.5px; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--rule); background: #fff; cursor: pointer; transition: transform .08s, border-color .1s }
+  .part:hover { transform: translateY(-1px); border-color: var(--accent-2) }
+  .part.on { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); font-weight: 600 }
+
+  .cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px }
+  @media (max-width: 1000px) { .cols { grid-template-columns: minmax(0, 1fr) } }
+  .card { border: 1px solid var(--rule); border-radius: 8px; padding: 14px 16px; background: #fcfcfa }
+  .card h3 { margin: 0 0 8px; font-size: 16px }
+  .steps { display: grid; gap: 10px }
+  .step { border-left: 3px solid var(--rule); padding: 2px 0 2px 12px }
+  .step.q { border-left-color: var(--sys) } .step.w { border-left-color: var(--accent-2) }
+  .step.u { border-left-color: var(--ok) } .step.t { border-left-color: var(--dsp) }
+  .step .sh { font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--mute); margin-bottom: 3px }
+  .body p, .body li { font-size: 14px; line-height: 1.58; color: #2c2c32 }
+  .body ul, .body ol { padding-left: 20px; margin: 6px 0 }
+  .body li { margin: 3px 0 }
+  .body pre.code, pre.code { background: #1e1e22; color: #e6e3db; border-radius: 8px; padding: 12px 14px; overflow-x: auto; font-family: var(--mono); font-size: 12px; line-height: 1.5 }
+  .body table, table.md, table.tt { border-collapse: collapse; width: 100%; font-size: 13px; margin: 8px 0 }
+  .body th, table.md th, table.tt th { text-align: left; font-size: 12px; color: var(--ink-2); background: #f7f6f2; border-bottom: 1px solid var(--rule); padding: 7px 9px }
+  .body td, table.md td, table.tt td { border-bottom: 1px solid var(--rule-2); padding: 7px 9px; vertical-align: top; line-height: 1.45 }
+  .tw { overflow-x: auto; margin: 10px 0 }
+
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; border-bottom: 1px solid var(--rule); margin: 10px 0 14px }
+  .tabs button { font: inherit; font-size: 13px; background: none; border: none; padding: 8px 12px; cursor: pointer; color: var(--ink-2); border-bottom: 2px solid transparent; margin-bottom: -1px }
+  .tabs button:hover { color: var(--ink) }
+  .tabs button.on { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600 }
+  .btnrow { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 8px 0 }
+  input.search { font: inherit; font-size: 13px; padding: 6px 10px; border: 1px solid #cfcdc6; border-radius: 6px; width: 280px; max-width: 100% }
+  .pill { display: inline-block; font-family: var(--mono); font-size: 10.5px; padding: 2px 7px; border-radius: 999px; background: var(--rule-2); color: var(--ink-2) }
+  .pill.ok { background: var(--ok-bg); color: var(--ok) } .pill.bad { background: var(--bad-bg); color: var(--bad) }
+  .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px }
+
+  .report { max-width: 980px }
+  .report h2 { font-size: 22px; letter-spacing: -.02em; margin: 34px 0 10px; padding-top: 14px; border-top: 1px solid var(--rule) }
+  .report h3 { font-size: 16.5px; margin: 22px 0 8px }
+  .report p, .report li { font-size: 14.5px; line-height: 1.62; color: #2c2c32 }
+  .report ul, .report ol { padding-left: 22px }
+  .report hr { border: none; border-top: 1px solid var(--rule); margin: 22px 0 }
+
+  @media (max-width: 860px) {
+    .wrap { grid-template-columns: minmax(0, 1fr) }
+    nav.toc { position: relative; top: 0; max-height: none; display: flex; flex-wrap: wrap; gap: 2px }
+    nav.toc .hd { width: 100% }
+    section.sheet { padding: 18px 16px }
+    .bar .tip { display: none }
+  }
+  @media print { .bar, nav.toc { display: none } .wrap { display: block } section.sheet { box-shadow: none; break-inside: avoid-page } }
+</style>
+</head>
+<body>
+<div class="bar">
+  <span class="dot"></span><span class="brand">bob, explained</span>
+  <span class="tip">what each part is · why · how to use · how to tweak</span>
+  <span class="sp"></span>
+  <a class="btn" href="arch.html">die slice</a>
+  <a class="btn" href="project.html">project report</a>
+  <a class="btn" href="docs/project/GUIDE.md">GUIDE.md</a>
+</div>
+
+<div class="wrap">
+  <nav class="toc" id="toc"><div class="hd">CHAPTERS</div></nav>
+  <main>
+    <section class="sheet" id="start" data-title="Start here">
+      <div class="kicker">a guide to the whole project</div>
+      <h1 class="title">bob, explained</h1>
+      <p class="lede">bob is an FPGA built inside an FPGA: its own logic cells, memories, DSP slices, routing, configuration controller and tool chain, running in the programmable logic of a PYNQ-Z2. This page explains every part — <strong>what it is, why it is built that way, how to use it and how to tweak it</strong> — and compares it honestly with OpenFPGA, Aegis and the other projects it borrows from.</p>
+      <div class="two" id="startcards"></div>
+      <div class="hint">the five layers — click a part to open it</div>
+      <div class="layers" id="layers"></div>
+    </section>
+
+    <section class="sheet" id="parts" data-title="Every part">
+      <div class="kicker">§3</div><h2 class="st">Part by part</h2>
+      <p class="sub">Every entry answers the same four questions. Pick a part above or below.</p>
+      <div class="parts" id="partchips"></div>
+      <div id="partbody" style="margin-top:14px"></div>
+    </section>
+
+    <section class="sheet" id="cook" data-title="Cookbook">
+      <div class="kicker">§4</div><h2 class="st">Cookbook: how to change things</h2>
+      <p class="sub">Each recipe is the whole change, in order. They all end the same way: <code>make check</code> green, then a Vivado build and a board test if the hardware changed.</p>
+      <div class="parts" id="cookchips"></div>
+      <div id="cookbody" style="margin-top:14px"></div>
+    </section>
+
+    <section class="sheet" id="compare" data-title="Comparison">
+      <div class="kicker">§5</div><h2 class="st">bob vs OpenFPGA, Aegis, ZUMA, prjxray</h2>
+      <p class="sub">What bob does better, what it does worse, and what it does not do at all.</p>
+      <div class="tabs" id="cmptabs"></div>
+      <div id="cmpbody" class="body"></div>
+    </section>
+
+    <section class="sheet" id="trouble" data-title="Troubleshooting">
+      <div class="kicker">§6</div><h2 class="st">When something goes wrong</h2>
+      <div class="btnrow"><input class="search" id="tq" placeholder="search symptoms…"></div>
+      <div class="tw" id="ttab"></div>
+      <div class="hint">vocabulary</div>
+      <div class="btnrow"><input class="search" id="gq" placeholder="search the glossary…"></div>
+      <div class="tw" id="gtab"></div>
+    </section>
+
+    <section class="sheet" id="full" data-title="Full guide">
+      <div class="kicker">docs/project/GUIDE.md</div><h2 class="st">The whole guide</h2>
+      <div class="report">
+<!--__REPORT__-->
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+const B = /*__DATA__*/null;
+const D = B.data;
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const md = s => esc(s).replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\*(.+?)\*/g, "<em>$1</em>");
+const plain = s => String(s == null ? "" : s).replace(/[`*]/g, "");
+const T = (sec, k) => ((B.tables[sec] || [])[k || 0]) || {header: [], rows: []};
+const sec = id => B.chunks[id] || "";
+const byTitle = re => B.sections.filter(s => re.test(s.title));
+
+function table(header, rows) {
+  return `<table class="tt"><thead><tr>${header.map(c => `<th>${md(c)}</th>`).join("")}</tr></thead><tbody>` +
+    rows.map(r => `<tr>${r.map(c => `<td>${md(c)}</td>`).join("")}</tr>`).join("") + "</tbody></table>";
+}
+
+/* ---------------------------------------------------------------- navigation */
+(function nav() {
+  const toc = $("toc"), secs = [...document.querySelectorAll("section.sheet")];
+  secs.forEach((s, i) => {
+    const a = document.createElement("a");
+    a.href = "#" + s.id;
+    a.innerHTML = `<span class="n">${String(i + 1).padStart(2, "0")}</span>${esc(s.dataset.title)}`;
+    toc.appendChild(a);
+  });
+  const links = [...toc.querySelectorAll("a")];
+  const spy = () => {
+    let cur = 0;
+    secs.forEach((s, i) => { if (s.getBoundingClientRect().top < 140) cur = i; });
+    links.forEach((a, i) => a.classList.toggle("on", i === cur));
+  };
+  document.addEventListener("scroll", spy, {passive: true});
+  spy();
+})();
+
+/* ---------------------------------------------------------------- start here */
+const PARTS = byTitle(/^3\.\d+/);
+const COOK = byTitle(/^4\.\d+/);
+const LAYERS = [
+  ["1", "Architecture", "one description of the device: grid, tiles, fields, routing", /^3\.[123]\b/],
+  ["2", "Hardware", "the fabric and its blocks, generated or hand-written Verilog", /^3\.[4-9]\b/],
+  ["3", "Configuration", "the memory and the two ways to fill it, plus debug access", /^3\.1[0-5]\b/],
+  ["4", "Tools", "models, synthesis, place and route, FASM, bitgen", /^3\.1[6-9]\b|^3\.20\b/],
+  ["5", "Host and build", "talking to the board, testing it, and the Vivado bundle", /^3\.2[1-4]\b/],
+];
+(function start() {
+  const cards = [
+    ["Try it in five commands", `<pre class="code">make check
+./bob build examples/counter.v -o build/bit/counter.bit
+./bob info build/bit/counter.bit
+./bob fasm build/bit/counter.bit | head
+tools/bob/packets.py dump build/bit/counter.bit | head -20</pre>`],
+    ["The device right now", `<table class="tt"><tbody>
+      <tr><td>CLBs</td><td>${D.device.blocks.clb} (1 BLE each: LUT${D.device.lut_k}, carry, flip-flop)</td></tr>
+      <tr><td>hard blocks</td><td>${D.device.blocks.bram} × BRAM 1024×18 · ${D.device.blocks.dsp} × DSP48E1-style</td></tr>
+      <tr><td>pads</td><td>${D.device.blocks.io}</td></tr>
+      <tr><td>routing</td><td>L4 unidirectional, W = ${D.device.chan_width}, ${D.device.muxes} muxes</td></tr>
+      <tr><td>configuration</td><td>${D.device.chain_width.toLocaleString("en")} bits = ${D.device.frames} frames of ${D.device.frame_bits}</td></tr>
+      </tbody></table>`],
+  ];
+  $("startcards").innerHTML = cards.map(([h, b]) => `<div class="card"><h3>${esc(h)}</h3>${b}</div>`).join("");
+  $("layers").innerHTML = LAYERS.map(([n, t, d, re]) => {
+    const ps = PARTS.filter(p => re.test(p.title));
+    return `<div class="layer"><div class="lh"><span class="ln">LAYER ${n}</span><span class="lt">${esc(t)}</span><span class="ld">${esc(d)}</span></div>
+      <div class="parts">${ps.map(p => `<span class="part" data-id="${p.id}">${esc(p.title.replace(/^3\.\d+\s+/, ""))}</span>`).join("")}</div></div>`;
+  }).join("");
+  $("layers").addEventListener("click", e => {
+    const c = e.target.closest(".part"); if (!c) return;
+    showPart(PARTS.findIndex(p => p.id === c.dataset.id));
+    $("parts").scrollIntoView({behavior: "smooth"});
+  });
+})();
+
+/* ---------------------------------------------------------------- parts explorer */
+function splitFour(htmlText) {
+  // the guide's four fixed steps, in order; anything else stays in "more"
+  const keys = [["What it is", "q"], ["Why this way", "w"], ["How to use it", "u"], ["How to tweak it", "t"],
+                ["Code and tests", "m"], ["Tests", "m"]];
+  const out = [];
+  let rest = htmlText;
+  const idx = [];
+  keys.forEach(([k, cls]) => {
+    const m = rest.match(new RegExp("<strong>" + k + "\\.?</strong>"));
+    if (m) idx.push([m.index, k, cls]);
+  });
+  idx.sort((a, b) => a[0] - b[0]);
+  idx.forEach(([at, k, cls], i) => {
+    const end = i + 1 < idx.length ? idx[i + 1][0] : rest.length;
+    let body = rest.slice(at, end).replace(new RegExp("<strong>" + k + "\\.?</strong>\\s*"), "");
+    out.push([k, cls, body]);
+  });
+  if (!out.length) return [["", "q", rest]];
+  const head = rest.slice(0, idx[0][0]).replace(/<p>\s*<\/p>/g, "").trim();
+  if (head) out.unshift(["", "q", head]);
+  return out;
+}
+function showPart(i) {
+  if (i < 0) i = 0;
+  const p = PARTS[i];
+  [...document.querySelectorAll("#partchips .part")].forEach((c, k) => c.classList.toggle("on", k === i));
+  [...document.querySelectorAll("#layers .part")].forEach(c => c.classList.toggle("on", c.dataset.id === p.id));
+  const steps = splitFour(sec(p.id));
+  $("partbody").innerHTML = `<div class="card"><h3>${md(p.title)}</h3><div class="steps">` +
+    steps.filter(([k, cls, body]) => body.replace(/<[^>]+>|\s/g, "")).map(([k, cls, body]) => `<div class="step ${cls}">${k ? `<div class="sh">${esc(k)}</div>` : ""}<div class="body">${body}</div></div>`).join("") +
+    `</div><p class="sub" style="margin-top:10px">Full text: <a href="#${p.id}">${md(p.title)}</a> in the guide below.</p></div>`;
+}
+$("partchips").innerHTML = PARTS.map((p, i) => `<span class="part" data-i="${i}">${esc(p.title.replace(/^3\./, "").replace(/^(\d+)\s+/, "$1 · "))}</span>`).join("");
+$("partchips").addEventListener("click", e => { const c = e.target.closest(".part"); if (c) showPart(+c.dataset.i); });
+showPart(0);
+
+/* ---------------------------------------------------------------- cookbook */
+function showRecipe(i) {
+  const r = COOK[i];
+  [...document.querySelectorAll("#cookchips .part")].forEach((c, k) => c.classList.toggle("on", k === i));
+  $("cookbody").innerHTML = `<div class="card"><h3>${md(r.title)}</h3><div class="body">${sec(r.id)}</div></div>`;
+}
+$("cookchips").innerHTML = COOK.map((r, i) => `<span class="part" data-i="${i}">${esc(r.title.replace(/^4\.\d+\s+/, ""))}</span>`).join("");
+$("cookchips").addEventListener("click", e => { const c = e.target.closest(".part"); if (c) showRecipe(+c.dataset.i); });
+showRecipe(0);
+
+/* ---------------------------------------------------------------- comparison */
+(function compare() {
+  const subs = byTitle(/^5\.\d+/);
+  const tabs = $("cmptabs");
+  subs.forEach((s, i) => {
+    const b = document.createElement("button");
+    b.textContent = s.title.replace(/^5\.\d+\s+/, "");
+    b.onclick = () => show(i);
+    tabs.appendChild(b);
+  });
+  function show(i) {
+    [...tabs.children].forEach((b, k) => b.classList.toggle("on", k === i));
+    $("cmpbody").innerHTML = sec(subs[i].id);
+  }
+  show(0);
+})();
+
+/* ---------------------------------------------------------------- troubleshooting + glossary */
+(function help() {
+  const t = T("6", 0), g = T("2", 0);
+  const draw = () => {
+    const q = $("tq").value.toLowerCase();
+    const rows = t.rows.filter(r => !q || r.join(" ").toLowerCase().includes(q));
+    $("ttab").innerHTML = table(t.header, rows);
+    const gq = $("gq").value.toLowerCase();
+    const grows = g.rows.filter(r => !gq || r.join(" ").toLowerCase().includes(gq));
+    $("gtab").innerHTML = table(g.header, grows);
+  };
+  $("tq").oninput = draw; $("gq").oninput = draw; draw();
+})();
+</script>
+</body>
+</html>

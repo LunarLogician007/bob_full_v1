@@ -3339,6 +3339,51 @@
      "SW1..0 = 00/01/10/11 should light LD0 / LD1 / LD2 / all three"
     ]
    ]
+  },
+  {
+   "date": "2026-09-18",
+   "time": "00:26:23",
+   "milestone": "M15",
+   "tag": "M15",
+   "pass": 0,
+   "fail": 1,
+   "checks": [
+    [
+     "FAIL",
+     "idcode",
+     "0xD7DDE126, build.cfg expects 0xEBEEF093"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-18",
+   "time": "00:26:35",
+   "milestone": "M14",
+   "tag": "M15",
+   "pass": 0,
+   "fail": 1,
+   "checks": [
+    [
+     "FAIL",
+     "idcode",
+     "0xD7DDE126, build.cfg expects 0xEBEEF093"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-18",
+   "time": "00:26:39",
+   "milestone": "M15",
+   "tag": "M15",
+   "pass": 0,
+   "fail": 1,
+   "checks": [
+    [
+     "FAIL",
+     "idcode",
+     "0xD7DDE126, build.cfg expects 0xEBEEF093"
+    ]
+   ]
   }
  ],
  "vivado": {
@@ -3456,19 +3501,19 @@
   }
  },
  "device": {
-  "chain_width": 8320,
-  "frames": 65,
+  "chain_width": 18560,
+  "frames": 145,
   "frame_bits": 128,
   "grid": [
-   10,
-   8
+   14,
+   12
   ],
   "chan_width": 24,
   "lut_k": 6,
-  "muxes": 1723,
+  "muxes": 3391,
   "blocks": {
-   "io": 28,
-   "clb": 36,
+   "io": 44,
+   "clb": 100,
    "bram": 2,
    "dsp": 2
   }
@@ -3477,52 +3522,57 @@
   "vpr": [
    {
     "name": "adder",
-    "wirelength": 77,
+    "wirelength": 109,
+    "critical_ns": null
+   },
+   {
+    "name": "big",
+    "wirelength": 1560,
     "critical_ns": null
    },
    {
     "name": "blinky",
-    "wirelength": 136,
+    "wirelength": 117,
     "critical_ns": null
    },
    {
     "name": "counter",
-    "wirelength": 201,
+    "wirelength": 198,
     "critical_ns": null
    },
    {
     "name": "fir",
-    "wirelength": 257,
+    "wirelength": 324,
     "critical_ns": null
    },
    {
     "name": "gates",
-    "wirelength": 154,
+    "wirelength": 167,
     "critical_ns": null
    },
    {
     "name": "gates_swapped",
-    "wirelength": 149,
+    "wirelength": 169,
     "critical_ns": null
    },
    {
     "name": "mult",
-    "wirelength": 175,
+    "wirelength": 203,
     "critical_ns": null
    },
    {
     "name": "ram",
-    "wirelength": 112,
+    "wirelength": 119,
     "critical_ns": null
    },
    {
     "name": "switches",
-    "wirelength": 144,
+    "wirelength": 190,
     "critical_ns": null
    },
    {
     "name": "wide",
-    "wirelength": 757,
+    "wirelength": 861,
     "critical_ns": null
    }
   ],
@@ -3682,22 +3732,25 @@
  "code": {
   "lines": {
    "other": 347,
-   "Markdown": 4058,
-   "Python": 13937,
-   "JavaScript": 1608,
+   "Markdown": 4299,
+   "Python": 13994,
+   "JavaScript": 1614,
    "Tcl": 880,
    "SystemVerilog": 385,
-   "Verilog": 6301,
+   "Verilog": 6322,
    "shell": 626,
    "XDC": 124
   },
-  "generated_fabric_lines": 2296,
-  "commits": 24,
+  "generated_fabric_lines": 4416,
+  "commits": 26,
   "tags": [
    "m10",
    "m11",
    "m12",
+   "m12b",
    "m13",
+   "m14",
+   "m15",
    "m7",
    "m8",
    "m9"
@@ -3754,6 +3807,30 @@
     0
    ],
    [
+    "io_x9y0",
+    "io",
+    9,
+    0
+   ],
+   [
+    "io_x10y0",
+    "io",
+    10,
+    0
+   ],
+   [
+    "io_x11y0",
+    "io",
+    11,
+    0
+   ],
+   [
+    "io_x12y0",
+    "io",
+    12,
+    0
+   ],
+   [
     "io_x0y1",
     "io",
     0,
@@ -3790,8 +3867,8 @@
     1
    ],
    [
-    "dsp0",
-    "dsp",
+    "clb_x6y1",
+    "clb",
     6,
     1
    ],
@@ -3802,15 +3879,39 @@
     1
    ],
    [
-    "clb_x8y1",
-    "clb",
+    "dsp0",
+    "dsp",
     8,
     1
    ],
    [
-    "io_x9y1",
-    "io",
+    "clb_x9y1",
+    "clb",
     9,
+    1
+   ],
+   [
+    "clb_x10y1",
+    "clb",
+    10,
+    1
+   ],
+   [
+    "clb_x11y1",
+    "clb",
+    11,
+    1
+   ],
+   [
+    "clb_x12y1",
+    "clb",
+    12,
+    1
+   ],
+   [
+    "io_x13y1",
+    "io",
+    13,
     1
    ],
    [
@@ -3844,21 +3945,45 @@
     2
    ],
    [
+    "clb_x6y2",
+    "clb",
+    6,
+    2
+   ],
+   [
     "clb_x7y2",
     "clb",
     7,
     2
    ],
    [
-    "clb_x8y2",
+    "clb_x9y2",
     "clb",
-    8,
+    9,
     2
    ],
    [
-    "io_x9y2",
+    "clb_x10y2",
+    "clb",
+    10,
+    2
+   ],
+   [
+    "clb_x11y2",
+    "clb",
+    11,
+    2
+   ],
+   [
+    "clb_x12y2",
+    "clb",
+    12,
+    2
+   ],
+   [
+    "io_x13y2",
     "io",
-    9,
+    13,
     2
    ],
    [
@@ -3892,21 +4017,45 @@
     3
    ],
    [
+    "clb_x6y3",
+    "clb",
+    6,
+    3
+   ],
+   [
     "clb_x7y3",
     "clb",
     7,
     3
    ],
    [
-    "clb_x8y3",
+    "clb_x9y3",
     "clb",
-    8,
+    9,
     3
    ],
    [
-    "io_x9y3",
+    "clb_x10y3",
+    "clb",
+    10,
+    3
+   ],
+   [
+    "clb_x11y3",
+    "clb",
+    11,
+    3
+   ],
+   [
+    "clb_x12y3",
+    "clb",
+    12,
+    3
+   ],
+   [
+    "io_x13y3",
     "io",
-    9,
+    13,
     3
    ],
    [
@@ -3928,12 +4077,6 @@
     4
    ],
    [
-    "bram1",
-    "bram",
-    3,
-    4
-   ],
-   [
     "clb_x4y4",
     "clb",
     4,
@@ -3946,8 +4089,8 @@
     4
    ],
    [
-    "dsp1",
-    "dsp",
+    "clb_x6y4",
+    "clb",
     6,
     4
    ],
@@ -3958,15 +4101,33 @@
     4
    ],
    [
-    "clb_x8y4",
+    "clb_x9y4",
     "clb",
-    8,
+    9,
     4
    ],
    [
-    "io_x9y4",
+    "clb_x10y4",
+    "clb",
+    10,
+    4
+   ],
+   [
+    "clb_x11y4",
+    "clb",
+    11,
+    4
+   ],
+   [
+    "clb_x12y4",
+    "clb",
+    12,
+    4
+   ],
+   [
+    "io_x13y4",
     "io",
-    9,
+    13,
     4
    ],
    [
@@ -4000,21 +4161,45 @@
     5
    ],
    [
+    "clb_x6y5",
+    "clb",
+    6,
+    5
+   ],
+   [
     "clb_x7y5",
     "clb",
     7,
     5
    ],
    [
-    "clb_x8y5",
+    "clb_x9y5",
     "clb",
-    8,
+    9,
     5
    ],
    [
-    "io_x9y5",
+    "clb_x10y5",
+    "clb",
+    10,
+    5
+   ],
+   [
+    "clb_x11y5",
+    "clb",
+    11,
+    5
+   ],
+   [
+    "clb_x12y5",
+    "clb",
+    12,
+    5
+   ],
+   [
+    "io_x13y5",
     "io",
-    9,
+    13,
     5
    ],
    [
@@ -4036,6 +4221,12 @@
     6
    ],
    [
+    "bram1",
+    "bram",
+    3,
+    6
+   ],
+   [
     "clb_x4y6",
     "clb",
     4,
@@ -4048,70 +4239,412 @@
     6
    ],
    [
+    "clb_x6y6",
+    "clb",
+    6,
+    6
+   ],
+   [
     "clb_x7y6",
     "clb",
     7,
     6
    ],
    [
-    "clb_x8y6",
-    "clb",
+    "dsp1",
+    "dsp",
     8,
     6
    ],
    [
-    "io_x9y6",
-    "io",
+    "clb_x9y6",
+    "clb",
     9,
     6
    ],
    [
-    "io_x1y7",
+    "clb_x10y6",
+    "clb",
+    10,
+    6
+   ],
+   [
+    "clb_x11y6",
+    "clb",
+    11,
+    6
+   ],
+   [
+    "clb_x12y6",
+    "clb",
+    12,
+    6
+   ],
+   [
+    "io_x13y6",
     "io",
+    13,
+    6
+   ],
+   [
+    "io_x0y7",
+    "io",
+    0,
+    7
+   ],
+   [
+    "clb_x1y7",
+    "clb",
     1,
     7
    ],
    [
-    "io_x2y7",
-    "io",
+    "clb_x2y7",
+    "clb",
     2,
     7
    ],
    [
-    "io_x3y7",
-    "io",
-    3,
-    7
-   ],
-   [
-    "io_x4y7",
-    "io",
+    "clb_x4y7",
+    "clb",
     4,
     7
    ],
    [
-    "io_x5y7",
-    "io",
+    "clb_x5y7",
+    "clb",
     5,
     7
    ],
    [
-    "io_x6y7",
-    "io",
+    "clb_x6y7",
+    "clb",
     6,
     7
    ],
    [
-    "io_x7y7",
-    "io",
+    "clb_x7y7",
+    "clb",
     7,
     7
    ],
    [
-    "io_x8y7",
+    "clb_x9y7",
+    "clb",
+    9,
+    7
+   ],
+   [
+    "clb_x10y7",
+    "clb",
+    10,
+    7
+   ],
+   [
+    "clb_x11y7",
+    "clb",
+    11,
+    7
+   ],
+   [
+    "clb_x12y7",
+    "clb",
+    12,
+    7
+   ],
+   [
+    "io_x13y7",
+    "io",
+    13,
+    7
+   ],
+   [
+    "io_x0y8",
+    "io",
+    0,
+    8
+   ],
+   [
+    "clb_x1y8",
+    "clb",
+    1,
+    8
+   ],
+   [
+    "clb_x2y8",
+    "clb",
+    2,
+    8
+   ],
+   [
+    "clb_x4y8",
+    "clb",
+    4,
+    8
+   ],
+   [
+    "clb_x5y8",
+    "clb",
+    5,
+    8
+   ],
+   [
+    "clb_x6y8",
+    "clb",
+    6,
+    8
+   ],
+   [
+    "clb_x7y8",
+    "clb",
+    7,
+    8
+   ],
+   [
+    "clb_x9y8",
+    "clb",
+    9,
+    8
+   ],
+   [
+    "clb_x10y8",
+    "clb",
+    10,
+    8
+   ],
+   [
+    "clb_x11y8",
+    "clb",
+    11,
+    8
+   ],
+   [
+    "clb_x12y8",
+    "clb",
+    12,
+    8
+   ],
+   [
+    "io_x13y8",
+    "io",
+    13,
+    8
+   ],
+   [
+    "io_x0y9",
+    "io",
+    0,
+    9
+   ],
+   [
+    "clb_x1y9",
+    "clb",
+    1,
+    9
+   ],
+   [
+    "clb_x2y9",
+    "clb",
+    2,
+    9
+   ],
+   [
+    "clb_x4y9",
+    "clb",
+    4,
+    9
+   ],
+   [
+    "clb_x5y9",
+    "clb",
+    5,
+    9
+   ],
+   [
+    "clb_x6y9",
+    "clb",
+    6,
+    9
+   ],
+   [
+    "clb_x7y9",
+    "clb",
+    7,
+    9
+   ],
+   [
+    "clb_x9y9",
+    "clb",
+    9,
+    9
+   ],
+   [
+    "clb_x10y9",
+    "clb",
+    10,
+    9
+   ],
+   [
+    "clb_x11y9",
+    "clb",
+    11,
+    9
+   ],
+   [
+    "clb_x12y9",
+    "clb",
+    12,
+    9
+   ],
+   [
+    "io_x13y9",
+    "io",
+    13,
+    9
+   ],
+   [
+    "io_x0y10",
+    "io",
+    0,
+    10
+   ],
+   [
+    "clb_x1y10",
+    "clb",
+    1,
+    10
+   ],
+   [
+    "clb_x2y10",
+    "clb",
+    2,
+    10
+   ],
+   [
+    "clb_x4y10",
+    "clb",
+    4,
+    10
+   ],
+   [
+    "clb_x5y10",
+    "clb",
+    5,
+    10
+   ],
+   [
+    "clb_x6y10",
+    "clb",
+    6,
+    10
+   ],
+   [
+    "clb_x7y10",
+    "clb",
+    7,
+    10
+   ],
+   [
+    "clb_x9y10",
+    "clb",
+    9,
+    10
+   ],
+   [
+    "clb_x10y10",
+    "clb",
+    10,
+    10
+   ],
+   [
+    "clb_x11y10",
+    "clb",
+    11,
+    10
+   ],
+   [
+    "clb_x12y10",
+    "clb",
+    12,
+    10
+   ],
+   [
+    "io_x13y10",
+    "io",
+    13,
+    10
+   ],
+   [
+    "io_x1y11",
+    "io",
+    1,
+    11
+   ],
+   [
+    "io_x2y11",
+    "io",
+    2,
+    11
+   ],
+   [
+    "io_x3y11",
+    "io",
+    3,
+    11
+   ],
+   [
+    "io_x4y11",
+    "io",
+    4,
+    11
+   ],
+   [
+    "io_x5y11",
+    "io",
+    5,
+    11
+   ],
+   [
+    "io_x6y11",
+    "io",
+    6,
+    11
+   ],
+   [
+    "io_x7y11",
+    "io",
+    7,
+    11
+   ],
+   [
+    "io_x8y11",
     "io",
     8,
-    7
+    11
+   ],
+   [
+    "io_x9y11",
+    "io",
+    9,
+    11
+   ],
+   [
+    "io_x10y11",
+    "io",
+    10,
+    11
+   ],
+   [
+    "io_x11y11",
+    "io",
+    11,
+    11
+   ],
+   [
+    "io_x12y11",
+    "io",
+    12,
+    11
    ]
   ],
   "pads": [
@@ -4165,128 +4698,224 @@
    },
    {
     "pad": 8,
+    "x": 9,
+    "y": 0,
+    "name": null
+   },
+   {
+    "pad": 9,
+    "x": 10,
+    "y": 0,
+    "name": null
+   },
+   {
+    "pad": 10,
+    "x": 11,
+    "y": 0,
+    "name": null
+   },
+   {
+    "pad": 11,
+    "x": 12,
+    "y": 0,
+    "name": null
+   },
+   {
+    "pad": 12,
     "x": 0,
     "y": 1,
     "name": "SW0"
    },
    {
-    "pad": 9,
-    "x": 9,
+    "pad": 13,
+    "x": 13,
     "y": 1,
     "name": "LD0"
    },
    {
-    "pad": 10,
+    "pad": 14,
     "x": 0,
     "y": 2,
     "name": "SW1"
    },
    {
-    "pad": 11,
-    "x": 9,
+    "pad": 15,
+    "x": 13,
     "y": 2,
     "name": "LD1"
    },
    {
-    "pad": 12,
+    "pad": 16,
     "x": 0,
     "y": 3,
     "name": "BTN0"
    },
    {
-    "pad": 13,
-    "x": 9,
+    "pad": 17,
+    "x": 13,
     "y": 3,
     "name": "LD2"
    },
    {
-    "pad": 14,
+    "pad": 18,
     "x": 0,
     "y": 4,
     "name": "BTN1"
    },
    {
-    "pad": 15,
-    "x": 9,
+    "pad": 19,
+    "x": 13,
     "y": 4,
     "name": null
    },
    {
-    "pad": 16,
+    "pad": 20,
     "x": 0,
     "y": 5,
     "name": "BTN2"
    },
    {
-    "pad": 17,
-    "x": 9,
+    "pad": 21,
+    "x": 13,
     "y": 5,
     "name": null
    },
    {
-    "pad": 18,
+    "pad": 22,
     "x": 0,
     "y": 6,
     "name": "BTN3"
    },
    {
-    "pad": 19,
-    "x": 9,
+    "pad": 23,
+    "x": 13,
     "y": 6,
     "name": null
    },
    {
-    "pad": 20,
-    "x": 1,
-    "y": 7,
-    "name": null
-   },
-   {
-    "pad": 21,
-    "x": 2,
-    "y": 7,
-    "name": null
-   },
-   {
-    "pad": 22,
-    "x": 3,
-    "y": 7,
-    "name": null
-   },
-   {
-    "pad": 23,
-    "x": 4,
-    "y": 7,
-    "name": null
-   },
-   {
     "pad": 24,
-    "x": 5,
+    "x": 0,
     "y": 7,
     "name": null
    },
    {
     "pad": 25,
-    "x": 6,
+    "x": 13,
     "y": 7,
     "name": null
    },
    {
     "pad": 26,
-    "x": 7,
-    "y": 7,
+    "x": 0,
+    "y": 8,
     "name": null
    },
    {
     "pad": 27,
+    "x": 13,
+    "y": 8,
+    "name": null
+   },
+   {
+    "pad": 28,
+    "x": 0,
+    "y": 9,
+    "name": null
+   },
+   {
+    "pad": 29,
+    "x": 13,
+    "y": 9,
+    "name": null
+   },
+   {
+    "pad": 30,
+    "x": 0,
+    "y": 10,
+    "name": null
+   },
+   {
+    "pad": 31,
+    "x": 13,
+    "y": 10,
+    "name": null
+   },
+   {
+    "pad": 32,
+    "x": 1,
+    "y": 11,
+    "name": null
+   },
+   {
+    "pad": 33,
+    "x": 2,
+    "y": 11,
+    "name": null
+   },
+   {
+    "pad": 34,
+    "x": 3,
+    "y": 11,
+    "name": null
+   },
+   {
+    "pad": 35,
+    "x": 4,
+    "y": 11,
+    "name": null
+   },
+   {
+    "pad": 36,
+    "x": 5,
+    "y": 11,
+    "name": null
+   },
+   {
+    "pad": 37,
+    "x": 6,
+    "y": 11,
+    "name": null
+   },
+   {
+    "pad": 38,
+    "x": 7,
+    "y": 11,
+    "name": null
+   },
+   {
+    "pad": 39,
     "x": 8,
-    "y": 7,
+    "y": 11,
+    "name": null
+   },
+   {
+    "pad": 40,
+    "x": 9,
+    "y": 11,
+    "name": null
+   },
+   {
+    "pad": 41,
+    "x": 10,
+    "y": 11,
+    "name": null
+   },
+   {
+    "pad": 42,
+    "x": 11,
+    "y": 11,
+    "name": null
+   },
+   {
+    "pad": 43,
+    "x": 12,
+    "y": 11,
     "name": null
    }
   ],
   "heights": {
-   "bram": 3,
-   "dsp": 3
+   "bram": 5,
+   "dsp": 5
   },
   "frame_columns": [
    {
@@ -4305,54 +4934,78 @@
     "far_col": 2,
     "x": 1,
     "base": 3,
-    "count": 8
+    "count": 13
    },
    {
     "far_col": 3,
     "x": 2,
-    "base": 11,
-    "count": 8
+    "base": 16,
+    "count": 13
    },
    {
     "far_col": 4,
     "x": 3,
-    "base": 19,
-    "count": 5
+    "base": 29,
+    "count": 6
    },
    {
     "far_col": 5,
     "x": 4,
-    "base": 24,
-    "count": 8
+    "base": 35,
+    "count": 13
    },
    {
     "far_col": 6,
     "x": 5,
-    "base": 32,
-    "count": 8
+    "base": 48,
+    "count": 12
    },
    {
     "far_col": 7,
     "x": 6,
-    "base": 40,
-    "count": 8
+    "base": 60,
+    "count": 12
    },
    {
     "far_col": 8,
     "x": 7,
-    "base": 48,
-    "count": 8
+    "base": 72,
+    "count": 13
    },
    {
     "far_col": 9,
     "x": 8,
-    "base": 56,
-    "count": 8
+    "base": 85,
+    "count": 9
    },
    {
     "far_col": 10,
     "x": 9,
-    "base": 64,
+    "base": 94,
+    "count": 13
+   },
+   {
+    "far_col": 11,
+    "x": 10,
+    "base": 107,
+    "count": 12
+   },
+   {
+    "far_col": 12,
+    "x": 11,
+    "base": 119,
+    "count": 12
+   },
+   {
+    "far_col": 13,
+    "x": 12,
+    "base": 131,
+    "count": 13
+   },
+   {
+    "far_col": 14,
+    "x": 13,
+    "base": 144,
     "count": 1
    }
   ]
@@ -4392,7 +5045,7 @@
     "type-1 WRITE IDCODE count 1"
    ],
    [
-    "EBEEF093",
+    "FBEEF093",
     "IDCODE data"
    ],
    [
@@ -4420,8 +5073,8 @@
     "type-1 WRITE FDRI count 0"
    ],
    [
-    "50000104",
-    "type-2 count 260"
+    "50000244",
+    "type-2 count 580"
    ],
    [
     "00000000",
@@ -4444,12 +5097,12 @@
     "FDRI data"
    ],
    [
-    "00000080",
+    "80000300",
     "FDRI data"
    ],
    [
     "\u2026",
-    "1280 more words"
+    "1600 more words"
    ],
    [
     "0003D09E",
@@ -4464,7 +5117,7 @@
     "type-1 WRITE CRC count 1"
    ],
    [
-    "7F425AF7",
+    "83680D0D",
     "CRC data"
    ],
    [
@@ -4500,7 +5153,7 @@
     "dummy"
    ]
   ],
-  "load_words": 1314,
+  "load_words": 1634,
   "partial_freeze": [
    [
     "FFFFFFFF",
@@ -4535,7 +5188,7 @@
     "type-1 WRITE IDCODE count 1"
    ],
    [
-    "EBEEF093",
+    "FBEEF093",
     "IDCODE data"
    ],
    [
@@ -4577,7 +5230,7 @@
     "type-1 WRITE FDRI count 4"
    ],
    [
-    "77200000",
+    "77000000",
     "FDRI data"
    ],
    [
@@ -4589,7 +5242,7 @@
     "FDRI data"
    ],
    [
-    "0001D000",
+    "0001A000",
     "FDRI data"
    ],
    [
@@ -4597,7 +5250,7 @@
     "type-1 WRITE CRC count 1"
    ],
    [
-    "4B569199",
+    "E4E1081F",
     "CRC data"
    ],
    [
@@ -4660,8 +5313,8 @@
     "type-1 READ FDRO count 0"
    ],
    [
-    "48000104",
-    "type-2 count 260"
+    "48000244",
+    "type-2 count 580"
    ],
    [
     "30008001",

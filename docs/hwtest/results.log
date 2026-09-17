@@ -610,3 +610,9 @@
     PASS  frames-bram-live-refused WR_ERROR=1; bram0[0..31] after JPROGRAM unchanged=True
     PASS  ram-readback-frames bram0[0..15] = [2, 2, 4, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] over FDRO block type 1 after JPROGRAM == model, == USER4
     PASS  pipeline-live    SW1..0 = 00/01/10/11 should light LD0 / LD1 / LD2 / all three
+2026-09-18 00:26:23  M15  tag=M15 top=bob_top
+    FAIL  idcode           0xD7DDE126, build.cfg expects 0xEBEEF093
+2026-09-18 00:26:35  M14  tag=M15 top=bob_top
+    FAIL  idcode           0xD7DDE126, build.cfg expects 0xEBEEF093
+2026-09-18 00:26:39  M15  tag=M15 top=bob_top
+    FAIL  idcode           0xD7DDE126, build.cfg expects 0xEBEEF093
