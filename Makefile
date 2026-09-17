@@ -20,7 +20,7 @@ rrgraph:
 
 # M9/M10: examples (+ pin variants) -> yosys -> VPR on the committed rr graph (Docker) -> tools/bob/vpr/<name>/ (committed)
 vpr:
-	for t in gates adder counter blinky ram mult switches fir; do tools/bob/equiv.py examples/$$t.v || exit 1; done
+	for t in gates adder counter blinky ram mult switches fir wide; do tools/bob/equiv.py examples/$$t.v || exit 1; done
 	tools/bob/vpr_run.py --repeat
 	tools/bob/fasm_from_vpr.py --check
 

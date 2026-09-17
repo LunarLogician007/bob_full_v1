@@ -1,0 +1,44 @@
+Netlist_File: wide.net Netlist_ID: SHA256:754d3229ea3c1abccc91f41b7c8ea09d48aa18a987d64da31d664bf943864d02
+Array size: 10 x 8 logic blocks
+
+#block name	x	y	subblk	layer	block number
+#----------	--	--	------	-----	------------
+n35		8	4	0	0	#0
+ffd22		8	2	0	0	#1
+ffd23		8	3	0	0	#2
+ffd24		8	6	0	0	#3
+ffd25		8	5	0	0	#4
+ffd26		2	5	0	0	#5
+ffd27		7	2	0	0	#6
+ffd28		7	3	0	0	#7
+$auto$alumacc.cc:548:replace_alu$34.slice[0].add	1	2	0	0	#8
+$auto$alumacc.cc:548:replace_alu$34.slice[1].add	1	3	0	0	#9
+$auto$alumacc.cc:548:replace_alu$34.slice[2].add	1	4	0	0	#10
+$auto$alumacc.cc:548:replace_alu$34.slice[3].add	1	5	0	0	#11
+$auto$alumacc.cc:548:replace_alu$34.slice[4].add	4	2	0	0	#12
+$auto$alumacc.cc:548:replace_alu$34.slice[5].add	4	3	0	0	#13
+$auto$alumacc.cc:548:replace_alu$34.slice[6].add	4	4	0	0	#14
+$auto$alumacc.cc:548:replace_alu$34.slice[7].add	4	5	0	0	#15
+$auto$alumacc.cc:548:replace_alu$34.slice[8].add	5	3	0	0	#16
+$auto$alumacc.cc:548:replace_alu$34.slice[9].add	5	4	0	0	#17
+$auto$alumacc.cc:548:replace_alu$34.slice[10].add	5	5	0	0	#18
+$auto$alumacc.cc:548:replace_alu$34.slice[11].add	5	6	0	0	#19
+led[0]		8	1	0	0	#20
+led[2]		7	5	0	0	#21
+n12		7	4	0	0	#22
+led[1]		2	3	0	0	#23
+n20		2	4	0	0	#24
+n27		7	1	0	0	#25
+bob_gen9	4	1	0	0	#26
+bob_gen17	5	2	0	0	#27
+bob_tap7	1	6	0	0	#28
+bob_tap15	4	6	0	0	#29
+bob_gen1	1	1	0	0	#30
+out:led[0]	9	1	0	0	#31
+out:led[1]	9	2	0	0	#32
+out:led[2]	9	3	0	0	#33
+clk		1	0	0	0	#34
+sw[0]		0	1	0	0	#35
+sw[1]		0	2	0	0	#36
+btn[0]		0	3	0	0	#37
+btn[1]		0	4	0	0	#38
