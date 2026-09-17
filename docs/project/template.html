@@ -1,0 +1,913 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>bob Project Report</title>
+<style>
+  :root {
+    --ink: #17171a; --ink-2: #4a4a52; --mute: #74747e; --faint: #9a9aa4;
+    --rule: #e4e4dd; --rule-2: #f0efe9; --paper: #ffffff; --desk: #d6d4cd;
+    --accent: #b8500f; --accent-2: #d97a28; --accent-bg: #fdf6ef;
+    --ok: #2f7d52; --ok-bg: #e7f3ec; --bad: #b93a2e; --bad-bg: #fbeceb; --wait: #b07a0c; --wait-bg: #fcf3df;
+    --clb: #3563a0; --clb-bg: #e8eff8; --bram: #2f7d52; --bram-bg: #e6f2ea; --dsp: #7446a8; --dsp-bg: #f0e9f8;
+    --io: #7b7b72; --io-bg: #f1f0ea; --cfg: #b8500f; --cfg-bg: #fdf1e8; --sys: #1f6f86; --sys-bg: #e5f2f5;
+    --shadow: 0 1px 2px rgba(20,20,25,.05), 0 8px 30px rgba(20,20,25,.10);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
+  }
+  * { box-sizing: border-box }
+  html, body { margin: 0; padding: 0; background: var(--desk); color: var(--ink); font-family: var(--sans);
+    -webkit-font-smoothing: antialiased; }
+  a { color: var(--accent) }
+  code { font-family: var(--mono); font-size: .88em; background: #f4f3ef; padding: 1px 5px; border-radius: 4px }
+
+  .bar { position: sticky; top: 0; z-index: 30; display: flex; gap: 14px; align-items: center; padding: 0 18px;
+    height: 46px; background: #1e1e22; color: #eceae4; font-size: 13px; border-bottom: 1px solid #000 }
+  .bar .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-2); flex: none }
+  .bar .brand { font-weight: 640; letter-spacing: -.015em; font-size: 13.5px; white-space: nowrap }
+  .bar .tip { font-family: var(--mono); font-size: 11px; color: #c9a071; letter-spacing: .04em; text-transform: uppercase;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+  .bar .sp { flex: 1 }
+  .bar a.btn { color: #eceae4; text-decoration: none; background: #303036; border: 1px solid #46464e; border-radius: 6px;
+    padding: 5px 11px; font-size: 12px; white-space: nowrap }
+  .bar a.btn:hover { background: #3c3c44 }
+
+  .wrap { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 18px; max-width: 1480px; margin: 18px auto; padding: 0 16px }
+  nav.toc { position: sticky; top: 64px; align-self: start; background: var(--paper); border-radius: 8px; box-shadow: var(--shadow);
+    padding: 12px 8px; max-height: calc(100vh - 84px); overflow-y: auto }
+  nav.toc .hd { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; color: var(--mute); padding: 4px 10px 8px }
+  nav.toc a { display: block; padding: 6px 10px; border-radius: 6px; color: var(--ink-2); text-decoration: none; font-size: 13px }
+  nav.toc a:hover { background: var(--rule-2); color: var(--ink) }
+  nav.toc a.on { background: var(--accent-bg); color: var(--accent); font-weight: 600 }
+  nav.toc .n { font-family: var(--mono); font-size: 10.5px; color: var(--faint); display: inline-block; width: 22px }
+
+  main { min-width: 0 }
+  section.sheet { background: var(--paper); border-radius: 8px; box-shadow: var(--shadow); padding: 26px 30px 28px; margin-bottom: 18px;
+    scroll-margin-top: 64px }
+  .kicker { font-family: var(--mono); font-size: 10.5px; letter-spacing: .14em; color: var(--accent); text-transform: uppercase }
+  h1.title { font-size: 30px; letter-spacing: -.03em; margin: 6px 0 6px; line-height: 1.1 }
+  h2.st { font-size: 21px; letter-spacing: -.02em; margin: 4px 0 4px }
+  .lede { color: var(--ink-2); font-size: 15px; line-height: 1.55; max-width: 900px; margin: 6px 0 16px }
+  .sub { color: var(--mute); font-size: 13px; margin: 0 0 16px }
+  .hint { font-family: var(--mono); font-size: 10.5px; color: var(--faint); letter-spacing: .05em; text-transform: uppercase; margin: 14px 0 6px }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin: 16px 0 18px }
+  .stat { border: 1px solid var(--rule); border-radius: 8px; padding: 12px 14px; background: #fcfcfa }
+  .stat .v { font-size: 24px; font-weight: 680; letter-spacing: -.03em; font-variant-numeric: tabular-nums }
+  .stat .k { font-size: 12px; color: var(--mute); margin-top: 2px; line-height: 1.35 }
+
+  .strip { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px }
+  .chip { font-family: var(--mono); font-size: 11.5px; padding: 5px 9px; border-radius: 999px; border: 1px solid var(--rule);
+    background: #fff; cursor: pointer; user-select: none; transition: transform .08s }
+  .chip:hover { transform: translateY(-1px) }
+  .chip.ok { background: var(--ok-bg); border-color: #b9dcc7; color: var(--ok) }
+  .chip.wait { background: var(--wait-bg); border-color: #ecd49a; color: var(--wait) }
+  .chip.sel { outline: 2px solid var(--accent); outline-offset: 1px }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--mute); margin: 6px 0 }
+  .legend i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 5px; vertical-align: -1px }
+
+  .cols { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 20px }
+  @media (max-width: 1000px) { .cols { grid-template-columns: minmax(0, 1fr) } }
+  .card { border: 1px solid var(--rule); border-radius: 8px; padding: 14px 16px; background: #fcfcfa }
+  .card h3 { margin: 0 0 6px; font-size: 15px }
+  .card .meta { font-family: var(--mono); font-size: 11px; color: var(--mute); margin-bottom: 8px }
+  .card p, .card li { font-size: 13.5px; line-height: 1.5; color: var(--ink-2) }
+  .card ul { padding-left: 18px; margin: 6px 0 }
+
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; border-bottom: 1px solid var(--rule); margin: 10px 0 14px }
+  .tabs button { font: inherit; font-size: 13px; background: none; border: none; padding: 8px 12px; cursor: pointer; color: var(--ink-2);
+    border-bottom: 2px solid transparent; margin-bottom: -1px }
+  .tabs button:hover { color: var(--ink) }
+  .tabs button.on { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600 }
+  .btnrow { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 8px 0 }
+  .btn2 { font: inherit; font-size: 12.5px; background: #fff; border: 1px solid #cfcdc6; border-radius: 6px; padding: 5px 11px; cursor: pointer }
+  .btn2:hover { border-color: #9d9b93 }
+  .btn2.on { background: var(--ink); color: #fff; border-color: var(--ink) }
+  input[type=range] { width: 260px; max-width: 100% }
+  input.search { font: inherit; font-size: 13px; padding: 6px 10px; border: 1px solid #cfcdc6; border-radius: 6px; width: 260px; max-width: 100% }
+
+  svg { display: block; width: 100%; height: auto }
+  .svgbox { border: 1px solid var(--rule); border-radius: 8px; background: #fff; padding: 10px }
+  svg text { font-family: var(--sans) }
+  svg .mono { font-family: var(--mono) }
+  svg .hov { cursor: pointer }
+  svg .hov:hover > rect, svg .hov:hover > path { stroke: var(--accent); stroke-width: 2 }
+
+  .tw { overflow-x: auto; margin: 10px 0 }
+  table.md, table.tt { border-collapse: collapse; width: 100%; font-size: 13px }
+  table.md th, table.tt th { text-align: left; font-weight: 600; font-size: 12px; color: var(--ink-2); background: #f7f6f2;
+    border-bottom: 1px solid var(--rule); padding: 7px 9px; white-space: nowrap }
+  table.md td, table.tt td { border-bottom: 1px solid var(--rule-2); padding: 7px 9px; vertical-align: top; line-height: 1.45 }
+  table.tt tr.hit { cursor: pointer }
+  table.tt tr.hit:hover td { background: var(--accent-bg) }
+  table.stream td:first-child { font-family: var(--mono); font-size: 12px; white-space: nowrap; color: var(--ink) }
+  table.stream td { font-size: 12.5px; padding: 4px 9px }
+  table.stream tr.data td:last-child { color: var(--mute) }
+
+  .report { max-width: 980px }
+  .report h2 { font-size: 22px; letter-spacing: -.02em; margin: 34px 0 10px; padding-top: 14px; border-top: 1px solid var(--rule) }
+  .report h3 { font-size: 16.5px; margin: 22px 0 8px }
+  .report p, .report li { font-size: 14.5px; line-height: 1.62; color: #2c2c32 }
+  .report ul, .report ol { padding-left: 22px }
+  .report li { margin: 3px 0 }
+  .report pre.code { background: #1e1e22; color: #e6e3db; border-radius: 8px; padding: 14px 16px; overflow-x: auto; font-family: var(--mono);
+    font-size: 12px; line-height: 1.5 }
+  .report h1 { font-size: 28px; letter-spacing: -.03em }
+  .report hr { border: none; border-top: 1px solid var(--rule); margin: 22px 0 }
+  pre.code { background: #1e1e22; color: #e6e3db; border-radius: 8px; padding: 12px 14px; overflow-x: auto; font-family: var(--mono); font-size: 11.5px; line-height: 1.5 }
+
+  .kv2 { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; font-size: 13px }
+  .kv2 div:nth-child(odd) { color: var(--mute); font-family: var(--mono); font-size: 11.5px; padding-top: 1px }
+  .pill { display: inline-block; font-family: var(--mono); font-size: 10.5px; padding: 2px 7px; border-radius: 999px; background: var(--rule-2); color: var(--ink-2) }
+  .pill.ok { background: var(--ok-bg); color: var(--ok) } .pill.bad { background: var(--bad-bg); color: var(--bad) } .pill.wait { background: var(--wait-bg); color: var(--wait) }
+
+  @media (max-width: 860px) {
+    .wrap { grid-template-columns: minmax(0, 1fr) }
+    nav.toc { position: relative; top: 0; max-height: none; display: flex; flex-wrap: wrap; gap: 2px }
+    nav.toc .hd { width: 100% }
+    section.sheet { padding: 18px 16px }
+    .bar .tip { display: none }
+  }
+  @media print { .bar, nav.toc { display: none } .wrap { display: block } section.sheet { box-shadow: none; break-inside: avoid-page } }
+</style>
+</head>
+<body>
+<div class="bar">
+  <span class="dot"></span><span class="brand">bob · an FPGA inside an FPGA</span>
+  <span class="tip">project report · M0–M15 · PYNQ-Z2 XC7Z020</span>
+  <span class="sp"></span>
+  <a class="btn" href="arch.html">die slice (arch.html)</a>
+  <a class="btn" href="docs/project/REPORT.md">REPORT.md</a>
+</div>
+
+<div class="wrap">
+  <nav class="toc" id="toc">
+    <div class="hd">CHAPTERS</div>
+  </nav>
+  <main>
+    <section class="sheet" id="overview" data-title="Overview">
+      <div class="kicker">bob_full_v1 · 2026-09-17</div>
+      <h1 class="title">An FPGA built inside an FPGA</h1>
+      <p class="lede">bob is a complete programmable FPGA written in Verilog. It runs in the programmable logic of a PYNQ-Z2 (Zynq XC7Z020), with its own logic cells, BRAMs, DSP slices, routing, JTAG configuration controller and tool chain. A Mac configures it over JTAG through a Raspberry Pi Pico. <code>./bob build design.v</code> and <code>./bob load design.bit</code> take a design from Verilog to the board's LEDs, checked at every step against its source, a golden netlist and a cycle model.</p>
+      <div class="stats" id="stats"></div>
+      <div class="hint">milestones: click one to open it in the timeline</div>
+      <div class="strip" id="ovstrip"></div>
+      <div class="legend"><span><i style="background:var(--ok-bg);border:1px solid #b9dcc7"></i>passed on the PYNQ-Z2</span><span><i style="background:var(--wait-bg);border:1px solid #ecd49a"></i>built and simulated, board test pending</span></div>
+    </section>
+
+    <section class="sheet" id="timeline" data-title="Timeline">
+      <div class="kicker">§4</div><h2 class="st">Every milestone</h2>
+      <p class="sub">Select a milestone to see what was built, its board runs, its Vivado build, and the problems it ran into.</p>
+      <div class="svgbox"><svg id="tlsvg" viewBox="0 0 1100 120"></svg></div>
+      <div class="cols" style="margin-top:14px">
+        <div class="card" id="tlcard"></div>
+        <div class="card" id="tlruns"></div>
+      </div>
+    </section>
+
+    <section class="sheet" id="system" data-title="System">
+      <div class="kicker">§3</div><h2 class="st">Two flows, three machines</h2>
+      <p class="sub">The host flow builds bob's hardware with Vivado; the guest flow builds user designs with bob's own tools and loads them over JTAG. Click a box.</p>
+      <div class="cols">
+        <div class="svgbox"><svg id="syssvg" viewBox="0 0 760 470"></svg></div>
+        <div class="card" id="syscard"></div>
+      </div>
+    </section>
+
+    <section class="sheet" id="device" data-title="Device">
+      <div class="kicker">§5</div><h2 class="st">The device, generated from VPR's routing graph</h2>
+      <p class="sub">Every CHANX/CHANY/IPIN node with fan-in is a mux in the RTL. Hover over a block; switch between the board profile that is on the PYNQ-Z2 now (M7–M13) and the M12b grid in the next build.</p>
+      <div class="btnrow"><button class="btn2 on" id="dev36">M12b–M15: 8 × 6 core, 36 CLBs</button><button class="btn2" id="dev16">M7–M13: 6 × 4 core, 16 CLBs</button></div>
+      <div class="cols">
+        <div class="svgbox"><svg id="devsvg" viewBox="0 0 640 560"></svg></div>
+        <div>
+          <div class="card" id="devcard"></div>
+          <div class="hint">configuration frames per FAR column (current device)</div>
+          <div class="svgbox"><svg id="farsvg" viewBox="0 0 420 150"></svg></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sheet" id="config" data-title="Configuration">
+      <div class="kicker">§7–§10</div><h2 class="st">Configuration: from a scan chain to UG470-style frames</h2>
+      <p class="sub">Four steps, all on one memory. Each tab explains one of them; the packet streams are real, generated by <code>tools/bob/packets.py</code>.</p>
+      <div class="tabs" id="cfgtabs"></div>
+      <div id="cfgbody"></div>
+    </section>
+
+    <section class="sheet" id="flow" data-title="Tool flow">
+      <div class="kicker">§12–§13</div><h2 class="st">Verilog to a running design</h2>
+      <p class="sub">Click a stage. Below: bob's own place and route against VPR on the same netlists and routing graph.</p>
+      <div class="svgbox"><svg id="flowsvg" viewBox="0 0 1100 150"></svg></div>
+      <div class="card" id="flowcard" style="margin-top:12px"></div>
+      <div class="hint">wirelength, VPR vs bob's PnR (36-CLB graph)</div>
+      <div class="svgbox"><svg id="pnrsvg" viewBox="0 0 1100 300"></svg></div>
+    </section>
+
+    <section class="sheet" id="verify" data-title="Verification">
+      <div class="kicker">§15</div><h2 class="st">How it is checked</h2>
+      <p class="sub">Expectations come from models and references, never from the RTL; every guard is broken on purpose to prove a test catches it; every hardware check runs against a stand-in board first.</p>
+      <div class="cols">
+        <div class="svgbox"><svg id="pyrsvg" viewBox="0 0 560 380"></svg></div>
+        <div>
+          <div class="hint">testbench checks (last make check)</div>
+          <div class="svgbox"><svg id="tbsvg" viewBox="0 0 520 330"></svg></div>
+        </div>
+      </div>
+      <div class="hint">mutation suites: every mutant killed</div>
+      <div class="tw" id="muttab"></div>
+    </section>
+
+    <section class="sheet" id="hardware" data-title="Hardware">
+      <div class="kicker">§16</div><h2 class="st">On the PYNQ-Z2</h2>
+      <p class="sub">Every logged board run (from <code>docs/hwtest/results.log</code>). Hover over a bar for the failing check.</p>
+      <div class="svgbox"><svg id="runsvg" viewBox="0 0 1100 250"></svg></div>
+      <div class="legend"><span><i style="background:var(--ok)"></i>passing checks</span><span><i style="background:var(--bad)"></i>failing checks</span></div>
+      <div class="cols" style="margin-top:12px">
+        <div>
+          <div class="hint">Vivado builds: slice LUTs and registers</div>
+          <div class="svgbox"><svg id="vivsvg" viewBox="0 0 560 300"></svg></div>
+        </div>
+        <div>
+          <div class="hint">failing runs and what they found</div>
+          <div class="tw" id="failtab"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sheet" id="vivado" data-title="Vivado & timing">
+      <div class="kicker">§17</div><h2 class="st">Timing, and five tries to synthesise M13</h2>
+      <p class="sub">M7 passed on the board with WNS −1102 ns; M13 closed timing at +0.877 ns after the analysis below, and got through synthesis on the fifth attempt.</p>
+      <div class="cols">
+        <div>
+          <div class="btnrow" id="crashbtns"></div>
+          <div class="card" id="crashcard"></div>
+        </div>
+        <div class="svgbox"><svg id="wnssvg" viewBox="0 0 520 300"></svg></div>
+      </div>
+    </section>
+
+    <section class="sheet" id="area" data-title="Area">
+      <div class="kicker">§18</div><h2 class="st">Where the logic went, and what paid for 36 CLBs</h2>
+      <div class="cols">
+        <div class="svgbox"><svg id="areasvg" viewBox="0 0 560 300"></svg></div>
+        <div class="card" id="areacard"></div>
+      </div>
+    </section>
+
+    <section class="sheet" id="problems" data-title="Problems">
+      <div class="kicker">§19</div><h2 class="st">Problems found and how each was fixed</h2>
+      <div class="btnrow"><input class="search" id="probq" placeholder="search problems…"><span id="probchips" class="strip" style="margin:0"></span></div>
+      <div class="tw" id="probtab"></div>
+    </section>
+
+    <section class="sheet" id="refs" data-title="References">
+      <div class="kicker">§20</div><h2 class="st">Where bob follows its references, and where it diverges</h2>
+      <div class="tw" id="reftab"></div>
+    </section>
+
+    <section class="sheet" id="report" data-title="Full report">
+      <div class="kicker">docs/project/REPORT.md</div><h2 class="st">The full report</h2>
+      <div class="report">
+<!--__REPORT__-->
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+const B = /*__DATA__*/null;
+const D = B.data;
+const $ = id => document.getElementById(id);
+const NS = "http://www.w3.org/2000/svg";
+const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const md = s => esc(s).replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\*(.+?)\*/g, "<em>$1</em>");
+const plain = s => String(s == null ? "" : s).replace(/[`*]/g, "");
+const num = s => { const m = plain(s).replace(/\s/g, "").match(/-?[\d.]+/); return m ? parseFloat(m[0]) : NaN; };
+const T = (sec, k) => ((B.tables[sec] || [])[k || 0]) || {header: [], rows: []};
+const CSS = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+function S(tag, attrs, text) {
+  const e = document.createElementNS(NS, tag);
+  for (const k in (attrs || {})) e.setAttribute(k, attrs[k]);
+  if (text != null) e.textContent = text;
+  return e;
+}
+function add(parent, tag, attrs, text) { const e = S(tag, attrs, text); parent.appendChild(e); return e; }
+function clear(e) { while (e.firstChild) e.removeChild(e.firstChild); }
+function title(e, t) { add(e, "title", {}, t); }
+function table(header, rows, opts) {
+  opts = opts || {};
+  let h = `<table class="${opts.cls || "tt"}"><thead><tr>${header.map(c => `<th>${md(c)}</th>`).join("")}</tr></thead><tbody>`;
+  rows.forEach((r, i) => { h += `<tr class="${opts.rowcls ? opts.rowcls(r, i) : ""}" data-i="${i}">${r.map(c => `<td>${opts.raw ? c : md(c)}</td>`).join("")}</tr>`; });
+  return h + "</tbody></table>";
+}
+
+/* ------------------------------------------------------------------ navigation */
+(function nav() {
+  const toc = $("toc");
+  const secs = [...document.querySelectorAll("section.sheet")];
+  secs.forEach((s, i) => {
+    const a = document.createElement("a");
+    a.href = "#" + s.id;
+    a.innerHTML = `<span class="n">${String(i + 1).padStart(2, "0")}</span>${esc(s.dataset.title)}`;
+    toc.appendChild(a);
+  });
+  const links = [...toc.querySelectorAll("a")];
+  const spy = () => {
+    let cur = 0;
+    secs.forEach((s, i) => { if (s.getBoundingClientRect().top < 140) cur = i; });
+    links.forEach((a, i) => a.classList.toggle("on", i === cur));
+  };
+  document.addEventListener("scroll", spy, {passive: true});
+  spy();
+})();
+
+/* ------------------------------------------------------------------ milestones (from REPORT §4) */
+const TL = T("4").rows.map(r => {
+  const id = plain(r[0]);
+  const pending = /built and simulated/i.test(plain(r[2]));
+  return {id, what: r[1], hw: r[2], bit: r[3], pending};
+});
+const mnum = id => { const m = id.match(/M(\d+)([a-z]?)/); return m ? parseInt(m[1]) + (m[2] ? 0.5 : 0) : 99; };
+const runsFor = id => D.board_runs.filter(r => r.milestone === id || (id === "M12a" && r.milestone === "M12"));
+const probsFor = id => T("19").rows.filter(r => plain(r[1]).split(/[\/→]/).map(x => x.trim()).includes(id) ||
+  (id === "M12a" && plain(r[1]).includes("M12a")));
+
+/* ------------------------------------------------------------------ overview */
+(function overview() {
+  const tb = T("15", 0).rows.filter(r => !/total/i.test(plain(r[0])));
+  const checks = tb.reduce((a, r) => a + (num(r[1]) || 0), 0);
+  const muts = T("15", 1).rows.reduce((a, r) => a + (num(r[1]) || 0), 0);
+  const runs = D.board_runs.length, passes = D.board_runs.reduce((a, r) => a + r.pass, 0);
+  const onBoard = TL.filter(t => !t.pending).length;
+  const loc = Object.values(D.code.lines).reduce((a, b) => a + b, 0);
+  const st = [
+    [D.device.blocks.clb, "CLBs in the M12b grid (16 on the board now), " + D.device.blocks.bram + " BRAM, " + D.device.blocks.dsp + " DSP, " + D.device.blocks.io + " pads"],
+    [D.device.chain_width.toLocaleString("en"), `configuration bits = ${D.device.frames} frames × 4 × 32; ${D.device.muxes} routing muxes`],
+    [onBoard + " / " + TL.length, "milestones passed on the PYNQ-Z2; the rest wait for one Vivado build"],
+    [runs, `board runs logged, ${passes} passing check results`],
+    [checks.toLocaleString("en"), `testbench checks + ${D.checks.testbenches.pytest || "?"} pytest tests`],
+    [muts, "deliberately broken guards, every one caught"],
+    ["0.93×", "bob's own place and route: wirelength against VPR"],
+    [(loc / 1000).toFixed(1) + "k", `lines written (Python ${(D.code.lines.Python / 1000).toFixed(1)}k, Verilog ${((D.code.lines.Verilog + D.code.lines.SystemVerilog) / 1000).toFixed(1)}k)`],
+  ];
+  $("stats").innerHTML = st.map(([v, k]) => `<div class="stat"><div class="v">${esc(v)}</div><div class="k">${esc(k)}</div></div>`).join("");
+  $("ovstrip").innerHTML = TL.map((t, i) => `<span class="chip ${t.pending ? "wait" : "ok"}" data-i="${i}">${esc(t.id)}</span>`).join("");
+  $("ovstrip").addEventListener("click", e => {
+    const c = e.target.closest(".chip"); if (!c) return;
+    selectMilestone(+c.dataset.i); $("timeline").scrollIntoView({behavior: "smooth"});
+  });
+})();
+
+/* ------------------------------------------------------------------ timeline */
+let tlSel = TL.length - 1;
+function selectMilestone(i) {
+  tlSel = i;
+  const t = TL[i];
+  const svg = $("tlsvg"); clear(svg);
+  const n = TL.length, x0 = 40, x1 = 1060, y = 58;
+  add(svg, "line", {x1: x0, y1: y, x2: x1, y2: y, stroke: "#d5d3cb", "stroke-width": 3});
+  const dates = ["2026-09-14", "2026-09-17"];
+  add(svg, "text", {x: x0, y: 16, "font-size": 11, fill: CSS("--mute"), class: "mono"}, "M0–M6: " + dates[0]);
+  add(svg, "text", {x: x1, y: 16, "font-size": 11, fill: CSS("--mute"), class: "mono", "text-anchor": "end"}, "M7–M15: 2026-09-16 / 17");
+  TL.forEach((m, k) => {
+    const cx = x0 + (x1 - x0) * k / (n - 1);
+    const g = add(svg, "g", {class: "hov"});
+    title(g, `${m.id}: ${plain(m.hw)}`);
+    const on = k === i;
+    add(g, "rect", {x: cx - 22, y: y - 22, width: 44, height: 64, fill: "transparent", stroke: "none"});
+    add(g, "circle", {cx, cy: y, r: on ? 13 : 9, fill: m.pending ? CSS("--wait-bg") : CSS("--ok-bg"),
+      stroke: on ? CSS("--accent") : (m.pending ? CSS("--wait") : CSS("--ok")), "stroke-width": on ? 3 : 1.6});
+    add(g, "text", {x: cx, y: y + 36, "text-anchor": "middle", "font-size": on ? 13 : 11.5, "font-weight": on ? 700 : 500,
+      fill: on ? CSS("--accent") : CSS("--ink-2"), class: "mono"}, m.id);
+    g.addEventListener("click", () => selectMilestone(k));
+  });
+  const runs = runsFor(t.id);
+  const probs = probsFor(t.id);
+  $("tlcard").innerHTML = `<h3>${esc(t.id)} <span class="pill ${t.pending ? "wait" : "ok"}">${t.pending ? "built and simulated" : "passed on the board"}</span></h3>
+    <div class="meta">host bitstream: ${md(t.bit)}</div>
+    <p>${md(t.what)}</p><p><strong>Hardware:</strong> ${md(t.hw)}</p>
+    ${probs.length ? `<div class="hint">problems found in ${esc(t.id)}</div><ul>${probs.map(p => `<li><strong>${md(p[2])}</strong>: ${md(p[4])}</li>`).join("")}</ul>` : ""}`;
+  const viv = D.vivado[t.id];
+  let h = `<h3>Board runs <span class="pill">${runs.length}</span></h3>`;
+  if (viv) h += `<div class="meta">Vivado: ${viv.lut.toLocaleString("en")} LUT · ${viv.ff.toLocaleString("en")} FF · WNS ${viv.wns} ns · WHS ${viv.whs} ns</div>`;
+  if (!runs.length) h += `<p>${t.pending ? "Waiting for the M15 Vivado build and <code>make hwtest M=M15</code>." : "No separate run logged (its checks ran inside a later milestone's list)."}</p>`;
+  runs.forEach(r => {
+    const bad = r.checks.filter(c => c[0] === "FAIL");
+    h += `<div style="margin:8px 0 10px"><span class="pill ${r.fail ? "bad" : "ok"}">${r.pass}/${r.pass + r.fail}</span>
+      <span class="meta" style="margin-left:6px">${esc(r.date)} ${esc(r.time)}</span>
+      ${bad.length ? `<div style="font-size:12.5px;color:var(--bad);margin-top:3px">${bad.slice(0, 2).map(c => `<code>${esc(c[1])}</code> ${esc(c[2].slice(0, 110))}`).join("<br>")}</div>` : ""}</div>`;
+  });
+  $("tlruns").innerHTML = h;
+  document.querySelectorAll("#ovstrip .chip").forEach((c, k) => c.classList.toggle("sel", k === i));
+}
+selectMilestone(tlSel);
+
+/* ------------------------------------------------------------------ system */
+(function system() {
+  const svg = $("syssvg");
+  const boxes = {
+    mac: {x: 20, y: 20, w: 330, h: 190, c: "--sys", t: "Mac", s: "guest flow + host software",
+      d: `<p><strong>Guest flow:</strong> <code>./bob build</code> runs yosys (bob cells), equivalence against the source and a golden netlist, VPR in Docker or bob's own PnR, FASM, a model check against the source trace, and bitgen to a <code>.bit</code>.</p><p><strong>Host software:</strong> <code>cfgplane.py</code> (every JTAG instruction, frames, partial reconfiguration), <code>hwtest.py</code> (per-milestone board tests), and simulation with iverilog/verilator and pytest.</p>`},
+    pico: {x: 20, y: 250, w: 330, h: 80, c: "--io", t: "Raspberry Pi Pico", s: "DirtyJTAG over USB → PMODA",
+      d: `<p>DirtyJTAG firmware. <code>host/dirtyjtag.py</code> sends pulses and bulk DR shifts (MSB-first per byte, handled) and refuses TCK above 100 kHz, the period the XDC constrains.</p>`},
+    win: {x: 410, y: 20, w: 330, h: 110, c: "--dsp", t: "Windows PC", s: "Vivado 2025.2 · host flow",
+      d: `<p>The user copies <code>hw/</code> to <code>E:\\bob_full_v1\\hw</code> and runs <code>build.tcl</code>, which reuses the project, syncs sources from <code>sources.f</code>, rebuilds on a fingerprint change and writes reports to <code>out/&lt;tag&gt;</code>. Synthesis runs without the XDC and without <code>keep_hierarchy</code> (the M13 crash rules).</p>`},
+    pynq: {x: 410, y: 170, w: 330, h: 280, c: "--cfg", t: "PYNQ-Z2 · XC7Z020 PL", s: "bob_top",
+      d: `<p>Once programmed, the PL is bob. <code>bob_fpga.v</code> holds the configuration plane: <code>jtag_tap6</code>, <code>cfg_frames</code> (packets), <code>cfg_ctrl</code> (chain CRC, startup), <code>cfg_store</code> (the memory), <code>clock_ctrl</code> (user clock, freeze), CAPTURE, USER4 BRAM access, the DSP register and the boundary. <code>bob_fabric.v</code>, generated from VPR's rr graph, holds 36 CLBs, 2 BRAMs, 2 DSPs, 28 pads and 1723 routing muxes. Switches and buttons drive pads; pads drive LD0–LD2; LD3 is DONE.</p>`},
+  };
+  const card = k => { const b = boxes[k]; $("syscard").innerHTML = `<h3>${esc(b.t)}</h3><div class="meta">${esc(b.s)}</div>${b.d}`; };
+  for (const k in boxes) {
+    const b = boxes[k];
+    const g = add(svg, "g", {class: "hov"});
+    add(g, "rect", {x: b.x, y: b.y, width: b.w, height: b.h, rx: 10, fill: CSS(b.c + "-bg"), stroke: CSS(b.c), "stroke-width": 1.3});
+    add(g, "text", {x: b.x + 14, y: b.y + 24, "font-size": 15, "font-weight": 650, fill: CSS(b.c)}, b.t);
+    add(g, "text", {x: b.x + 14, y: b.y + 42, "font-size": 11.5, fill: CSS("--ink-2"), class: "mono"}, b.s);
+    g.addEventListener("click", () => card(k));
+  }
+  const inner = (x, y, w, h, t, c) => { add(svg, "rect", {x, y, width: w, height: h, rx: 5, fill: "#fff", stroke: CSS(c), "stroke-width": 1});
+    add(svg, "text", {x: x + w / 2, y: y + h / 2 + 4, "text-anchor": "middle", "font-size": 11, fill: CSS("--ink"), class: "mono"}, t); };
+  ["yosys", "VPR / PnR", "FASM", "bitgen"].forEach((t, i) => inner(34 + i * 78, 72, 70, 30, t, "--sys"));
+  ["cfgplane", "hwtest", "sims"].forEach((t, i) => inner(34 + i * 104, 126, 96, 30, t, "--sys"));
+  add(svg, "text", {x: 34, y: 184, "font-size": 11, fill: CSS("--mute")}, "design.v → .bit → JTAG");
+  inner(424, 76, 140, 30, "sources.f → synth", "--dsp"); inner(580, 76, 140, 30, "impl → bob_top.bit", "--dsp");
+  [["jtag_tap6", 425, 222], ["cfg_frames", 530, 222], ["cfg_ctrl", 635, 222], ["cfg_store", 425, 262], ["clock_ctrl", 530, 262], ["bram/dsp jtag", 635, 262]]
+    .forEach(([t, x, y]) => inner(x, y, 100, 30, t, "--cfg"));
+  add(svg, "rect", {x: 430, y: 305, width: 300, height: 130, rx: 6, fill: CSS("--clb-bg"), stroke: CSS("--clb")});
+  add(svg, "text", {x: 580, y: 330, "text-anchor": "middle", "font-size": 12.5, "font-weight": 600, fill: CSS("--clb")}, "bob_fabric (generated)");
+  for (let r = 0; r < 3; r++) for (let c = 0; c < 8; c++) {
+    const t = c === 2 ? "--bram" : c === 5 ? "--dsp" : "--clb";
+    add(svg, "rect", {x: 452 + c * 33, y: 345 + r * 27, width: 26, height: 21, rx: 3, fill: CSS(t + "-bg"), stroke: CSS(t), "stroke-width": .8});
+  }
+  const arrow = (x1, y1, x2, y2, label) => {
+    add(svg, "line", {x1, y1, x2, y2, stroke: CSS("--ink-2"), "stroke-width": 1.6, "marker-end": "url(#ah)"});
+    if (label) add(svg, "text", {x: (x1 + x2) / 2 + 6, y: (y1 + y2) / 2 - 5, "font-size": 11, fill: CSS("--mute"), class: "mono"}, label);
+  };
+  const defs = add(svg, "defs", {});
+  const mk = add(defs, "marker", {id: "ah", viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: "auto-start-reverse"});
+  add(mk, "path", {d: "M0,0 L10,5 L0,10 z", fill: CSS("--ink-2")});
+  arrow(185, 210, 185, 248, "USB");
+  arrow(350, 290, 408, 290, ""); add(svg, "text", {x: 360, y: 280, "font-size": 11, fill: CSS("--mute"), class: "mono"}, "JTAG");
+  arrow(575, 130, 575, 168, "program");
+  card("pynq");
+})();
+
+/* ------------------------------------------------------------------ device */
+function gridModel(which) {
+  if (which === 36) {
+    const bl = D.layout.blocks.map(b => ({name: b[0], type: b[1], x: b[2], y: b[3]}));
+    const h = Object.assign({bram: 3, dsp: 3}, D.layout.heights || {});
+    const names = {}; D.layout.pads.forEach(p => { if (p.name) names[p.x + "," + p.y] = p.name; });
+    return {W: D.device.grid[0], H: D.device.grid[1], blocks: bl, heights: h, names};
+  }
+  const W = 8, H = 6, bl = [];
+  let clb = 0, io = 0;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const edge = x === 0 || x === W - 1 || y === 0 || y === H - 1;
+    const corner = (x === 0 || x === W - 1) && (y === 0 || y === H - 1);
+    if (corner) continue;
+    if (edge) { bl.push({name: `io_x${x}y${y}`, type: "io", x, y}); io++; continue; }
+    if (x === 3) { if ((y - 1) % 2 === 0) bl.push({name: `bram${(y - 1) / 2}`, type: "bram", x, y}); continue; }
+    if (x === 6) { if ((y - 1) % 2 === 0) bl.push({name: `dsp${(y - 1) / 2}`, type: "dsp", x, y}); continue; }
+    bl.push({name: `clb_x${x}y${y}`, type: "clb", x, y}); clb++;
+  }
+  const names = {"0,1": "SW0", "0,2": "SW1", "0,3": "BTN0", "0,4": "BTN1", "1,0": "BTN2", "2,0": "BTN3", "7,1": "LD0", "7,2": "LD1", "7,3": "LD2"};
+  return {W, H, blocks: bl, heights: {bram: 2, dsp: 2}, names};
+}
+function drawDevice(which) {
+  const g = gridModel(which);
+  const svg = $("devsvg"); clear(svg);
+  const P = 58, S = 50, ox = 20, oy = 20;
+  svg.setAttribute("viewBox", `0 0 ${ox * 2 + g.W * P} ${oy * 2 + g.H * P + 20}`);
+  const col = {clb: "--clb", bram: "--bram", dsp: "--dsp", io: "--io"};
+  add(svg, "rect", {x: ox - 8, y: oy - 8, width: g.W * P + 8, height: g.H * P + 8, rx: 8, fill: "#f7f8fa", stroke: "#dde2e8"});
+  for (let x = 0; x < g.W - 1; x++) add(svg, "rect", {x: ox + x * P + S + 1, y: oy, width: P - S - 2, height: g.H * P - (P - S), fill: "#e3eff1"});
+  for (let y = 0; y < g.H - 1; y++) add(svg, "rect", {x: ox, y: oy + y * P + S + 1, width: g.W * P - (P - S), height: P - S - 2, fill: "#e3eff1"});
+  const counts = {clb: 0, bram: 0, dsp: 0, io: 0};
+  g.blocks.forEach(b => {
+    counts[b.type]++;
+    const h = b.type === "bram" || b.type === "dsp" ? g.heights[b.type] : 1;
+    const X = ox + b.x * P, Y = oy + (g.H - b.y - h) * P;
+    const grp = add(svg, "g", {class: "hov"});
+    const c = col[b.type];
+    add(grp, "rect", {x: X, y: Y, width: S, height: h * P - (P - S), rx: 5, fill: CSS(c + "-bg"), stroke: CSS(c), "stroke-width": 1.1});
+    const label = b.type === "io" ? (g.names[b.x + "," + b.y] || "") : b.type === "clb" ? "CLB" : b.name.toUpperCase();
+    add(grp, "text", {x: X + S / 2, y: Y + (h * P - (P - S)) / 2 + 4, "text-anchor": "middle", "font-size": b.type === "io" ? 9.5 : 10.5,
+      "font-weight": 600, fill: CSS(c), class: "mono"}, label);
+    grp.addEventListener("mouseenter", () => devInfo(b, which, g));
+  });
+  add(svg, "text", {x: ox, y: oy + g.H * P + 14, "font-size": 11.5, fill: CSS("--mute"), class: "mono"},
+    `VPR grid ${g.W} × ${g.H} · ${counts.clb} CLB · ${counts.bram} BRAM · ${counts.dsp} DSP · ${counts.io} pads · x → East, y ↑ North`);
+  devInfo(null, which, g, counts);
+  $("dev36").classList.toggle("on", which === 36); $("dev16").classList.toggle("on", which === 16);
+}
+function devInfo(b, which, g, counts) {
+  const rows = T("5", 0).rows;
+  const colI = which === 36 ? 2 : 1;
+  let h = "";
+  if (b) {
+    const fc = D.layout.frame_columns.find(c => c.x === b.x);
+    const what = {clb: "LUT6 O6/O5 · MUXCY/XORCY carry · FDRE/FDSE with routed CE/SR · 71 config bits",
+      bram: "1024 × 18 true dual port (RAMB18) · write modes · DOx_REG · contents over USER4 or FAR type 001 frames",
+      dsp: "A25/B18/D25 · pre-adder · 25×18 · P48 · 4 opmodes · PCOUT→PCIN cascade", io: "one VPR pad: outpad IPIN mux + inpad OPIN, two boundary cells"}[b.type];
+    h = `<h3>${esc(b.name)}</h3><div class="meta">${b.type} at (${b.x}, ${b.y})</div><p>${esc(what)}</p>` +
+      (which === 36 && fc ? `<p>FAR column ${fc.far_col}: frames ${fc.base}–${fc.base + fc.count - 1} (${fc.count} × 128 bits)</p>` : "");
+  } else {
+    h = `<h3>${which === 36 ? "M12b grid (next build)" : "M7–M13 board profile (on the board)"}</h3><div class="kv2">` +
+      rows.map(r => `<div>${esc(plain(r[0]))}</div><div>${md(r[colI])}</div>`).join("") + "</div>";
+  }
+  $("devcard").innerHTML = h;
+}
+$("dev36").onclick = () => drawDevice(36); $("dev16").onclick = () => drawDevice(16);
+drawDevice(36);
+(function farChart() {
+  const svg = $("farsvg"); const cols = D.layout.frame_columns;
+  const W = 420, H = 150, pad = 26, bw = (W - pad * 2) / cols.length; svg.setAttribute("viewBox", "0 -24 420 174");
+  const max = Math.max(...cols.map(c => c.count));
+  cols.forEach((c, i) => {
+    const h = (H - 50) * c.count / max, x = pad + i * bw, y = H - 26 - h;
+    const t = c.x === null ? "--cfg" : c.x === 3 ? "--bram" : c.x === 6 ? "--dsp" : (c.x === 0 || c.x === D.device.grid[0] - 1) ? "--io" : "--clb";
+    const r = add(svg, "rect", {x: x + 2, y, width: bw - 4, height: h, rx: 2, fill: CSS(t)});
+    title(r, `FAR column ${c.far_col} (${c.x === null ? "ctrl" : "grid x = " + c.x}): ${c.count} frames`);
+    add(svg, "text", {x: x + bw / 2, y: y - 4, "text-anchor": "middle", "font-size": 10, fill: CSS("--ink-2"), class: "mono"}, c.count);
+    add(svg, "text", {x: x + bw / 2, y: H - 12, "text-anchor": "middle", "font-size": 9.5, fill: CSS("--mute"), class: "mono"}, c.far_col);
+  });
+  add(svg, "text", {x: pad, y: -8, "font-size": 10.5, fill: CSS("--mute")}, `${D.device.frames} frames · FAR column 0 = ctrl tile, column x+1 = grid column x`);
+})();
+
+/* ------------------------------------------------------------------ configuration */
+function streamTable(rows) {
+  return `<div class="tw"><table class="tt stream"><thead><tr><th>word</th><th>meaning</th></tr></thead><tbody>` +
+    rows.map(r => `<tr class="${/data/.test(r[1]) ? "data" : ""}"><td>${esc(r[0])}</td><td>${esc(r[1])}</td></tr>`).join("") + "</tbody></table></div>";
+}
+const CFG = [
+  {k: "chain", t: "Scan chain (M2)", body: () => `
+    <div class="cols"><div class="svgbox"><svg id="cfgsvg" viewBox="0 0 560 260"></svg></div>
+    <div class="card"><h3>Shift + shadow, commit after the CRC</h3><ul>
+      <li>Every tile had a shift register and a shadow register; the fabric saw only the shadow (OpenFPGA <code>scan_chain</code>, Aegis).</li>
+      <li>Capture-DR loads shift ← shadow: readback never disturbs anything.</li>
+      <li>Update-DR of CFG_IN commits shift → shadow <strong>only if</strong> exactly W bits arrived <strong>and</strong> the bit-serial CRC-32C equals the expected CRC written to CFG_CTRL behind the key <code>0xC5</code>.</li>
+      <li>Startup (JSTART) only after a commit: GSR → GTS → GWE → DONE.</li>
+      <li>Five mutants prove each guard is tested; the first run found the length check could be deleted unnoticed.</li></ul></div></div>`,
+    draw: () => {
+      const svg = $("cfgsvg");
+      const defs = add(svg, "defs", {}); const mk = add(defs, "marker", {id: "a2", viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: "auto"});
+      add(mk, "path", {d: "M0,0 L10,5 L0,10 z", fill: CSS("--ink-2")});
+      add(svg, "text", {x: 20, y: 40, "font-size": 12, class: "mono", fill: CSS("--ink")}, "TDI");
+      for (let i = 0; i < 4; i++) {
+        const x = 60 + i * 120;
+        add(svg, "rect", {x, y: 60, width: 100, height: 40, rx: 5, fill: CSS("--cfg-bg"), stroke: CSS("--cfg")});
+        add(svg, "text", {x: x + 50, y: 85, "text-anchor": "middle", "font-size": 11, class: "mono"}, `tile ${3 - i}: shift`);
+        add(svg, "rect", {x, y: 150, width: 100, height: 40, rx: 5, fill: "#fff", stroke: CSS("--cfg")});
+        add(svg, "text", {x: x + 50, y: 175, "text-anchor": "middle", "font-size": 11, class: "mono"}, "shadow → fabric");
+        add(svg, "line", {x1: x + 50, y1: 100, x2: x + 50, y2: 148, stroke: CSS("--ok"), "stroke-width": 1.5, "marker-end": "url(#a2)", "stroke-dasharray": "4 3"});
+        if (i < 3) add(svg, "line", {x1: x + 100, y1: 80, x2: x + 118, y2: 80, stroke: CSS("--ink-2"), "stroke-width": 1.5, "marker-end": "url(#a2)"});
+      }
+      add(svg, "line", {x1: 32, y1: 46, x2: 58, y2: 76, stroke: CSS("--ink-2"), "stroke-width": 1.5, "marker-end": "url(#a2)"});
+      add(svg, "text", {x: 520, y: 40, "font-size": 12, class: "mono"}, "TDO");
+      add(svg, "text", {x: 280, y: 128, "text-anchor": "middle", "font-size": 11, fill: CSS("--ok")}, "Update-DR: commit only if count = W and CRC matches");
+      add(svg, "text", {x: 280, y: 225, "text-anchor": "middle", "font-size": 11.5, fill: CSS("--mute")}, "W flip-flops of shift register + W of shadow: 2W");
+    }},
+  {k: "stream", t: "Streamed chain (M12b)", body: () => `
+    <div class="cols"><div><div class="svgbox"><svg id="cfgsvg" viewBox="0 0 560 300"></svg></div>
+      <div class="btnrow"><button class="btn2 on" id="smIn">CHAIN_IN</button><button class="btn2" id="smOut">CHAIN_OUT</button>
+      <input type="range" id="smBits" min="0" max="${D.device.chain_width + 256}" value="2000"><span class="mono" id="smLab" style="font-size:12px"></span></div></div>
+    <div class="card"><h3>One 128-bit frame buffer instead of a W-bit shift register</h3><ul>
+      <li>CHAIN_IN: bits enter the buffer LSB first; every 128th bit writes that frame to memory on the next falling edge, <strong>only while GWE = 0</strong>.</li>
+      <li>CHAIN_OUT: the buffer shifts out and reloads the next frame every 128 bits; after the last frame it is a 128-bit delay line, so a repeated 32-bit marker measures W.</li>
+      <li>COMMITTED only if count = W and the CRC matches; a bad chain leaves new bits but never starts, exactly like frames.</li>
+      <li>Store + controller: 7 755 → 4 104 LUT, 10 309 → 5 469 FF (yosys): what paid for 36 CLBs.</li></ul>
+      <p>Drag the slider to shift bits.</p></div></div>`,
+    draw: () => {
+      let mode = "in";
+      const redraw = () => {
+        const svg = $("cfgsvg"); clear(svg);
+        const bits = +$("smBits").value, W = D.device.chain_width, F = D.device.frames;
+        const done = Math.min(F, Math.floor(bits / 128)), inbuf = bits >= W ? 128 : bits % 128;
+        add(svg, "text", {x: 20, y: 24, "font-size": 12, "font-weight": 600}, mode === "in" ? "CHAIN_IN: frames written as they complete" : "CHAIN_OUT: frames reloaded into the buffer, shifted out");
+        add(svg, "text", {x: 20, y: 56, "font-size": 11, class: "mono", fill: CSS("--mute")}, "buffer (128 bits)");
+        add(svg, "rect", {x: 140, y: 42, width: 400, height: 20, rx: 4, fill: "#fff", stroke: CSS("--cfg")});
+        add(svg, "rect", {x: 140, y: 42, width: 400 * inbuf / 128, height: 20, rx: 4, fill: CSS("--cfg-bg"), stroke: "none"});
+        add(svg, "text", {x: 340, y: 57, "text-anchor": "middle", "font-size": 10.5, class: "mono"},
+          bits >= W ? (mode === "in" ? "past W: ignored" : "past W: 128-bit delay line from TDI") : `${inbuf} / 128 bits of frame ${done}`);
+        const cols = 13, cw = 38, ch = 26;
+        for (let f = 0; f < F; f++) {
+          const x = 20 + (f % cols) * (cw + 2), y = 86 + Math.floor(f / cols) * (ch + 4);
+          const isDone = f < done, cur = f === done && bits < W;
+          add(svg, "rect", {x, y, width: cw, height: ch, rx: 3,
+            fill: isDone ? (mode === "in" ? CSS("--ok-bg") : CSS("--sys-bg")) : cur ? CSS("--cfg-bg") : "#fafaf7",
+            stroke: isDone ? (mode === "in" ? CSS("--ok") : CSS("--sys")) : cur ? CSS("--cfg") : "#dedcd5"});
+          add(svg, "text", {x: x + cw / 2, y: y + 17, "text-anchor": "middle", "font-size": 9.5, class: "mono", fill: CSS("--ink-2")}, f);
+        }
+        $("smLab").textContent = `${bits} bits · ${done}/${F} frames ${mode === "in" ? "written" : "read out"}`;
+      };
+      $("smBits").oninput = redraw;
+      $("smIn").onclick = () => { mode = "in"; $("smIn").classList.add("on"); $("smOut").classList.remove("on"); redraw(); };
+      $("smOut").onclick = () => { mode = "out"; $("smOut").classList.add("on"); $("smIn").classList.remove("on"); redraw(); };
+      redraw();
+    }},
+  {k: "frames", t: "Frames & packets (M13)", body: () => `
+    <div class="cols"><div><div class="svgbox"><svg id="cfgsvg" viewBox="0 0 560 250"></svg></div>
+      <div class="card" style="margin-top:12px"><h3>UG470 chapter 5, simplified</h3><ul>
+      <li>Sync <code>0xAA995566</code>, type-1 / type-2 headers; registers CRC, FAR, FDRI, FDRO, CMD, STAT, IDCODE.</li>
+      <li>CRC-32C over <code>{reg[4:0], data}</code> of every write (prjxray's definition); START only after a CRC match that followed the last frame.</li>
+      <li>A frame is written the moment its 4th word arrives: no pad frame; readback returns none.</li>
+      <li>Every expected value in <code>tb_frames</code> comes from <code>packets.Controller</code>, a bit-level Python model.</li></ul></div>
+      <div class="hint">FDRO readback request</div>${streamTable(D.streams.readback)}</div>
+    <div><div class="hint">the load stream <code>bob load</code> sends (${D.streams.load_words} words, showcase + one BRAM)</div>${streamTable(D.streams.load)}</div></div>`,
+    draw: () => {
+      const svg = $("cfgsvg");
+      const defs = add(svg, "defs", {}); const mk = add(defs, "marker", {id: "a3", viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: "auto"});
+      add(mk, "path", {d: "M0,0 L10,5 L0,10 z", fill: CSS("--ink-2")});
+      const st = {HUNT: [70, 125], HDR: [220, 70], T2: [390, 70], DATA: [300, 180], ERR: [490, 180]};
+      const edge = (a, b, label, dy) => { const [x1, y1] = st[a], [x2, y2] = st[b];
+        add(svg, "path", {d: `M${x1},${y1} Q${(x1 + x2) / 2},${(y1 + y2) / 2 + (dy || 0)} ${x2},${y2}`, fill: "none", stroke: CSS("--ink-2"), "stroke-width": 1.3, "marker-end": "url(#a3)"});
+        add(svg, "text", {x: (x1 + x2) / 2, y: (y1 + y2) / 2 + (dy || 0) / 2 - 6, "text-anchor": "middle", "font-size": 10, fill: CSS("--mute"), class: "mono"}, label); };
+      edge("HUNT", "HDR", "sync word", -30); edge("HDR", "T2", "type-1, count 0", -34); edge("T2", "DATA", "type-2 count", 10);
+      edge("HDR", "DATA", "WRITE count", 34); edge("DATA", "HDR", "last word", -10); edge("DATA", "ERR", "CRC/ID/WR error", 20); edge("HDR", "HUNT", "DESYNC", 40);
+      for (const k in st) { const [x, y] = st[k];
+        add(svg, "circle", {cx: x, cy: y, r: 30, fill: k === "ERR" ? CSS("--bad-bg") : CSS("--cfg-bg"), stroke: k === "ERR" ? CSS("--bad") : CSS("--cfg"), "stroke-width": 1.4});
+        add(svg, "text", {x, y: y + 4, "text-anchor": "middle", "font-size": 12, "font-weight": 650, class: "mono"}, k); }
+      add(svg, "text", {x: 490, y: 232, "text-anchor": "middle", "font-size": 10, fill: CSS("--mute")}, "left only by JPROGRAM");
+    }},
+  {k: "partial", t: "Partial reconfiguration (M14)", body: () => `
+    <div class="cols"><div><div class="svgbox"><svg id="cfgsvg" viewBox="0 0 560 330"></svg></div>
+      <div class="btnrow" id="prbtns"></div></div>
+    <div><div class="card" id="prcard"></div>
+      <div class="hint">scan 1: freeze</div>${streamTable(D.streams.partial_freeze)}
+      <div class="hint">scan 3: the ${D.streams.partial_changed} changed frame, CRC, LFRM</div>${streamTable(D.streams.partial_frames)}</div></div>`,
+    draw: () => {
+      const steps = [
+        ["Design A runs", "A free-running 4-bit counter and an AND gate on LD1. The counter advances on every gce pulse.", 0, true, "AND"],
+        ["AGHIGH", "CMD AGHIGH (IDCODE matched) raises freeze in the TCK domain. Two flip-flops later clock_ctrl forces gce low and sets frozen on the same sysclk edge.", 1, false, "AND"],
+        ["GHIGH_B = 0", "frozen comes back through two flip-flops on TCK: STAT GHIGH_B reads 0. Only now may frames be written with the design running (earlier ones get WR_ERROR).", 1, false, "AND"],
+        ["changed frames", "FAR + FDRI for the one frame whose bits differ (the gate's LUT). Every fabric register has CE = 0, so bits changing under it cannot be captured: the counter holds.", 1, false, "OR"],
+        ["CRC, LFRM", "The CRC over everything since RCRC matches, so LFRM releases the freeze. A missing or wrong CRC leaves the fabric frozen until JPROGRAM.", 1, false, "OR"],
+        ["Design B runs", "gce resumes: the counter continues from the value it held, and LD1 now shows SW0 OR SW1. STAT GHIGH_B = 1; CHAIN_OUT == design B.", 0, true, "OR"]];
+      let cur = 0;
+      const draw = () => {
+        const svg = $("cfgsvg"); clear(svg);
+        const lanes = [["TCK domain (cfg_frames)", 60], ["sysclk domain (clock_ctrl, fabric)", 170], ["what you see", 270]];
+        lanes.forEach(([t, y]) => { add(svg, "line", {x1: 20, y1: y, x2: 540, y2: y, stroke: "#e2e0d9"}); add(svg, "text", {x: 20, y: y - 36, "font-size": 11, fill: CSS("--mute"), class: "mono"}, t); });
+        steps.forEach((s, i) => {
+          const x = 30 + i * 85, on = i === cur;
+          const g = add(svg, "g", {class: "hov"});
+          add(g, "rect", {x, y: 40, width: 78, height: 40, rx: 5, fill: on ? CSS("--cfg-bg") : "#fff", stroke: on ? CSS("--accent") : "#cfcdc6", "stroke-width": on ? 2 : 1});
+          add(g, "text", {x: x + 39, y: 64, "text-anchor": "middle", "font-size": 10, "font-weight": on ? 700 : 500}, s[0]);
+          g.addEventListener("click", () => { cur = i; draw(); });
+          const frozen = s[2] === 1;
+          add(svg, "rect", {x, y: 150, width: 78, height: 40, rx: 5, fill: frozen ? CSS("--sys-bg") : CSS("--ok-bg"), stroke: frozen ? CSS("--sys") : CSS("--ok")});
+          add(svg, "text", {x: x + 39, y: 168, "text-anchor": "middle", "font-size": 10, class: "mono"}, frozen ? "gce held" : "gce pulses");
+          add(svg, "text", {x: x + 39, y: 182, "text-anchor": "middle", "font-size": 10, class: "mono"}, "frozen=" + (frozen ? 1 : 0));
+          const q = i === 0 ? "5→7" : i < 5 ? "7 held" : "7→9";
+          add(svg, "text", {x: x + 39, y: 262, "text-anchor": "middle", "font-size": 10, class: "mono", fill: CSS("--ink-2")}, "q " + q);
+          add(svg, "text", {x: x + 39, y: 280, "text-anchor": "middle", "font-size": 10, class: "mono", fill: s[4] === "OR" ? CSS("--accent") : CSS("--ink-2")}, "LD1 = " + s[4]);
+          add(svg, "text", {x: x + 39, y: 298, "text-anchor": "middle", "font-size": 10, class: "mono", fill: CSS("--mute")}, "GHIGH_B=" + (i >= 2 && i <= 4 ? 0 : 1));
+        });
+        $("prcard").innerHTML = `<h3>${cur + 1}. ${esc(steps[cur][0])}</h3><p>${esc(steps[cur][1])}</p><p class="meta">bob load --partial x.bit · cfgplane.load_partial · tb_frames [13]–[17] · hwtest partial-*</p>`;
+        $("prbtns").innerHTML = `<button class="btn2" id="prPrev">◀ previous</button><button class="btn2" id="prNext">next ▶</button><span class="mono" style="font-size:12px">step ${cur + 1} / ${steps.length}</span>`;
+        $("prPrev").onclick = () => { cur = Math.max(0, cur - 1); draw(); };
+        $("prNext").onclick = () => { cur = Math.min(steps.length - 1, cur + 1); draw(); };
+      };
+      draw();
+    }},
+  {k: "bram", t: "BRAM frames (M15)", body: () => `
+    <div class="cols"><div><div class="svgbox"><svg id="cfgsvg" viewBox="0 0 560 210"></svg></div>
+      <div class="btnrow">BRAM <input type="range" id="bfB" min="0" max="1" value="1" style="width:80px">
+        frame <input type="range" id="bfN" min="0" max="255" value="133" style="width:220px"></div>
+      <div class="card" id="bfcard"></div></div>
+    <div><div class="card"><h3>Contents inside the configuration stream</h3><ul>
+      <li>FAR block type <code>001</code>: column = BRAM, frame n = row × 128 + minor (0–255) holds addresses 4n..4n+3, word = <code>{14'b0, data}</code>.</li>
+      <li>FDRI (GWE = 0) hands each frame to <code>bram_jtag.v</code>'s sysclk sequencer through a toggle handshake; FDRO prefetches the frame FAR points at.</li>
+      <li><code>bob load</code> writes all 1024 words of every used BRAM under the same CRC, and reads them back.</li></ul></div>
+      <div class="hint">reading 2 frames of BRAM 1 from frame 5</div>${streamTable(D.streams.bram_readback)}</div></div>`,
+    draw: () => {
+      const redraw = () => {
+        const b = +$("bfB").value, n = +$("bfN").value;
+        const far = (1 << 23) | ((n >> 7) << 17) | (b << 7) | (n & 0x7f);
+        const svg = $("cfgsvg"); clear(svg);
+        const fields = [["31:26", "0", 6, "--io"], ["25:23", "001", 3, "--bram"], ["22:17", "row " + (n >> 7), 6, "--cfg"], ["16:7", "BRAM " + b, 10, "--dsp"], ["6:0", "minor " + (n & 0x7f), 7, "--sys"]];
+        let x = 20; const unit = 520 / 32;
+        fields.forEach(([bits, lab, w, c]) => {
+          add(svg, "rect", {x, y: 50, width: w * unit - 2, height: 46, rx: 4, fill: CSS(c + "-bg"), stroke: CSS(c)});
+          add(svg, "text", {x: x + w * unit / 2, y: 44, "text-anchor": "middle", "font-size": 10, class: "mono", fill: CSS("--mute")}, "[" + bits + "]");
+          add(svg, "text", {x: x + w * unit / 2, y: 78, "text-anchor": "middle", "font-size": 11, "font-weight": 600, class: "mono", fill: CSS(c)}, lab);
+          x += w * unit;
+        });
+        add(svg, "text", {x: 20, y: 22, "font-size": 12, "font-weight": 600}, "FAR = 0x" + far.toString(16).toUpperCase().padStart(8, "0"));
+        for (let k = 0; k < 4; k++) {
+          add(svg, "rect", {x: 60 + k * 115, y: 130, width: 105, height: 44, rx: 5, fill: "#fff", stroke: CSS("--bram")});
+          add(svg, "text", {x: 112 + k * 115, y: 150, "text-anchor": "middle", "font-size": 10.5, class: "mono"}, `word ${k}`);
+          add(svg, "text", {x: 112 + k * 115, y: 166, "text-anchor": "middle", "font-size": 10.5, class: "mono", fill: CSS("--bram")}, `mem[${4 * n + k}]`);
+        }
+        $("bfcard").innerHTML = `<p>Frame <strong>${n}</strong> of BRAM <strong>${b}</strong> covers addresses <code>${4 * n}</code>–<code>${4 * n + 3}</code>. After it, FAR auto-increments to ` +
+          (n < 255 ? `frame ${n + 1}` : b + 1 < 2 ? `BRAM ${b + 1} frame 0` : `past the end (invalid)`) + ".</p>";
+      };
+      $("bfB").oninput = redraw; $("bfN").oninput = redraw; redraw();
+    }},
+];
+(function config() {
+  const tabs = $("cfgtabs");
+  CFG.forEach((c, i) => { const b = document.createElement("button"); b.textContent = c.t; b.onclick = () => show(i); tabs.appendChild(b); });
+  function show(i) {
+    [...tabs.children].forEach((b, k) => b.classList.toggle("on", k === i));
+    $("cfgbody").innerHTML = CFG[i].body();
+    CFG[i].draw();
+  }
+  show(3);
+})();
+
+/* ------------------------------------------------------------------ flow */
+(function flow() {
+  const rows = T("12", 0).rows;
+  const svg = $("flowsvg");
+  const defs = add(svg, "defs", {}); const mk = add(defs, "marker", {id: "a4", viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: "auto"});
+  add(mk, "path", {d: "M0,0 L10,5 L0,10 z", fill: CSS("--ink-2")});
+  const n = rows.length, w = (1060 - (n - 1) * 14) / n;
+  const card = i => { const r = rows[i]; $("flowcard").innerHTML = `<h3>${md(r[0])}</h3><div class="meta">${md(r[1])}</div><p>${md(r[2])}</p>`;
+    [...svg.querySelectorAll("g.hov rect")].forEach((e, k) => e.setAttribute("fill", k === i ? CSS("--accent-bg") : CSS("--sys-bg"))); };
+  add(svg, "text", {x: 20, y: 22, "font-size": 11.5, class: "mono", fill: CSS("--mute")}, "design.v");
+  rows.forEach((r, i) => {
+    const x = 20 + i * (w + 14);
+    const g = add(svg, "g", {class: "hov"});
+    add(g, "rect", {x, y: 40, width: w, height: 70, rx: 8, fill: CSS("--sys-bg"), stroke: CSS("--sys")});
+    add(g, "text", {x: x + w / 2, y: 80, "text-anchor": "middle", "font-size": 13, "font-weight": 650, fill: CSS("--sys")}, plain(r[0]));
+    g.addEventListener("click", () => card(i));
+    if (i < n - 1) add(svg, "line", {x1: x + w + 1, y1: 75, x2: x + w + 12, y2: 75, stroke: CSS("--ink-2"), "stroke-width": 1.5, "marker-end": "url(#a4)"});
+  });
+  add(svg, "text", {x: 1080, y: 135, "font-size": 11.5, class: "mono", fill: CSS("--mute"), "text-anchor": "end"}, "→ LEDs on the PYNQ-Z2");
+  card(0);
+
+  const pr = T("13", 0).rows.filter(r => /\//.test(plain(r[2])) && !/total/i.test(plain(r[0])));
+  const psvg = $("pnrsvg");
+  const vals = pr.map(r => plain(r[2]).split("/").map(x => parseFloat(x)));
+  const max = Math.max(...vals.flat());
+  const gw = 1040 / pr.length;
+  pr.forEach((r, i) => {
+    const [v, p] = vals[i], x = 40 + i * gw, base = 250, sc = 200 / max;
+    const rv = add(psvg, "rect", {x: x + gw * .18, y: base - v * sc, width: gw * .3, height: v * sc, rx: 2, fill: CSS("--io")});
+    title(rv, `VPR ${v}`);
+    const rp = add(psvg, "rect", {x: x + gw * .5, y: base - p * sc, width: gw * .3, height: p * sc, rx: 2, fill: CSS("--accent-2")});
+    title(rp, `bob PnR ${p}`);
+    add(psvg, "text", {x: x + gw / 2, y: 268, "text-anchor": "middle", "font-size": 11, class: "mono"}, plain(r[0]));
+    add(psvg, "text", {x: x + gw / 2, y: 286, "text-anchor": "middle", "font-size": 10.5, class: "mono", fill: +plain(r[3]) < 1 ? CSS("--ok") : CSS("--bad")}, plain(r[3]) + "×");
+  });
+  add(psvg, "rect", {x: 40, y: 12, width: 12, height: 12, fill: CSS("--io")}); add(psvg, "text", {x: 58, y: 23, "font-size": 11.5}, "VPR");
+  add(psvg, "rect", {x: 110, y: 12, width: 12, height: 12, fill: CSS("--accent-2")}); add(psvg, "text", {x: 128, y: 23, "font-size": 11.5}, "bob PnR (tools/bob/pnr)");
+})();
+
+/* ------------------------------------------------------------------ verification */
+(function verify() {
+  const svg = $("pyrsvg");
+  const layers = [["references: UG470/473/474/479, OpenFPGA, VPR", "--io"], ["Python models: model.py, packets.Controller, CRC", "--sys"],
+    ["RTL testbenches, model-generated expectations", "--clb"], ["mutation tests: broken guards must fail", "--bad"],
+    ["golden co-simulation: source = golden = fabric RTL", "--dsp"], ["stand-in board: every hardware check", "--wait"], ["PYNQ-Z2: make hwtest, logged", "--ok"]];
+  layers.forEach(([t, c], i) => {
+    const w = 520 - i * 50, x = (560 - w) / 2, y = 330 - i * 47;
+    add(svg, "rect", {x, y, width: w, height: 40, rx: 6, fill: CSS(c === "--bad" ? "--bad-bg" : c + "-bg"), stroke: CSS(c)});
+    add(svg, "text", {x: 280, y: y + 25, "text-anchor": "middle", "font-size": 11.5, fill: CSS("--ink")}, t);
+  });
+  const rows = T("15", 0).rows.filter(r => !/total/i.test(plain(r[0])));
+  const tb = $("tbsvg"); const max = Math.max(...rows.map(r => num(r[1])));
+  tb.setAttribute("viewBox", `0 0 520 ${rows.length * 28 + 20}`);
+  rows.forEach((r, i) => {
+    const v = num(r[1]), y = 10 + i * 28, w = 300 * Math.sqrt(v / max);
+    add(tb, "text", {x: 150, y: y + 15, "text-anchor": "end", "font-size": 11, class: "mono"}, plain(r[0]).slice(0, 22));
+    const b = add(tb, "rect", {x: 158, y: y + 2, width: Math.max(2, w), height: 18, rx: 3, fill: CSS("--clb")});
+    title(b, plain(r[2]));
+    add(tb, "text", {x: 164 + w, y: y + 15, "font-size": 11, class: "mono", fill: CSS("--ink-2")}, v.toLocaleString("en"));
+  });
+  const m = T("15", 1);
+  $("muttab").innerHTML = table(m.header, m.rows);
+})();
+
+/* ------------------------------------------------------------------ hardware */
+(function hardware() {
+  const svg = $("runsvg"); const runs = D.board_runs;
+  const max = Math.max(...runs.map(r => r.pass + r.fail));
+  const bw = 1040 / runs.length, base = 200, sc = 170 / max;
+  let last = null;
+  runs.forEach((r, i) => {
+    const x = 40 + i * bw;
+    const g = add(svg, "g", {});
+    const hp = r.pass * sc, hf = Math.max(r.fail ? 4 : 0, r.fail * sc);
+    add(g, "rect", {x: x + 1, y: base - hp, width: Math.max(1, bw - 2), height: hp, fill: CSS("--ok")});
+    add(g, "rect", {x: x + 1, y: base - hp - hf, width: Math.max(1, bw - 2), height: hf, fill: CSS("--bad")});
+    const bad = r.checks.filter(c => c[0] === "FAIL").map(c => c[1] + ": " + c[2].slice(0, 80));
+    title(g, `${r.milestone} · ${r.date} ${r.time} · ${r.pass}/${r.pass + r.fail}` + (bad.length ? "\n" + bad.join("\n") : ""));
+    add(g, "rect", {x, y: 20, width: bw, height: base - 20, fill: "transparent"});
+    if (r.milestone !== last) {
+      add(svg, "line", {x1: x, y1: base + 4, x2: x, y2: base + 14, stroke: "#bdbab2"});
+      add(svg, "text", {x: x + 2, y: base + 28, "font-size": 10, class: "mono", fill: CSS("--ink-2")}, r.milestone);
+      last = r.milestone;
+    }
+  });
+  add(svg, "line", {x1: 40, y1: base, x2: 1080, y2: base, stroke: "#bdbab2"});
+  add(svg, "text", {x: 40, y: 14, "font-size": 11, fill: CSS("--mute")}, `${runs.length} runs · tallest: ${max} checks (M13)`);
+
+  const vs = Object.entries(D.vivado).sort((a, b) => mnum(a[0]) - mnum(b[0])).filter(([k]) => k !== "M1");
+  const vsvg = $("vivsvg"); const vmax = Math.max(...vs.map(([, v]) => Math.max(v.lut, v.ff)));
+  const gw = 480 / (vs.length + 1);
+  [...vs, ["M15", null]].forEach(([k, v], i) => {
+    const x = 50 + i * gw, base2 = 240, sc2 = 190 / vmax;
+    if (v) {
+      const a = add(vsvg, "rect", {x: x + gw * .14, y: base2 - v.lut * sc2, width: gw * .34, height: v.lut * sc2, fill: CSS("--clb")}); title(a, `LUT ${v.lut}`);
+      const b = add(vsvg, "rect", {x: x + gw * .52, y: base2 - v.ff * sc2, width: gw * .34, height: v.ff * sc2, fill: CSS("--cfg")}); title(b, `FF ${v.ff}`);
+      add(vsvg, "text", {x: x + gw / 2, y: 272, "text-anchor": "middle", "font-size": 10.5, class: "mono", fill: v.wns < 0 ? CSS("--bad") : CSS("--ok")}, (v.wns > 0 ? "+" : "") + v.wns.toFixed(1));
+    } else {
+      add(vsvg, "rect", {x: x + gw * .14, y: 80, width: gw * .72, height: 160, fill: "none", stroke: CSS("--wait"), "stroke-dasharray": "4 3"});
+      add(vsvg, "text", {x: x + gw / 2, y: 165, "text-anchor": "middle", "font-size": 10, class: "mono", fill: CSS("--wait")}, "pending");
+    }
+    add(vsvg, "text", {x: x + gw / 2, y: 256, "text-anchor": "middle", "font-size": 11, class: "mono"}, k);
+  });
+  add(vsvg, "text", {x: 50, y: 290, "font-size": 10.5, fill: CSS("--mute")}, "bars: LUT (blue), FF (orange) · numbers: WNS in ns");
+  const f = T("16", 0); $("failtab").innerHTML = table(f.header, f.rows);
+})();
+
+/* ------------------------------------------------------------------ vivado */
+(function vivado() {
+  const rows = T("17", 0).rows;
+  const show = i => {
+    const r = rows[i];
+    [...$("crashbtns").children].forEach((b, k) => b.classList.toggle("on", k === i));
+    $("crashcard").innerHTML = `<h3>Attempt ${md(r[0])}</h3><div class="kv2"><div>symptom</div><div>${md(r[1])}</div><div>diagnosis</div><div>${md(r[2])}</div><div>change</div><div>${md(r[3])}</div></div>`;
+  };
+  rows.forEach((r, i) => { const b = document.createElement("button"); b.className = "btn2"; b.textContent = "attempt " + plain(r[0]); b.onclick = () => show(i); $("crashbtns").appendChild(b); });
+  show(rows.length - 1);
+  const svg = $("wnssvg");
+  const pts = [["M7 sysclk", -1102.283, "1202 logic levels through unconfigured routing loops; renamed source escaped the multicycle"],
+    ["M7 tck", -657, "IR → fabric → DSP capture under a 1 MHz constraint"], ["M13", 0.877, "gce ≥ 256 cycles in RTL, multicycle by clock, TCK 10 µs"]];
+  const zero = 250, sc = 210 / 1102.283;
+  add(svg, "line", {x1: 40, y1: zero, x2: 500, y2: zero, stroke: "#bdbab2"});
+  add(svg, "text", {x: 40, y: zero + 16, "font-size": 10.5, class: "mono", fill: CSS("--mute")}, "WNS 0");
+  pts.forEach(([k, v, why], i) => {
+    const x = 90 + i * 150, h = Math.max(4, Math.abs(v) * sc);
+    const r = add(svg, "rect", {x, y: v < 0 ? zero - h : zero - 4, width: 80, height: h, rx: 3, fill: v < 0 ? CSS("--bad") : CSS("--ok")});
+    title(r, why);
+    add(svg, "text", {x: x + 40, y: v < 0 ? zero - h - 8 : zero - 12, "text-anchor": "middle", "font-size": 12, "font-weight": 650, class: "mono"}, (v > 0 ? "+" : "") + v + " ns");
+    add(svg, "text", {x: x + 40, y: zero + 34, "text-anchor": "middle", "font-size": 11, class: "mono"}, k);
+  });
+  add(svg, "text", {x: 40, y: 20, "font-size": 11.5, fill: CSS("--mute")}, "worst negative slack; bars are drawn from zero, downwards when failing");
+})();
+
+/* ------------------------------------------------------------------ area */
+(function area() {
+  const mods = T("18", 0).rows.filter(r => !/whole design/i.test(plain(r[0])) && !isNaN(num(r[1])));
+  const whole = T("18", 0).rows.find(r => /whole design/i.test(plain(r[0])));
+  const total = whole ? num(whole[1]) : 15358;
+  const svg = $("areasvg");
+  const pal = ["--cfg", "--cfg", "--dsp", "--sys", "--clb"];
+  let y = 40;
+  add(svg, "text", {x: 20, y: 22, "font-size": 12, "font-weight": 600}, `M13 LUTs by module (whole design ${total.toLocaleString("en")})`);
+  const used = mods.reduce((a, r) => a + num(r[1]), 0);
+  const label = r => /bram_jtag/.test(plain(r[0])) ? "JTAG registers, cfg_ctrl, clock, TAP, bram_core ×2" : plain(r[0]).split("(")[0].trim();
+  const parts = mods.map((r, i) => [label(r), num(r[1]), pal[i]]).concat([["fabric: CLBs, muxes (the rest)", total - used, "--clb"]]);
+  let x = 20;
+  parts.forEach(([n, v, c]) => { const w = 520 * v / total; const r = add(svg, "rect", {x, y, width: Math.max(1, w - 1), height: 34, fill: CSS(c), opacity: .85}); title(r, `${n}: ${v}`); x += w; });
+  parts.forEach(([n, v, c], i) => {
+    add(svg, "rect", {x: 20, y: 96 + i * 22, width: 12, height: 12, fill: CSS(c), opacity: .85});
+    add(svg, "text", {x: 40, y: 107 + i * 22, "font-size": 11.5}, `${n}: ${v.toLocaleString("en")} (${(100 * v / total).toFixed(0)}%)`);
+  });
+  const ch = T("18", 1).rows;
+  if (ch.length >= 2) {
+    const [a, b] = ch;
+    add(svg, "text", {x: 20, y: 236, "font-size": 12, "font-weight": 600}, "cfg_store + cfg_frames: M13 → M12b");
+    [["LUT", num(a[1]), num(b[1])], ["FF", num(a[2]), num(b[2])]].forEach(([k, m13, m12], i) => {
+      const yy = 248 + i * 24, s = 400 / 10309;
+      add(svg, "text", {x: 20, y: yy + 13, "font-size": 11, class: "mono"}, k);
+      add(svg, "rect", {x: 50, y: yy, width: m13 * s, height: 9, fill: CSS("--io")});
+      add(svg, "rect", {x: 50, y: yy + 10, width: m12 * s, height: 9, fill: CSS("--ok")});
+      add(svg, "text", {x: 56 + m13 * s, y: yy + 9, "font-size": 10, class: "mono"}, m13.toLocaleString("en") + " → " + m12.toLocaleString("en"));
+    });
+  }
+  $("areacard").innerHTML = `<h3>Measure first</h3><p>Half of M13's logic was configuration bookkeeping: <code>cfg_store</code> kept a full-width shift register with a data mux per bit beside the memory, and <code>cfg_frames</code> had its own 156-way readback mux.</p>
+    <p>M12b keeps every protocol on the wire and streams the chain through one 128-bit frame buffer with one shared read mux. The saved logic bought an 8 × 6 core with <strong>36 CLBs (2.25×)</strong>, and the whole design (M15: 15 941 LUT / 11 069 FF in yosys) stays at M13's size, which Vivado built in 3.5 minutes.</p>
+    <p>Rejected, with reasons: ZUMA-style LUTRAM configuration (no parallel readback, new write path), dropping the shadow copy (glitch-free loads to re-prove), building the 8 × 8 profile as it was (too slow before, no savings).</p>`;
+})();
+
+/* ------------------------------------------------------------------ problems */
+(function problems() {
+  const t = T("19", 0);
+  const tags = [...new Set(t.rows.map(r => plain(r[1]).split(/[\/→]/)[0].trim()))];
+  let tag = null;
+  const render = () => {
+    const q = $("probq").value.toLowerCase();
+    const rows = t.rows.filter(r => (!tag || plain(r[1]).includes(tag)) && (!q || r.join(" ").toLowerCase().includes(q)));
+    $("probtab").innerHTML = table(t.header, rows) + `<p class="sub">${rows.length} of ${t.rows.length}</p>`;
+  };
+  $("probchips").innerHTML = `<span class="chip sel" data-t="">all</span>` + tags.map(x => `<span class="chip" data-t="${esc(x)}">${esc(x)}</span>`).join("");
+  $("probchips").addEventListener("click", e => {
+    const c = e.target.closest(".chip"); if (!c) return;
+    tag = c.dataset.t || null;
+    [...$("probchips").children].forEach(x => x.classList.toggle("sel", x === c));
+    render();
+  });
+  $("probq").oninput = render;
+  render();
+  const r = T("20", 0); $("reftab").innerHTML = table(r.header, r.rows);
+})();
+</script>
+</body>
+</html>

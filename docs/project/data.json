@@ -1,0 +1,4466 @@
+{
+ "board_runs": [
+  {
+   "date": "2026-09-14",
+   "time": "03:24:51",
+   "milestone": "M0",
+   "tag": "M0",
+   "pass": 0,
+   "fail": 1,
+   "checks": [
+    [
+     "FAIL",
+     "idcode",
+     "0xFFFFFFFF, build.cfg expects 0x3BEEF093"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "03:25:16",
+   "milestone": "M0",
+   "tag": "M0",
+   "pass": 0,
+   "fail": 1,
+   "checks": [
+    [
+     "FAIL",
+     "idcode",
+     "0xFFFFFFFF, build.cfg expects 0x3BEEF093"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "03:26:04",
+   "milestone": "M0",
+   "tag": "M0",
+   "pass": 0,
+   "fail": 1,
+   "checks": [
+    [
+     "FAIL",
+     "idcode",
+     "0xFFFFFFFF, build.cfg expects 0x3BEEF093"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "03:26:11",
+   "milestone": "M0",
+   "tag": "M0",
+   "pass": 0,
+   "fail": 1,
+   "checks": [
+    [
+     "FAIL",
+     "idcode",
+     "0xFFFFFFFF, build.cfg expects 0x3BEEF093"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "03:26:23",
+   "milestone": "M0",
+   "tag": "M0",
+   "pass": 0,
+   "fail": 1,
+   "checks": [
+    [
+     "FAIL",
+     "idcode",
+     "0xFFFFFFFF, build.cfg expects 0x3BEEF093"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "03:28:01",
+   "milestone": "M0",
+   "tag": "M0",
+   "pass": 0,
+   "fail": 1,
+   "checks": [
+    [
+     "FAIL",
+     "idcode",
+     "0xFFFFFFFF, build.cfg expects 0x3BEEF093"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "03:28:21",
+   "milestone": "M0",
+   "tag": "M0",
+   "pass": 0,
+   "fail": 1,
+   "checks": [
+    [
+     "FAIL",
+     "idcode",
+     "0xFFFFFFFF, build.cfg expects 0x3BEEF093"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "03:28:50",
+   "milestone": "M0",
+   "tag": "M0",
+   "pass": 0,
+   "fail": 1,
+   "checks": [
+    [
+     "FAIL",
+     "idcode",
+     "0xFFFFFFFF, build.cfg expects 0x3BEEF093"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "03:31:01",
+   "milestone": "M0",
+   "tag": "M0",
+   "pass": 4,
+   "fail": 0,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x3BEEF093, build.cfg expects 0x3BEEF093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "selftest",
+     "11/11 designs match the model"
+    ],
+    [
+     "PASS",
+     "showcase-live",
+     "pad_i=000010 pads=110 model=110"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "03:46:09",
+   "milestone": "M0",
+   "tag": "M0",
+   "pass": 4,
+   "fail": 0,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x3BEEF093, build.cfg expects 0x3BEEF093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "selftest",
+     "11/11 designs match the model"
+    ],
+    [
+     "PASS",
+     "showcase-live",
+     "pad_i=000010 pads=110 model=110"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "04:14:32",
+   "milestone": "M0",
+   "tag": "M0",
+   "pass": 4,
+   "fail": 0,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x3BEEF093, build.cfg expects 0x3BEEF093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "selftest",
+     "11/11 designs match the model"
+    ],
+    [
+     "PASS",
+     "showcase-live",
+     "pad_i=000010 pads=110 model=110"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "05:51:35",
+   "milestone": "M1",
+   "tag": "M1",
+   "pass": 5,
+   "fail": 0,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x3BEEF093, build.cfg expects 0x3BEEF093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "selftest",
+     "11/11 designs match the model"
+    ],
+    [
+     "PASS",
+     "showcase-live",
+     "pad_i=000010 pads=110 model=110"
+    ],
+    [
+     "PASS",
+     "chain-length",
+     "2896 bits, design intact after the marker scan"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "06:27:03",
+   "milestone": "M2",
+   "tag": "M2",
+   "pass": 11,
+   "fail": 0,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x4BEEF093, build.cfg expects 0x4BEEF093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "usercode",
+     "0x00000002, build.cfg expects 0x00000002"
+    ],
+    [
+     "PASS",
+     "ir-capture",
+     "{'done': 0, 'init_b': 1, 'committed': 0, 'crc_err': 0, 'lsb01': True}"
+    ],
+    [
+     "PASS",
+     "chain-length",
+     "measured 64, cfg_test_top has 64"
+    ],
+    [
+     "PASS",
+     "load-readback",
+     "4 random chains committed with CRC and read back twice"
+    ],
+    [
+     "PASS",
+     "crc-reject",
+     "crc_err=1 committed=1 previous kept=True"
+    ],
+    [
+     "PASS",
+     "len-reject",
+     "len_err=1 crc_err=0 count=63 previous kept=True"
+    ],
+    [
+     "PASS",
+     "startup",
+     "GSR=0 GTS=0 GWE=1 DONE=1  (LD3 on, LD2..0 = 101)"
+    ],
+    [
+     "PASS",
+     "capture",
+     "counter 55 -> 128, SW1..0=01 BTN3..0=0000"
+    ],
+    [
+     "PASS",
+     "jprogram",
+     "counter=0 chain=0x0 DONE=0 GSR=1"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "06:55:33",
+   "milestone": "M3",
+   "tag": "M3",
+   "pass": 12,
+   "fail": 0,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x5BEEF093, build.cfg expects 0x5BEEF093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "selftest",
+     "11/11 designs match the model"
+    ],
+    [
+     "PASS",
+     "usercode",
+     "0x00000003, build.cfg expects 0x00000003"
+    ],
+    [
+     "PASS",
+     "chain-length",
+     "2896 bits, design intact after the marker scan"
+    ],
+    [
+     "PASS",
+     "ir-status",
+     "{'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}"
+    ],
+    [
+     "PASS",
+     "crc-reject-live",
+     "crc_err=1 DONE=1 config kept=True showcase vectors wrong=0"
+    ],
+    [
+     "PASS",
+     "gts",
+     "outputs before JSTART=000, after=011, model=011"
+    ],
+    [
+     "PASS",
+     "gsr-gwe",
+     "q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1"
+    ],
+    [
+     "PASS",
+     "capture-user1",
+     "CAPTURE=0x0420 USER1[19:4]=0x0420 (switches must not move during the check)"
+    ],
+    [
+     "PASS",
+     "jprogram",
+     "DONE=0 GTS=1 chain zero=True outputs=000"
+    ],
+    [
+     "PASS",
+     "showcase-live",
+     "pad_i=000001 pads=110 model=110"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "07:46:44",
+   "milestone": "M4",
+   "tag": "M4",
+   "pass": 15,
+   "fail": 1,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x6BEEF093, build.cfg expects 0x6BEEF093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "selftest",
+     "11/11 designs match the model"
+    ],
+    [
+     "PASS",
+     "usercode",
+     "0x00000004, build.cfg expects 0x00000004"
+    ],
+    [
+     "PASS",
+     "chain-length",
+     "3064 bits, design intact after the marker scan"
+    ],
+    [
+     "PASS",
+     "ir-status",
+     "{'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}"
+    ],
+    [
+     "PASS",
+     "crc-reject-live",
+     "crc_err=1 DONE=1 config kept=True showcase vectors wrong=0"
+    ],
+    [
+     "PASS",
+     "gts",
+     "outputs before JSTART=000, after=011, model=011"
+    ],
+    [
+     "PASS",
+     "gsr-gwe",
+     "q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1"
+    ],
+    [
+     "PASS",
+     "capture-user1",
+     "CAPTURE=0x0420 USER1[19:4]=0x0420 (switches must not move during the check)"
+    ],
+    [
+     "PASS",
+     "jprogram",
+     "DONE=0 GTS=1 chain zero=True outputs=000"
+    ],
+    [
+     "PASS",
+     "showcase-live",
+     "pad_i=000001 pads=110 model=110"
+    ],
+    [
+     "FAIL",
+     "ce-sr",
+     "SW1..0=00: q=1 model=0"
+    ],
+    [
+     "PASS",
+     "counter-step",
+     "counts [15, 4, 9, 14, 3, 8] (steps [5, 5, 5, 5, 5], want 5 each); ce off: [11, 11, 11] (want constant)"
+    ],
+    [
+     "PASS",
+     "counter-run",
+     "23 counts in 3.00 s = 7.66/s (expected 7.45)"
+    ],
+    [
+     "PASS",
+     "blinky",
+     "running: LD0 ~0.93 Hz, LD1 ~0.47 Hz, LD2 ~0.23 Hz, LD3 on (check by eye)"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "07:47:17",
+   "milestone": "M4",
+   "tag": "M4",
+   "pass": 15,
+   "fail": 1,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x6BEEF093, build.cfg expects 0x6BEEF093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "selftest",
+     "11/11 designs match the model"
+    ],
+    [
+     "PASS",
+     "usercode",
+     "0x00000004, build.cfg expects 0x00000004"
+    ],
+    [
+     "PASS",
+     "chain-length",
+     "3064 bits, design intact after the marker scan"
+    ],
+    [
+     "PASS",
+     "ir-status",
+     "{'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}"
+    ],
+    [
+     "PASS",
+     "crc-reject-live",
+     "crc_err=1 DONE=1 config kept=True showcase vectors wrong=0"
+    ],
+    [
+     "PASS",
+     "gts",
+     "outputs before JSTART=000, after=011, model=011"
+    ],
+    [
+     "PASS",
+     "gsr-gwe",
+     "q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1"
+    ],
+    [
+     "PASS",
+     "capture-user1",
+     "CAPTURE=0x0420 USER1[19:4]=0x0420 (switches must not move during the check)"
+    ],
+    [
+     "PASS",
+     "jprogram",
+     "DONE=0 GTS=1 chain zero=True outputs=000"
+    ],
+    [
+     "PASS",
+     "showcase-live",
+     "pad_i=000001 pads=110 model=110"
+    ],
+    [
+     "FAIL",
+     "ce-sr",
+     "SW1..0=00: q=1 model=0"
+    ],
+    [
+     "PASS",
+     "counter-step",
+     "counts [15, 4, 9, 14, 3, 8] (steps [5, 5, 5, 5, 5], want 5 each); ce off: [11, 11, 11] (want constant)"
+    ],
+    [
+     "PASS",
+     "counter-run",
+     "23 counts in 3.00 s = 7.66/s (expected 7.45)"
+    ],
+    [
+     "PASS",
+     "blinky",
+     "running: LD0 ~0.93 Hz, LD1 ~0.47 Hz, LD2 ~0.23 Hz, LD3 on (check by eye)"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "07:47:33",
+   "milestone": "M4",
+   "tag": "M4",
+   "pass": 16,
+   "fail": 0,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x6BEEF093, build.cfg expects 0x6BEEF093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "selftest",
+     "11/11 designs match the model"
+    ],
+    [
+     "PASS",
+     "usercode",
+     "0x00000004, build.cfg expects 0x00000004"
+    ],
+    [
+     "PASS",
+     "chain-length",
+     "3064 bits, design intact after the marker scan"
+    ],
+    [
+     "PASS",
+     "ir-status",
+     "{'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}"
+    ],
+    [
+     "PASS",
+     "crc-reject-live",
+     "crc_err=1 DONE=1 config kept=True showcase vectors wrong=0"
+    ],
+    [
+     "PASS",
+     "gts",
+     "outputs before JSTART=000, after=011, model=011"
+    ],
+    [
+     "PASS",
+     "gsr-gwe",
+     "q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1"
+    ],
+    [
+     "PASS",
+     "capture-user1",
+     "CAPTURE=0x0021 USER1[19:4]=0x0021 (switches must not move during the check)"
+    ],
+    [
+     "PASS",
+     "jprogram",
+     "DONE=0 GTS=1 chain zero=True outputs=000"
+    ],
+    [
+     "PASS",
+     "showcase-live",
+     "pad_i=000011 pads=011 model=011"
+    ],
+    [
+     "PASS",
+     "ce-sr",
+     "CE loads, SR clears (beats CE), both low holds - 7 steps match model.py"
+    ],
+    [
+     "PASS",
+     "counter-step",
+     "counts [15, 4, 9, 14, 3, 8] (steps [5, 5, 5, 5, 5], want 5 each); ce off: [11, 11, 11] (want constant)"
+    ],
+    [
+     "PASS",
+     "counter-run",
+     "23 counts in 3.00 s = 7.66/s (expected 7.45)"
+    ],
+    [
+     "PASS",
+     "blinky",
+     "running: LD0 ~0.93 Hz, LD1 ~0.47 Hz, LD2 ~0.23 Hz, LD3 on (check by eye)"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "07:49:15",
+   "milestone": "M4",
+   "tag": "M4",
+   "pass": 16,
+   "fail": 0,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x6BEEF093, build.cfg expects 0x6BEEF093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "selftest",
+     "11/11 designs match the model"
+    ],
+    [
+     "PASS",
+     "usercode",
+     "0x00000004, build.cfg expects 0x00000004"
+    ],
+    [
+     "PASS",
+     "chain-length",
+     "3064 bits, design intact after the marker scan"
+    ],
+    [
+     "PASS",
+     "ir-status",
+     "{'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}"
+    ],
+    [
+     "PASS",
+     "crc-reject-live",
+     "crc_err=1 DONE=1 config kept=True showcase vectors wrong=0"
+    ],
+    [
+     "PASS",
+     "gts",
+     "outputs before JSTART=000, after=011, model=011"
+    ],
+    [
+     "PASS",
+     "gsr-gwe",
+     "q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1"
+    ],
+    [
+     "PASS",
+     "capture-user1",
+     "CAPTURE=0x0021 USER1[19:4]=0x0021 (switches must not move during the check)"
+    ],
+    [
+     "PASS",
+     "jprogram",
+     "DONE=0 GTS=1 chain zero=True outputs=000"
+    ],
+    [
+     "PASS",
+     "showcase-live",
+     "pad_i=000011 pads=011 model=011"
+    ],
+    [
+     "PASS",
+     "ce-sr",
+     "CE loads, SR clears (beats CE), both low holds - 7 steps match model.py"
+    ],
+    [
+     "PASS",
+     "counter-step",
+     "counts [15, 4, 9, 14, 3, 8] (steps [5, 5, 5, 5, 5], want 5 each); ce off: [11, 11, 11] (want constant)"
+    ],
+    [
+     "PASS",
+     "counter-run",
+     "23 counts in 3.00 s = 7.66/s (expected 7.45)"
+    ],
+    [
+     "PASS",
+     "blinky",
+     "running: LD0 ~0.93 Hz, LD1 ~0.47 Hz, LD2 ~0.23 Hz, LD3 on (check by eye)"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "09:20:26",
+   "milestone": "M5",
+   "tag": "M5",
+   "pass": 19,
+   "fail": 1,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x7BEEF093, build.cfg expects 0x7BEEF093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "selftest",
+     "11/11 designs match the model"
+    ],
+    [
+     "PASS",
+     "usercode",
+     "0x00000005, build.cfg expects 0x00000005"
+    ],
+    [
+     "PASS",
+     "chain-length",
+     "3488 bits, design intact after the marker scan"
+    ],
+    [
+     "PASS",
+     "ir-status",
+     "{'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}"
+    ],
+    [
+     "PASS",
+     "crc-reject-live",
+     "crc_err=1 DONE=1 config kept=True showcase vectors wrong=0"
+    ],
+    [
+     "PASS",
+     "gts",
+     "outputs before JSTART=000, after=011, model=011"
+    ],
+    [
+     "PASS",
+     "gsr-gwe",
+     "q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1"
+    ],
+    [
+     "PASS",
+     "capture-user1",
+     "CAPTURE=0x0021 USER1[19:4]=0x0021 (switches must not move during the check)"
+    ],
+    [
+     "PASS",
+     "jprogram",
+     "DONE=0 GTS=1 chain zero=True outputs=000"
+    ],
+    [
+     "PASS",
+     "showcase-live",
+     "pad_i=000011 pads=011 model=011"
+    ],
+    [
+     "PASS",
+     "ce-sr",
+     "CE loads, SR clears (beats CE), both low holds - 7 steps match model.py"
+    ],
+    [
+     "PASS",
+     "counter-step",
+     "counts [15, 4, 9, 14, 3, 8] (steps [5, 5, 5, 5, 5], want 5 each); ce off: [11, 11, 11] (want constant)"
+    ],
+    [
+     "PASS",
+     "counter-run",
+     "23 counts in 3.00 s = 7.66/s (expected 7.45)"
+    ],
+    [
+     "PASS",
+     "bram-init",
+     "64/64 words read back"
+    ],
+    [
+     "PASS",
+     "bram-locked",
+     "err=1 gwe=1"
+    ],
+    [
+     "FAIL",
+     "bram-rom",
+     "ValueError: unsupported format character 'b' (0x62) at index 3"
+    ],
+    [
+     "PASS",
+     "bram-modes",
+     "72/72 stepped operations match model.py"
+    ],
+    [
+     "PASS",
+     "bram-rom-live",
+     "SW1..0 = 00/01/10/11 should light LD0 / LD1 / LD2 / all three"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "09:20:59",
+   "milestone": "M5",
+   "tag": "M5",
+   "pass": 19,
+   "fail": 1,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x7BEEF093, build.cfg expects 0x7BEEF093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "selftest",
+     "11/11 designs match the model"
+    ],
+    [
+     "PASS",
+     "usercode",
+     "0x00000005, build.cfg expects 0x00000005"
+    ],
+    [
+     "PASS",
+     "chain-length",
+     "3488 bits, design intact after the marker scan"
+    ],
+    [
+     "PASS",
+     "ir-status",
+     "{'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}"
+    ],
+    [
+     "PASS",
+     "crc-reject-live",
+     "crc_err=1 DONE=1 config kept=True showcase vectors wrong=0"
+    ],
+    [
+     "PASS",
+     "gts",
+     "outputs before JSTART=000, after=011, model=011"
+    ],
+    [
+     "PASS",
+     "gsr-gwe",
+     "q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1"
+    ],
+    [
+     "PASS",
+     "capture-user1",
+     "CAPTURE=0x0420 USER1[19:4]=0x0420 (switches must not move during the check)"
+    ],
+    [
+     "PASS",
+     "jprogram",
+     "DONE=0 GTS=1 chain zero=True outputs=000"
+    ],
+    [
+     "PASS",
+     "showcase-live",
+     "pad_i=000010 pads=110 model=110"
+    ],
+    [
+     "PASS",
+     "ce-sr",
+     "CE loads, SR clears (beats CE), both low holds - 7 steps match model.py"
+    ],
+    [
+     "PASS",
+     "counter-step",
+     "counts [15, 4, 9, 14, 3, 8] (steps [5, 5, 5, 5, 5], want 5 each); ce off: [11, 11, 11] (want constant)"
+    ],
+    [
+     "PASS",
+     "counter-run",
+     "23 counts in 3.00 s = 7.67/s (expected 7.45)"
+    ],
+    [
+     "PASS",
+     "bram-init",
+     "64/64 words read back"
+    ],
+    [
+     "PASS",
+     "bram-locked",
+     "err=1 gwe=1"
+    ],
+    [
+     "FAIL",
+     "bram-rom",
+     "ValueError: unsupported format character 'b' (0x62) at index 3"
+    ],
+    [
+     "PASS",
+     "bram-modes",
+     "72/72 stepped operations match model.py"
+    ],
+    [
+     "PASS",
+     "bram-rom-live",
+     "SW1..0 = 00/01/10/11 should light LD0 / LD1 / LD2 / all three"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "09:21:18",
+   "milestone": "M5",
+   "tag": "M5",
+   "pass": 19,
+   "fail": 1,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x7BEEF093, build.cfg expects 0x7BEEF093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "selftest",
+     "11/11 designs match the model"
+    ],
+    [
+     "PASS",
+     "usercode",
+     "0x00000005, build.cfg expects 0x00000005"
+    ],
+    [
+     "PASS",
+     "chain-length",
+     "3488 bits, design intact after the marker scan"
+    ],
+    [
+     "PASS",
+     "ir-status",
+     "{'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}"
+    ],
+    [
+     "PASS",
+     "crc-reject-live",
+     "crc_err=1 DONE=1 config kept=True showcase vectors wrong=0"
+    ],
+    [
+     "PASS",
+     "gts",
+     "outputs before JSTART=000, after=011, model=011"
+    ],
+    [
+     "PASS",
+     "gsr-gwe",
+     "q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1"
+    ],
+    [
+     "PASS",
+     "capture-user1",
+     "CAPTURE=0x0000 USER1[19:4]=0x0000 (switches must not move during the check)"
+    ],
+    [
+     "PASS",
+     "jprogram",
+     "DONE=0 GTS=1 chain zero=True outputs=000"
+    ],
+    [
+     "PASS",
+     "showcase-live",
+     "pad_i=000000 pads=000 model=000"
+    ],
+    [
+     "PASS",
+     "ce-sr",
+     "CE loads, SR clears (beats CE), both low holds - 7 steps match model.py"
+    ],
+    [
+     "PASS",
+     "counter-step",
+     "counts [15, 4, 9, 14, 3, 8] (steps [5, 5, 5, 5, 5], want 5 each); ce off: [11, 11, 11] (want constant)"
+    ],
+    [
+     "PASS",
+     "counter-run",
+     "23 counts in 3.00 s = 7.66/s (expected 7.45)"
+    ],
+    [
+     "PASS",
+     "bram-init",
+     "64/64 words read back"
+    ],
+    [
+     "PASS",
+     "bram-locked",
+     "err=1 gwe=1"
+    ],
+    [
+     "FAIL",
+     "bram-rom",
+     "ValueError: unsupported format character 'b' (0x62) at index 3"
+    ],
+    [
+     "PASS",
+     "bram-modes",
+     "72/72 stepped operations match model.py"
+    ],
+    [
+     "PASS",
+     "bram-rom-live",
+     "SW1..0 = 00/01/10/11 should light LD0 / LD1 / LD2 / all three"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "09:23:29",
+   "milestone": "M5",
+   "tag": "M5",
+   "pass": 0,
+   "fail": 1,
+   "checks": [
+    [
+     "FAIL",
+     "idcode",
+     "0x00000000, build.cfg expects 0x7BEEF093"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "09:23:48",
+   "milestone": "M5",
+   "tag": "M5",
+   "pass": 19,
+   "fail": 1,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x7BEEF093, build.cfg expects 0x7BEEF093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "selftest",
+     "11/11 designs match the model"
+    ],
+    [
+     "PASS",
+     "usercode",
+     "0x00000005, build.cfg expects 0x00000005"
+    ],
+    [
+     "PASS",
+     "chain-length",
+     "3488 bits, design intact after the marker scan"
+    ],
+    [
+     "PASS",
+     "ir-status",
+     "{'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}"
+    ],
+    [
+     "PASS",
+     "crc-reject-live",
+     "crc_err=1 DONE=1 config kept=True showcase vectors wrong=0"
+    ],
+    [
+     "PASS",
+     "gts",
+     "outputs before JSTART=000, after=011, model=011"
+    ],
+    [
+     "PASS",
+     "gsr-gwe",
+     "q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1"
+    ],
+    [
+     "PASS",
+     "capture-user1",
+     "CAPTURE=0x0021 USER1[19:4]=0x0021 (switches must not move during the check)"
+    ],
+    [
+     "PASS",
+     "jprogram",
+     "DONE=0 GTS=1 chain zero=True outputs=000"
+    ],
+    [
+     "PASS",
+     "showcase-live",
+     "pad_i=000011 pads=011 model=011"
+    ],
+    [
+     "PASS",
+     "ce-sr",
+     "CE loads, SR clears (beats CE), both low holds - 7 steps match model.py"
+    ],
+    [
+     "PASS",
+     "counter-step",
+     "counts [15, 4, 9, 14, 3, 8] (steps [5, 5, 5, 5, 5], want 5 each); ce off: [11, 11, 11] (want constant)"
+    ],
+    [
+     "PASS",
+     "counter-run",
+     "23 counts in 3.00 s = 7.66/s (expected 7.45)"
+    ],
+    [
+     "PASS",
+     "bram-init",
+     "64/64 words read back"
+    ],
+    [
+     "PASS",
+     "bram-locked",
+     "err=1 gwe=1"
+    ],
+    [
+     "FAIL",
+     "bram-rom",
+     "ValueError: unsupported format character 'b' (0x62) at index 3"
+    ],
+    [
+     "PASS",
+     "bram-modes",
+     "72/72 stepped operations match model.py"
+    ],
+    [
+     "PASS",
+     "bram-rom-live",
+     "SW1..0 = 00/01/10/11 should light LD0 / LD1 / LD2 / all three"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "09:24:05",
+   "milestone": "M5",
+   "tag": "M5",
+   "pass": 19,
+   "fail": 1,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x7BEEF093, build.cfg expects 0x7BEEF093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "selftest",
+     "11/11 designs match the model"
+    ],
+    [
+     "PASS",
+     "usercode",
+     "0x00000005, build.cfg expects 0x00000005"
+    ],
+    [
+     "PASS",
+     "chain-length",
+     "3488 bits, design intact after the marker scan"
+    ],
+    [
+     "PASS",
+     "ir-status",
+     "{'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}"
+    ],
+    [
+     "PASS",
+     "crc-reject-live",
+     "crc_err=1 DONE=1 config kept=True showcase vectors wrong=0"
+    ],
+    [
+     "PASS",
+     "gts",
+     "outputs before JSTART=000, after=011, model=011"
+    ],
+    [
+     "PASS",
+     "gsr-gwe",
+     "q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1"
+    ],
+    [
+     "PASS",
+     "capture-user1",
+     "CAPTURE=0x0021 USER1[19:4]=0x0021 (switches must not move during the check)"
+    ],
+    [
+     "PASS",
+     "jprogram",
+     "DONE=0 GTS=1 chain zero=True outputs=000"
+    ],
+    [
+     "PASS",
+     "showcase-live",
+     "pad_i=000011 pads=011 model=011"
+    ],
+    [
+     "PASS",
+     "ce-sr",
+     "CE loads, SR clears (beats CE), both low holds - 7 steps match model.py"
+    ],
+    [
+     "PASS",
+     "counter-step",
+     "counts [15, 4, 9, 14, 3, 8] (steps [5, 5, 5, 5, 5], want 5 each); ce off: [11, 11, 11] (want constant)"
+    ],
+    [
+     "PASS",
+     "counter-run",
+     "23 counts in 3.00 s = 7.66/s (expected 7.45)"
+    ],
+    [
+     "PASS",
+     "bram-init",
+     "64/64 words read back"
+    ],
+    [
+     "PASS",
+     "bram-locked",
+     "err=1 gwe=1"
+    ],
+    [
+     "FAIL",
+     "bram-rom",
+     "ValueError: unsupported format character 'b' (0x62) at index 3"
+    ],
+    [
+     "PASS",
+     "bram-modes",
+     "72/72 stepped operations match model.py"
+    ],
+    [
+     "PASS",
+     "bram-rom-live",
+     "SW1..0 = 00/01/10/11 should light LD0 / LD1 / LD2 / all three"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "09:28:59",
+   "milestone": "M5",
+   "tag": "M5",
+   "pass": 19,
+   "fail": 1,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x7BEEF093, build.cfg expects 0x7BEEF093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "selftest",
+     "11/11 designs match the model"
+    ],
+    [
+     "PASS",
+     "usercode",
+     "0x00000005, build.cfg expects 0x00000005"
+    ],
+    [
+     "PASS",
+     "chain-length",
+     "3488 bits, design intact after the marker scan"
+    ],
+    [
+     "PASS",
+     "ir-status",
+     "{'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}"
+    ],
+    [
+     "PASS",
+     "crc-reject-live",
+     "crc_err=1 DONE=1 config kept=True showcase vectors wrong=0"
+    ],
+    [
+     "PASS",
+     "gts",
+     "outputs before JSTART=000, after=011, model=011"
+    ],
+    [
+     "PASS",
+     "gsr-gwe",
+     "q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1"
+    ],
+    [
+     "PASS",
+     "capture-user1",
+     "CAPTURE=0x0021 USER1[19:4]=0x0021 (switches must not move during the check)"
+    ],
+    [
+     "PASS",
+     "jprogram",
+     "DONE=0 GTS=1 chain zero=True outputs=000"
+    ],
+    [
+     "PASS",
+     "showcase-live",
+     "pad_i=000011 pads=011 model=011"
+    ],
+    [
+     "PASS",
+     "ce-sr",
+     "CE loads, SR clears (beats CE), both low holds - 7 steps match model.py"
+    ],
+    [
+     "PASS",
+     "counter-step",
+     "counts [15, 4, 9, 14, 3, 8] (steps [5, 5, 5, 5, 5], want 5 each); ce off: [11, 11, 11] (want constant)"
+    ],
+    [
+     "PASS",
+     "counter-run",
+     "23 counts in 3.00 s = 7.66/s (expected 7.45)"
+    ],
+    [
+     "PASS",
+     "bram-init",
+     "64/64 words read back"
+    ],
+    [
+     "PASS",
+     "bram-locked",
+     "err=1 gwe=1"
+    ],
+    [
+     "FAIL",
+     "bram-rom",
+     "ValueError: unsupported format character 'b' (0x62) at index 3"
+    ],
+    [
+     "PASS",
+     "bram-modes",
+     "72/72 stepped operations match model.py"
+    ],
+    [
+     "PASS",
+     "bram-rom-live",
+     "SW1..0 = 00/01/10/11 should light LD0 / LD1 / LD2 / all three"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "09:29:33",
+   "milestone": "M4",
+   "tag": "M5",
+   "pass": 16,
+   "fail": 0,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x7BEEF093, build.cfg expects 0x7BEEF093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "selftest",
+     "11/11 designs match the model"
+    ],
+    [
+     "PASS",
+     "usercode",
+     "0x00000005, build.cfg expects 0x00000005"
+    ],
+    [
+     "PASS",
+     "chain-length",
+     "3488 bits, design intact after the marker scan"
+    ],
+    [
+     "PASS",
+     "ir-status",
+     "{'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}"
+    ],
+    [
+     "PASS",
+     "crc-reject-live",
+     "crc_err=1 DONE=1 config kept=True showcase vectors wrong=0"
+    ],
+    [
+     "PASS",
+     "gts",
+     "outputs before JSTART=000, after=011, model=011"
+    ],
+    [
+     "PASS",
+     "gsr-gwe",
+     "q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1"
+    ],
+    [
+     "PASS",
+     "capture-user1",
+     "CAPTURE=0x0021 USER1[19:4]=0x0021 (switches must not move during the check)"
+    ],
+    [
+     "PASS",
+     "jprogram",
+     "DONE=0 GTS=1 chain zero=True outputs=000"
+    ],
+    [
+     "PASS",
+     "showcase-live",
+     "pad_i=000011 pads=011 model=011"
+    ],
+    [
+     "PASS",
+     "ce-sr",
+     "CE loads, SR clears (beats CE), both low holds - 7 steps match model.py"
+    ],
+    [
+     "PASS",
+     "counter-step",
+     "counts [15, 4, 9, 14, 3, 8] (steps [5, 5, 5, 5, 5], want 5 each); ce off: [11, 11, 11] (want constant)"
+    ],
+    [
+     "PASS",
+     "counter-run",
+     "23 counts in 3.00 s = 7.66/s (expected 7.45)"
+    ],
+    [
+     "PASS",
+     "blinky",
+     "running: LD0 ~0.93 Hz, LD1 ~0.47 Hz, LD2 ~0.23 Hz, LD3 on (check by eye)"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "09:29:46",
+   "milestone": "M4",
+   "tag": "M5",
+   "pass": 16,
+   "fail": 0,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x7BEEF093, build.cfg expects 0x7BEEF093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "selftest",
+     "11/11 designs match the model"
+    ],
+    [
+     "PASS",
+     "usercode",
+     "0x00000005, build.cfg expects 0x00000005"
+    ],
+    [
+     "PASS",
+     "chain-length",
+     "3488 bits, design intact after the marker scan"
+    ],
+    [
+     "PASS",
+     "ir-status",
+     "{'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}"
+    ],
+    [
+     "PASS",
+     "crc-reject-live",
+     "crc_err=1 DONE=1 config kept=True showcase vectors wrong=0"
+    ],
+    [
+     "PASS",
+     "gts",
+     "outputs before JSTART=000, after=011, model=011"
+    ],
+    [
+     "PASS",
+     "gsr-gwe",
+     "q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1"
+    ],
+    [
+     "PASS",
+     "capture-user1",
+     "CAPTURE=0x0000 USER1[19:4]=0x0000 (switches must not move during the check)"
+    ],
+    [
+     "PASS",
+     "jprogram",
+     "DONE=0 GTS=1 chain zero=True outputs=000"
+    ],
+    [
+     "PASS",
+     "showcase-live",
+     "pad_i=000000 pads=000 model=000"
+    ],
+    [
+     "PASS",
+     "ce-sr",
+     "CE loads, SR clears (beats CE), both low holds - 7 steps match model.py"
+    ],
+    [
+     "PASS",
+     "counter-step",
+     "counts [15, 4, 9, 14, 3, 8] (steps [5, 5, 5, 5, 5], want 5 each); ce off: [11, 11, 11] (want constant)"
+    ],
+    [
+     "PASS",
+     "counter-run",
+     "23 counts in 3.00 s = 7.66/s (expected 7.45)"
+    ],
+    [
+     "PASS",
+     "blinky",
+     "running: LD0 ~0.93 Hz, LD1 ~0.47 Hz, LD2 ~0.23 Hz, LD3 on (check by eye)"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "09:29:55",
+   "milestone": "M3",
+   "tag": "M5",
+   "pass": 12,
+   "fail": 0,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x7BEEF093, build.cfg expects 0x7BEEF093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "selftest",
+     "11/11 designs match the model"
+    ],
+    [
+     "PASS",
+     "usercode",
+     "0x00000005, build.cfg expects 0x00000005"
+    ],
+    [
+     "PASS",
+     "chain-length",
+     "3488 bits, design intact after the marker scan"
+    ],
+    [
+     "PASS",
+     "ir-status",
+     "{'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}"
+    ],
+    [
+     "PASS",
+     "crc-reject-live",
+     "crc_err=1 DONE=1 config kept=True showcase vectors wrong=0"
+    ],
+    [
+     "PASS",
+     "gts",
+     "outputs before JSTART=000, after=011, model=011"
+    ],
+    [
+     "PASS",
+     "gsr-gwe",
+     "q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1"
+    ],
+    [
+     "PASS",
+     "capture-user1",
+     "CAPTURE=0x0000 USER1[19:4]=0x0000 (switches must not move during the check)"
+    ],
+    [
+     "PASS",
+     "jprogram",
+     "DONE=0 GTS=1 chain zero=True outputs=000"
+    ],
+    [
+     "PASS",
+     "showcase-live",
+     "pad_i=000000 pads=000 model=000"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "09:30:11",
+   "milestone": "M5",
+   "tag": "M5",
+   "pass": 19,
+   "fail": 1,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x7BEEF093, build.cfg expects 0x7BEEF093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "selftest",
+     "11/11 designs match the model"
+    ],
+    [
+     "PASS",
+     "usercode",
+     "0x00000005, build.cfg expects 0x00000005"
+    ],
+    [
+     "PASS",
+     "chain-length",
+     "3488 bits, design intact after the marker scan"
+    ],
+    [
+     "PASS",
+     "ir-status",
+     "{'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}"
+    ],
+    [
+     "PASS",
+     "crc-reject-live",
+     "crc_err=1 DONE=1 config kept=True showcase vectors wrong=0"
+    ],
+    [
+     "PASS",
+     "gts",
+     "outputs before JSTART=000, after=011, model=011"
+    ],
+    [
+     "PASS",
+     "gsr-gwe",
+     "q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1"
+    ],
+    [
+     "PASS",
+     "capture-user1",
+     "CAPTURE=0x0000 USER1[19:4]=0x0000 (switches must not move during the check)"
+    ],
+    [
+     "PASS",
+     "jprogram",
+     "DONE=0 GTS=1 chain zero=True outputs=000"
+    ],
+    [
+     "PASS",
+     "showcase-live",
+     "pad_i=000000 pads=000 model=000"
+    ],
+    [
+     "PASS",
+     "ce-sr",
+     "CE loads, SR clears (beats CE), both low holds - 7 steps match model.py"
+    ],
+    [
+     "PASS",
+     "counter-step",
+     "counts [15, 4, 9, 14, 3, 8] (steps [5, 5, 5, 5, 5], want 5 each); ce off: [11, 11, 11] (want constant)"
+    ],
+    [
+     "PASS",
+     "counter-run",
+     "23 counts in 3.00 s = 7.66/s (expected 7.45)"
+    ],
+    [
+     "PASS",
+     "bram-init",
+     "64/64 words read back"
+    ],
+    [
+     "PASS",
+     "bram-locked",
+     "err=1 gwe=1"
+    ],
+    [
+     "FAIL",
+     "bram-rom",
+     "ValueError: unsupported format character 'b' (0x62) at index 3"
+    ],
+    [
+     "PASS",
+     "bram-modes",
+     "72/72 stepped operations match model.py"
+    ],
+    [
+     "PASS",
+     "bram-rom-live",
+     "SW1..0 = 00/01/10/11 should light LD0 / LD1 / LD2 / all three"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "15:25:56",
+   "milestone": "M5",
+   "tag": "M6",
+   "pass": 0,
+   "fail": 1,
+   "checks": [
+    [
+     "FAIL",
+     "idcode",
+     "0x7BEEF093, build.cfg expects 0x8BEEF093"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "15:26:14",
+   "milestone": "M5",
+   "tag": "M6",
+   "pass": 0,
+   "fail": 1,
+   "checks": [
+    [
+     "FAIL",
+     "idcode",
+     "0x7BEEF093, build.cfg expects 0x8BEEF093"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "15:26:32",
+   "milestone": "M5",
+   "tag": "M6",
+   "pass": 0,
+   "fail": 1,
+   "checks": [
+    [
+     "FAIL",
+     "idcode",
+     "0x7BEEF093, build.cfg expects 0x8BEEF093"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "15:26:45",
+   "milestone": "M6",
+   "tag": "M6",
+   "pass": 0,
+   "fail": 1,
+   "checks": [
+    [
+     "FAIL",
+     "idcode",
+     "0x7BEEF093, build.cfg expects 0x8BEEF093"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "15:26:52",
+   "milestone": "M4",
+   "tag": "M6",
+   "pass": 0,
+   "fail": 1,
+   "checks": [
+    [
+     "FAIL",
+     "idcode",
+     "0x7BEEF093, build.cfg expects 0x8BEEF093"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "20:30:13",
+   "milestone": "M6",
+   "tag": "M7",
+   "pass": 0,
+   "fail": 1,
+   "checks": [
+    [
+     "FAIL",
+     "idcode",
+     "0x8BEEF093, build.cfg expects 0x9BEEF093"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "20:30:20",
+   "milestone": "M5",
+   "tag": "M7",
+   "pass": 0,
+   "fail": 1,
+   "checks": [
+    [
+     "FAIL",
+     "idcode",
+     "0x8BEEF093, build.cfg expects 0x9BEEF093"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "20:34:32",
+   "milestone": "M6",
+   "tag": "M6",
+   "pass": 23,
+   "fail": 0,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x8BEEF093, build.cfg expects 0x8BEEF093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "selftest",
+     "11/11 designs match the model"
+    ],
+    [
+     "PASS",
+     "usercode",
+     "0x00000006, build.cfg expects 0x00000006"
+    ],
+    [
+     "PASS",
+     "chain-length",
+     "3720 bits, design intact after the marker scan"
+    ],
+    [
+     "PASS",
+     "ir-status",
+     "{'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}"
+    ],
+    [
+     "PASS",
+     "crc-reject-live",
+     "crc_err=1 DONE=1 config kept=True showcase vectors wrong=0"
+    ],
+    [
+     "PASS",
+     "gts",
+     "outputs before JSTART=000, after=011, model=011"
+    ],
+    [
+     "PASS",
+     "gsr-gwe",
+     "q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1"
+    ],
+    [
+     "PASS",
+     "capture-user1",
+     "CAPTURE=0x0420 USER1[19:4]=0x0420 (switches must not move during the check)"
+    ],
+    [
+     "PASS",
+     "jprogram",
+     "DONE=0 GTS=1 chain zero=True outputs=000"
+    ],
+    [
+     "PASS",
+     "showcase-live",
+     "pad_i=000010 pads=110 model=110"
+    ],
+    [
+     "PASS",
+     "ce-sr",
+     "CE loads, SR clears (beats CE), both low holds - 7 steps match model.py"
+    ],
+    [
+     "PASS",
+     "counter-step",
+     "counts [15, 4, 9, 14, 3, 8] (steps [5, 5, 5, 5, 5], want 5 each); ce off: [11, 11, 11] (want constant)"
+    ],
+    [
+     "PASS",
+     "counter-run",
+     "23 counts in 3.00 s = 7.67/s (expected 7.45)"
+    ],
+    [
+     "PASS",
+     "bram-init",
+     "64/64 words read back"
+    ],
+    [
+     "PASS",
+     "bram-locked",
+     "err=1 gwe=1"
+    ],
+    [
+     "PASS",
+     "bram-rom",
+     "LEDs ['101', '011', '101', '001'] contents ['101', '011', '101', '001']"
+    ],
+    [
+     "PASS",
+     "bram-modes",
+     "72/72 stepped operations match model.py"
+    ],
+    [
+     "PASS",
+     "dsp-modes",
+     "60/60 stepped operations match model.py "
+    ],
+    [
+     "PASS",
+     "dsp-mult",
+     "LEDs ['000', '011', '110', '001'] expected ['000', '011', '110', '001']"
+    ],
+    [
+     "PASS",
+     "dsp-accum",
+     "P0 0 -> 23 in 3.03 s = 7.60/s (expected 7.45)"
+    ],
+    [
+     "PASS",
+     "dsp-accum-live",
+     "running: LD0 ~3.7 Hz, LD1 ~1.9 Hz, LD2 ~0.93 Hz (check by eye)"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "20:55:53",
+   "milestone": "M5",
+   "tag": "M7",
+   "pass": 0,
+   "fail": 1,
+   "checks": [
+    [
+     "FAIL",
+     "idcode",
+     "0x8BEEF093, build.cfg expects 0x9BEEF093"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "time": "20:55:59",
+   "milestone": "M6",
+   "tag": "M7",
+   "pass": 0,
+   "fail": 1,
+   "checks": [
+    [
+     "FAIL",
+     "idcode",
+     "0x8BEEF093, build.cfg expects 0x9BEEF093"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-16",
+   "time": "23:15:15",
+   "milestone": "M7",
+   "tag": "M7",
+   "pass": 0,
+   "fail": 1,
+   "checks": [
+    [
+     "FAIL",
+     "idcode",
+     "0xFFFFFFFF, build.cfg expects 0xABEEF093"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-16",
+   "time": "23:15:37",
+   "milestone": "M7",
+   "tag": "M7",
+   "pass": 0,
+   "fail": 1,
+   "checks": [
+    [
+     "FAIL",
+     "idcode",
+     "0xFFFFFFFF, build.cfg expects 0xABEEF093"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-16",
+   "time": "23:15:38",
+   "milestone": "M7",
+   "tag": "M7",
+   "pass": 0,
+   "fail": 1,
+   "checks": [
+    [
+     "FAIL",
+     "idcode",
+     "0xFFFFFFFF, build.cfg expects 0xABEEF093"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-17",
+   "time": "00:38:27",
+   "milestone": "M7",
+   "tag": "M7",
+   "pass": 0,
+   "fail": 1,
+   "checks": [
+    [
+     "FAIL",
+     "idcode",
+     "0xFFFFFFFF, build.cfg expects 0xABEEF093"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-17",
+   "time": "00:38:37",
+   "milestone": "M6",
+   "tag": "M7",
+   "pass": 0,
+   "fail": 1,
+   "checks": [
+    [
+     "FAIL",
+     "idcode",
+     "0xFFFFFFFF, build.cfg expects 0xABEEF093"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-17",
+   "time": "00:38:39",
+   "milestone": "M7",
+   "tag": "M7",
+   "pass": 0,
+   "fail": 1,
+   "checks": [
+    [
+     "FAIL",
+     "idcode",
+     "0xFFFFFFFF, build.cfg expects 0xABEEF093"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-17",
+   "time": "00:40:04",
+   "milestone": "M7",
+   "tag": "M7",
+   "pass": 26,
+   "fail": 0,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0xABEEF093, build.cfg expects 0xABEEF093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "selftest",
+     "12/12 designs match the model"
+    ],
+    [
+     "PASS",
+     "usercode",
+     "0x00000007, build.cfg expects 0x00000007"
+    ],
+    [
+     "PASS",
+     "chain-length",
+     "4216 bits, design intact after the marker scan"
+    ],
+    [
+     "PASS",
+     "ir-status",
+     "{'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}"
+    ],
+    [
+     "PASS",
+     "crc-reject-live",
+     "crc_err=1 DONE=1 config kept=True showcase vectors wrong=0"
+    ],
+    [
+     "PASS",
+     "gts",
+     "outputs before JSTART=000, after=011, model=011"
+    ],
+    [
+     "PASS",
+     "gsr-gwe",
+     "q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1"
+    ],
+    [
+     "PASS",
+     "capture-user1",
+     "CAPTURE=0x0000 USER1[19:4]=0x0000 (switches must not move during the check)"
+    ],
+    [
+     "PASS",
+     "jprogram",
+     "DONE=0 GTS=1 chain zero=True outputs=000"
+    ],
+    [
+     "PASS",
+     "showcase-live",
+     "pad_i=000000 LD2..0=000 model=000"
+    ],
+    [
+     "PASS",
+     "ce-sr",
+     "CE loads, SR clears (beats CE), both low holds - 7 steps match model.py"
+    ],
+    [
+     "PASS",
+     "counter-step",
+     "counts [15, 4, 9, 14, 3, 8] (steps [5, 5, 5, 5, 5], want 5 each); ce off: [11, 11, 11] (want constant)"
+    ],
+    [
+     "PASS",
+     "counter-run",
+     "23 counts in 3.00 s = 7.67/s (expected 7.45)"
+    ],
+    [
+     "PASS",
+     "bram-init",
+     "64/64 words read back"
+    ],
+    [
+     "PASS",
+     "bram-locked",
+     "err=1 gwe=1"
+    ],
+    [
+     "PASS",
+     "bram-rom",
+     "LEDs ['001', '010', '101', '110'] contents ['001', '010', '101', '110']"
+    ],
+    [
+     "PASS",
+     "bram-modes",
+     "72/72 stepped operations match model.py"
+    ],
+    [
+     "PASS",
+     "dsp-modes",
+     "60/60 stepped operations match model.py "
+    ],
+    [
+     "PASS",
+     "dsp-mult",
+     "LEDs ['000', '011', '110', '001'] expected ['000', '011', '110', '001']"
+    ],
+    [
+     "PASS",
+     "dsp-accum",
+     "P0 0 -> 23 in 3.03 s = 7.60/s (expected 7.45)"
+    ],
+    [
+     "PASS",
+     "bram-select",
+     "16 words each read back from bram0 and bram1; SELECT 9 ignored (target 0)"
+    ],
+    [
+     "PASS",
+     "pipeline",
+     "LEDs ['010', '110', '011', '010', '110', '010', '010', '011'] model ['010', '110', '011', '010', '110', '010', '010', '011']"
+    ],
+    [
+     "PASS",
+     "counter8",
+     "counts [15, 4, 9, 14, 3, 8, 13, 2, 7, 12, 1, 6] (steps [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5], want 5 each)"
+    ],
+    [
+     "PASS",
+     "pipeline-live",
+     "SW1..0 = 00/01/10/11 should light LD0 / LD1 / LD2 / all three"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-17",
+   "time": "00:42:54",
+   "milestone": "M8",
+   "tag": "M7",
+   "pass": 10,
+   "fail": 0,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0xABEEF093, build.cfg expects 0xABEEF093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "selftest",
+     "12/12 designs match the model"
+    ],
+    [
+     "PASS",
+     "chain-length",
+     "4216 bits, design intact after the marker scan"
+    ],
+    [
+     "PASS",
+     "synth-gates",
+     "3 CLBs, 64 clocks match the source Verilog"
+    ],
+    [
+     "PASS",
+     "synth-adder",
+     "4 CLBs, 64 clocks match the source Verilog"
+    ],
+    [
+     "PASS",
+     "synth-counter",
+     "11 CLBs, 64 clocks match the source Verilog"
+    ],
+    [
+     "PASS",
+     "synth-blinky",
+     "15 CLBs, 64 clocks match the source Verilog"
+    ],
+    [
+     "PASS",
+     "synth-ram",
+     "0 CLBs, 64 clocks match the source Verilog"
+    ],
+    [
+     "PASS",
+     "synth-mult",
+     "7 CLBs, 64 clocks match the source Verilog"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-17",
+   "time": "01:16:30",
+   "milestone": "M9",
+   "tag": "M7",
+   "pass": 10,
+   "fail": 0,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0xABEEF093, build.cfg expects 0xABEEF093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "selftest",
+     "12/12 designs match the model"
+    ],
+    [
+     "PASS",
+     "chain-length",
+     "4216 bits, design intact after the marker scan"
+    ],
+    [
+     "PASS",
+     "vpr-gates",
+     "VPR-routed, 64 clocks match the source Verilog"
+    ],
+    [
+     "PASS",
+     "vpr-adder",
+     "VPR-routed, 64 clocks match the source Verilog"
+    ],
+    [
+     "PASS",
+     "vpr-counter",
+     "VPR-routed, 64 clocks match the source Verilog"
+    ],
+    [
+     "PASS",
+     "vpr-blinky",
+     "VPR-routed, 64 clocks match the source Verilog"
+    ],
+    [
+     "PASS",
+     "vpr-ram",
+     "VPR-routed, 64 clocks match the source Verilog"
+    ],
+    [
+     "PASS",
+     "vpr-mult",
+     "VPR-routed, 64 clocks match the source Verilog"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-17",
+   "time": "01:37:23",
+   "milestone": "M10",
+   "tag": "M7",
+   "pass": 11,
+   "fail": 0,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0xABEEF093, build.cfg expects 0xABEEF093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "selftest",
+     "12/12 designs match the model"
+    ],
+    [
+     "PASS",
+     "chain-length",
+     "4216 bits, design intact after the marker scan"
+    ],
+    [
+     "PASS",
+     "bob-gates",
+     "loaded 4216 bits (bulk), crc 0xE4FEB272, readback verified; readback == FASM; 64 clocks LEDs == source, 0 CAPTUREs x 0 registers == golden"
+    ],
+    [
+     "PASS",
+     "bob-adder",
+     "loaded 4216 bits (bulk), crc 0x597F800C, readback verified; readback == FASM; 64 clocks LEDs == source, 0 CAPTUREs x 0 registers == golden"
+    ],
+    [
+     "PASS",
+     "bob-counter",
+     "loaded 4216 bits (bulk), crc 0x7F343F31, readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 6 registers == golden"
+    ],
+    [
+     "PASS",
+     "bob-blinky",
+     "loaded 4216 bits (bulk), crc 0xC7BA9F4D, readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 8 registers == golden"
+    ],
+    [
+     "PASS",
+     "bob-ram",
+     "loaded 4216 bits (bulk), crc 0x95ADF2A8, readback verified, bram0 4 words; readback == FASM; 64 clocks LEDs == source, 0 CAPTUREs x 0 registers == golden"
+    ],
+    [
+     "PASS",
+     "bob-mult",
+     "loaded 4216 bits (bulk), crc 0xAD7B4077, readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 7 registers == golden"
+    ],
+    [
+     "PASS",
+     "bob-gates-swapped",
+     "loaded 4216 bits (bulk), crc 0xDE5868AA, readback verified; readback == FASM; 64 clocks LEDs == source, 0 CAPTUREs x 0 registers == golden"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-17",
+   "time": "01:55:12",
+   "milestone": "M11",
+   "tag": "M7",
+   "pass": 10,
+   "fail": 2,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0xABEEF093, build.cfg expects 0xABEEF093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "selftest",
+     "12/12 designs match the model"
+    ],
+    [
+     "PASS",
+     "chain-length",
+     "4216 bits, design intact after the marker scan"
+    ],
+    [
+     "PASS",
+     "bob-switches",
+     "loaded 4216 bits (bulk), crc 0x5F93B8BC, readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 3 registers == golden"
+    ],
+    [
+     "FAIL",
+     "bob-fir",
+     "2 wrong, first ['clock 16: CAPTURE bit 10 = 0, golden n10 = 1', 'clock 16: LEDs 000 vs source 010']"
+    ],
+    [
+     "FAIL",
+     "ram-readback",
+     "bram0[0..7] = [2, 2, 4, 7, 68189, 209573, 104860, 208805], model [2, 2, 4, 7, 0, 0, 0, 0]; bram1[0..7] = [3, 6, 4, 5, 13209, 45637, 235782, 4288], model [0, 0, 0, 0, 0, 0, 0, 0]"
+    ],
+    [
+     "PASS",
+     "blinky-rate",
+     "61 counts in 4.13 s = 14.77 Hz (expected 14.90)"
+    ],
+    [
+     "PASS",
+     "live-blinky",
+     "230 live samples LEDs == model(registers, pins), 1 input vectors, 120 register states, 81 bursts skipped (moving); readback while running == .bit"
+    ],
+    [
+     "PASS",
+     "live-fir",
+     "310 live samples LEDs == model(registers, pins), 1 input vectors, 3 register states, 1 bursts skipped (moving); readback while running == .bit"
+    ],
+    [
+     "PASS",
+     "live-mult",
+     "312 live samples LEDs == model(registers, pins), 1 input vectors, 2 register states, 1 bursts skipped (moving); readback while running == .bit"
+    ],
+    [
+     "PASS",
+     "live-switches",
+     "312 live samples LEDs == model(registers, pins), 3 input vectors, 1 register states, 0 bursts skipped (moving); readback while running == .bit"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-17",
+   "time": "01:56:17",
+   "milestone": "M11",
+   "tag": "M7",
+   "pass": 11,
+   "fail": 1,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0xABEEF093, build.cfg expects 0xABEEF093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "selftest",
+     "12/12 designs match the model"
+    ],
+    [
+     "PASS",
+     "chain-length",
+     "4216 bits, design intact after the marker scan"
+    ],
+    [
+     "PASS",
+     "bob-switches",
+     "loaded 4216 bits (bulk), crc 0x5F93B8BC, readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 3 registers == golden"
+    ],
+    [
+     "PASS",
+     "bob-fir",
+     "loaded 4216 bits (bulk), crc 0x369CFCF9, readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 7 registers == golden"
+    ],
+    [
+     "FAIL",
+     "ram-readback",
+     "bram0[0..7] = [2, 2, 4, 7, 68189, 209573, 104860, 208805], model [2, 2, 4, 7, 0, 0, 0, 0]; bram1[0..7] = [3, 6, 4, 5, 13209, 45637, 235782, 4288], model [0, 0, 0, 0, 0, 0, 0, 0]"
+    ],
+    [
+     "PASS",
+     "blinky-rate",
+     "61 counts in 4.12 s = 14.81 Hz (expected 14.90)"
+    ],
+    [
+     "PASS",
+     "live-blinky",
+     "232 live samples LEDs == model(registers, pins), 1 input vectors, 120 register states, 79 bursts skipped (moving); readback while running == .bit"
+    ],
+    [
+     "PASS",
+     "live-fir",
+     "309 live samples LEDs == model(registers, pins), 3 input vectors, 5 register states, 3 bursts skipped (moving); readback while running == .bit"
+    ],
+    [
+     "PASS",
+     "live-mult",
+     "307 live samples LEDs == model(registers, pins), 4 input vectors, 4 register states, 7 bursts skipped (moving); readback while running == .bit"
+    ],
+    [
+     "PASS",
+     "live-switches",
+     "316 live samples LEDs == model(registers, pins), 4 input vectors, 1 register states, 0 bursts skipped (moving); readback while running == .bit"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-17",
+   "time": "01:57:37",
+   "milestone": "M11",
+   "tag": "M7",
+   "pass": 11,
+   "fail": 1,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0xABEEF093, build.cfg expects 0xABEEF093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "selftest",
+     "12/12 designs match the model"
+    ],
+    [
+     "PASS",
+     "chain-length",
+     "4216 bits, design intact after the marker scan"
+    ],
+    [
+     "PASS",
+     "bob-switches",
+     "loaded 4216 bits (bulk), crc 0x5F93B8BC, readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 3 registers == golden"
+    ],
+    [
+     "PASS",
+     "bob-fir",
+     "loaded 4216 bits (bulk), crc 0x369CFCF9, readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 7 registers == golden"
+    ],
+    [
+     "FAIL",
+     "ram-readback",
+     "bram0[0..7] = [2, 2, 4, 7, 68189, 209573, 104860, 208805], model [2, 2, 4, 7, 0, 0, 0, 0]; bram1[0..7] = [3, 6, 4, 5, 13209, 45637, 235782, 4288], model [0, 0, 0, 0, 0, 0, 0, 0]"
+    ],
+    [
+     "PASS",
+     "blinky-rate",
+     "61 counts in 4.13 s = 14.76 Hz (expected 14.90)"
+    ],
+    [
+     "PASS",
+     "live-blinky",
+     "228 live samples LEDs == model(registers, pins), 1 input vectors, 120 register states, 76 bursts skipped (moving); readback while running == .bit"
+    ],
+    [
+     "PASS",
+     "live-fir",
+     "312 live samples LEDs == model(registers, pins), 1 input vectors, 1 register states, 0 bursts skipped (moving); readback while running == .bit"
+    ],
+    [
+     "PASS",
+     "live-mult",
+     "318 live samples LEDs == model(registers, pins), 1 input vectors, 1 register states, 0 bursts skipped (moving); readback while running == .bit"
+    ],
+    [
+     "PASS",
+     "live-switches",
+     "314 live samples LEDs == model(registers, pins), 1 input vectors, 1 register states, 0 bursts skipped (moving); readback while running == .bit"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-17",
+   "time": "02:10:33",
+   "milestone": "M11",
+   "tag": "M7",
+   "pass": 9,
+   "fail": 3,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0xABEEF093, build.cfg expects 0xABEEF093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "selftest",
+     "12/12 designs match the model"
+    ],
+    [
+     "PASS",
+     "chain-length",
+     "4216 bits, design intact after the marker scan"
+    ],
+    [
+     "PASS",
+     "bob-switches",
+     "loaded 4216 bits (bulk), crc 0x5F93B8BC, readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 3 registers == golden"
+    ],
+    [
+     "PASS",
+     "bob-fir",
+     "loaded 4216 bits (bulk), crc 0x369CFCF9, readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 7 registers == golden"
+    ],
+    [
+     "PASS",
+     "ram-readback",
+     "64 clocks (50 with BTN0 write), bram0[0..15] = [2, 2, 4, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] read back after JPROGRAM == model (all 1024 words were written at load, so no earlier design's words remain); chain readback"
+    ],
+    [
+     "PASS",
+     "blinky-rate",
+     "61 counts in 4.13 s = 14.79 Hz (expected 14.90)"
+    ],
+    [
+     "PASS",
+     "live-blinky",
+     "30 live samples LEDs == model(registers, pins), 1 input vectors, 16 register states, 9 bursts skipped (moving); all goals reached; readback while running == .bit"
+    ],
+    [
+     "FAIL",
+     "live-fir",
+     "USBError: [Errno 19] No such device (it may have been disconnected)"
+    ],
+    [
+     "FAIL",
+     "live-mult",
+     "USBError: [Errno 19] No such device (it may have been disconnected)"
+    ],
+    [
+     "FAIL",
+     "live-switches",
+     "USBError: [Errno 19] No such device (it may have been disconnected)"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-17",
+   "time": "02:14:54",
+   "milestone": "M11",
+   "tag": "M7",
+   "pass": 12,
+   "fail": 0,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0xABEEF093, build.cfg expects 0xABEEF093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "selftest",
+     "12/12 designs match the model"
+    ],
+    [
+     "PASS",
+     "chain-length",
+     "4216 bits, design intact after the marker scan"
+    ],
+    [
+     "PASS",
+     "bob-switches",
+     "loaded 4216 bits (bulk), crc 0x5F93B8BC, readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 3 registers == golden"
+    ],
+    [
+     "PASS",
+     "bob-fir",
+     "loaded 4216 bits (bulk), crc 0x369CFCF9, readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 7 registers == golden"
+    ],
+    [
+     "PASS",
+     "ram-readback",
+     "64 clocks (50 with BTN0 write), bram0[0..15] = [2, 2, 4, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] read back after JPROGRAM == model (all 1024 words were written at load, so no earlier design's words remain); chain readback"
+    ],
+    [
+     "PASS",
+     "blinky-rate",
+     "62 counts in 4.13 s = 15.01 Hz (expected 14.90)"
+    ],
+    [
+     "PASS",
+     "live-blinky",
+     "30 live samples LEDs == model(registers, pins), 1 input vectors, 16 register states, 9 bursts skipped (moving); all goals reached; readback while running == .bit"
+    ],
+    [
+     "PASS",
+     "live-fir",
+     "2717 live samples LEDs == model(registers, pins), 8 input vectors, 12 register states, 16 bursts skipped (moving); all goals reached; readback while running == .bit"
+    ],
+    [
+     "PASS",
+     "live-mult",
+     "2060 live samples LEDs == model(registers, pins), 21 input vectors, 22 register states, 43 bursts skipped (moving); all goals reached; readback while running == .bit"
+    ],
+    [
+     "PASS",
+     "live-switches",
+     "2203 live samples LEDs == model(registers, pins), 17 input vectors, 8 register states, 14 bursts skipped (moving); all goals reached; readback while running == .bit"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-17",
+   "time": "03:40:02",
+   "milestone": "M12",
+   "tag": "M7",
+   "pass": 15,
+   "fail": 0,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0xABEEF093, build.cfg expects 0xABEEF093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "selftest",
+     "12/12 designs match the model"
+    ],
+    [
+     "PASS",
+     "chain-length",
+     "4216 bits, design intact after the marker scan"
+    ],
+    [
+     "PASS",
+     "pnr-gates",
+     "loaded 4216 bits (bulk), crc 0xF8A4EF20, readback verified; readback == FASM; 64 clocks LEDs == source, 0 CAPTUREs x 0 registers == golden"
+    ],
+    [
+     "PASS",
+     "pnr-adder",
+     "loaded 4216 bits (bulk), crc 0xAAC03B69, readback verified; readback == FASM; 64 clocks LEDs == source, 0 CAPTUREs x 0 registers == golden"
+    ],
+    [
+     "PASS",
+     "pnr-counter",
+     "loaded 4216 bits (bulk), crc 0xB76D4EB1, readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 6 registers == golden"
+    ],
+    [
+     "PASS",
+     "pnr-blinky",
+     "loaded 4216 bits (bulk), crc 0xE9DA76BA, readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 8 registers == golden"
+    ],
+    [
+     "PASS",
+     "pnr-ram",
+     "loaded 4216 bits (bulk), crc 0x2213DEE8, readback verified, bram0 all 1024 words; readback == FASM; 64 clocks LEDs == source, 0 CAPTUREs x 0 registers == golden"
+    ],
+    [
+     "PASS",
+     "pnr-mult",
+     "loaded 4216 bits (bulk), crc 0xECFA91C3, readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 7 registers == golden"
+    ],
+    [
+     "PASS",
+     "pnr-switches",
+     "loaded 4216 bits (bulk), crc 0xF0A38984, readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 3 registers == golden"
+    ],
+    [
+     "PASS",
+     "pnr-fir",
+     "loaded 4216 bits (bulk), crc 0x02180960, readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 7 registers == golden"
+    ],
+    [
+     "PASS",
+     "pnr-gates-swapped",
+     "loaded 4216 bits (bulk), crc 0xBF4693D3, readback verified; readback == FASM; 64 clocks LEDs == source, 0 CAPTUREs x 0 registers == golden"
+    ],
+    [
+     "PASS",
+     "live-fir-py",
+     "532 live samples LEDs == model(registers, pins), 17 input vectors, 9 register states, 14 bursts skipped (moving); all goals reached; readback while running == .bit"
+    ],
+    [
+     "PASS",
+     "live-switches-py",
+     "648 live samples LEDs == model(registers, pins), 34 input vectors, 8 register states, 19 bursts skipped (moving); all goals reached; readback while running == .bit"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-17",
+   "time": "13:35:56",
+   "milestone": "M13",
+   "tag": "M13",
+   "pass": 39,
+   "fail": 0,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0xBBEEF093, build.cfg expects 0xBBEEF093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "selftest",
+     "12/12 designs match the model"
+    ],
+    [
+     "PASS",
+     "usercode",
+     "0x0000000D, build.cfg expects 0x0000000D"
+    ],
+    [
+     "PASS",
+     "chain-length",
+     "4992 bits, design intact after the marker scan"
+    ],
+    [
+     "PASS",
+     "ir-status",
+     "{'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}"
+    ],
+    [
+     "PASS",
+     "crc-reject-live",
+     "crc_err=1 DONE=1 config kept=True showcase vectors wrong=0"
+    ],
+    [
+     "PASS",
+     "gts",
+     "outputs before JSTART=000, after=011, model=011"
+    ],
+    [
+     "PASS",
+     "gsr-gwe",
+     "q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1"
+    ],
+    [
+     "PASS",
+     "capture-user1",
+     "CAPTURE=0x0420 USER1[19:4]=0x0420 (switches must not move during the check)"
+    ],
+    [
+     "PASS",
+     "jprogram",
+     "DONE=0 GTS=1 chain zero=True outputs=000"
+    ],
+    [
+     "PASS",
+     "showcase-live",
+     "pad_i=000001 LD2..0=110 model=110"
+    ],
+    [
+     "PASS",
+     "ce-sr",
+     "CE loads, SR clears (beats CE), both low holds - 7 steps match model.py"
+    ],
+    [
+     "PASS",
+     "counter-step",
+     "counts [15, 4, 9, 14, 3, 8] (steps [5, 5, 5, 5, 5], want 5 each); ce off: [11, 11, 11] (want constant)"
+    ],
+    [
+     "PASS",
+     "counter-run",
+     "23 counts in 3.00 s = 7.65/s (expected 7.45)"
+    ],
+    [
+     "PASS",
+     "bram-init",
+     "64/64 words read back"
+    ],
+    [
+     "PASS",
+     "bram-locked",
+     "err=1 gwe=1"
+    ],
+    [
+     "PASS",
+     "bram-rom",
+     "LEDs ['100', '001', '100', '010'] contents ['100', '001', '100', '010']"
+    ],
+    [
+     "PASS",
+     "bram-modes",
+     "72/72 stepped operations match model.py"
+    ],
+    [
+     "PASS",
+     "dsp-modes",
+     "60/60 stepped operations match model.py "
+    ],
+    [
+     "PASS",
+     "dsp-mult",
+     "LEDs ['000', '011', '110', '001'] expected ['000', '011', '110', '001']"
+    ],
+    [
+     "PASS",
+     "dsp-accum",
+     "P0 0 -> 23 in 3.03 s = 7.60/s (expected 7.45)"
+    ],
+    [
+     "PASS",
+     "bram-select",
+     "16 words each read back from bram0 and bram1; SELECT 9 ignored (target 0)"
+    ],
+    [
+     "PASS",
+     "pipeline",
+     "LEDs ['011', '110', '000', '110', '110', '011', '110', '000'] model ['011', '110', '000', '110', '110', '011', '110', '000']"
+    ],
+    [
+     "PASS",
+     "counter8",
+     "counts [15, 4, 9, 14, 3, 8, 13, 2, 7, 12, 1, 6] (steps [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5], want 5 each)"
+    ],
+    [
+     "PASS",
+     "frames-load",
+     "loaded 39 frames (156 words) through CFG_IN, CRC 9599777A, FDRO readback verified; CHAIN_OUT == word: True; DONE=1; 4/4 vectors == model"
+    ],
+    [
+     "PASS",
+     "frames-crc-reject",
+     "CRC_ERROR=1 START_OK=0 DONE=0 INIT_B=0"
+    ],
+    [
+     "PASS",
+     "frames-idcode-reject",
+     "ID_ERROR=1 memory empty=True"
+    ],
+    [
+     "PASS",
+     "frames-live-refused",
+     "frames: WR_ERROR=1 memory kept=True; chain while running kept=True; DONE=1; showcase 4/4 vectors == model"
+    ],
+    [
+     "PASS",
+     "frames-vs-chain",
+     "chain load -> FDRO == word: True; frame load -> CHAIN_OUT == word: True"
+    ],
+    [
+     "PASS",
+     "bob-gates",
+     "loaded 39 frames (156 words) through CFG_IN, CRC 3E258C9B, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 0 CAPTUREs x 0 registers == golden"
+    ],
+    [
+     "PASS",
+     "bob-counter",
+     "loaded 39 frames (156 words) through CFG_IN, CRC 4D7E35D1, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 6 registers == golden"
+    ],
+    [
+     "PASS",
+     "bob-ram",
+     "loaded 39 frames (156 words) through CFG_IN, CRC 49555BCA, FDRO readback verified, bram0 all 1024 words; readback == FASM; 64 clocks LEDs == source, 0 CAPTUREs x 0 registers == golden"
+    ],
+    [
+     "PASS",
+     "bob-mult",
+     "loaded 39 frames (156 words) through CFG_IN, CRC D5BC54C6, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 7 registers == golden"
+    ],
+    [
+     "PASS",
+     "bob-fir",
+     "loaded 39 frames (156 words) through CFG_IN, CRC D45CDFE8, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 7 registers == golden"
+    ],
+    [
+     "PASS",
+     "pnr-switches",
+     "loaded 39 frames (156 words) through CFG_IN, CRC DF56C874, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 3 registers == golden"
+    ],
+    [
+     "PASS",
+     "ram-readback",
+     "64 clocks (50 with BTN0 write), bram0[0..15] = [2, 2, 4, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] read back after JPROGRAM == model (all 1024 words were written at load, so no earlier design's words remain); chain readback"
+    ],
+    [
+     "PASS",
+     "blinky-rate",
+     "62 counts in 4.12 s = 15.04 Hz (expected 14.90)"
+    ],
+    [
+     "PASS",
+     "pipeline-live",
+     "SW1..0 = 00/01/10/11 should light LD0 / LD1 / LD2 / all three"
+    ]
+   ]
+  }
+ ],
+ "vivado": {
+  "M0": {
+   "lut": 4341,
+   "ff": 5910,
+   "bram": 0.0,
+   "dsp": 0.0,
+   "wns": 67.29,
+   "tns": 0.0,
+   "failing": 0,
+   "endpoints": 11862,
+   "whs": 0.083,
+   "top": "fpga4x4_top",
+   "idcode": "0x3BEEF093",
+   "built": "2026-09-14 04:09:46"
+  },
+  "M1": {
+   "lut": 4341,
+   "ff": 5910,
+   "bram": 0.0,
+   "dsp": 0.0,
+   "wns": 67.29,
+   "tns": 0.0,
+   "failing": 0,
+   "endpoints": 11862,
+   "whs": 0.083,
+   "top": "fpga4x4_top",
+   "idcode": "0x3BEEF093",
+   "built": "2026-09-14 05:35:38"
+  },
+  "M13": {
+   "lut": 11607,
+   "ff": 12287,
+   "bram": 1.0,
+   "dsp": 2.0,
+   "wns": 0.877,
+   "tns": 0.0,
+   "failing": 0,
+   "endpoints": 30736,
+   "whs": 0.03,
+   "top": "bob_top",
+   "idcode": "0xBBEEF093",
+   "built": "2026-09-17 13:12:33"
+  },
+  "M2": {
+   "lut": 175,
+   "ff": 423,
+   "bram": 0.0,
+   "dsp": 0.0,
+   "wns": 493.735,
+   "tns": 0.0,
+   "failing": 0,
+   "endpoints": 1057,
+   "whs": 0.096,
+   "top": "cfg_test_top",
+   "idcode": "0x4BEEF093",
+   "built": "2026-09-14 06:25:16"
+  },
+  "M3": {
+   "lut": 3951,
+   "ff": 6115,
+   "bram": 0.0,
+   "dsp": 0.0,
+   "wns": 63.874,
+   "tns": 0.0,
+   "failing": 0,
+   "endpoints": 15258,
+   "whs": 0.082,
+   "top": "fpga4x4_top",
+   "idcode": "0x5BEEF093",
+   "built": "2026-09-14 06:54:22"
+  },
+  "M4": {
+   "lut": 4187,
+   "ff": 6510,
+   "bram": 0.0,
+   "dsp": 0.0,
+   "wns": 0.843,
+   "tns": 0.0,
+   "failing": 0,
+   "endpoints": 16177,
+   "whs": 0.055,
+   "top": "fpga4x4_top",
+   "idcode": "0x6BEEF093",
+   "built": "2026-09-14 07:45:38"
+  },
+  "M7": {
+   "lut": 7670,
+   "ff": 10362,
+   "bram": 1.0,
+   "dsp": 2.0,
+   "wns": -1102.283,
+   "tns": -1608725.625,
+   "failing": 1858,
+   "endpoints": 25782,
+   "whs": 0.031,
+   "top": "bob_top",
+   "idcode": "0xABEEF093",
+   "built": "2026-09-17 00:33:29"
+  }
+ },
+ "device": {
+  "chain_width": 8320,
+  "frames": 65,
+  "frame_bits": 128,
+  "grid": [
+   10,
+   8
+  ],
+  "chan_width": 24,
+  "lut_k": 6,
+  "muxes": 1723,
+  "blocks": {
+   "io": 28,
+   "clb": 36,
+   "bram": 2,
+   "dsp": 2
+  }
+ },
+ "examples": {
+  "vpr": [
+   {
+    "name": "adder",
+    "wirelength": 77,
+    "critical_ns": null
+   },
+   {
+    "name": "blinky",
+    "wirelength": 136,
+    "critical_ns": null
+   },
+   {
+    "name": "counter",
+    "wirelength": 201,
+    "critical_ns": null
+   },
+   {
+    "name": "fir",
+    "wirelength": 257,
+    "critical_ns": null
+   },
+   {
+    "name": "gates",
+    "wirelength": 154,
+    "critical_ns": null
+   },
+   {
+    "name": "gates_swapped",
+    "wirelength": 149,
+    "critical_ns": null
+   },
+   {
+    "name": "mult",
+    "wirelength": 175,
+    "critical_ns": null
+   },
+   {
+    "name": "ram",
+    "wirelength": 112,
+    "critical_ns": null
+   },
+   {
+    "name": "switches",
+    "wirelength": 144,
+    "critical_ns": null
+   },
+   {
+    "name": "wide",
+    "wirelength": 757,
+    "critical_ns": null
+   }
+  ],
+  "pnr_table": [
+   [
+    "gates",
+    "3 / 3",
+    "43 / 43",
+    "154 / 100",
+    "0.65",
+    "54 / 29",
+    "69 / 44",
+    "2",
+    "0.07 s",
+    "VPR \u2713 Py \u2713 (40 samples)"
+   ],
+   [
+    "adder",
+    "4 / 4",
+    "37 / 38",
+    "77 / 100",
+    "1.30",
+    "24 / 30",
+    "31 / 37",
+    "3",
+    "0.09 s",
+    "VPR \u2713 Py \u2713 (400 samples)"
+   ],
+   [
+    "counter",
+    "9 / 9",
+    "48 / 39",
+    "201 / 191",
+    "0.95",
+    "70 / 68",
+    "94 / 92",
+    "3",
+    "0.11 s",
+    "VPR \u2713 Py \u2713 (400 samples)"
+   ],
+   [
+    "blinky",
+    "11 / 11",
+    "29 / 15",
+    "136 / 101",
+    "0.74",
+    "51 / 36",
+    "65 / 50",
+    "3",
+    "0.07 s",
+    "VPR \u2713 Py \u2713 (400 samples)"
+   ],
+   [
+    "ram",
+    "0 / 0",
+    "43 / 53",
+    "112 / 127",
+    "1.13",
+    "36 / 37",
+    "46 / 47",
+    "2",
+    "0.02 s",
+    "VPR \u2713 Py \u2713 (400 samples)"
+   ],
+   [
+    "mult",
+    "7 / 7",
+    "64 / 73",
+    "175 / 191",
+    "1.09",
+    "59 / 58",
+    "77 / 76",
+    "3",
+    "0.17 s",
+    "VPR \u2713 Py \u2713 (400 samples)"
+   ],
+   [
+    "switches",
+    "6 / 6",
+    "38 / 38",
+    "144 / 100",
+    "0.69",
+    "51 / 32",
+    "65 / 46",
+    "1",
+    "0.10 s",
+    "VPR \u2713 Py \u2713 (400 samples)"
+   ],
+   [
+    "fir",
+    "10 / 10",
+    "89 / 85",
+    "257 / 279",
+    "1.09",
+    "90 / 88",
+    "117 / 115",
+    "2",
+    "0.16 s",
+    "VPR \u2713 Py \u2713 (400 samples)"
+   ],
+   [
+    "wide",
+    "31 / 31",
+    "148 / 137",
+    "757 / 711",
+    "0.94",
+    "284 / 245",
+    "380 / 341",
+    "5",
+    "0.74 s",
+    "VPR \u2713 Py \u2713 (400 samples)"
+   ],
+   [
+    "gates_swapped",
+    "3 / 3",
+    "45 / 44",
+    "149 / 115",
+    "0.77",
+    "49 / 35",
+    "64 / 50",
+    "3",
+    "0.07 s",
+    "VPR \u2713 Py \u2713 (40 samples)"
+   ]
+  ]
+ },
+ "checks": {
+  "testbenches": {
+   "M4 CLB flag sweep vs tools/bob/model.py: LUT K = 6, 71 config bits": 7040,
+   "M5 bram_core vs tools/bob/model.py: WRITE_FIRST/READ_FIRST/NO_CHANGE x DOx_REG": 5292,
+   "M6 dsp_core x2 (cascade) vs tools/bob/model.py: every opmode x pre-adder": 1344,
+   "bob (M7): 10x8 grid, W=24, 36 CLBs (LUT6), 2 BRAMs, 2 DSPs, 28 pads": 852,
+   "M2 configuration plane: 6-bit AMD IR, 64-bit scan chain": 180,
+   "M4 CLB flag sweep vs tools/bob/model.py: LUT K = 4, 23 config bits": 7040,
+   "bob (M7): 10x8 grid, W=24, 36 CLBs (LUT4), 2 BRAMs, 2 DSPs, 28 pads": 722,
+   "synthesised designs on the complete bob FPGA (M8 hand-placed, M9 VPR)": 972,
+   "golden co-simulation: source Verilog vs the fabric loaded from .bit (M10; VPR and Python PnR, M12)": 5220,
+   "frame configuration path on the complete bob FPGA (M13)": 71,
+   "clock_ctrl: user-clock enables at least 2**GAP_SHIFT sysclk cycles apart (M13), freeze (M14)": 11,
+   "pytest": 183
+  },
+  "mutants": {
+   "mutate_cfg": {
+    "killed": 5,
+    "survived": 0
+   },
+   "mutate_fabric": {
+    "killed": 25,
+    "survived": 0
+   },
+   "mutate_frames": {
+    "killed": 29,
+    "survived": 0
+   }
+  }
+ },
+ "code": {
+  "lines": {
+   "other": 347,
+   "Markdown": 3238,
+   "Python": 13537,
+   "JavaScript": 1608,
+   "Tcl": 880,
+   "SystemVerilog": 385,
+   "Verilog": 6301,
+   "shell": 626,
+   "XDC": 124
+  },
+  "generated_fabric_lines": 2296,
+  "commits": 23,
+  "tags": [
+   "m10",
+   "m11",
+   "m12",
+   "m13",
+   "m7",
+   "m8",
+   "m9"
+  ]
+ },
+ "layout": {
+  "blocks": [
+   [
+    "io_x1y0",
+    "io",
+    1,
+    0
+   ],
+   [
+    "io_x2y0",
+    "io",
+    2,
+    0
+   ],
+   [
+    "io_x3y0",
+    "io",
+    3,
+    0
+   ],
+   [
+    "io_x4y0",
+    "io",
+    4,
+    0
+   ],
+   [
+    "io_x5y0",
+    "io",
+    5,
+    0
+   ],
+   [
+    "io_x6y0",
+    "io",
+    6,
+    0
+   ],
+   [
+    "io_x7y0",
+    "io",
+    7,
+    0
+   ],
+   [
+    "io_x8y0",
+    "io",
+    8,
+    0
+   ],
+   [
+    "io_x0y1",
+    "io",
+    0,
+    1
+   ],
+   [
+    "clb_x1y1",
+    "clb",
+    1,
+    1
+   ],
+   [
+    "clb_x2y1",
+    "clb",
+    2,
+    1
+   ],
+   [
+    "bram0",
+    "bram",
+    3,
+    1
+   ],
+   [
+    "clb_x4y1",
+    "clb",
+    4,
+    1
+   ],
+   [
+    "clb_x5y1",
+    "clb",
+    5,
+    1
+   ],
+   [
+    "dsp0",
+    "dsp",
+    6,
+    1
+   ],
+   [
+    "clb_x7y1",
+    "clb",
+    7,
+    1
+   ],
+   [
+    "clb_x8y1",
+    "clb",
+    8,
+    1
+   ],
+   [
+    "io_x9y1",
+    "io",
+    9,
+    1
+   ],
+   [
+    "io_x0y2",
+    "io",
+    0,
+    2
+   ],
+   [
+    "clb_x1y2",
+    "clb",
+    1,
+    2
+   ],
+   [
+    "clb_x2y2",
+    "clb",
+    2,
+    2
+   ],
+   [
+    "clb_x4y2",
+    "clb",
+    4,
+    2
+   ],
+   [
+    "clb_x5y2",
+    "clb",
+    5,
+    2
+   ],
+   [
+    "clb_x7y2",
+    "clb",
+    7,
+    2
+   ],
+   [
+    "clb_x8y2",
+    "clb",
+    8,
+    2
+   ],
+   [
+    "io_x9y2",
+    "io",
+    9,
+    2
+   ],
+   [
+    "io_x0y3",
+    "io",
+    0,
+    3
+   ],
+   [
+    "clb_x1y3",
+    "clb",
+    1,
+    3
+   ],
+   [
+    "clb_x2y3",
+    "clb",
+    2,
+    3
+   ],
+   [
+    "clb_x4y3",
+    "clb",
+    4,
+    3
+   ],
+   [
+    "clb_x5y3",
+    "clb",
+    5,
+    3
+   ],
+   [
+    "clb_x7y3",
+    "clb",
+    7,
+    3
+   ],
+   [
+    "clb_x8y3",
+    "clb",
+    8,
+    3
+   ],
+   [
+    "io_x9y3",
+    "io",
+    9,
+    3
+   ],
+   [
+    "io_x0y4",
+    "io",
+    0,
+    4
+   ],
+   [
+    "clb_x1y4",
+    "clb",
+    1,
+    4
+   ],
+   [
+    "clb_x2y4",
+    "clb",
+    2,
+    4
+   ],
+   [
+    "bram1",
+    "bram",
+    3,
+    4
+   ],
+   [
+    "clb_x4y4",
+    "clb",
+    4,
+    4
+   ],
+   [
+    "clb_x5y4",
+    "clb",
+    5,
+    4
+   ],
+   [
+    "dsp1",
+    "dsp",
+    6,
+    4
+   ],
+   [
+    "clb_x7y4",
+    "clb",
+    7,
+    4
+   ],
+   [
+    "clb_x8y4",
+    "clb",
+    8,
+    4
+   ],
+   [
+    "io_x9y4",
+    "io",
+    9,
+    4
+   ],
+   [
+    "io_x0y5",
+    "io",
+    0,
+    5
+   ],
+   [
+    "clb_x1y5",
+    "clb",
+    1,
+    5
+   ],
+   [
+    "clb_x2y5",
+    "clb",
+    2,
+    5
+   ],
+   [
+    "clb_x4y5",
+    "clb",
+    4,
+    5
+   ],
+   [
+    "clb_x5y5",
+    "clb",
+    5,
+    5
+   ],
+   [
+    "clb_x7y5",
+    "clb",
+    7,
+    5
+   ],
+   [
+    "clb_x8y5",
+    "clb",
+    8,
+    5
+   ],
+   [
+    "io_x9y5",
+    "io",
+    9,
+    5
+   ],
+   [
+    "io_x0y6",
+    "io",
+    0,
+    6
+   ],
+   [
+    "clb_x1y6",
+    "clb",
+    1,
+    6
+   ],
+   [
+    "clb_x2y6",
+    "clb",
+    2,
+    6
+   ],
+   [
+    "clb_x4y6",
+    "clb",
+    4,
+    6
+   ],
+   [
+    "clb_x5y6",
+    "clb",
+    5,
+    6
+   ],
+   [
+    "clb_x7y6",
+    "clb",
+    7,
+    6
+   ],
+   [
+    "clb_x8y6",
+    "clb",
+    8,
+    6
+   ],
+   [
+    "io_x9y6",
+    "io",
+    9,
+    6
+   ],
+   [
+    "io_x1y7",
+    "io",
+    1,
+    7
+   ],
+   [
+    "io_x2y7",
+    "io",
+    2,
+    7
+   ],
+   [
+    "io_x3y7",
+    "io",
+    3,
+    7
+   ],
+   [
+    "io_x4y7",
+    "io",
+    4,
+    7
+   ],
+   [
+    "io_x5y7",
+    "io",
+    5,
+    7
+   ],
+   [
+    "io_x6y7",
+    "io",
+    6,
+    7
+   ],
+   [
+    "io_x7y7",
+    "io",
+    7,
+    7
+   ],
+   [
+    "io_x8y7",
+    "io",
+    8,
+    7
+   ]
+  ],
+  "pads": [
+   {
+    "pad": 0,
+    "x": 1,
+    "y": 0,
+    "name": null
+   },
+   {
+    "pad": 1,
+    "x": 2,
+    "y": 0,
+    "name": null
+   },
+   {
+    "pad": 2,
+    "x": 3,
+    "y": 0,
+    "name": null
+   },
+   {
+    "pad": 3,
+    "x": 4,
+    "y": 0,
+    "name": null
+   },
+   {
+    "pad": 4,
+    "x": 5,
+    "y": 0,
+    "name": null
+   },
+   {
+    "pad": 5,
+    "x": 6,
+    "y": 0,
+    "name": null
+   },
+   {
+    "pad": 6,
+    "x": 7,
+    "y": 0,
+    "name": null
+   },
+   {
+    "pad": 7,
+    "x": 8,
+    "y": 0,
+    "name": null
+   },
+   {
+    "pad": 8,
+    "x": 0,
+    "y": 1,
+    "name": "SW0"
+   },
+   {
+    "pad": 9,
+    "x": 9,
+    "y": 1,
+    "name": "LD0"
+   },
+   {
+    "pad": 10,
+    "x": 0,
+    "y": 2,
+    "name": "SW1"
+   },
+   {
+    "pad": 11,
+    "x": 9,
+    "y": 2,
+    "name": "LD1"
+   },
+   {
+    "pad": 12,
+    "x": 0,
+    "y": 3,
+    "name": "BTN0"
+   },
+   {
+    "pad": 13,
+    "x": 9,
+    "y": 3,
+    "name": "LD2"
+   },
+   {
+    "pad": 14,
+    "x": 0,
+    "y": 4,
+    "name": "BTN1"
+   },
+   {
+    "pad": 15,
+    "x": 9,
+    "y": 4,
+    "name": null
+   },
+   {
+    "pad": 16,
+    "x": 0,
+    "y": 5,
+    "name": "BTN2"
+   },
+   {
+    "pad": 17,
+    "x": 9,
+    "y": 5,
+    "name": null
+   },
+   {
+    "pad": 18,
+    "x": 0,
+    "y": 6,
+    "name": "BTN3"
+   },
+   {
+    "pad": 19,
+    "x": 9,
+    "y": 6,
+    "name": null
+   },
+   {
+    "pad": 20,
+    "x": 1,
+    "y": 7,
+    "name": null
+   },
+   {
+    "pad": 21,
+    "x": 2,
+    "y": 7,
+    "name": null
+   },
+   {
+    "pad": 22,
+    "x": 3,
+    "y": 7,
+    "name": null
+   },
+   {
+    "pad": 23,
+    "x": 4,
+    "y": 7,
+    "name": null
+   },
+   {
+    "pad": 24,
+    "x": 5,
+    "y": 7,
+    "name": null
+   },
+   {
+    "pad": 25,
+    "x": 6,
+    "y": 7,
+    "name": null
+   },
+   {
+    "pad": 26,
+    "x": 7,
+    "y": 7,
+    "name": null
+   },
+   {
+    "pad": 27,
+    "x": 8,
+    "y": 7,
+    "name": null
+   }
+  ],
+  "heights": {
+   "bram": 3,
+   "dsp": 3
+  },
+  "frame_columns": [
+   {
+    "far_col": 0,
+    "x": null,
+    "base": 0,
+    "count": 1
+   },
+   {
+    "far_col": 1,
+    "x": 0,
+    "base": 1,
+    "count": 2
+   },
+   {
+    "far_col": 2,
+    "x": 1,
+    "base": 3,
+    "count": 8
+   },
+   {
+    "far_col": 3,
+    "x": 2,
+    "base": 11,
+    "count": 8
+   },
+   {
+    "far_col": 4,
+    "x": 3,
+    "base": 19,
+    "count": 5
+   },
+   {
+    "far_col": 5,
+    "x": 4,
+    "base": 24,
+    "count": 8
+   },
+   {
+    "far_col": 6,
+    "x": 5,
+    "base": 32,
+    "count": 8
+   },
+   {
+    "far_col": 7,
+    "x": 6,
+    "base": 40,
+    "count": 8
+   },
+   {
+    "far_col": 8,
+    "x": 7,
+    "base": 48,
+    "count": 8
+   },
+   {
+    "far_col": 9,
+    "x": 8,
+    "base": 56,
+    "count": 8
+   },
+   {
+    "far_col": 10,
+    "x": 9,
+    "base": 64,
+    "count": 1
+   }
+  ]
+ },
+ "streams": {
+  "load": [
+   [
+    "FFFFFFFF",
+    "dummy"
+   ],
+   [
+    "FFFFFFFF",
+    "dummy"
+   ],
+   [
+    "AA995566",
+    "sync"
+   ],
+   [
+    "20000000",
+    "type-1 NOP  count 0"
+   ],
+   [
+    "30008001",
+    "type-1 WRITE CMD count 1"
+   ],
+   [
+    "00000007",
+    "CMD RCRC data"
+   ],
+   [
+    "20000000",
+    "type-1 NOP  count 0"
+   ],
+   [
+    "30018001",
+    "type-1 WRITE IDCODE count 1"
+   ],
+   [
+    "EBEEF093",
+    "IDCODE data"
+   ],
+   [
+    "30002001",
+    "type-1 WRITE FAR count 1"
+   ],
+   [
+    "00000000",
+    "FAR data"
+   ],
+   [
+    "30008001",
+    "type-1 WRITE CMD count 1"
+   ],
+   [
+    "00000001",
+    "CMD WCFG data"
+   ],
+   [
+    "20000000",
+    "type-1 NOP  count 0"
+   ],
+   [
+    "30004000",
+    "type-1 WRITE FDRI count 0"
+   ],
+   [
+    "50000104",
+    "type-2 count 260"
+   ],
+   [
+    "00000000",
+    "FDRI data"
+   ],
+   [
+    "00000000",
+    "FDRI data"
+   ],
+   [
+    "00000000",
+    "FDRI data"
+   ],
+   [
+    "00000000",
+    "FDRI data"
+   ],
+   [
+    "20000008",
+    "FDRI data"
+   ],
+   [
+    "00000080",
+    "FDRI data"
+   ],
+   [
+    "\u2026",
+    "1280 more words"
+   ],
+   [
+    "0003D09E",
+    "FDRI data"
+   ],
+   [
+    "00034A4F",
+    "FDRI data"
+   ],
+   [
+    "30000001",
+    "type-1 WRITE CRC count 1"
+   ],
+   [
+    "7F425AF7",
+    "CRC data"
+   ],
+   [
+    "30008001",
+    "type-1 WRITE CMD count 1"
+   ],
+   [
+    "00000003",
+    "CMD LFRM data"
+   ],
+   [
+    "30008001",
+    "type-1 WRITE CMD count 1"
+   ],
+   [
+    "00000005",
+    "CMD START data"
+   ],
+   [
+    "30008001",
+    "type-1 WRITE CMD count 1"
+   ],
+   [
+    "0000000D",
+    "CMD DESYNC data"
+   ],
+   [
+    "20000000",
+    "dummy"
+   ],
+   [
+    "20000000",
+    "dummy"
+   ]
+  ],
+  "load_words": 1314,
+  "partial_freeze": [
+   [
+    "FFFFFFFF",
+    "dummy"
+   ],
+   [
+    "FFFFFFFF",
+    "dummy"
+   ],
+   [
+    "AA995566",
+    "sync"
+   ],
+   [
+    "20000000",
+    "type-1 NOP  count 0"
+   ],
+   [
+    "30008001",
+    "type-1 WRITE CMD count 1"
+   ],
+   [
+    "00000007",
+    "CMD RCRC data"
+   ],
+   [
+    "20000000",
+    "type-1 NOP  count 0"
+   ],
+   [
+    "30018001",
+    "type-1 WRITE IDCODE count 1"
+   ],
+   [
+    "EBEEF093",
+    "IDCODE data"
+   ],
+   [
+    "30008001",
+    "type-1 WRITE CMD count 1"
+   ],
+   [
+    "00000008",
+    "CMD AGHIGH data"
+   ],
+   [
+    "20000000",
+    "type-1 NOP  count 0"
+   ]
+  ],
+  "partial_frames": [
+   [
+    "30008001",
+    "type-1 WRITE CMD count 1"
+   ],
+   [
+    "00000001",
+    "CMD WCFG data"
+   ],
+   [
+    "20000000",
+    "type-1 NOP  count 0"
+   ],
+   [
+    "30002001",
+    "type-1 WRITE FAR count 1"
+   ],
+   [
+    "00000280",
+    "FAR data"
+   ],
+   [
+    "30004004",
+    "type-1 WRITE FDRI count 4"
+   ],
+   [
+    "77200000",
+    "FDRI data"
+   ],
+   [
+    "77777777",
+    "FDRI data"
+   ],
+   [
+    "40777777",
+    "FDRI data"
+   ],
+   [
+    "0001D000",
+    "FDRI data"
+   ],
+   [
+    "30000001",
+    "type-1 WRITE CRC count 1"
+   ],
+   [
+    "4B569199",
+    "CRC data"
+   ],
+   [
+    "30008001",
+    "type-1 WRITE CMD count 1"
+   ],
+   [
+    "00000003",
+    "CMD LFRM data"
+   ],
+   [
+    "30008001",
+    "type-1 WRITE CMD count 1"
+   ],
+   [
+    "0000000D",
+    "CMD DESYNC data"
+   ],
+   [
+    "20000000",
+    "dummy"
+   ],
+   [
+    "20000000",
+    "dummy"
+   ]
+  ],
+  "partial_changed": 1,
+  "readback": [
+   [
+    "FFFFFFFF",
+    "dummy"
+   ],
+   [
+    "AA995566",
+    "sync"
+   ],
+   [
+    "20000000",
+    "type-1 NOP  count 0"
+   ],
+   [
+    "30008001",
+    "type-1 WRITE CMD count 1"
+   ],
+   [
+    "00000004",
+    "CMD RCFG data"
+   ],
+   [
+    "30002001",
+    "type-1 WRITE FAR count 1"
+   ],
+   [
+    "00000000",
+    "FAR data"
+   ],
+   [
+    "28006000",
+    "type-1 READ FDRO count 0"
+   ],
+   [
+    "48000104",
+    "type-2 count 260"
+   ],
+   [
+    "30008001",
+    "type-1 WRITE CMD count 1"
+   ],
+   [
+    "0000000D",
+    "CMD DESYNC data"
+   ],
+   [
+    "20000000",
+    "dummy"
+   ]
+  ],
+  "bram_readback": [
+   [
+    "FFFFFFFF",
+    "dummy"
+   ],
+   [
+    "AA995566",
+    "sync"
+   ],
+   [
+    "20000000",
+    "type-1 NOP  count 0"
+   ],
+   [
+    "30008001",
+    "type-1 WRITE CMD count 1"
+   ],
+   [
+    "00000004",
+    "CMD RCFG data"
+   ],
+   [
+    "30002001",
+    "type-1 WRITE FAR count 1"
+   ],
+   [
+    "00800085",
+    "FAR data"
+   ],
+   [
+    "28006000",
+    "type-1 READ FDRO count 0"
+   ],
+   [
+    "48000008",
+    "type-2 count 8"
+   ],
+   [
+    "30008001",
+    "type-1 WRITE CMD count 1"
+   ],
+   [
+    "0000000D",
+    "CMD DESYNC data"
+   ],
+   [
+    "20000000",
+    "dummy"
+   ]
+  ]
+ }
+}

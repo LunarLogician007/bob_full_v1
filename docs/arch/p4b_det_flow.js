@@ -136,7 +136,7 @@
     src: [["AMD UG470 chapter 5", "sync word, packet headers, register and CMD codes, FAR layout"], ["resourses/04-config-bitstream/CONFIG-CONTROLLER.md", "parser states, frame writer, gotchas"], ["prjxray crc.py", "CRC over {address, data}"]],
     why: ["The user asked for frames 'just like AMD, slightly simplified', keeping the chain as an option: frames make the stream self-synchronising, addressable and readable per frame, which the chain is not."],
     files: [["hw/src/core/cfg_frames.v", "parser, registers, frame writer, readback"], ["hw/src/core/cfg_store.v", "one memory, chain and frame write paths"], ["hw/src/core/jtag_tap6.v", "CFG_IN/CFG_OUT vs CHAIN_IN/CHAIN_OUT"], ["tools/bob/packets.py", "streams, model, dump"], ["host/cfgplane.py", "load_frames, frames_readback, frames_stat"], ["docs/bitstream-format.md §9–10", "specification"]],
-    tb: [["hw/tb/tb_frames.v", "71 checks (M15): load, readback, split stream, CRC/ID/PKT/WR errors, GWE refusal, chain after frames, partial reconfiguration, BRAM frames"], ["sim/mutate_frames.sh", "34 guard mutants, all killed"], ["hwtest M13/M15 frames-*", "board"]],
+    tb: [["hw/tb/tb_frames.v", "71 checks (M15): load, readback, split stream, CRC/ID/PKT/WR errors, GWE refusal, chain after frames, partial reconfiguration, BRAM frames"], ["sim/mutate_frames.sh", "29 guard mutants, all killed"], ["hwtest M13/M15 frames-*", "board"]],
     drill: ["area", "partial", "bramframes", "cfgctrl", "startup", "timing"]
   });
 

@@ -74,7 +74,7 @@ run dsp-no-cascade      src/tiles/dsp_block.v 's/\.pcin   \(pcin\),/.pcin   (48'
 # M7 generated fabric
 run mux-no-const1       src/fabric/bob_mux.v  's/in, 1'"'"'b1, 1'"'"'b0\}/in, 1'"'"'b0, 1'"'"'b0}/'
 run mux-inputs-shifted  src/fabric/bob_mux.v  's/N - 1\)\{1'"'"'b0\}\}, in, 1'"'"'b0\}/N - 1){1'"'"'b0}}, 1'"'"'b0, in}/'
-run carry-direct-cut    src/generated/bob_fabric.v 's/= r[0-9]+;   \/\/ clb_x5y3\.cin\[0\]/= 1'"'"'b0;   \/\/ clb_x5y3.cin[0]/'
+run carry-direct-cut    src/generated/bob_fabric.v 's/= r[0-9]+;   \/\/ clb_x8y3\.cin\[0\]/= 1'"'"'b0;   \/\/ clb_x8y3.cin[0]/'   # the last CLB column (designs.FULL_COL_X)
 run bram-select-ignored src/tiles/bram_jtag.v 's/assign tgt_onehot\[gi\] = \(tgt_q == IDX\);/assign tgt_onehot[gi] = (IDX == 4'"'"'d0);/'
 run bram-port-a-no-jtag src/tiles/bram_block.v 's/cfg\[6\] \? drive\[31:0\]  : pin\[31:0\]/pin[31:0]/'
 run dsp-b-no-jtag       src/tiles/dsp_block.v 's/cfg\[11\] \? drive\[42:25\]   : b/b/'
