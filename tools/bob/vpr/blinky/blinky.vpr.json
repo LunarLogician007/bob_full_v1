@@ -11,34 +11,22 @@
 "$auto$alumacc.cc:548:replace_alu$9.slice[1].add": {
 "inv": 0
 },
-"bob_tap5": {
-"inv": 0
-},
-"bob_gen7": {
-"inv": 0
-},
 "$auto$alumacc.cc:548:replace_alu$9.slice[2].add": {
 "inv": 0
 },
 "$auto$alumacc.cc:548:replace_alu$9.slice[3].add": {
 "inv": 0
 },
-"bob_tap11": {
+"bob_tap7": {
 "inv": 0
 },
-"bob_gen13": {
+"bob_gen9": {
 "inv": 0
 },
 "$auto$alumacc.cc:548:replace_alu$9.slice[4].add": {
 "inv": 0
 },
 "$auto$alumacc.cc:548:replace_alu$9.slice[5].add": {
-"inv": 0
-},
-"bob_tap17": {
-"inv": 0
-},
-"bob_gen19": {
 "inv": 0
 },
 "$auto$alumacc.cc:548:replace_alu$9.slice[6].add": {
@@ -127,9 +115,7 @@
 "out_pads": {},
 "net_bits": {
 "clk": 2,
-"cy12": 16,
-"cy18": 21,
-"cy6": 10,
+"cy8": 16,
 "led[0]": 3,
 "led[1]": 4,
 "led[2]": 5,
@@ -148,10 +134,10 @@
 "n9": 9
 },
 "pins": {
-"clk": 2,
-"out:led[0]": 7,
-"out:led[1]": 9,
-"out:led[2]": 11
+"clk": 0,
+"out:led[0]": 9,
+"out:led[1]": 11,
+"out:led[2]": 13
 },
 "pcf": null
 }

@@ -58,15 +58,16 @@ def test_chain_fields_chain_round_trip(k):
         assert dev.encode(dev.decode(w)) == w
 
 
-@pytest.mark.parametrize("k,chain_w", [(6, 4992), (4, 4096)])
+@pytest.mark.parametrize("k,chain_w", [(6, 8320), (4, 6016)])
 def test_sizes(k, chain_w):
-    """The board device (6x4 core), pinned: a change here must be a deliberate one.
-    M7-M12 packed the tiles into 4216 bits (K=4: 3352); M13 lays the memory out in
-    128-bit frames per column, padding each column (6: 39 frames, 4: 32).
+    """The board device, pinned: a change here must be a deliberate one.
+    M7-M12 (6x4 core) packed the tiles into 4216 bits (K=4: 3352); M13 laid the memory
+    out in 128-bit frames per column (4992 bits = 39 frames; K=4: 4096 = 32).
+    M12b: 8x6 core, 36 CLBs, 28 pads: 8320 bits = 65 frames (K=4: 6016 = 47).
     The 8x8 profile (48 CLBs, 9400 bits) is frozen in release/M7_8x8."""
     dev = DEVICES[k]
-    assert (dev.width, dev.height, dev.arch["chan_width"]) == (8, 6, 24)
-    assert {t: len(v) for t, v in dev.by_type.items()} == {"io": 20, "clb": 16, "bram": 2, "dsp": 2}
+    assert (dev.width, dev.height, dev.arch["chan_width"]) == (10, 8, 24)
+    assert {t: len(v) for t, v in dev.by_type.items()} == {"io": 28, "clb": 36, "bram": 2, "dsp": 2}
     assert dev.tile_types["clb"].width == (1 << k) + 7
     assert dev.tile_types["ctrl"].width == 8
     assert dev.tile_types["bram"].width == 8 and dev.tile_types["dsp"].width == 16
@@ -222,9 +223,9 @@ def test_bitstream_py_constants_come_from_device_json():
     import bitstream as B
     dev = DEVICES[6]
     assert B.FABRIC_CFG_W == B.CHAIN_W == dev.chain_width
-    assert (B.LUT_K, B.CLB_CFG_W, B.NCLB, B.NBRAM, B.NDSP, B.NPAD, B.BSR_W) == (6, 71, 16, 2, 2, 20, 40)
+    assert (B.LUT_K, B.CLB_CFG_W, B.NCLB, B.NBRAM, B.NDSP, B.NPAD, B.BSR_W) == (6, 71, 36, 2, 2, 28, 56)
     assert len(B.MUX) == len(dev.muxes)
-    assert B.CLBS[0] == "clb_x1y1" and B.CLB_XY_INDEX[(2, 2)] == 5
+    assert B.CLBS[0] == "clb_x1y1" and B.CLB_XY_INDEX[(2, 2)] == 7
 
 
 def test_designs_decode_to_the_fields_they_set():
@@ -286,7 +287,7 @@ def test_bitstream_engine_at_k4(tmp_path):
                     "--lut-k", "4", "--out", str(gen)], check=True, capture_output=True)
     code = (
         "import designs, bitstream as B\n"
-        "assert B.LUT_K == 4 and B.FABRIC_CFG_W == 4096\n"
+        "assert B.LUT_K == 4 and B.FABRIC_CFG_W == 6016\n"
         "assert set(designs.SKIPPED) == {'and6', 'xor6'}\n"
         "for k, d, f, s in designs.DESIGNS:\n"
         "    bs = f().build()\n"

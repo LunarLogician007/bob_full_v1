@@ -98,7 +98,7 @@
 			<port name="I">open n18 open open open open</port>
 			<port name="ce">btn[0]</port>
 			<port name="sr">btn[1]</port>
-			<port name="cin">cy8</port>
+			<port name="cin">cy4</port>
 		</inputs>
 		<outputs>
 			<port name="O">ff[0].Q[0]-&gt;o</port>
@@ -117,7 +117,7 @@
 				<port name="cin">clb.cin[0]-&gt;cin</port>
 			</inputs>
 			<outputs>
-				<port name="cout">cy9</port>
+				<port name="cout">cy5</port>
 				<port name="sumout">n20</port>
 			</outputs>
 			<clocks />
@@ -143,7 +143,7 @@
 			<port name="I">open led[0] open open open open</port>
 			<port name="ce">btn[0]</port>
 			<port name="sr">btn[1]</port>
-			<port name="cin">cy9</port>
+			<port name="cin">cy5</port>
 		</inputs>
 		<outputs>
 			<port name="O">ff[0].Q[0]-&gt;o</port>
@@ -162,7 +162,7 @@
 				<port name="cin">clb.cin[0]-&gt;cin</port>
 			</inputs>
 			<outputs>
-				<port name="cout">cy10</port>
+				<port name="cout">cy6</port>
 				<port name="sumout">n22</port>
 			</outputs>
 			<clocks />
@@ -188,7 +188,7 @@
 			<port name="I">open led[1] open open open open</port>
 			<port name="ce">btn[0]</port>
 			<port name="sr">btn[1]</port>
-			<port name="cin">cy14</port>
+			<port name="cin">cy10</port>
 		</inputs>
 		<outputs>
 			<port name="O">ff[0].Q[0]-&gt;o</port>
@@ -207,7 +207,7 @@
 				<port name="cin">clb.cin[0]-&gt;cin</port>
 			</inputs>
 			<outputs>
-				<port name="cout">cy15</port>
+				<port name="cout">cy11</port>
 				<port name="sumout">n24</port>
 			</outputs>
 			<clocks />
@@ -233,7 +233,7 @@
 			<port name="I">open led[2] open open open open</port>
 			<port name="ce">btn[0]</port>
 			<port name="sr">btn[1]</port>
-			<port name="cin">cy15</port>
+			<port name="cin">cy11</port>
 		</inputs>
 		<outputs>
 			<port name="O">ff[0].Q[0]-&gt;o</port>
@@ -273,9 +273,9 @@
 			</clocks>
 		</block>
 	</block>
-	<block name="bob_gen7" instance="clb[6]" mode="arithmetic">
+	<block name="bob_gen9" instance="clb[6]" mode="arithmetic">
 		<inputs>
-			<port name="I">cy6 cy6 open open open open</port>
+			<port name="I">cy8 cy8 open open open open</port>
 			<port name="ce">open</port>
 			<port name="sr">open</port>
 			<port name="cin">open</port>
@@ -288,7 +288,7 @@
 		<clocks>
 			<port name="clk">open</port>
 		</clocks>
-		<block name="bob_gen7" instance="add[0]">
+		<block name="bob_gen9" instance="add[0]">
 			<attributes />
 			<parameters />
 			<inputs>
@@ -297,50 +297,19 @@
 				<port name="cin">open</port>
 			</inputs>
 			<outputs>
-				<port name="cout">cy8</port>
+				<port name="cout">cy10</port>
 				<port name="sumout">open</port>
 			</outputs>
 			<clocks />
 		</block>
 		<block name="open" instance="ff[0]" />
 	</block>
-	<block name="bob_gen13" instance="clb[7]" mode="arithmetic">
-		<inputs>
-			<port name="I">cy12 cy12 open open open open</port>
-			<port name="ce">open</port>
-			<port name="sr">open</port>
-			<port name="cin">open</port>
-		</inputs>
-		<outputs>
-			<port name="O">open</port>
-			<port name="O5">open</port>
-			<port name="cout">add[0].cout[0]-&gt;cout</port>
-		</outputs>
-		<clocks>
-			<port name="clk">open</port>
-		</clocks>
-		<block name="bob_gen13" instance="add[0]">
-			<attributes />
-			<parameters />
-			<inputs>
-				<port name="a">clb.I[0]-&gt;a</port>
-				<port name="b">clb.I[1]-&gt;b</port>
-				<port name="cin">open</port>
-			</inputs>
-			<outputs>
-				<port name="cout">cy14</port>
-				<port name="sumout">open</port>
-			</outputs>
-			<clocks />
-		</block>
-		<block name="open" instance="ff[0]" />
-	</block>
-	<block name="bob_tap5" instance="clb[8]" mode="arithmetic">
+	<block name="bob_tap7" instance="clb[7]" mode="arithmetic">
 		<inputs>
 			<port name="I">open open open open open open</port>
 			<port name="ce">open</port>
 			<port name="sr">open</port>
-			<port name="cin">cy4</port>
+			<port name="cin">cy6</port>
 		</inputs>
 		<outputs>
 			<port name="O">add[0].sumout[0]-&gt;o</port>
@@ -350,7 +319,7 @@
 		<clocks>
 			<port name="clk">open</port>
 		</clocks>
-		<block name="bob_tap5" instance="add[0]">
+		<block name="bob_tap7" instance="add[0]">
 			<attributes />
 			<parameters />
 			<inputs>
@@ -360,44 +329,13 @@
 			</inputs>
 			<outputs>
 				<port name="cout">open</port>
-				<port name="sumout">cy6</port>
+				<port name="sumout">cy8</port>
 			</outputs>
 			<clocks />
 		</block>
 		<block name="open" instance="ff[0]" />
 	</block>
-	<block name="bob_tap11" instance="clb[9]" mode="arithmetic">
-		<inputs>
-			<port name="I">open open open open open open</port>
-			<port name="ce">open</port>
-			<port name="sr">open</port>
-			<port name="cin">cy10</port>
-		</inputs>
-		<outputs>
-			<port name="O">add[0].sumout[0]-&gt;o</port>
-			<port name="O5">open</port>
-			<port name="cout">open</port>
-		</outputs>
-		<clocks>
-			<port name="clk">open</port>
-		</clocks>
-		<block name="bob_tap11" instance="add[0]">
-			<attributes />
-			<parameters />
-			<inputs>
-				<port name="a">open</port>
-				<port name="b">open</port>
-				<port name="cin">clb.cin[0]-&gt;cin</port>
-			</inputs>
-			<outputs>
-				<port name="cout">open</port>
-				<port name="sumout">cy12</port>
-			</outputs>
-			<clocks />
-		</block>
-		<block name="open" instance="ff[0]" />
-	</block>
-	<block name="bob_gen1" instance="clb[10]" mode="arithmetic">
+	<block name="bob_gen1" instance="clb[8]" mode="arithmetic">
 		<inputs>
 			<port name="I">open open open open open open</port>
 			<port name="ce">open</port>
@@ -428,7 +366,7 @@
 		</block>
 		<block name="open" instance="ff[0]" />
 	</block>
-	<block name="out:led[0]" instance="io[11]" mode="outpad">
+	<block name="out:led[0]" instance="io[9]" mode="outpad">
 		<inputs>
 			<port name="outpad">led[0]</port>
 		</inputs>
@@ -446,7 +384,7 @@
 			<clocks />
 		</block>
 	</block>
-	<block name="out:led[1]" instance="io[12]" mode="outpad">
+	<block name="out:led[1]" instance="io[10]" mode="outpad">
 		<inputs>
 			<port name="outpad">led[1]</port>
 		</inputs>
@@ -464,7 +402,7 @@
 			<clocks />
 		</block>
 	</block>
-	<block name="out:led[2]" instance="io[13]" mode="outpad">
+	<block name="out:led[2]" instance="io[11]" mode="outpad">
 		<inputs>
 			<port name="outpad">led[2]</port>
 		</inputs>
@@ -482,7 +420,7 @@
 			<clocks />
 		</block>
 	</block>
-	<block name="clk" instance="io[14]" mode="inpad">
+	<block name="clk" instance="io[12]" mode="inpad">
 		<inputs>
 			<port name="outpad">open</port>
 		</inputs>
@@ -500,7 +438,7 @@
 			<clocks />
 		</block>
 	</block>
-	<block name="btn[0]" instance="io[15]" mode="inpad">
+	<block name="btn[0]" instance="io[13]" mode="inpad">
 		<inputs>
 			<port name="outpad">open</port>
 		</inputs>
@@ -518,7 +456,7 @@
 			<clocks />
 		</block>
 	</block>
-	<block name="btn[1]" instance="io[16]" mode="inpad">
+	<block name="btn[1]" instance="io[14]" mode="inpad">
 		<inputs>
 			<port name="outpad">open</port>
 		</inputs>

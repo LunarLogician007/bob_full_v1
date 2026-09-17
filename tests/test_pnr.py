@@ -115,7 +115,9 @@ def test_too_many_clbs_is_refused():
     eblif, _side, fixed = vpr_run.prepare("blinky")
     packed = pack.pack(netlist.parse_eblif(eblif, "blinky"))
     extra = next(c for c in packed.clusters.values() if c.mode == "logic" or c.type == "clb")
-    for k in range(2):                                        # 15 CLBs + 2 singles > 16
+    import bitstream as B
+    have = sum(1 for c in packed.clusters.values() if c.type == "clb")
+    for k in range(B.NCLB + 1 - have):                        # one more CLB than the grid has
         clone = pack.Cluster(f"extra{k}", "clb", "logic", dict(extra.atoms), {})
         packed.clusters[clone.name] = clone
     with pytest.raises(place.PlaceError):

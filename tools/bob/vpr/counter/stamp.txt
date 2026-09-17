@@ -1,11 +1,11 @@
 top counter
 pcf -
-arch_sha256 08f5698e0714c3fc43beee6445c472a3c00e9d1952f92985a15b2568e224f581
-eblif_sha256 e11a6645cea6268a56ac5c8b955eaad317794681dd74a299707ea9537f141725
+arch_sha256 d2560fcbdba5358fcbb2e60dc1837e4721567bb1091c268058c3aa2b15aeeb63
+eblif_sha256 a76d15796f561835367f539de3f49d632f734b76c1184738b0b501151ed60b68
 seed 1
 image ghcr.io/lnis-uofu/openfpga-master@sha256:2879ee7723111c5b4997923513eb3815211c0d28779e083100775d361f443c5c
-command vpr arch.xml counter.eblif --device bob6x4 --route_chan_width 24 --read_rr_graph rr.xml --fix_clusters counter.pins --seed 1 --absorb_buffer_luts off --const_gen_inference none --sweep_dangling_primary_ios off --sweep_dangling_nets off --sweep_dangling_blocks off --sweep_constant_primary_outputs off --pack --place --route --analysis
-wirelength 182
-cpd_ns 3.62378
-fmax_mhz 236.732
-result_sha 079848a74ef12303
+command vpr arch.xml counter.eblif --device bob8x6 --route_chan_width 24 --read_rr_graph rr.xml --fix_clusters counter.pins --seed 1 --absorb_buffer_luts off --const_gen_inference none --sweep_dangling_primary_ios off --sweep_dangling_nets off --sweep_dangling_blocks off --sweep_constant_primary_outputs off --pack --place --route --analysis
+wirelength 201
+cpd_ns 2.64562
+fmax_mhz 305.223
+result_sha 566a44dc22856c19

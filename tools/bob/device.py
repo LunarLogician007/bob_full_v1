@@ -111,7 +111,22 @@ ARCH_8X8 = {
                 {"type": "dsp", "x": 6, "height": 4}],
 }
 
-ARCH = ARCH_6X4
+# M12b: 8x6 core (36 CLBs, 2 BRAMs + 2 DSPs of height 3, 28 pads). Affordable after
+# the chain was streamed through one frame buffer (cfg_store.v): whole-design yosys
+# estimate 15.8k LUT / 10.8k FF, against M13's 15.4k / 12.2k, which Vivado built in
+# 3.5 min at 2.0 GB.
+ARCH_8X6 = {
+    "nx": 8, "ny": 6,
+    "chan_width": 24,
+    "segment_length": 4,
+    "fs": 3,
+    "fc_in": 0.15, "fc_out": 0.10,
+    "io_capacity": 1,
+    "columns": [{"type": "bram", "x": 3, "height": 3},
+                {"type": "dsp", "x": 6, "height": 3}],
+}
+
+ARCH = ARCH_8X6
 
 # Board pads (PYNQ-Z2): pad_i bit order and pad_o bit order used by every host tool
 BOARD_INPUTS = ("SW0", "SW1", "BTN0", "BTN1", "BTN2", "BTN3")

@@ -1,19 +1,19 @@
 {
 "top": "fir",
 "lut": {
-"ffd11": {
+"ffd7": {
 "n": 1,
 "tt": 2
 },
-"ffd12": {
+"ffd8": {
 "n": 1,
 "tt": 2
 },
-"ffd13": {
+"ffd9": {
 "n": 1,
 "tt": 2
 },
-"ffd14": {
+"ffd10": {
 "n": 1,
 "tt": 2
 }
@@ -26,12 +26,6 @@
 "inv": 0
 },
 "$auto$alumacc.cc:548:replace_alu$26.slice[1].add": {
-"inv": 0
-},
-"bob_tap5": {
-"inv": 0
-},
-"bob_gen7": {
 "inv": 0
 },
 "$auto$alumacc.cc:548:replace_alu$26.slice[2].add": {
@@ -187,11 +181,10 @@
 "btn[2]": 7,
 "btn[3]": 8,
 "clk": 2,
-"cy6": 18,
-"ffd11": 3,
-"ffd12": 4,
-"ffd13": 32,
-"ffd14": 33,
+"ffd10": 33,
+"ffd7": 3,
+"ffd8": 4,
+"ffd9": 32,
 "led[0]": 9,
 "led[1]": 10,
 "led[2]": 11,
@@ -216,14 +209,14 @@
 "sw[1]": 4
 },
 "pins": {
-"clk": 2,
-"sw[0]": 6,
-"sw[1]": 8,
-"btn[2]": 0,
-"btn[3]": 1,
-"out:led[0]": 7,
-"out:led[1]": 9,
-"out:led[2]": 11
+"clk": 0,
+"sw[0]": 8,
+"sw[1]": 10,
+"btn[2]": 16,
+"btn[3]": 18,
+"out:led[0]": 9,
+"out:led[1]": 11,
+"out:led[2]": 13
 },
 "pcf": null
 }

@@ -8,15 +8,11 @@
 .cname $auto$alumacc.cc:548:replace_alu$26.slice[0].add
 .subckt bob_add a=n16 b=n17 cin=cy3 cout=cy4
 .cname $auto$alumacc.cc:548:replace_alu$26.slice[1].add
-.subckt bob_add cin=cy4 sumout=cy6
-.cname bob_tap5
-.subckt bob_add a=cy6 b=cy6 cout=cy8
-.cname bob_gen7
-.subckt bob_add a=n20 b=n21 cin=cy8 cout=cy9 sumout=n23
+.subckt bob_add a=n20 b=n21 cin=cy4 cout=cy5 sumout=n23
 .cname $auto$alumacc.cc:548:replace_alu$26.slice[2].add
-.subckt bob_add a=n24 b=n25 cin=cy9 cout=cy10 sumout=n27
+.subckt bob_add a=n24 b=n25 cin=cy5 cout=cy6 sumout=n27
 .cname $auto$alumacc.cc:548:replace_alu$26.slice[3].add
-.subckt bob_add a=n28 b=n29 cin=cy10 sumout=n31
+.subckt bob_add a=n28 b=n29 cin=cy6 sumout=n31
 .cname $auto$alumacc.cc:548:replace_alu$26.slice[4].add
 .subckt bob_ff D=n23 C=clk Q=led[0]
 .cname $auto$ff.cc:337:slice$106
@@ -24,24 +20,24 @@
 .cname $auto$ff.cc:337:slice$107
 .subckt bob_ff D=n31 C=clk Q=led[2]
 .cname $auto$ff.cc:337:slice$108
-.subckt bob_ff D=ffd11 C=clk Q=n32
+.subckt bob_ff D=ffd7 C=clk Q=n32
 .cname $auto$ff.cc:337:slice$109
-.subckt bob_ff D=ffd12 C=clk Q=n33
+.subckt bob_ff D=ffd8 C=clk Q=n33
 .cname $auto$ff.cc:337:slice$110
-.subckt bob_ff D=ffd13 C=clk Q=n34
+.subckt bob_ff D=ffd9 C=clk Q=n34
 .cname $auto$ff.cc:337:slice$111
-.subckt bob_ff D=ffd14 C=clk Q=n35
+.subckt bob_ff D=ffd10 C=clk Q=n35
 .cname $auto$ff.cc:337:slice$112
 .subckt bob_dsp a[1]=btn[2] a[2]=btn[3] b[0]=n32 b[1]=n33 p[0]=n12 p[1]=n16 p[2]=n20 p[3]=n24 p[4]=n28 clk=clk
 .cname $mul$examples/fir.v:20$3
 .subckt bob_dsp a[1]=btn[3] a[2]=btn[2] b[0]=n34 b[1]=n35 p[0]=n13 p[1]=n17 p[2]=n21 p[3]=n25 p[4]=n29 clk=clk
 .cname $mul$examples/fir.v:20$4
-.names sw[0] ffd11
+.names sw[0] ffd7
 1 1
-.names sw[1] ffd12
+.names sw[1] ffd8
 1 1
-.names n32 ffd13
+.names n32 ffd9
 1 1
-.names n33 ffd14
+.names n33 ffd10
 1 1
 .end

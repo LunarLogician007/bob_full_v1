@@ -8,21 +8,17 @@
 .cname $auto$alumacc.cc:548:replace_alu$16.slice[0].add
 .subckt bob_add b=n15 cin=cy3 cout=cy4 sumout=n17
 .cname $auto$alumacc.cc:548:replace_alu$16.slice[1].add
-.subckt bob_add cin=cy4 sumout=cy6
-.cname bob_tap5
-.subckt bob_add a=cy6 b=cy6 cout=cy8
-.cname bob_gen7
-.subckt bob_add b=n18 cin=cy8 cout=cy9 sumout=n20
+.subckt bob_add b=n18 cin=cy4 cout=cy5 sumout=n20
 .cname $auto$alumacc.cc:548:replace_alu$16.slice[2].add
-.subckt bob_add b=led[0] cin=cy9 cout=cy10 sumout=n22
+.subckt bob_add b=led[0] cin=cy5 cout=cy6 sumout=n22
 .cname $auto$alumacc.cc:548:replace_alu$16.slice[3].add
-.subckt bob_add cin=cy10 sumout=cy12
-.cname bob_tap11
-.subckt bob_add a=cy12 b=cy12 cout=cy14
-.cname bob_gen13
-.subckt bob_add b=led[1] cin=cy14 cout=cy15 sumout=n24
+.subckt bob_add cin=cy6 sumout=cy8
+.cname bob_tap7
+.subckt bob_add a=cy8 b=cy8 cout=cy10
+.cname bob_gen9
+.subckt bob_add b=led[1] cin=cy10 cout=cy11 sumout=n24
 .cname $auto$alumacc.cc:548:replace_alu$16.slice[4].add
-.subckt bob_add b=led[2] cin=cy15 sumout=n26
+.subckt bob_add b=led[2] cin=cy11 sumout=n26
 .cname $auto$alumacc.cc:548:replace_alu$16.slice[5].add
 .subckt bob_ff D=n14 C=clk Q=n12 CE=btn[0] SR=btn[1]
 .cname $auto$ff.cc:337:slice$94

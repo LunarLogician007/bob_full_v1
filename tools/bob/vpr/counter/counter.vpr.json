@@ -11,22 +11,16 @@
 "$auto$alumacc.cc:548:replace_alu$16.slice[1].add": {
 "inv": 0
 },
-"bob_tap5": {
-"inv": 0
-},
-"bob_gen7": {
-"inv": 0
-},
 "$auto$alumacc.cc:548:replace_alu$16.slice[2].add": {
 "inv": 0
 },
 "$auto$alumacc.cc:548:replace_alu$16.slice[3].add": {
 "inv": 0
 },
-"bob_tap11": {
+"bob_tap7": {
 "inv": 0
 },
-"bob_gen13": {
+"bob_gen9": {
 "inv": 0
 },
 "$auto$alumacc.cc:548:replace_alu$16.slice[4].add": {
@@ -103,8 +97,7 @@
 "btn[2]": 7,
 "btn[3]": 8,
 "clk": 2,
-"cy12": 21,
-"cy6": 16,
+"cy8": 21,
 "led[0]": 9,
 "led[1]": 10,
 "led[2]": 11,
@@ -121,12 +114,12 @@
 "sw[1]": 4
 },
 "pins": {
-"clk": 2,
-"btn[0]": 10,
-"btn[1]": 12,
-"out:led[0]": 7,
-"out:led[1]": 9,
-"out:led[2]": 11
+"clk": 0,
+"btn[0]": 12,
+"btn[1]": 14,
+"out:led[0]": 9,
+"out:led[1]": 11,
+"out:led[2]": 13
 },
 "pcf": null
 }
