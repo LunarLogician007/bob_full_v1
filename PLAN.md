@@ -2,7 +2,7 @@
 
 > **For any agent picking this up:** read this whole file before touching anything. It is the single current plan and records how the work is done.
 > `PLAN_v0.md` is the superseded first draft; don't follow it. `docs/README_M0.md` describes the M0 baseline inherited from `bob/`; `README.md` is the current overview.
-> Last updated 2026-09-17: M0–M15 passed on the PYNQ-Z2 (git tags `m7`…`m15`). Whole-project report: `docs/project/REPORT.md`, interactive `project.html`.
+> Last updated 2026-09-18 (see `HANDOFF.md` for the live state): M0–M15 passed on the PYNQ-Z2 (git tags `m7`…`m15`). Whole-project report: `docs/project/REPORT.md`, interactive `project.html`.
 
 ---
 
@@ -48,6 +48,7 @@ The 8×8 profile (48 CLBs, 9400 bits, `0x9BEEF093`) is frozen in `release/M7_8x8
 | M14 | partial reconfiguration of a running design (UG470 AGHIGH … LFRM, changed frames only, state kept) | **passed on hardware 2026-09-17** in the M15 build (partial-swap, partial-live, partial-bad-crc, partial-guest) |
 | M15 | BRAM contents as frames (FAR block type 001), one CRC-covered stream for the whole design | **passed on hardware 2026-09-17** (48/48 first run, with M12b and M14; 10 411 LUT / 11 097 FF, fewer LUTs than M13 with 2.25× the CLBs; WNS +0.585 ns / WHS +0.065 ns; synthesis 5.1 min at 2.0 GB) |
 
+| M16 | 10 × 10 CLB grid (12 × 10 core, 100 CLBs, 145 frames = 18 560 bits) | **in progress 2026-09-18**: `ARCH_12X10`, rr graphs, generated RTL, VPR results and the frame/fabric testbenches done; `make check` running; Vivado build + `make hwtest M=M16` pending. yosys estimate 32 891 LUT / 21 485 FF (M15: 15 941 / 11 069 → 10 411 LUT in Vivado). See `HANDOFF.md` |
 Hardware results are in `docs/hwtest/results.log`; Vivado reports are in `docs/reports/Mx/`; per-design guest reports in `docs/reports/M11/designs.md`.
 
 ## 3. How the user wants this done (non-negotiable)

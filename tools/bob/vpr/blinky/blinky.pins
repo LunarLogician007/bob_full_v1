@@ -1,5 +1,5 @@
 # fixed I/O: block x y subblk (tools/bob/vpr_run.py)
 clk	1	0	0
-out:led[0]	9	1	0
-out:led[1]	9	2	0
-out:led[2]	9	3	0
+out:led[0]	13	1	0
+out:led[1]	13	2	0
+out:led[2]	13	3	0

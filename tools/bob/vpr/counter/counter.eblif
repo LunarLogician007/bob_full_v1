@@ -12,13 +12,9 @@
 .cname $auto$alumacc.cc:548:replace_alu$16.slice[2].add
 .subckt bob_add b=led[0] cin=cy5 cout=cy6 sumout=n22
 .cname $auto$alumacc.cc:548:replace_alu$16.slice[3].add
-.subckt bob_add cin=cy6 sumout=cy8
-.cname bob_tap7
-.subckt bob_add a=cy8 b=cy8 cout=cy10
-.cname bob_gen9
-.subckt bob_add b=led[1] cin=cy10 cout=cy11 sumout=n24
+.subckt bob_add b=led[1] cin=cy6 cout=cy7 sumout=n24
 .cname $auto$alumacc.cc:548:replace_alu$16.slice[4].add
-.subckt bob_add b=led[2] cin=cy11 sumout=n26
+.subckt bob_add b=led[2] cin=cy7 sumout=n26
 .cname $auto$alumacc.cc:548:replace_alu$16.slice[5].add
 .subckt bob_ff D=n14 C=clk Q=n12 CE=btn[0] SR=btn[1]
 .cname $auto$ff.cc:337:slice$94

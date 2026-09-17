@@ -94,7 +94,7 @@ module tb_bob;
     reg [3:0]          cnt_state [0:15];
     reg [2:0]          cnt_pad   [0:15];
     reg [3:0]          cstate, cstate0, cexp;
-    reg [7:0]          c8, c8_0;
+    reg [31:0]         c8, c8_0;
     reg [95:0]         bcap;
     integer            bchecks;
     reg [255:0]        dcap;
@@ -128,7 +128,7 @@ module tb_bob;
     `include "vectors.vh"
 
     wire [3:0] counter  = `CNT_Q;
-    wire [7:0] counter8 = `CNT8_Q;
+    wire [`CNT8_BITS-1:0] counter8 = `CNT8_Q;
 
     // board vector -> boundary scan word: input cells sit at NPAD + pad
     function [127:0] bsr_in(input [5:0] v);
@@ -616,7 +616,7 @@ module tb_bob;
         shift_ir(IR_CAPTURE, irc);
         shift_dr(NCLB, 128'h0, rx);
         check("CAPTURE[15:0] == USER1 status [19:4]", {48'h0, rx[15:0]}, {48'h0, ux[19:4]});
-        check("CAPTURE == model.py (all CLBs, SW1=SW0=1)", rx[63:0], {{(64-NCLB){1'b0}}, `SHOW_CAP_11});
+        check("CAPTURE == model.py (all CLBs, SW1=SW0=1)", {63'h0, (rx[NCLB-1:0] === `SHOW_CAP_11)}, 64'h1);
 
         $display("");
         $display("[7] GSR holds flip-flops at INIT until JSTART; GWE lets them clock");
@@ -851,7 +851,7 @@ module tb_bob;
         for (n = 1; n <= 300; n = n + 1) begin
             tick(1'b0, 1'b0);
             checks = checks + 1;
-            c8 = (c8_0 + n) & `CNT8_MASK;
+            c8 = (c8_0 + n) & {{(32-`CNT8_BITS){1'b0}}, `CNT8_MASK};
             if (counter8 !== c8) begin
                 errors = errors + 1;
                 $display("  FAIL  TCK edge %0d: counter8=%0d, expected %0d", n, counter8, c8);

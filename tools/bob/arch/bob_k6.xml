@@ -109,7 +109,7 @@
         </pinlocations>
       </sub_tile>
     </tile>
-    <tile name="bram" height="3" area="0">
+    <tile name="bram" height="5" area="0">
       <sub_tile name="bram">
         <equivalent_sites><site pb_type="bram" pin_mapping="direct"/></equivalent_sites>
         <input name="addr_a" num_pins="10"/>
@@ -131,18 +131,22 @@
           <fc_override port_name="clk" fc_type="frac" fc_val="0"/>
         </fc>
         <pinlocations pattern="custom">
-          <loc side="left">bram.addr_a[0] bram.addr_a[8] bram.di_a[6] bram.di_a[14] bram.addr_b[0] bram.addr_b[8] bram.di_b[6] bram.di_b[14] bram.do_a[0] bram.do_a[8] bram.do_a[16] bram.do_b[6] bram.do_b[14]</loc>
-          <loc side="left" yoffset="1">bram.addr_a[1] bram.addr_a[9] bram.di_a[7] bram.di_a[15] bram.addr_b[1] bram.addr_b[9] bram.di_b[7] bram.di_b[15] bram.do_a[1] bram.do_a[9] bram.do_a[17] bram.do_b[7] bram.do_b[15]</loc>
-          <loc side="left" yoffset="2">bram.addr_a[2] bram.di_a[0] bram.di_a[8] bram.di_a[16] bram.addr_b[2] bram.di_b[0] bram.di_b[8] bram.di_b[16] bram.do_a[2] bram.do_a[10] bram.do_b[0] bram.do_b[8] bram.do_b[16]</loc>
-          <loc side="right">bram.addr_a[3] bram.di_a[1] bram.di_a[9] bram.di_a[17] bram.addr_b[3] bram.di_b[1] bram.di_b[9] bram.di_b[17] bram.do_a[3] bram.do_a[11] bram.do_b[1] bram.do_b[9] bram.do_b[17]</loc>
-          <loc side="right" yoffset="1">bram.addr_a[4] bram.di_a[2] bram.di_a[10] bram.we_a[0] bram.addr_b[4] bram.di_b[2] bram.di_b[10] bram.we_b[0] bram.do_a[4] bram.do_a[12] bram.do_b[2] bram.do_b[10]</loc>
-          <loc side="right" yoffset="2">bram.addr_a[5] bram.di_a[3] bram.di_a[11] bram.en_a[0] bram.addr_b[5] bram.di_b[3] bram.di_b[11] bram.en_b[0] bram.do_a[5] bram.do_a[13] bram.do_b[3] bram.do_b[11]</loc>
-          <loc side="bottom">bram.addr_a[6] bram.di_a[4] bram.di_a[12] bram.rst_a[0] bram.addr_b[6] bram.di_b[4] bram.di_b[12] bram.rst_b[0] bram.do_a[6] bram.do_a[14] bram.do_b[4] bram.do_b[12] bram.clk[0:0]</loc>
-          <loc side="top" yoffset="2">bram.addr_a[7] bram.di_a[5] bram.di_a[13] bram.regce_a[0] bram.addr_b[7] bram.di_b[5] bram.di_b[13] bram.regce_b[0] bram.do_a[7] bram.do_a[15] bram.do_b[5] bram.do_b[13]</loc>
+          <loc side="left">bram.addr_a[0] bram.di_a[2] bram.di_a[14] bram.addr_b[4] bram.di_b[6] bram.we_b[0] bram.do_a[8] bram.do_b[2] bram.do_b[14]</loc>
+          <loc side="left" yoffset="1">bram.addr_a[1] bram.di_a[3] bram.di_a[15] bram.addr_b[5] bram.di_b[7] bram.en_b[0] bram.do_a[9] bram.do_b[3] bram.do_b[15]</loc>
+          <loc side="left" yoffset="2">bram.addr_a[2] bram.di_a[4] bram.di_a[16] bram.addr_b[6] bram.di_b[8] bram.rst_b[0] bram.do_a[10] bram.do_b[4] bram.do_b[16]</loc>
+          <loc side="left" yoffset="3">bram.addr_a[3] bram.di_a[5] bram.di_a[17] bram.addr_b[7] bram.di_b[9] bram.regce_b[0] bram.do_a[11] bram.do_b[5] bram.do_b[17]</loc>
+          <loc side="left" yoffset="4">bram.addr_a[4] bram.di_a[6] bram.we_a[0] bram.addr_b[8] bram.di_b[10] bram.do_a[0] bram.do_a[12] bram.do_b[6]</loc>
+          <loc side="right">bram.addr_a[5] bram.di_a[7] bram.en_a[0] bram.addr_b[9] bram.di_b[11] bram.do_a[1] bram.do_a[13] bram.do_b[7]</loc>
+          <loc side="right" yoffset="1">bram.addr_a[6] bram.di_a[8] bram.rst_a[0] bram.di_b[0] bram.di_b[12] bram.do_a[2] bram.do_a[14] bram.do_b[8]</loc>
+          <loc side="right" yoffset="2">bram.addr_a[7] bram.di_a[9] bram.regce_a[0] bram.di_b[1] bram.di_b[13] bram.do_a[3] bram.do_a[15] bram.do_b[9]</loc>
+          <loc side="right" yoffset="3">bram.addr_a[8] bram.di_a[10] bram.addr_b[0] bram.di_b[2] bram.di_b[14] bram.do_a[4] bram.do_a[16] bram.do_b[10]</loc>
+          <loc side="right" yoffset="4">bram.addr_a[9] bram.di_a[11] bram.addr_b[1] bram.di_b[3] bram.di_b[15] bram.do_a[5] bram.do_a[17] bram.do_b[11]</loc>
+          <loc side="bottom">bram.di_a[0] bram.di_a[12] bram.addr_b[2] bram.di_b[4] bram.di_b[16] bram.do_a[6] bram.do_b[0] bram.do_b[12] bram.clk[0:0]</loc>
+          <loc side="top" yoffset="4">bram.di_a[1] bram.di_a[13] bram.addr_b[3] bram.di_b[5] bram.di_b[17] bram.do_a[7] bram.do_b[1] bram.do_b[13]</loc>
         </pinlocations>
       </sub_tile>
     </tile>
-    <tile name="dsp" height="3" area="0">
+    <tile name="dsp" height="5" area="0">
       <sub_tile name="dsp">
         <equivalent_sites><site pb_type="dsp" pin_mapping="direct"/></equivalent_sites>
         <input name="a" num_pins="25"/>
@@ -167,27 +171,31 @@
           <fc_override port_name="pcout" fc_type="frac" fc_val="0"/>
         </fc>
         <pinlocations pattern="custom">
-          <loc side="left">dsp.a[0] dsp.a[8] dsp.a[16] dsp.a[24] dsp.b[7] dsp.b[15] dsp.c[5] dsp.c[13] dsp.c[21] dsp.c[29] dsp.c[37] dsp.c[45] dsp.d[5] dsp.d[13] dsp.d[21] dsp.rst_ad[0] dsp.p[4] dsp.p[12] dsp.p[20] dsp.p[28] dsp.p[36] dsp.p[44]</loc>
-          <loc side="left" yoffset="1">dsp.a[1] dsp.a[9] dsp.a[17] dsp.b[0] dsp.b[8] dsp.b[16] dsp.c[6] dsp.c[14] dsp.c[22] dsp.c[30] dsp.c[38] dsp.c[46] dsp.d[6] dsp.d[14] dsp.d[22] dsp.rst_b[0] dsp.p[5] dsp.p[13] dsp.p[21] dsp.p[29] dsp.p[37] dsp.p[45]</loc>
-          <loc side="left" yoffset="2">dsp.a[2] dsp.a[10] dsp.a[18] dsp.b[1] dsp.b[9] dsp.b[17] dsp.c[7] dsp.c[15] dsp.c[23] dsp.c[31] dsp.c[39] dsp.c[47] dsp.d[7] dsp.d[15] dsp.d[23] dsp.rst_m[0] dsp.p[6] dsp.p[14] dsp.p[22] dsp.p[30] dsp.p[38] dsp.p[46]</loc>
-          <loc side="right">dsp.a[3] dsp.a[11] dsp.a[19] dsp.b[2] dsp.b[10] dsp.c[0] dsp.c[8] dsp.c[16] dsp.c[24] dsp.c[32] dsp.c[40] dsp.d[0] dsp.d[8] dsp.d[16] dsp.d[24] dsp.rst_p[0] dsp.p[7] dsp.p[15] dsp.p[23] dsp.p[31] dsp.p[39] dsp.p[47]</loc>
-          <loc side="right" yoffset="1">dsp.a[4] dsp.a[12] dsp.a[20] dsp.b[3] dsp.b[11] dsp.c[1] dsp.c[9] dsp.c[17] dsp.c[25] dsp.c[33] dsp.c[41] dsp.d[1] dsp.d[9] dsp.d[17] dsp.ce_ad[0] dsp.p[0] dsp.p[8] dsp.p[16] dsp.p[24] dsp.p[32] dsp.p[40]</loc>
-          <loc side="right" yoffset="2">dsp.a[5] dsp.a[13] dsp.a[21] dsp.b[4] dsp.b[12] dsp.c[2] dsp.c[10] dsp.c[18] dsp.c[26] dsp.c[34] dsp.c[42] dsp.d[2] dsp.d[10] dsp.d[18] dsp.ce_b[0] dsp.p[1] dsp.p[9] dsp.p[17] dsp.p[25] dsp.p[33] dsp.p[41]</loc>
-          <loc side="bottom">dsp.a[6] dsp.a[14] dsp.a[22] dsp.b[5] dsp.b[13] dsp.c[3] dsp.c[11] dsp.c[19] dsp.c[27] dsp.c[35] dsp.c[43] dsp.d[3] dsp.d[11] dsp.d[19] dsp.ce_m[0] dsp.pcin[47:0] dsp.p[2] dsp.p[10] dsp.p[18] dsp.p[26] dsp.p[34] dsp.p[42] dsp.clk[0:0]</loc>
-          <loc side="top" yoffset="2">dsp.a[7] dsp.a[15] dsp.a[23] dsp.b[6] dsp.b[14] dsp.c[4] dsp.c[12] dsp.c[20] dsp.c[28] dsp.c[36] dsp.c[44] dsp.d[4] dsp.d[12] dsp.d[20] dsp.ce_p[0] dsp.p[3] dsp.p[11] dsp.p[19] dsp.p[27] dsp.p[35] dsp.p[43] dsp.pcout[47:0]</loc>
+          <loc side="left">dsp.a[0] dsp.a[12] dsp.a[24] dsp.b[11] dsp.c[5] dsp.c[17] dsp.c[29] dsp.c[41] dsp.d[5] dsp.d[17] dsp.rst_ad[0] dsp.p[8] dsp.p[20] dsp.p[32] dsp.p[44]</loc>
+          <loc side="left" yoffset="1">dsp.a[1] dsp.a[13] dsp.b[0] dsp.b[12] dsp.c[6] dsp.c[18] dsp.c[30] dsp.c[42] dsp.d[6] dsp.d[18] dsp.rst_b[0] dsp.p[9] dsp.p[21] dsp.p[33] dsp.p[45]</loc>
+          <loc side="left" yoffset="2">dsp.a[2] dsp.a[14] dsp.b[1] dsp.b[13] dsp.c[7] dsp.c[19] dsp.c[31] dsp.c[43] dsp.d[7] dsp.d[19] dsp.rst_m[0] dsp.p[10] dsp.p[22] dsp.p[34] dsp.p[46]</loc>
+          <loc side="left" yoffset="3">dsp.a[3] dsp.a[15] dsp.b[2] dsp.b[14] dsp.c[8] dsp.c[20] dsp.c[32] dsp.c[44] dsp.d[8] dsp.d[20] dsp.rst_p[0] dsp.p[11] dsp.p[23] dsp.p[35] dsp.p[47]</loc>
+          <loc side="left" yoffset="4">dsp.a[4] dsp.a[16] dsp.b[3] dsp.b[15] dsp.c[9] dsp.c[21] dsp.c[33] dsp.c[45] dsp.d[9] dsp.d[21] dsp.p[0] dsp.p[12] dsp.p[24] dsp.p[36]</loc>
+          <loc side="right">dsp.a[5] dsp.a[17] dsp.b[4] dsp.b[16] dsp.c[10] dsp.c[22] dsp.c[34] dsp.c[46] dsp.d[10] dsp.d[22] dsp.p[1] dsp.p[13] dsp.p[25] dsp.p[37]</loc>
+          <loc side="right" yoffset="1">dsp.a[6] dsp.a[18] dsp.b[5] dsp.b[17] dsp.c[11] dsp.c[23] dsp.c[35] dsp.c[47] dsp.d[11] dsp.d[23] dsp.p[2] dsp.p[14] dsp.p[26] dsp.p[38]</loc>
+          <loc side="right" yoffset="2">dsp.a[7] dsp.a[19] dsp.b[6] dsp.c[0] dsp.c[12] dsp.c[24] dsp.c[36] dsp.d[0] dsp.d[12] dsp.d[24] dsp.p[3] dsp.p[15] dsp.p[27] dsp.p[39]</loc>
+          <loc side="right" yoffset="3">dsp.a[8] dsp.a[20] dsp.b[7] dsp.c[1] dsp.c[13] dsp.c[25] dsp.c[37] dsp.d[1] dsp.d[13] dsp.ce_ad[0] dsp.p[4] dsp.p[16] dsp.p[28] dsp.p[40]</loc>
+          <loc side="right" yoffset="4">dsp.a[9] dsp.a[21] dsp.b[8] dsp.c[2] dsp.c[14] dsp.c[26] dsp.c[38] dsp.d[2] dsp.d[14] dsp.ce_b[0] dsp.p[5] dsp.p[17] dsp.p[29] dsp.p[41]</loc>
+          <loc side="bottom">dsp.a[10] dsp.a[22] dsp.b[9] dsp.c[3] dsp.c[15] dsp.c[27] dsp.c[39] dsp.d[3] dsp.d[15] dsp.ce_m[0] dsp.pcin[47:0] dsp.p[6] dsp.p[18] dsp.p[30] dsp.p[42] dsp.clk[0:0]</loc>
+          <loc side="top" yoffset="4">dsp.a[11] dsp.a[23] dsp.b[10] dsp.c[4] dsp.c[16] dsp.c[28] dsp.c[40] dsp.d[4] dsp.d[16] dsp.ce_p[0] dsp.p[7] dsp.p[19] dsp.p[31] dsp.p[43] dsp.pcout[47:0]</loc>
         </pinlocations>
       </sub_tile>
     </tile>
   </tiles>
   <layout tileable="true" through_channel="false" concat_pass_wire="true">
-    <fixed_layout name="bob8x6" width="10" height="8">
+    <fixed_layout name="bob12x10" width="14" height="12">
       <perimeter type="io" priority="100"/>
       <corners type="EMPTY" priority="101"/>
       <fill type="clb" priority="10"/>
       <col type="bram" startx="3" starty="1" priority="20"/>
       <col type="EMPTY" startx="3" starty="1" priority="19"/>
-      <col type="dsp" startx="6" starty="1" priority="20"/>
-      <col type="EMPTY" startx="6" starty="1" priority="19"/>
+      <col type="dsp" startx="8" starty="1" priority="20"/>
+      <col type="EMPTY" startx="8" starty="1" priority="19"/>
     </fixed_layout>
   </layout>
   <device>
@@ -210,7 +218,7 @@
   </segmentlist>
   <directlist>
     <direct name="carry" from_pin="clb.cout" to_pin="clb.cin" x_offset="0" y_offset="1" z_offset="0"/>
-    <direct name="dsp_cascade" from_pin="dsp.pcout" to_pin="dsp.pcin" x_offset="0" y_offset="3" z_offset="0"/>
+    <direct name="dsp_cascade" from_pin="dsp.pcout" to_pin="dsp.pcin" x_offset="0" y_offset="5" z_offset="0"/>
   </directlist>
   <complexblocklist>
     <pb_type name="io">

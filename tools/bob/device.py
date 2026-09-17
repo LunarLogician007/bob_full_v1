@@ -126,7 +126,20 @@ ARCH_8X6 = {
                 {"type": "dsp", "x": 6, "height": 3}],
 }
 
-ARCH = ARCH_8X6
+# M16: 12x10 core = 10 CLB columns x 10 rows = 100 CLBs, BRAM x=3 and DSP x=8 (height 5,
+# so still 2 of each), 44 pads. Measure with tools/bob/synth_estimate.sh before a build.
+ARCH_12X10 = {
+    "nx": 12, "ny": 10,
+    "chan_width": 24,
+    "segment_length": 4,
+    "fs": 3,
+    "fc_in": 0.15, "fc_out": 0.10,
+    "io_capacity": 1,
+    "columns": [{"type": "bram", "x": 3, "height": 5},
+                {"type": "dsp", "x": 8, "height": 5}],
+}
+
+ARCH = ARCH_12X10
 
 # Board pads (PYNQ-Z2): pad_i bit order and pad_o bit order used by every host tool
 BOARD_INPUTS = ("SW0", "SW1", "BTN0", "BTN1", "BTN2", "BTN3")

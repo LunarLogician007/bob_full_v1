@@ -12,17 +12,13 @@
 .cname $auto$alumacc.cc:548:replace_alu$9.slice[2].add
 .subckt bob_add b=n15 cin=cy5 cout=cy6 sumout=n17
 .cname $auto$alumacc.cc:548:replace_alu$9.slice[3].add
-.subckt bob_add cin=cy6 sumout=cy8
-.cname bob_tap7
-.subckt bob_add a=cy8 b=cy8 cout=cy10
-.cname bob_gen9
-.subckt bob_add b=n18 cin=cy10 cout=cy11 sumout=n20
+.subckt bob_add b=n18 cin=cy6 cout=cy7 sumout=n20
 .cname $auto$alumacc.cc:548:replace_alu$9.slice[4].add
-.subckt bob_add b=led[0] cin=cy11 cout=cy12 sumout=n22
+.subckt bob_add b=led[0] cin=cy7 cout=cy8 sumout=n22
 .cname $auto$alumacc.cc:548:replace_alu$9.slice[5].add
-.subckt bob_add b=led[1] cin=cy12 cout=cy13 sumout=n24
+.subckt bob_add b=led[1] cin=cy8 cout=cy9 sumout=n24
 .cname $auto$alumacc.cc:548:replace_alu$9.slice[6].add
-.subckt bob_add b=led[2] cin=cy13 sumout=n26
+.subckt bob_add b=led[2] cin=cy9 sumout=n26
 .cname $auto$alumacc.cc:548:replace_alu$9.slice[7].add
 .subckt bob_ff D=n8 C=clk Q=n6
 .cname $auto$ff.cc:337:slice$87

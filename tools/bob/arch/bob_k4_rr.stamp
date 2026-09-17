@@ -1,3 +1,3 @@
-arch_sha256 b8cb41e7116c0db06299b0aaedf776f68cba47c27d6ade7b65d6cf6440221d73
+arch_sha256 488c647b9738e8510e1e170116fe6ed8ebca99ef9785da093394536dfe6e9395
 image ghcr.io/lnis-uofu/openfpga-master@sha256:2879ee7723111c5b4997923513eb3815211c0d28779e083100775d361f443c5c
-command vpr bob_k4.xml and2.blif --device bob8x6 --route_chan_width 24 --timing_analysis off --write_rr_graph rr.xml
+command vpr bob_k4.xml and2.blif --device bob12x10 --route_chan_width 24 --timing_analysis off --write_rr_graph rr.xml

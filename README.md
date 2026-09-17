@@ -10,7 +10,9 @@ A Raspberry Pi Pico running DirtyJTAG on PMODA configures it from a Mac.
 
 For the detailed plan, conventions, gotchas and every milestone, read [`PLAN.md`](PLAN.md); the short agent rules are in [`CLAUDE.md`](CLAUDE.md). The interactive die slice with sources, files and testbenches per block is [`arch.html`](arch.html).
 
-## Where it stands (2026-09-17)
+## Where it stands (2026-09-18)
+
+M0–M15 passed on the board. **M16 (10 × 10 CLBs, 100 CLBs, 18 560 configuration bits) is in progress** — RTL, routing graph, VPR results and simulations are done; the Vivado build and board test are pending (`HANDOFF.md`).
 
 | Milestone | What | Status |
 |---|---|---|

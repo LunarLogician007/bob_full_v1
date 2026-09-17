@@ -141,7 +141,7 @@ def main():
     out += [f"// M7: a {FULL_COL_BITS}-bit counter up the whole of CLB column {FULL_COL_X} (every carry direct in it)"]
     out += define("CNT8", d_counter("jtag", x=FULL_COL_X, bits=FULL_COL_BITS).build().to_int())
     out += [f"`define CNT8_Q {q_expr([(FULL_COL_X, 1 + r) for r in range(FULL_COL_BITS)])}",
-            f"`define CNT8_MASK 8'h{(1 << FULL_COL_BITS) - 1:02x}",
+            f"`define CNT8_MASK {FULL_COL_BITS}'h{(1 << FULL_COL_BITS) - 1:0{(FULL_COL_BITS + 3) // 4}x}",
             f"`define CNT8_BITS {FULL_COL_BITS}"]
     out.append("")
 

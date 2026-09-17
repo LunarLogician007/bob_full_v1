@@ -43,7 +43,7 @@ module tb_frames;
 
     localparam [5:0] IR_PKT_IN  = 6'b000101;     // CFG_IN
     localparam [5:0] IR_PKT_OUT = 6'b000100;     // CFG_OUT
-    localparam integer SW = 16384;
+    localparam integer SW = 40960;
 
     reg [SW-1:0]     big;
     reg [31:0]       statw;

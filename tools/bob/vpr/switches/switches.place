@@ -1,17 +1,17 @@
-Netlist_File: switches.net Netlist_ID: SHA256:c6a4269dbf83b61b8349f425b8e54c5cfb6747d9aca6047339ca22e00de7fb60
-Array size: 10 x 8 logic blocks
+Netlist_File: switches.net Netlist_ID: SHA256:118c303299161d9c085596b3f51463e8ca9eb0c39b3fcd49d5f84c9c6d4800bc
+Array size: 14 x 12 logic blocks
 
 #block name	x	y	subblk	layer	block number
 #----------	--	--	------	-----	------------
-n15		5	4	0	0	#0
-ffd2		5	6	0	0	#1
-ffd1		4	6	0	0	#2
+n15		10	3	0	0	#0
+ffd2		9	6	0	0	#1
+ffd1		6	6	0	0	#2
 led[1]		1	3	0	0	#3
-n14		5	5	0	0	#4
-led[0]		1	1	0	0	#5
-out:led[0]	9	1	0	0	#6
-out:led[1]	9	2	0	0	#7
-out:led[2]	9	3	0	0	#8
+n14		10	6	0	0	#4
+led[0]		4	1	0	0	#5
+out:led[0]	13	1	0	0	#6
+out:led[1]	13	2	0	0	#7
+out:led[2]	13	3	0	0	#8
 clk		1	0	0	0	#9
 sw[0]		0	1	0	0	#10
 sw[1]		0	2	0	0	#11

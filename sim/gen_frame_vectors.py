@@ -21,7 +21,7 @@ from chainbits import crc32c_bits        # noqa: E402
 from designs import d_showcase, d_counter, d_partial  # noqa: E402
 
 W = B.CHAIN_W
-SW = 16384                               # stream vector width in the testbench
+SW = 40960                               # stream vector width in the testbench
 
 
 def hexw(v, w=W):
