@@ -791,5 +791,11 @@ User, 2026-09-17: "frame based writing just like AMD (slightly simplified) … l
   - After a parser error the controller ignores everything until JPROGRAM: a board check first read back over FDRO after a refused load. The stand-in board caught it; that check now reads over CHAIN_OUT.
   - The shared test harness defaulted the DUT IDCODE (`TB_IDCODE`).
   - iverilog aborts on a `$display` of a huge constant expression.
+- **First Vivado attempt ran out of memory in synthesis:**
+  - The cause: `cfg[frame_idx*FB +: FB] <= frame_data` over the 4992-bit memory is a shifter (yosys: ~12.3k LUTs, 2.3k MUXF, 1.7 GB).
+  - The fix: `cfg_store` loads the frame into the chain shift register (don't-care outside CHAIN scans) on the rising edge, and copies it to the memory on the falling edge with a per-frame enable, the chain commit's own path. No memory bit needs a LUT.
+  - FDRO reads an explicit word array.
+  - yosys whole-design estimate: M7 11 349 LUTs / 10 375 FFs / 138 s / 1.40 GB; M13 15 146 / 12 218 / 152 s / 1.42 GB.
+  - **Rule:** never write a computed part-select over the configuration memory; decode per frame. Before a Vivado handoff, run `tools/bob/synth_estimate.sh $PWD build/est` (yosys, whole design) and compare with the last build.
 - **Not in M13:** BRAM content frames (FAR block type 001 reserved); MFWR compression, encryption, COR/CTL options, per-frame ECC, multiboot; area (M12b).
 

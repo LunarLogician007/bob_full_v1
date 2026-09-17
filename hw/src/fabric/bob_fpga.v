@@ -76,9 +76,9 @@ module bob_fpga #(
     wire                gsr, gts, gwe, done, committed;
     wire [CHAIN_W-1:0]  chain_cfg;                    // chain bit k = chain_cfg[k] = memory bit k
     localparam integer  FIDX_W = 8;
-    wire                frame_we, frames_ok, frames_error, frames_crc_error;
-    wire [FIDX_W-1:0]   frame_idx;
-    wire [`BOB_FRAME_BITS-1:0] frame_data;
+    wire                frame_we, frame_load, frames_ok, frames_error, frames_crc_error;
+    wire [FIDX_W-1:0]   frame_idx, frame_load_idx;
+    wire [`BOB_FRAME_BITS-1:0] frame_load_data;
     wire [31:0]         frames_stat;
     wire [CTRL_W-1:0]   ctrl_cfg = chain_cfg[CTRL_W-1:0];
 
@@ -191,9 +191,11 @@ module bob_fpga #(
         .done       (done),
         .mem        (chain_cfg),
         .so         (pkt_so),
+        .frame_load      (frame_load),
+        .frame_load_idx  (frame_load_idx),
+        .frame_load_data (frame_load_data),
         .frame_we   (frame_we),
         .frame_idx  (frame_idx),
-        .frame_data (frame_data),
         .start_ok   (frames_ok),
         .any_error  (frames_error),
         .crc_error  (frames_crc_error),
@@ -209,9 +211,11 @@ module bob_fpga #(
         .clear      (cfg_clear),
         .si         (tdi),
         .so         (cfg_so),
+        .load       (frame_load),
+        .load_idx   (frame_load_idx),
+        .load_data  (frame_load_data),
         .frame_we   (frame_we),
         .frame_idx  (frame_idx),
-        .frame_data (frame_data),
         .cfg        (chain_cfg)
     );
 

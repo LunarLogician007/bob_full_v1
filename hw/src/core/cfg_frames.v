@@ -8,7 +8,8 @@
 //   parser   HDR -> (T2) -> DATA -> HDR; ERR on any error (left only by JPROGRAM)
 //   register CRC  compare with the running CRC-32C over {reg[4:0], data}
 //            FAR  frame address (7-series layout), auto-increment
-//            FDRI frame data: 4 words fill a frame, the 4th writes it (frame_we)
+//            FDRI frame data: 4 words fill a frame; the 4th loads it into cfg_store's
+//                 shift register (frame_load) and the memory takes it on the falling edge
 //            CMD  NULL WCFG LFRM RCFG START RCRC DESYNC
 //            IDCODE must match before FDRI is accepted
 //   CFG_OUT  READ packets queue words (FDRO frames from FAR, STAT, FAR, IDCODE,
@@ -50,9 +51,11 @@ module cfg_frames #(
     input  wire [MEM_W-1:0]  mem,           // the configuration memory, for FDRO
 
     output wire              so,
-    output reg               frame_we,
+    output wire              frame_load,     // this rising edge: frame_load_data into the shift register
+    output wire [FIDX_W-1:0] frame_load_idx,
+    output wire [32*FW-1:0]  frame_load_data,
+    output reg               frame_we,       // next falling edge: shift register frame -> memory
     output reg  [FIDX_W-1:0] frame_idx,
-    output reg  [32*FW-1:0]  frame_data,
     output reg               start_ok,
     output wire              any_error,
     output wire              crc_error,
@@ -98,7 +101,6 @@ module cfg_frames #(
     initial begin
         frame_we   = 1'b0;
         frame_idx  = {FIDX_W{1'b0}};
-        frame_data = {FB{1'b0}};
         start_ok   = 1'b0;
     end
 
@@ -173,13 +175,34 @@ module cfg_frames #(
                            (w[17:13] == R_IDCODE) || (w[17:13] == R_CRC);
     wire        hdr1_ok  = (w[26:18] == 9'd0) && (w[12:11] == 2'd0);
 
+    // the 4th word of a frame, accepted: written into cfg_store's shift register on this
+    // edge (the same condition as the FDRI branch below)
+    wire   fdri_ok         = wcfg && id_ok && !gwe && far_valid && !any_error;
+    assign frame_load      = wv && (st == ST_DATA) && (rsel == R_FDRI) && fdri_ok && ({30'd0, widx} == FW - 1);
+    assign frame_load_idx  = far_fidx;
+    assign frame_load_data = {w, fbuf};
+
+    // FDRO source: the memory as an array of words, indexed by frame*FW + word (an
+    // explicit word mux; a computed part-select over the whole memory is a shifter)
+    localparam integer NWORDS = FW * NFRAMES;
+    wire [31:0] mem_word [0:NWORDS-1];
+    genvar gw;
+    generate
+        for (gw = 0; gw < NWORDS; gw = gw + 1) begin : g_word
+            assign mem_word[gw] = mem[gw*32 +: 32];
+        end
+    endgenerate
+    localparam integer WIDX_W = $clog2(NWORDS);
+    wire [31:0] rd_widx32 = {{(32-FIDX_W){1'b0}}, far_fidx} * FW + {30'd0, rwidx};
+    wire [WIDX_W-1:0] rd_widx = rd_widx32[WIDX_W-1:0];
+
     // word CFG_OUT hands out next (for the current read request)
     reg [31:0] rword;
     always @(*) begin
         rword = stat;
         if (rd_cnt != 27'd0) begin
             case (rd_reg)
-                R_FDRO:   rword = (rcfg && far_valid) ? mem[far_fidx*FB + rwidx*32 +: 32] : 32'h0;
+                R_FDRO:   rword = (rcfg && far_valid && rd_widx32 < NWORDS) ? mem_word[rd_widx] : 32'h0;
                 R_FAR:    rword = far;
                 R_IDCODE: rword = IDCODE_VALUE;
                 R_CRC:    rword = crc;
@@ -285,11 +308,10 @@ module cfg_frames #(
                             R_FDRI: begin
                                 crc_ok    <= 1'b0;
                                 data_seen <= 1'b1;
-                                if (wcfg && id_ok && !gwe && far_valid && !any_error) begin
+                                if (fdri_ok) begin
                                     if ({30'd0, widx} == FW - 1) begin
                                         frame_we   <= 1'b1;
                                         frame_idx  <= far_fidx;
-                                        frame_data <= {w, fbuf[FB-33:0]};
                                         far        <= far_next;
                                         widx       <= 0;
                                     end else begin
