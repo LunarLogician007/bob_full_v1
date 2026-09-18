@@ -27,8 +27,8 @@
 `define BOB_CTRL_CLK_MODE     0
 `define BOB_CTRL_CLK_DIV_LO   1
 `define BOB_CTRL_CLK_DIV_W    5
-`define BOB_DIV_MIN_SHIFT     8
-`define BOB_GCE_MIN_GAP_SHIFT 8
+`define BOB_DIV_MIN_SHIFT     9
+`define BOB_GCE_MIN_GAP_SHIFT 9
 `define BOB_FRAME_WORDS       4
 `define BOB_FRAME_BITS        128
 `define BOB_NFRAMES           145

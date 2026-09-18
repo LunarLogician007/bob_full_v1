@@ -12,7 +12,7 @@
 //                              pulse. Exactly the pre-M4 behaviour (flops
 //                              advanced once per TCK), now as an enable.
 //   clk_mode 1  free-running   one gce pulse every 2**(clk_div + MIN_SHIFT)
-//                              sysclk cycles (MIN_SHIFT 8: at most 488 kHz).
+//                              sysclk cycles (MIN_SHIFT 9: at most 244 kHz).
 //
 // Everything arriving from the TCK domain (TCK itself as data, USER1 ce/step/
 // cin, GSR, GWE, and the quasi-static clock config) goes through two-flop
@@ -23,8 +23,11 @@
 // section 11): consecutive gce pulses are at least 2**GAP_SHIFT sysclk cycles apart
 // in BOTH modes, enforced here - a request arriving earlier waits (one is kept
 // pending), so fabric flop-to-flop paths are a 2**GAP_SHIFT-cycle multicycle by
-// construction, not by assumption about TCK. The board uses GAP_SHIFT = 8
-// (256 cycles, 2048 ns); simulation may shorten it with the divider.
+// construction, not by assumption about TCK. The board uses GAP_SHIFT = 9
+// (512 cycles, 4096 ns) from M16; it was 8 (256 cycles, 2048 ns) through M15, which
+// the 12x10 fabric's ~2500 ns routing path outgrew. Simulation may shorten it with
+// the divider, and tools/bob/device.py (GCE_MIN_GAP_SHIFT) plus the XDC multicycle
+// must carry the same number.
 // -----------------------------------------------------------------------------
 
 `timescale 1ns / 1ps
@@ -32,8 +35,8 @@
 
 module clock_ctrl #(
     parameter integer DIV_W     = 5,
-    parameter integer MIN_SHIFT = 8,
-    parameter integer GAP_SHIFT = 8
+    parameter integer MIN_SHIFT = 9,
+    parameter integer GAP_SHIFT = 9
 )(
     input  wire             sysclk,
 

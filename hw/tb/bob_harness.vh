@@ -53,7 +53,11 @@
     reg clk_on = 1'b1;
     always #2 sysclk = clk_on ? ~sysclk : 1'b0;
 
-    bob_fpga #(.DIV_MIN_SHIFT(3), .IDCODE_VALUE(`TB_IDCODE)) dut (
+    // GAP_SHIFT follows the shortened divider here: these are two knobs now
+    // (bob_fpga.v), and a 3-cycle divider under the board's 512-cycle gap would
+    // never pulse twice. The board's own value is simulated by tb_clock_gap.
+    bob_fpga #(.DIV_MIN_SHIFT(3), .GCE_MIN_GAP_SHIFT(3),
+               .IDCODE_VALUE(`TB_IDCODE)) dut (
         .sysclk(sysclk), .tck(tck), .tms(tms), .tdi(tdi), .tdo(tdo),
         .pad_i(pads_i), .pad_o(pads_o), .tap_state(tap_state), .configured(configured));
 

@@ -362,6 +362,14 @@ def _capture_w():
     return B.NCLB
 
 
+def _run_rate(div):
+    """Free-running user-clock enables per second: 125 MHz / 2**(div + DIV_MIN_SHIFT).
+    DIV_MIN_SHIFT comes from device.json (9 from M16, 8 before), so the rate checks
+    follow the fabric instead of hard-coding it - the M16 gap change halved every rate."""
+    from bitstream import DIV_MIN_SHIFT
+    return 125e6 / 2 ** (div + DIV_MIN_SHIFT)
+
+
 def check_ce_sr(p, ctx):
     """Routed CE (SW0 path) and SR (SW1 path) on tile(0,0) follow model.py, driven via INTEST
     autostep: one fabric clock per INTEST scan, independent of the real switches."""
@@ -414,7 +422,8 @@ def check_counter_step(p, ctx):
 
 
 def check_counter_run(p, ctx):
-    """Free-running user clock: div 16 = 125 MHz / 2**24 = 7.45 counts/s, measured over ~3 s."""
+    """Free-running user clock: div 16 = 125 MHz / 2**(16 + DIV_MIN_SHIFT), measured over ~3 s
+    (3.73 counts/s from M16, 7.45 before it)."""
     import time
     import cfgplane
     import fpga
@@ -433,11 +442,13 @@ def check_counter_run(p, ctx):
         last = v
     dt = time.time() - t0
     rate = counts / dt
-    return 6.0 <= rate <= 9.0, f"{counts} counts in {dt:.2f} s = {rate:.2f}/s (expected 7.45)"
+    want = _run_rate(16)
+    return (0.8 * want <= rate <= 1.2 * want,
+            f"{counts} counts in {dt:.2f} s = {rate:.2f}/s (expected {want:.2f})")
 
 
 def check_blinky(p, ctx):
-    """Leave the counter free-running at div 17 (3.73 counts/s) for the LED check."""
+    """Leave the counter free-running at div 17 (1.86 counts/s from M16) for the LED check."""
     import cfgplane
     import fpga
     from designs import d_counter
@@ -602,7 +613,8 @@ def check_dsp_mult(p, ctx):
 
 
 def check_dsp_accum(p, ctx):
-    """Accumulator on the free-running clock, div 16: P grows 7.45 per second with A*B = 1."""
+    """Accumulator on the free-running clock, div 16: P grows by _run_rate(16) per second
+    with A*B = 1 (3.73/s from M16, 7.45 before it)."""
     import time
     import cfgplane
     import fpga
@@ -617,7 +629,9 @@ def check_dsp_accum(p, ctx):
     p1 = cfgplane.dsp_scan(p)["p0"]
     dt = time.time() - t0
     rate = (p1 - p0) / dt
-    return 6.0 <= rate <= 9.0, f"P0 {p0} -> {p1} in {dt:.2f} s = {rate:.2f}/s (expected 7.45)"
+    want = _run_rate(16)
+    return (0.8 * want <= rate <= 1.2 * want,
+            f"P0 {p0} -> {p1} in {dt:.2f} s = {rate:.2f}/s (expected {want:.2f})")
 
 
 def check_dsp_accum_live(p, ctx):
@@ -630,7 +644,7 @@ def check_dsp_accum_live(p, ctx):
         return False, "load failed"
     cfgplane.dsp_scan(p, model.dsp_pins_to_drive({**_dsp_zero(), "a": 1, "b": 1}, _dsp_zero()))
     fpga.go_live(p)
-    return True, "running: LD0 ~3.7 Hz, LD1 ~1.9 Hz, LD2 ~0.93 Hz (check by eye)"
+    return True, "running: LD0 ~1.9 Hz, LD1 ~0.93 Hz, LD2 ~0.47 Hz (check by eye)"
 
 
 # --- M7: the fabric generated from VPR's rr graph ---------------------------------------
@@ -828,7 +842,8 @@ def _bob_check(name, pnr="vpr"):
 
 # --- M11: real designs live on the board (free-running clock, real switches) ------------------
 
-LIVE_DIV = 15                  # 125 MHz / 2**23 = 14.9 Hz: slower than a CAPTURE-SAMPLE-CAPTURE burst
+LIVE_DIV = 15                  # 125 MHz / 2**(15 + DIV_MIN_SHIFT) = 7.45 Hz from M16 (14.9 before):
+                               # slower than a CAPTURE-SAMPLE-CAPTURE burst
 LIVE_SECONDS = 8.0
 
 
@@ -1458,7 +1473,7 @@ def check_partial_swap(p, ctx):
 
 
 def check_partial_live(p, ctx):
-    """M14 on the FREE-RUNNING clock (div 17, ~3.7 counts/s): while frozen (AGHIGH acknowledged)
+    """M14 on the FREE-RUNNING clock (div 17, ~1.9 counts/s from M16): while frozen (AGHIGH acknowledged)
     the counter does not move for a second; the partial lands; after LFRM it counts again and
     LD1 has changed from AND to OR."""
     import time

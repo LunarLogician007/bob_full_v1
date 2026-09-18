@@ -77,8 +77,15 @@ JSON_PATH = os.path.join(HERE, JSON_NAME)
 GEN_DIR = os.path.join(ROOT, "hw", "src", "generated")
 
 SYSCLK_HZ = 125_000_000              # PYNQ-Z2 PL clock on H16
-DIV_MIN_SHIFT = 8                    # free-running enable: every 2**(clk_div+8) sysclk cycles
-GCE_MIN_GAP_SHIFT = 8                # M13: user-clock enables >= 2**8 sysclk cycles apart in both modes
+DIV_MIN_SHIFT = 9                    # free-running enable: every 2**(clk_div+9) sysclk cycles
+GCE_MIN_GAP_SHIFT = 9                # M13: user-clock enables >= 2**GCE_MIN_GAP_SHIFT sysclk cycles
+                                     # apart in both modes; the XDC multicycle must match it.
+                                     # M16: 8 (256 cycles, 2048 ns) no longer covers the 12x10
+                                     # fabric - implementation reported WNS -465 ns on
+                                     # fabric flop -> flop paths, so the static path through the
+                                     # unconfigured routing muxes is ~2500 ns. 9 = 512 cycles
+                                     # = 4096 ns. Raising it makes timing easier and the
+                                     # free-running guest clock slower (488 -> 244 kHz max).
 
 # M13 frames (docs/bitstream-format.md sections 9-10): UG470-style configuration frames
 FRAME_WORDS = 4
@@ -647,6 +654,7 @@ class Device:
                      "columns": [{"type": c["type"], "x": c["x"], "height": c["height"]}
                                  for c in a["columns"]]},
             "clock": {"sysclk_hz": SYSCLK_HZ, "div_min_shift": DIV_MIN_SHIFT,
+                      "gce_min_gap_shift": GCE_MIN_GAP_SHIFT,
                       "modes": {"jtag": 0, "run": 1}},
             "tile_types": {name: {"width": tt.width,
                                   "fields": [{"name": f.name, "offset": f.offset, "width": f.width,

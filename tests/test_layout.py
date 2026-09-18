@@ -2,6 +2,7 @@
 The hw/ bundle is self-contained and every consumer agrees on it.
 """
 
+import json
 import os
 import re
 import subprocess
@@ -9,10 +10,19 @@ import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "host"))
+sys.path.insert(0, os.path.join(ROOT, "tools", "bob"))
 
 import buildcfg  # noqa: E402
 
 HW = buildcfg.HW
+
+
+def _xdc():
+    return open(os.path.join(HW, buildcfg.read_cfg()["xdc"])).read()
+
+
+def _device():
+    return json.load(open(os.path.join(ROOT, "tools", "bob", "device.json")))
 
 
 def test_every_source_exists_and_lives_in_hw():
@@ -72,3 +82,66 @@ def test_nothing_outside_hw_is_needed_by_vivado():
     for m in re.finditer(r"\$(\w+)/", tcl):
         assert m.group(1) in {"hw_dir", "script_dir", "proj_dir", "out_dir",
                               "tag"}, m.group(0)
+
+
+# --- the timing contract ------------------------------------------------------
+#
+# The fabric's sysclk -> sysclk multicycle is true only because clock_ctrl.v
+# guarantees gce pulses at least 2**GCE_MIN_GAP_SHIFT cycles apart. Those are two
+# numbers in two files, and the XDC says so itself: "that agreement is the whole
+# reason the exception is true rather than assumed". Until M16 nothing checked it,
+# and M16's first implementation ran 3 h 25 min and failed at WNS -465 ns because
+# 256 cycles no longer covered the 12x10 fabric. These tests are that check.
+
+
+def test_the_sysclk_multicycle_matches_the_gce_gap():
+    gap = _device()["clock"]["gce_min_gap_shift"]
+    want = 1 << gap
+    m = re.search(r"^set_multicycle_path\s+-setup\s+(\d+)\s+-from\s+\[get_clocks sysclk\]"
+                  r"\s+-to\s+\[get_clocks sysclk\]", _xdc(), re.M)
+    assert m, "no sysclk -> sysclk setup multicycle in the XDC"
+    assert int(m.group(1)) == want, (
+        f"XDC relaxes sysclk by {m.group(1)} cycles but clock_ctrl.v only guarantees "
+        f"{want} (GCE_MIN_GAP_SHIFT = {gap} in tools/bob/device.py). "
+        "Raise the gap or lower the exception - they must be the same number.")
+
+
+def test_the_sysclk_hold_multicycle_is_one_less_than_setup():
+    """UG903: a setup multicycle of N needs a hold multicycle of N-1, or the tool
+    moves the hold check with it and every short path fails."""
+    x = _xdc()
+    setup = re.search(r"^set_multicycle_path\s+-setup\s+(\d+)\s+-from\s+\[get_clocks sysclk\]", x, re.M)
+    hold = re.search(r"^set_multicycle_path\s+-hold\s+(\d+)\s+-from\s+\[get_clocks sysclk\]", x, re.M)
+    assert setup and hold, "the sysclk multicycle pair is not both present"
+    assert int(hold.group(1)) == int(setup.group(1)) - 1, (
+        f"setup {setup.group(1)} needs hold {int(setup.group(1)) - 1}, not {hold.group(1)}")
+
+
+def test_the_rtl_gets_the_gap_from_the_generated_header():
+    """bob_fpga.v must take GAP_SHIFT from BOB_GCE_MIN_GAP_SHIFT. Passing anything
+    else makes tools/bob/device.py's knob a decoration and the XDC check above a lie."""
+    src = open(os.path.join(HW, "src", "fabric", "bob_fpga.v")).read()
+    m = re.search(r"clock_ctrl\s*#\((.*?)\)\s*u_clk", src, re.S)
+    assert m, "bob_fpga.v does not instantiate clock_ctrl with parameters"
+    assert re.search(r"\.GAP_SHIFT\s*\(\s*GCE_MIN_GAP_SHIFT\s*\)", m.group(1)), (
+        "GAP_SHIFT must come from GCE_MIN_GAP_SHIFT (= `BOB_GCE_MIN_GAP_SHIFT`); "
+        f"it is currently {m.group(1).strip()}")
+
+
+def test_the_generated_header_carries_both_clock_shifts():
+    vh = open(os.path.join(HW, "src", "generated", "bob_params.vh")).read()
+    d = _device()["clock"]
+    for macro, key in (("BOB_DIV_MIN_SHIFT", "div_min_shift"),
+                       ("BOB_GCE_MIN_GAP_SHIFT", "gce_min_gap_shift")):
+        m = re.search(rf"`define\s+{macro}\s+(\d+)", vh)
+        assert m, f"bob_params.vh lacks {macro}"
+        assert int(m.group(1)) == d[key], f"{macro} is {m.group(1)}, device.json says {d[key]}"
+
+
+def test_the_free_running_clock_cannot_outrun_the_gap():
+    """The divider floor must be at least the gap, or the fabric would be asked for
+    edges closer together than the multicycle exception promises."""
+    c = _device()["clock"]
+    assert c["div_min_shift"] >= c["gce_min_gap_shift"], (
+        f"DIV_MIN_SHIFT {c['div_min_shift']} < GCE_MIN_GAP_SHIFT {c['gce_min_gap_shift']}: "
+        "the free-running clock would beat the timing exception")

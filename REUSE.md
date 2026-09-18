@@ -225,3 +225,27 @@ Status: **same** = byte-identical to `bob/`, **moved** = same content at a new p
 | `tests/test_device.py`, `tests/test_synth.py`, `tests/test_hwtest_fake.py`, `sim/mutate_fabric.sh` | M12b | modified | pinned sizes; carry splitting uses `wide`; `big` on the stand-in board; carry mutant on column 12 |
 | `host/hwtest.py`, `docs/hwtest/M16.md`, `hw/build.cfg` | M15 | modified / new | `MILESTONE["M16"]` (M15 list + bob-big, pnr-big); checklist; tag M16, IDCODE `0xFBEEF093` |
 | `docs/arch/p5_floor.js`, `docs/arch/build.py`, `arch.html` | M12b | modified | floor-plan pitch scales with the grid; legend and title from `device.json` |
+| `tools/bob/device.py`, `hw/constr/pynq_z2.xdc`, `hw/src/core/clock_ctrl.v`, `hw/src/fabric/bob_fpga.v`, `hw/scripts/build.tcl`, `host/hwtest.py`, `host/designs.py` | M13 | modified | **the gce gap grows with the grid**: `GCE_MIN_GAP_SHIFT`/`DIV_MIN_SHIFT` 8 → 9 (512 cycles, 4096 ns) and the matching `-setup 512 -hold 511`, after the first M16 implementation ran 3 h 25 min at WNS −465 ns; `phys_opt_design` set explicitly (off, then back on); `drc_waiver.tcl` also forces `general.maxThreads 1` and is hooked on `route_design` too, after two threads crashed the timing engine in "Phase 2.3 Update Timing"; the free-running rate checks derive their window from `DIV_MIN_SHIFT` instead of hard-coding 7.45/s |
+
+## Teaching material
+
+| File | From | Status | Notes |
+|---|---|---|---|
+| `docs/manim/build.py`, `docs/manim/parts/` | — | new | the film series: a shared prelude plus one part file per episode, assembled the way `docs/arch/build.py` assembles `arch.html` |
+| `docs/manim/bob_explained.ipynb` | `parts/` | generated | **the whole series in one notebook, one cell per episode** (13 episodes + 2 setup cells) |
+| `docs/manim/ep01_clb.*` … `ep13_errors.*` | `parts/` | generated | each episode also on its own: one `%%manim` cell with the prelude inlined, plus a notebook |
+| `docs/manim/vpr_explained.*` | — | new | the standalone VPR film; the same content is episode 9 |
+| `docs/manim/README.md` | — | new | the series, and how to add an episode |
+
+
+## bob studio and the flow engine (2026-09-18, after M16)
+
+| what | where | reused / new |
+|---|---|---|
+| staged flow engine | `tools/bob/flow.py` | **new**, but every stage calls what `cli.py` already called (`equiv.equiv`, `vpr_run.run`, `pnr.run.run`, `fasm_from_vpr.build`, `bitgen`, `model`). `cli.build()` is now a wrapper over it; `tests/test_flow.py` requires both to write a byte-identical `.bit` |
+| software board | `host/fakeboard.py` | **moved**, not written: `FakeBob` came verbatim out of `tests/test_hwtest_fake.py`, which now imports it. `tests/test_fakeboard.py` checks the hardware checks still drive this very class |
+| studio backend | `host/studio.py` | **new**; stdlib `http.server` + Server-Sent Events only, so the project gains no dependency (pyusb was already required). Every route drives `flow.py` or `host/cfgplane.py` |
+| studio page | `docs/studio/`, `studio.html` | **new**, assembled by `docs/studio/build.py` exactly as `docs/arch/build.py` assembles `arch.html`, reusing that page's tokens and SVG primitives. No external libraries |
+| device table | `tools/bob/devtable.py` | **new**; the table was hand-copied into six documents and drifted (README described the 36-CLB M12b profile after M16 put 100 CLBs on the board). Generated from `device.json` between markers, checked by `tests/test_device_table.py` and `make check` |
+| timing-contract guards | `tests/test_layout.py` | **new** checks over existing files: the XDC's sysclk multicycle must equal `2**GCE_MIN_GAP_SHIFT`, hold must be setup − 1, and the RTL must take the gap from that macro. Each one was mutation-tested |
+| the gap in simulation | `hw/tb/tb_clock_gap.v`, `sim/run_frames_sim.sh` | the existing testbench, parameterised: it ran only at GAP = 4, and now also runs at the board's `BOB_GCE_MIN_GAP_SHIFT` |

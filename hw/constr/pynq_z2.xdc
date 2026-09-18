@@ -93,28 +93,35 @@ set_output_delay -clock tck -min  0.000 -clock_fall [get_ports tdo]
 set_clock_groups -asynchronous -group [get_clocks tck] -group [get_clocks sysclk]
 
 # Every fabric register (CLB flip-flops, BRAM and DSP state) changes only on a gce
-# pulse, and clock_ctrl.v guarantees gce pulses >= 256 sysclk cycles apart in both
-# clock modes (tb_clock_gap.v). A path from fabric register to fabric register -
+# pulse, and clock_ctrl.v guarantees gce pulses >= 2**GAP_SHIFT sysclk cycles apart in
+# both clock modes (tb_clock_gap.v). A path from fabric register to fabric register -
 # however many unconfigured routing muxes the static analysis walks through (M7:
-# 1202 logic levels, 1110 ns) - therefore has 256 cycles = 2048 ns.
+# 1202 logic levels, 1110 ns) - therefore has 2**GAP_SHIFT cycles.
+#
+# M16: GAP_SHIFT is 9, so 512 cycles = 4096 ns. It was 8 (256 cycles, 2048 ns) through
+# M15, where the 8x6 fabric just fitted; the 12x10 fabric does not. Implementation
+# reported WNS -465 ns on fabric flop -> flop paths (phys_opt then spent 1h15 chasing
+# it and the router gave up on timing), so the 12x10 static path is about 2500 ns.
+# This number and GCE_MIN_GAP_SHIFT / DIV_MIN_SHIFT in tools/bob/device.py must agree -
+# that agreement is the whole reason the exception is true rather than assumed.
 #
 # The fabric is flattened (keeping its hierarchy crashed Vivado on the routing
 # loops), and M7 showed flattening renames its registers, so the relaxation is by
-# clock: every sysclk -> sysclk path gets 256 cycles. The only sysclk logic outside
+# clock: every sysclk -> sysclk path gets 512 cycles. The only sysclk logic outside
 # the fabric is u_clk (clock_ctrl.v: gce, dividers, synchronisers) and the sysclk
 # half of u_bram_jtag (BRAM INIT/readback strobes). Cell-based exceptions take
 # precedence over clock-based ones (UG903), so every path starting or ending there
 # is held back to one cycle. Their hierarchy is flattened (keep_hierarchy anywhere
 # crashed Vivado), so build.tcl writes the cells these filters caught to
 # sysclk_1cycle.txt and tests/test_reports.py requires gce and the BRAM strobes in it.
-set_multicycle_path -setup 256 -from [get_clocks sysclk] -to [get_clocks sysclk]
-set_multicycle_path -hold  255 -from [get_clocks sysclk] -to [get_clocks sysclk]
+set_multicycle_path -setup 512 -from [get_clocks sysclk] -to [get_clocks sysclk]
+set_multicycle_path -hold  511 -from [get_clocks sysclk] -to [get_clocks sysclk]
 set_multicycle_path -setup 1 -from [get_cells -hier -filter {IS_SEQUENTIAL && (NAME =~ *u_bram_jtag/* || (NAME =~ *u_clk/* && NAME !~ *u_clk/cin_m_reg*))}]
 set_multicycle_path -hold  0 -from [get_cells -hier -filter {IS_SEQUENTIAL && (NAME =~ *u_bram_jtag/* || (NAME =~ *u_clk/* && NAME !~ *u_clk/cin_m_reg*))}]
 set_multicycle_path -setup 1 -to   [get_cells -hier -filter {IS_SEQUENTIAL && (NAME =~ *u_bram_jtag/* || NAME =~ *u_clk/*)}]
 set_multicycle_path -hold  0 -to   [get_cells -hier -filter {IS_SEQUENTIAL && (NAME =~ *u_bram_jtag/* || NAME =~ *u_clk/*)}]
 # USER1 cin (u_clk/cin_m_reg) enters the carry chains and changes only by JTAG, so
-# its paths into the fabric keep the 256 cycles.
+# its paths into the fabric keep the 512 cycles.
 
 # The switches, buttons and LEDs are the fabric's pads, asynchronous to TCK.
 set_false_path -to   [get_ports {led[*]}]

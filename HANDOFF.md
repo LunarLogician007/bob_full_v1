@@ -9,120 +9,142 @@ This file is the live state: what is finished, what is in flight, and exactly wh
 
 | | |
 |---|---|
-| Milestones M0–M15 | **all passed on the PYNQ-Z2**, git tags `m7`…`m15` |
-| Bitstream in the PL | **M15** (`0xEBEEF093`): 36 CLBs, frames + partial reconfiguration + BRAM content frames, chain kept. 48/48 on the board, WNS +0.585 ns, 10 411 LUT / 11 097 FF |
-| Whole-project report | `docs/project/REPORT.md` + `project.html` (built by `docs/project/collect.py` then `build.py`) |
-| In flight | **M16: the 10 × 10 CLB grid** (user request, 2026-09-18) — RTL and tools done, `make check` running, not yet handed to Vivado |
-| Also requested, not started | a **learning-oriented guide** (what each part is, why, how to use, how to tweak) as Markdown **and** an `arch.html`-style page, including an honest comparison with OpenFPGA / Aegis |
+| Milestones M0–M16 | **all passed on the PYNQ-Z2** |
+| Bitstream in the PL | **M16** (`0xFBEEF093`): 100 CLBs (12 × 10 core), 145 frames = 18 560 bits, 2 BRAM, 2 DSP, 44 pads. 20 498 LUTs (38.5%), 21 511 FFs (20.2%), WNS +0.667 ns, WHS +0.119 ns, DRC clean |
+| Guest tooling | `./bob build｜load｜info｜fasm`, and **bob studio** (`./host/studio.py`) |
+| Whole-project report | `docs/project/REPORT.md` + `project.html`; the learning guide is `docs/project/GUIDE.md` + `guide.html` (**done**, committed in `807f2b9`) |
+| In flight | nothing. Tag `m16` when you are ready, and rerun `docs/project/collect.py` + `build.py` so the report and `project.html` include M16 |
 
-The user's latest message: *"for now polish for sharing … very detailed report, from all the parts, what is that, why is that used, how to use, how to tweak stuff … proper html like arch.html … how is our model better than openFPGA or aegis or not, also for now expand to 10x10 CLBs first."*
-
-So: **finish M16 first** (it ends, as always, with a board test), then write the guide.
-
----
-
-## 2. M16 — the 10 × 10 CLB grid
-
-### What is already done (uncommitted working tree)
-
-- **`tools/bob/device.py`:** new profile `ARCH_12X10` and `ARCH = ARCH_12X10`.
-  - 12 × 10 core (VPR grid 14 × 12), BRAM column x = 3 and DSP column x = 8, both height 5.
-  - **100 CLBs**, 2 BRAMs, 2 DSPs, 44 pads, W = 24, 3391 routing muxes.
-  - **18 560 configuration bits = 145 frames** (was 8320 = 65).
-- **rr graphs rebuilt** (`make rrgraph`, Docker/Colima) and committed files updated: `tools/bob/arch/bob_k{6,4}*`.
-- **Generated RTL refreshed** (`make device`): `hw/src/generated/bob_fabric.v` is now 4416 lines.
-- **Every example re-routed** by VPR (`make vpr`, 29 PASS) — all 10 designs route on the bigger graph.
-- **Testbench fixes for the larger widths** (these were real bugs, not just resizes):
-  - `hw/tb/tb_bob.v`: CAPTURE is 100 bits now, so the "CAPTURE == model" check compares `rx[NCLB-1:0] === SHOW_CAP_11` instead of 64-bit values; `c8`/`c8_0` are plain 32-bit registers.
-    **Gotcha:** `` `CNT8_BITS `` was used at line ~97 but `vectors.vh` is `include`d at line ~128. iverilog did not error; the register silently came out 2 bits wide and 298 checks failed. Never use a vector macro above its include.
-  - `sim/gen_vectors.py`: `CNT8_MASK` now carries the real width (`10'h3ff`), not a fixed `8'h`.
-  - `sim/gen_frame_vectors.py` + `hw/tb/tb_frames.v`: stream vector `SW` 16384 → **40960** bits (a 145-frame load stream is ~19 k bits). Both must match.
-- **Simulations that have already passed on the new grid:** `tb_bob` 852, `tb_frames` 71, `tb_clock_gap` 11, `tb_clb`/`tb_bram`/`tb_dsp`, K = 4 722, `tb_synth` 972.
-
-### Measured size (the no-crash gate)
-
-`tools/bob/synth_estimate.sh` (whole design, yosys, same method for both):
-
-| | LUT | FF | yosys time | yosys peak |
-|---|---|---|---|---|
-| M15 (36 CLBs, built by Vivado in 5.1 min at 2.0 GB → 10 411 LUT / 11 097 FF) | 15 941 | 11 069 | 152 s | 1.36 GB |
-| **M16 (100 CLBs)** | **32 891** | **21 485** | 281 s | 2.07 GB |
-
-Scaling by M15's yosys→Vivado ratio (0.65 for LUTs, ~1.0 for FFs): expect roughly **21 k LUTs (≈40% of the XC7Z020) and ~21.5 k FFs (≈20%)**. It fits, but Vivado synthesis will take clearly longer than M15's 5 minutes, and the loop-breaking phase grows with the routing muxes (1723 → 3391).
-
-**Tell the user these numbers before the build**, and offer the fallback: an 8 × 8 core (64 CLBs) is roughly half the growth if the machine struggles. The Windows PC restarted once under load at M13, so this matters.
-
-### Status 2026-09-18 (updated)
-
-**Done:** everything below except the Vivado build. `make check` is green on the 100-CLB fabric (193 pytest tests, every testbench, lint); `make pnr` → `docs/reports/M16/pnr_vs_vpr.md` (VPR 4017 vs bob 3601 = 0.90×); `examples/big.v` (56 CLBs) routes through both flows; `hw/build.cfg` is M16 / `0xFBEEF093` / USERCODE 0x10; `docs/hwtest/M16.md`, PLAN, README, REUSE, CLAUDE and `arch.html` are updated; the carry mutant follows the last CLB column. `make mutate` was running when this was written.
-
-**Next:** `make hw`, then the Vivado build on Windows, `docs/reports/M16/` back on the Mac, `make check`, `make hwtest M=M16`; then tag `m16` and rerun `docs/project/collect.py` + `build.py`.
-
-### What was left for M16, in order
-
-1. **Wait for `make check`** (running in the background when this file was written; log `build/m16_check.log`). Co-simulation with 100 CLBs is slow — several minutes. Fix whatever it reports.
-   - Expect failures in `tests/test_device.py` (`test_sizes` pins 8320 / 6016 and the block counts) — update the pinned numbers to 18560 / K=4's value, `(14, 12, 24)` and `{"io": 44, "clb": 100, "bram": 2, "dsp": 2}`.
-   - `tests/test_pnr.py::test_too_many_clbs_is_refused` already derives the count from `B.NCLB`, so it should hold.
-2. **`make pnr`** — regenerate `docs/reports/M12b/pnr_vs_vpr.md` on the new graph (it is per-milestone; consider `docs/reports/M16/`).
-3. **`make mutate`** — all three suites. `sim/mutate_fabric.sh`'s `carry-direct-cut` cuts the carry of the **last CLB column** (`clb_x8y3` today); on a 12-column grid that column is `clb_x12y3`. Retarget it or the mutant survives (this exact trap already happened once at M12b).
-4. **`hw/build.cfg`:** `tag = M16`, `idcode = FBEEF093`, `usercode = 00000010`. `0xF` is the last free IDCODE nibble (`PLAN.md` §7) — say so and decide with the user what the numbering does next.
-5. **Docs:** `docs/hwtest/M16.md` (checklist, in the shape of `M15.md`), `PLAN.md` status row + an "as built" section, `README.md` device table, `REUSE.md`, `CLAUDE.md` one-liner, `docs/bitstream-format.md` §4 (the width list), `docs/arch/` + `python3 docs/arch/build.py`.
-6. **`host/hwtest.py`:** `MILESTONE["M16"]` = M15's list (everything still applies) plus at least one check that only the bigger grid can run. Suggestion: an example that needs > 36 CLBs (extend `examples/wide.v` or add one), and a `frames-load` variant that proves all 145 frames load. Add passing **and** failing cases to `tests/test_hwtest_fake.py` first.
-7. **Hand off to Vivado:** `make check` green → `make hw` → the user replaces `E:\bob_full_v1\hw`, runs `build.tcl`, copies `bob_vivado\out\M16\` back to `docs/reports/M16/`, then `make check` and `make hwtest M=M16`.
-8. **After it passes:** commit, tag `m16`, update the status tables, rerun `docs/project/collect.py` + `build.py` so the report and `project.html` include M16.
-
-### Build rules that must not be broken (each cost a crashed Vivado)
-
-- No computed part-select over the configuration memory — decode per frame (`cfg_store.v`).
-- No `keep_hierarchy` anywhere in `bob_fpga.v`.
-- The XDC is **implementation-only** (`build.tcl` sets `USED_IN_SYNTHESIS false`).
-- Compare `tools/bob/synth_estimate.sh` against the last successful build before every hand-off.
-- Plain XDC only (no Tcl), and architecture numbers live only in `device.py`.
+The device table in `README.md` is generated from `tools/bob/device.json` by
+`tools/bob/devtable.py`; `make check` fails if it drifts.
 
 ---
 
-## 3. The guide the user asked for (not started)
+## 2. M16 — the 10 × 10 CLB grid, as built
 
-**Goal:** something a person can learn the whole project from. For **every part**: what it is, why it is built that way, how to use it, how to tweak it, where its code and tests are.
+The first Vivado attempt did **not** close: implementation ran 3 h 25 min and ended at
+WNS −465.7 ns on fabric flop → flop paths, with `[Route 35-447]` congestion. The cause was
+the constraint, not the tool. The fabric's budget was `-setup 256` × 8 ns = 2048 ns, honest
+only because `clock_ctrl.v` guaranteed gce pulses ≥ 256 sysclk cycles apart; the 12 × 10
+fabric's static path through the unconfigured routing muxes is about **2500 ns**.
 
-Suggested shape (keep the existing pattern: Markdown as the source, HTML built from it):
+Raising the gap to 2⁹ = 512 cycles (4096 ns) fixed it, and disabling `phys_opt_design`
+removed an hour of pointless chasing. The cost is the free-running guest clock:
+**244 kHz maximum instead of 488 kHz**. Stepped mode is unaffected (TCK at 100 kHz is
+10 µs per request, slower than the 4.1 µs gap).
 
-- **`docs/project/GUIDE.md`** — the text. One section per part, each with the same four headings (*What it is · Why this way · How to use it · How to tweak it*), plus:
-  - orientation for a newcomer (guest vs host FPGA, the five layers, vocabulary: rr graph, mux, FASM, frame, chain, BLE, pack/place/route)
-  - a **cookbook**: change the LUT size K, change the grid, change the channel width, add an example, add a configuration field, add a JTAG instruction, add a board check, change the user clock, run a partial reconfiguration, debug a failing load (CRC error, DONE not rising, readback mismatch, VPR unroutable, Vivado crash)
-  - **comparison with OpenFPGA, Aegis, ZUMA, prjxray/F4PGA** — honest, not boastful. Facts to build on:
-    - *OpenFPGA* (LNIS): architecture description → Verilog + SPICE + bitstream + VTR flow, many architectures, ASIC-oriented, far larger scope and maturity than bob; bob borrows its tileable rr-graph method, its `k6_frac_N10…` reference architecture and its `scan_chain`/`frame_based` protocols.
-    - *Aegis* (`/Users/sk/work/aegis/docs/arch/*.md`, read-only, Apache-2.0): a parameterised FPGA fabric generator in Dart/ROHD producing SystemVerilog for a whole device (clock tiles, I/O + SerDes, LUT/BRAM/DSP grid), configured by one scan chain through every tile. bob took its shift + shadow register idea and its I/O and clock notes.
-    - Where bob is genuinely different: every milestone is proven on real hardware; one device description generates RTL, VPR architecture, models, FASM map and host tools; two configuration paths (UG470-style frames **and** a chain) on one memory; partial reconfiguration that provably keeps state; golden co-simulation and mutation testing; a stand-in board so hardware checks are tested before the board sees them; one command each way (`./bob build`, `./bob load`).
-    - Where it is not: one small fabric on one board, 1 BLE per CLB, no timing-driven PnR, no ASIC flow, no SPICE/area models, no multi-clock designs, K and W fixed per build, far less coverage of architectures and devices than OpenFPGA.
-- **`guide.html`** — same look as `arch.html`/`project.html`. Extend `docs/project/build.py` (it already converts Markdown and extracts tables) to build a second page from `GUIDE.md` with its own template: a parts explorer (click a part → what / why / use / tweak), the cookbook as steppers, and the comparison as a table with per-row notes.
-- Verify the page the way `project.html` was verified: build it, then load it in WebKit and check for script errors and layout (the Swift snapshot tool used for that lives in the session scratchpad; re-create it if needed — it is ~50 lines using `WKWebView.takeSnapshot`).
+**The rule this confirms:** the gce gap is not a constant, it is a function of the grid.
+Grow the fabric and `GCE_MIN_GAP_SHIFT` grows with it. The next step up is 10 (1024 cycles,
+8192 ns), and it halves the guest clock again — see §5 for the way out of that trade.
+
+Since M16 that agreement is **checked**, not remembered (`tests/test_layout.py`):
+
+- the XDC's sysclk → sysclk `-setup` must equal `2**GCE_MIN_GAP_SHIFT` from `device.json`
+- `-hold` must be `-setup` − 1
+- `bob_fpga.v` must take `GAP_SHIFT` from `` `BOB_GCE_MIN_GAP_SHIFT `` — it used to pass
+  `DIV_MIN_SHIFT` to both, so `device.py`'s gap knob did nothing
+- `DIV_MIN_SHIFT >= GCE_MIN_GAP_SHIFT`, or the divider would outrun the exception
+
+Each of those four was mutation-tested: break the number and the suite fails.
+`tb_clock_gap` now also runs at the board's gap, not only at the short simulation value.
+
+---
+
+## 3. bob studio
+
+`./host/studio.py --probe fake` (no board) or `--probe usb` (the Pico), then
+`http://127.0.0.1:8765`. An EDA tool for this FPGA, laid out the way Vivado is: sources and
+an editor, Flow Navigator, Synthesis / Implementation / Generate Bitstream with per-stage
+timings and diagnostics, a Device view showing where the design landed and which channels it
+routed through, a Pin Planner that writes a `.pcf`, and Program and Debug — program, readback
+and verify, CAPTURE, partial reconfiguration.
+
+- **`tools/bob/flow.py`** is the engine: the same flow `./bob build` runs, as separate timed
+  stages each returning what it measured. `cli.build()` is now a wrapper over it, and
+  `tests/test_flow.py` requires both to write a **byte-identical `.bit`**.
+- **`host/fakeboard.py`** is `FakeBob`, moved out of `tests/test_hwtest_fake.py` (which now
+  imports it) so tools that are not pytest can use it. It answers from `tools/bob/model.py`.
+  It cannot find hardware problems — it is for running the flow with no board attached.
+- **`docs/studio/`** builds `studio.html` the way `docs/arch/` builds `arch.html`: one
+  self-contained page, vanilla JS and hand-drawn SVG, no external libraries. The backend is
+  stdlib `http.server` + Server-Sent Events, so the project gained **no new dependency**.
+- New flags: `./bob build --json FILE` (the stage record), `--project bob.proj`,
+  `./bob load --probe usb|fake`.
+
+Worth knowing: the software board simulates one guest clock per `model.settle()`, about 2 ms
+at 100 CLBs, so a free-running design runs behind the rate it asks for. `studio.DemoBoard`
+bounds the backlog to a time budget and the page reports how many edges were skipped. The
+real board has no such problem.
 
 ---
 
 ## 4. Everyday commands
 
 ```sh
-make check            # device files + every simulation + lint + pytest (green before any hand-off)
+make check            # device files + the generated device table + every simulation + lint + pytest
 make rrgraph          # after an architecture change in device.py (Docker/Colima), then make device
 make vpr              # re-route every example (Docker)
 make pnr              # bob's PnR vs VPR report
 make mutate           # the three mutation suites
 make hwtest M=M16     # board test (interactive); ONLY=<check> reruns one
+make clean-logs       # build/ grows to gigabytes of yosys estimate logs
+./host/studio.py --probe fake        # bob studio, no hardware
+tools/bob/devtable.py --write        # regenerate the device table in the documents
 tools/bob/synth_estimate.sh $PWD $PWD/build/est      # whole-design yosys estimate before a Vivado hand-off
 python3 docs/project/collect.py && python3 docs/project/build.py   # report data + project.html
 python3 docs/arch/build.py --data                    # arch.html (--data after make device)
+python3 docs/studio/build.py                         # studio.html
 ```
 
-Docker for VPR: `colima start`, then `DOCKER_HOST=unix://$HOME/.colima/default/docker.sock` (the scripts set it).
+Docker for VPR: `colima start`, then `DOCKER_HOST=unix://$HOME/.colima/default/docker.sock`.
 
 ---
 
-## 5. Working agreements (from CLAUDE.md, worth repeating)
+## 5. What is worth doing next
+
+**The IDCODE numbering is out of nibbles.** M16 used `0xF`, the last one (`PLAN.md` §7).
+M17 needs a new scheme before another board build can be told apart on the wire.
+
+**The frame readback mux is about a third of the design, and it grows with the grid.**
+`hw/src/core/cfg_store.v:82-97` builds readback as a flat `2**FIDX_W = 256`-entry ×
+128-bit array indexed at run time — a real 256:1 mux. Measured with yosys on `cfg_store`
+alone, including a control with the mux replaced by a constant:
+
+| `cfg_store` | LUTs |
+|---|---|
+| NFRAMES = 65 (M15) | 5 726 |
+| NFRAMES = 145 (M16) | 12 402 |
+| NFRAMES = 145, readback mux removed | **599** |
+
+So the mux is ~11 800 of 12 402 LUTs — **95% of `cfg_store` and ~36% of the whole design** —
+and it serves only JTAG readback, which has no timing requirement at all. It is also the
+biggest single contributor to the congestion that stalled M16's first implementation.
+
+The coding style is deliberate and must stay: a *computed part-select* over the configuration
+memory is what ran Vivado out of memory at M13 (the comment at `:79` says so). The fix is to
+mirror the write path's hierarchical FAR decode (`cfg_frames.v:144-184`, column base +
+per-column count): a small per-column mux feeding a ~15-way column mux, O(Σ columns) instead
+of O(2⁸), with nothing on the wire changing.
+
+**Then the gap stops having to grow.** `PLAN.md` §8 has listed case-analysis sign-off since
+M7 and it was never done: constrain the configuration bits so Vivado never times a path that
+exists only in an unconfigured fabric. That is what breaks the "every grid step halves the
+guest clock" trade permanently.
+
+Also open: ZUMA-style LUTRAM configuration memory (`PLAN.md:752`; configuration is 21 511
+flip-flops, ~86% of every FF in the design, a fraction that grows with the grid); more than
+one BLE per CLB, so 3391 routing muxes amortise over more logic; a substantial demo design
+(the largest example is `examples/big.v`, 21 lines and 56 CLBs); and CI — the Mac-only half
+of `make check` would run on a hosted runner today and there is no `.github/` at all.
+
+---
+
+## 6. Working agreements (from CLAUDE.md, worth repeating)
 
 - One milestone at a time; show results and **stop for the user's go-ahead**.
 - Every milestone ends with a PYNQ-Z2 test; simulation alone never closes one.
 - Every Vivado build is the complete FPGA plus the new feature.
 - Keep both configuration paths working (frames and chain).
 - Anything the user does by hand needs a guide: what to press, what the LEDs must show, and time to do it.
-- Git: commit as you go; **never** commit `docs/bob_full_v1_report.tex` (the user's file); tag `mN` only after milestone N passes on the board.
+- Git: commit as work progresses; **never** commit `docs/bob_full_v1_report.tex` (the user's file); tag `mN` only after milestone N passes on the board.
+- **Do not edit `hw/` or the shared tools while a milestone is in flight on the Vivado machine** — freeze first (`PLAN.md` §8). Phase 0 of the studio work was written as new files only for exactly this reason.

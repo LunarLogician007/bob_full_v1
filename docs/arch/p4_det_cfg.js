@@ -59,9 +59,9 @@
   D("clock", {
     title: "User clock — clock_ctrl.v", sub: "sysclk 125 MHz + gce enable · JTAG-stepped or free-running", k: "CMT", stage: "hw/src/core/clock_ctrl.v",
     rows: [F("clk_mode 0 — JTAG-stepped", ["TCK", "2-flop sync", null, "CMT"], ["rising edge ∧ USER1 ce", "or step / autostep", null, "CMT"], ["gce pulse", "one sysclk cycle", null, "CMT"]),
-      F("clk_mode 1 — free-running", ["counter", "2^(clk_div+8) cycles", null, "CMT"], ["gce pulse", "≤ 488 kHz", null, "CMT"]),
+      F("clk_mode 1 — free-running", ["counter", "2^(clk_div+9) cycles", null, "CMT"], ["gce pulse", "≤ 244 kHz", null, "CMT"]),
       B("also synchronised", ["GSR · GWE · cin", "ASYNC_REG", null, "CMT"])],
-    notes: ["gce pulses are ≥ 120 sysclk cycles apart, so every fabric flop-to-flop path gets a 120-cycle multicycle in the XDC — the routing graph needs hundreds of ns.",
+    notes: ["gce pulses are ≥ 512 sysclk cycles apart (M16; 256 through M15, 120 at M4), so every fabric flop-to-flop path gets a 512-cycle multicycle in the XDC — the 12×10 routing graph needs about 2500 ns.",
       "M4's build closed with only +0.84 ns WNS on sysclk even with these multicycles; M7's much deeper routing depends on them."],
     src: [["AMD UG949", "clock enables instead of logic-generated clocks"], ["Aegis docs/arch/clock.md", "divider-based user clock"]],
     why: ["A single BUFG clock + enable keeps the host timing analysable; a generated clock through the fabric would not be."],

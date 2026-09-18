@@ -260,12 +260,12 @@ raw  = fpga.sample(p)                        # the real switches and LEDs, at on
 
 ### 3.8 The user clock (`clock_ctrl.v`)
 
-**What it is.** The guest fabric runs on the host's 125 MHz clock, but only advances when **`gce`** is high. `clock_ctrl.v` produces `gce` in two modes: *JTAG-stepped* (one pulse per TCK edge while USER1 `ce`, or a single `step`) and *free-running* (one pulse every 2^(div+8) cycles). It also synchronises every TCK-domain control into the sysclk domain with two-flop synchronisers, guarantees at least 2^GAP_SHIFT = 256 cycles between pulses, and implements the M14 **freeze** (hold `gce`, acknowledge back to the TCK domain).
+**What it is.** The guest fabric runs on the host's 125 MHz clock, but only advances when **`gce`** is high. `clock_ctrl.v` produces `gce` in two modes: *JTAG-stepped* (one pulse per TCK edge while USER1 `ce`, or a single `step`) and *free-running* (one pulse every 2^(div+9) cycles). It also synchronises every TCK-domain control into the sysclk domain with two-flop synchronisers, guarantees at least 2^GAP_SHIFT = 512 cycles between pulses, and implements the M14 **freeze** (hold `gce`, acknowledge back to the TCK domain).
 
 **Why this way.** Three reasons, in order of importance:
 1. **Timing.** A clock enable keeps the whole fabric on one real clock; a generated or gated clock would need clock resources the host does not have to spare, and UG949 recommends enables.
 2. **Determinism.** One clock per JTAG scan makes cycle-exact checks possible: the board and the model can be compared after every single user clock.
-3. **Honest constraints.** Because the RTL *guarantees* the 256-cycle spacing, the 256-cycle multicycle in the XDC is a fact, not an assumption. That is what closed M7's timing failure.
+3. **Honest constraints.** Because the RTL *guarantees* the 512-cycle spacing, the 512-cycle multicycle in the XDC is a fact, not an assumption. That is what closed M7's timing failure. It also has to be *big enough*: at M16 the grid grew to 12 × 10, the static path through the unconfigured routing muxes reached about 2500 ns, and the old 256 cycles (2048 ns) left implementation 465 ns short — `phys_opt_design` burned 1 h 15 min on it and the router abandoned timing. The fix is one number in two places, not a placement or routing effort setting.
 
 **How to use it.** Per design, from the `.bit`:
 
@@ -277,7 +277,7 @@ raw  = fpga.sample(p)                        # the real switches and LEDs, at on
 
 **How to tweak it.**
 - **Rate:** `--div N` (period = 2^(N+8) sysclk cycles).
-- **Minimum spacing:** `GCE_MIN_GAP_SHIFT` in `device.py` (and the matching multicycle in the XDC). Raising it makes timing easier and the fabric slower.
+- **Minimum spacing:** `GCE_MIN_GAP_SHIFT` in `device.py` (and the matching multicycle in the XDC). Raising it makes timing easier and the fabric slower. Grow the grid and this is the number that has to grow with it: 12 × 10 needs 9 (512 cycles), 8 × 6 fitted in 8.
 - **A second clock domain:** a real project — a second `gce`, per-CLB clock selection, and VPR would need two global nets.
 
 **Tests.** `hw/tb/tb_clock_gap.v` (11 checks): spacing in both modes, requests that arrive too early, no `gce` at all while frozen, and pulses resuming after release.

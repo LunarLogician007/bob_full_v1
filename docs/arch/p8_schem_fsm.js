@@ -230,7 +230,7 @@
     frame(20, 360, 1034, 90, "WHAT IT MEANS", { bg: "#fdfdfb" });
     txt(40, 390, CLK.mode ? `free-running: ${hz >= 1000 ? (hz / 1000).toFixed(1) + " kHz" : hz.toFixed(2) + " Hz"} user clock (div ${CLK.div}); hwtest counter-run uses div 16 = 7.45 Hz`
       : `JTAG-stepped: one gce per TCK rising edge while ce = ${CLK.ce}; step/autostep give exactly one`, { size: 9.4, anchor: "start", mono: true, w: 600 });
-    txt(40, 414, "gce pulses are ≥ 120 sysclk cycles apart → pynq_z2.xdc gives fabric paths a 120-cycle multicycle (UG949: enables, not generated clocks).", { size: 8, anchor: "start", fill: C.MUTE });
+    txt(40, 414, "gce pulses are ≥ 512 sysclk cycles apart → pynq_z2.xdc gives fabric paths a 512-cycle multicycle (UG949: enables, not generated clocks).", { size: 8, anchor: "start", fill: C.MUTE });
     return svg(1064, 466, 900);
   };
   DEMO.clock = {

@@ -108,7 +108,7 @@ module tb_bob;
             acc_pulses = acc_pulses + 1;
 
     // 250 MHz in simulation; the board's is 125 MHz. The free-running divider
-    // is shortened to 2**3 cycles here (DIV_MIN_SHIFT), 2**8 on the board.
+    // is shortened to 2**3 cycles here (DIV_MIN_SHIFT), 2**9 on the board.
     // clk_on is dropped only while chain bits are being shifted.
     reg clk_on = 1'b1;
     always #2 sysclk = clk_on ? ~sysclk : 1'b0;
@@ -116,7 +116,11 @@ module tb_bob;
     always @(posedge sysclk)
         if (count_en && dut.u_clk.gce) pulses = pulses + 1;
 
-    bob_fpga #(.IDCODE_VALUE(IDCODE), .USERCODE_VALUE(USERCODE), .DIV_MIN_SHIFT(3)) dut (
+    // GAP_SHIFT follows the shortened divider here: these are two knobs now
+    // (bob_fpga.v), and a 3-cycle divider under the board's 512-cycle gap would
+    // never pulse twice. The board's own value is simulated by tb_clock_gap.
+    bob_fpga #(.IDCODE_VALUE(IDCODE), .USERCODE_VALUE(USERCODE),
+               .DIV_MIN_SHIFT(3), .GCE_MIN_GAP_SHIFT(3)) dut (
         .sysclk(sysclk),
         .tck(tck), .tms(tms), .tdi(tdi), .tdo(tdo),
         .pad_i(pads_i), .pad_o(pads_o),

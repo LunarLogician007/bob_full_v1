@@ -616,10 +616,34 @@ The M7 build reported WNS −1102 ns, TNS −1 608 726 ns and 1858 failing endpo
 | 4 | same step, **and Windows restarted** | a program crash alone does not restart Windows, which pointed at the machine under load; the constant was XDC-driven loop breaking in synthesis | **`USED_IN_SYNTHESIS false` on the XDC**; implementation still reads every constraint |
 | 5 | **built**: synthesis 3.5 min at 2.0 GB, implementation 2.5 GB, timing closed | all four changes together: per-frame writes, flattened fabric, clock-based multicycles, XDC in implementation only | M13 passed 39/39 on the board |
 
+### 17.4 The M16 implementation failures
+
+Synthesis was never the problem at M16 — the M13 rules held. Implementation failed twice, for
+two unrelated reasons, and both are worth keeping.
+
+| attempt | symptom | diagnosis | change |
+|---|---|---|---|
+| 1 | 3 h 25 min and still running: `phys_opt_design` 1 h 15 min, router at `[Route 35-447]` congestion, overlaps rising 25 551 → 30 325 → 34 608 | **WNS −465.7 ns / TNS −333 768 ns** on fabric flop → flop paths. The 256-cycle (2048 ns) multicycle stopped describing the fabric: the 12 × 10 static path through the unconfigured routing muxes is about 2500 ns. 8 × 6 fitted inside 2048 ns; 12 × 10 does not | **gce gap and XDC multicycle 8 → 9 (512 cycles, 4096 ns)** in `device.py` and `pynq_z2.xdc`, together, so the exception stays a fact |
+| 2 | `route_design` stopped inside "Phase 2.3 Update Timing": no `ERROR:` line, log ending mid-phase, only `[Vivado 12-13638] Failed runs(s) : 'impl_1'`. Run by hand from the placed checkpoint it took Vivado itself down | a **threading fault in the timing engine**, not the design. The timer cuts every combinational loop in the routing mesh — M16 has one strongly connected component of **2146 routing wires with 11 270 independent cycles** against M15's 1018 / 4130 — and two threads doing that concurrently falls over. The same component that killed M13 attempts 2–4 | **`set_param general.maxThreads 1`** in the implementation TCL.PRE hook (`drc_waiver.tcl`), hooked on `opt_design`, `route_design` and `write_bitstream` |
+| 3 | **built**: WNS +0.667 ns, 0 failing endpoints of 62 692, 20 498 LUT (38.5%) / 21 511 FF, DRC clean | both changes together | M16 passed 50/50 on the board |
+
+Two details that cost time and are easy to forget:
+
+- `launch_runs` runs implementation in a **separate process**. A `set_param` typed in the GUI's
+  Tcl console, or set by the script that launches the run, never reaches it — it has to be in a
+  `STEPS.*.TCL.PRE` hook.
+- Vivado stores `STEPS.PHYS_OPT_DESIGN.IS_ENABLED` **in the project**. A run that turns a step
+  off keeps it off until something turns it back on, so `build.tcl` now sets it explicitly
+  rather than relying on the default.
+
+The gap number is the lesson that generalises: **it is a function of the grid, not a constant.**
+Grow the fabric and `GCE_MIN_GAP_SHIFT` grows with it, in `device.py` and the XDC together.
+
 **Rules kept for every later build** (CLAUDE.md, PLAN.md):
 - no computed part-select over the configuration memory
 - no `keep_hierarchy`
 - the XDC stays out of synthesis
+- implementation runs single-threaded, and the gce gap covers the fabric's static path
 - compare the whole-design yosys estimate (`tools/bob/synth_estimate.sh`) with the last successful build before a hand-off
 
 The M15 RTL estimates at 15 941 LUT / 11 069 FF / 1.36 GB, against M13's 15 358 / 12 220 / 1.04 GB.

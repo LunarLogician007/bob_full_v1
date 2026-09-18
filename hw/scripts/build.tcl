@@ -336,7 +336,12 @@ update_compile_order -fileset sim_1
 
 # The fabric trips LUTLP-1 by construction - see constr/pynq_z2.xdc. Re-point
 # the hooks on every run: hw/ may have been pasted somewhere new.
+# ROUTE_DESIGN too, from M16: the hook also forces general.maxThreads 1, and a
+# parameter has to be set in the process that runs the step (all impl steps share
+# one process, so opt_design's hook already covers it - this is belt and braces in
+# case a future flow splits them).
 set_property STEPS.OPT_DESIGN.TCL.PRE      $waiver [get_runs impl_1]
+set_property STEPS.ROUTE_DESIGN.TCL.PRE    $waiver [get_runs impl_1]
 set_property STEPS.WRITE_BITSTREAM.TCL.PRE $waiver [get_runs impl_1]
 
 # M7: the generated fabric (2100 routing muxes, thousands of combinational loops
@@ -348,6 +353,20 @@ if {[dict exists $cfg synth_directive] && [dict get $cfg synth_directive] ne ""}
     set_property STEPS.SYNTH_DESIGN.ARGS.DIRECTIVE [dict get $cfg synth_directive] [get_runs synth_1]
     puts "synth_1 directive: [dict get $cfg synth_directive]"
 }
+
+# M16: phys_opt_design stays ENABLED, and the property is set explicitly on every run
+# because Vivado stores it in the project - a previous run that turned it off keeps it
+# off until something turns it back on.
+#
+# The history is worth keeping: with the old 256-cycle multicycle it was pure cost
+# (WNS -465 ns going in, 1 h 15 min of "Critical Path Optimization", 128 ns recovered -
+# it cannot fix a fabric path longer than the gce gap). It was disabled for that reason,
+# and then route_design died inside "Phase 2.3 Update Timing" with no message. The one
+# implementation that ever got past that phase on this fabric had phys_opt in the flow,
+# so the netlist the router sees is a suspect and this step goes back in. With the gap
+# now covering the fabric (WNS +0.531 ns after placement) it has nothing to fix and
+# costs seconds, not an hour - M15 closed at +0.585 ns with it skipping.
+set_property STEPS.PHYS_OPT_DESIGN.IS_ENABLED true [get_runs impl_1]
 
 # M13: synthesis crashed Vivado (and later restarted the Windows machine) three
 # times, each time at the same step: "Applying XDC Timing Constraints", then

@@ -183,7 +183,8 @@ def d_counter(mode="jtag", div=0, x=COUNTER_X, bits=4):
     LD0..LD2 = q1..q3.
 
     mode 'jtag': one count per TCK edge while USER1 ce. mode 'run': free-running,
-    one count every 2**(div+8) sysclk cycles (div 17 -> 3.7 counts/s, LD0 ~1 Hz)."""
+    one count every 2**(div+DIV_MIN_SHIFT) sysclk cycles (div 17 -> 1.9 counts/s from M16,
+    LD0 ~0.5 Hz)."""
     d = Design()
     d.set_clock(mode, div)
     for r in range(bits):
@@ -271,7 +272,7 @@ def d_dsp_mult_sw():
 def d_dsp_accum(div=16):
     """Accumulator on the free-running user clock: slice 0 P <= P + A*B every enable
     (PREG, CE_P = const1 on its pin), A and B from the DSP JTAG register. P0[2:0] ->
-    LD0..LD2: with A*B = 1 and div 16 (7.45 enables/s) LD0 blinks ~3.7 Hz."""
+    LD0..LD2: with A*B = 1 and div 16 (3.73 enables/s from M16) LD0 blinks ~1.9 Hz."""
     d = Design()
     d.set_clock("run", div)
     d.dsp_config(0, opmode="P+M", preg=1, bus_a="jtag", bus_b="jtag")

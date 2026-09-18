@@ -8,6 +8,13 @@ bob is a complete FPGA written in Verilog and running in the PL of a Zynq XC7Z02
 
 A Raspberry Pi Pico running DirtyJTAG on PMODA configures it from a Mac.
 
+**Try it:** `./host/studio.py --probe fake` opens **bob studio** at `http://127.0.0.1:8765` —
+an EDA tool for this FPGA, laid out the way Vivado is. Write Verilog, run Synthesis,
+Implementation and Generate Bitstream, watch each stage report what it measured, see the
+design land on the real floorplan, then program a board and watch the LEDs. `--probe fake`
+runs the whole thing against the board in software ([`host/fakeboard.py`](host/fakeboard.py)),
+so it works with no hardware attached.
+
 **Start here:** [`guide.html`](guide.html) / [`docs/project/GUIDE.md`](docs/project/GUIDE.md) explain every part — what it is, why it is built that way, how to use it and how to tweak it — and compare bob with OpenFPGA, Aegis and ZUMA. [`project.html`](project.html) / [`docs/project/REPORT.md`](docs/project/REPORT.md) are the project report: what was built, measured and learned. [`arch.html`](arch.html) is the interactive die slice.
 
 For the working plan, conventions, gotchas and every milestone, read [`PLAN.md`](PLAN.md); the live state and next steps are in [`HANDOFF.md`](HANDOFF.md); the short agent rules are in [`CLAUDE.md`](CLAUDE.md).
@@ -32,19 +39,26 @@ M0–M15 passed on the board. **M16 (10 × 10 CLBs = 100 CLBs, 18 560 configurat
 
 After M7 the Vivado bitstream stayed the same through M11: those milestones only load new configuration chains over JTAG. M12a (Python PnR) needed no rebuild either. M15 (IDCODE `0xEBEEF093`), carrying M12b, M14 and M15, is on the board.
 
-## The device (M12b: 36-CLB profile)
+## The device
+
+Generated from `tools/bob/device.json` by `tools/bob/devtable.py`; `tests/test_device_table.py` fails if it drifts.
+
+<!-- device:begin -->
 
 | | |
 |---|---|
-| VPR grid | 10 × 8 (8 × 6 core inside an I/O ring, corners empty); M7–M13 had 8 × 6 with 16 CLBs |
-| CLBs | 36 (columns x = 1, 2, 4, 5, 7, 8; one BLE each: LUT6 O6/O5, MUXCY/XORCY carry, FDRE/FDSE) |
-| BRAM | 2 × 1024×18 true dual port (column x = 3, 3 rows tall); contents as frames (FAR type 001) or over USER4 |
-| DSP | 2 × DSP48E1-style slices (column x = 6, 3 rows tall), PCOUT→PCIN cascade |
-| I/O | 28 pads; board switches, buttons and LEDs on fixed pads, LD3 = DONE |
-| Routing | L4 unidirectional, W = 24, Wilton Fs = 3 (from OpenFPGA's k6_frac_N10 tileable arch); 1723 muxes |
-| Configuration | 8320 bits = 65 frames of 4 × 32; UG470-style packets on CFG_IN/CFG_OUT (CRC-32C, IDCODE, partial reconfiguration, BRAM content frames) or the streamed chain on CHAIN_IN/CHAIN_OUT; GSR → GTS → GWE → DONE startup |
-| JTAG | 6-bit AMD 7-series IR, IDCODE `0xEBEEF093` (M15) |
-| Host utilisation (Vivado, M15) | 10 411 LUTs (19.6%), 11 097 FFs, 2 RAMB18, 2 DSP48E1; WNS +0.585 ns |
+| VPR grid | 14 × 12 (12 × 10 core inside an I/O ring, corners empty) |
+| CLBs | 100 (columns x = 1, 2, 4, 5, 6, 7, 9, 10, 11, 12; one BLE each: LUT6 O6/O5, MUXCY/XORCY carry, FDRE/FDSE) |
+| BRAM | 2 × 1024×18 true dual port (column x = 3, 5 rows tall); contents as frames (FAR type 001) or over USER4 |
+| DSP | 2 × DSP48E1-style slices (column x = 8, 5 rows tall), PCOUT→PCIN cascade |
+| I/O | 44 pads; board switches, buttons and LEDs on fixed pads, LD3 = DONE |
+| Routing | L4 unidirectional, W = 24, Wilton Fs = 3 (from OpenFPGA's k6_frac_N10 tileable arch); 3391 muxes |
+| Configuration | 18560 bits = 145 frames of 4 × 32; UG470-style packets on CFG_IN/CFG_OUT (CRC-32C, IDCODE, partial reconfiguration, BRAM content frames) or the streamed chain on CHAIN_IN/CHAIN_OUT; GSR → GTS → GWE → DONE startup |
+| User clock | one sysclk enable at a time, at least 2**9 = 512 cycles apart (the fabric's multicycle); free-running at most 125 MHz / 2**9 = 244 kHz |
+| JTAG | 6-bit AMD 7-series IR, IDCODE `0xFBEEF093` (M16) |
+| Host utilisation (Vivado, M16) | 20 498 LUTs (38.53%), 21 511 FFs (20.22%), 2 RAMB18, 2 DSP48E1, WNS +0.667 ns |
+
+<!-- device:end -->
 
 A 48-CLB M7 profile (8 × 8 core, 9400-bit chain, IDCODE `0x9BEEF093`) is frozen in [`release/M7_8x8/`](release/M7_8x8/); it was synthesised with the XDC loop breaking that later crashed Vivado. M12b's 36-CLB profile costs no more logic than M13 thanks to the smaller configuration store. Changing the grid is one setting (`ARCH` in `tools/bob/device.py`) followed by `make rrgraph`.
 
@@ -55,6 +69,7 @@ On the Mac:
 ```sh
 make check              # device files, all simulations, lint, pytest — must be green
 make hw                 # refresh generated vectors inside hw/
+make clean-logs         # drop the gigabyte yosys estimate logs from build/
 ```
 
 On the Windows Vivado machine:
@@ -77,6 +92,31 @@ make hwtest M=M12       # same bitstream: every example placed and routed by bob
 
 Every run is appended to `docs/hwtest/results.log`. To test an older bitstream, use its frozen tools, e.g. `cd release/mac_M6/host && ./hwtest.py --milestone M6`.
 
+## bob studio
+
+```sh
+./host/studio.py --probe fake        # no board needed
+./host/studio.py --probe usb         # the Pico on PMODA
+python3 docs/studio/build.py         # rebuild studio.html from docs/studio/p*.{html,js}
+```
+
+| Vivado / Quartus | bob studio | what actually runs |
+|---|---|---|
+| Synthesis | Synthesis | `tools/bob/synth.py` (yosys onto bob cells) |
+| — | Synthesis Verification | `tools/bob/equiv.py`: source == netlist == golden, 300 cycles |
+| Implementation | Implementation | pack / place / route — VPR, or bob's own Python PnR |
+| Generate Bitstream | Generate Bitstream | `fasm_from_vpr.py` → `bitgen.py` → `.bit` |
+| Device window | Device view | the placement and routed channels on the real grid |
+| I/O Planning | Pin Planner | the 44 pads → writes a `.pcf` |
+| Open Target / Program | Program and Debug | `host/cfgplane.py`, readback, CAPTURE, partial reconfiguration |
+| Messages | Messages | yosys / iverilog / VPR diagnostics, clickable to the source line |
+
+The stages come from [`tools/bob/flow.py`](tools/bob/flow.py), which runs the same flow
+`./bob build` does but as separate timed steps, each returning what it measured.
+`./bob build --json FILE` writes that record; `tests/test_flow.py` requires `flow.py` and
+`cli.build()` to produce a byte-identical `.bit`. The page is one self-contained file with
+no external libraries, assembled from `docs/studio/` the way `arch.html` is.
+
 ## The guest flow (M8–M10, today)
 
 ```sh
@@ -90,7 +130,7 @@ tools/bob/fasm_from_vpr.py --check        # committed VPR results -> FASM -> cha
 ./bob load build/bit/counter.bit          # frames on CFG_IN + FDRO readback, BRAM contents, JSTART (Pico attached)
 ./bob load build/bit/counter.bit --mode chain   # the same memory through the scan chain (CHAIN_IN)
 tools/bob/packets.py dump build/bit/counter.bit # the UG470-style packet stream
-./bob build examples/switches.v --clock run --div 15   # free-running user clock (14.9 Hz); then ./bob load
+./bob build examples/switches.v --clock run --div 15   # free-running user clock (7.45 Hz); then ./bob load
 ./bob info build/bit/counter.bit          # or: ./bob fasm build/bit/counter.bit
 ./bob build examples/fir.v --pnr python   # M12: bob's own pack/place/route instead of VPR (no Docker)
 tools/bob/pnr/compare.py                  # Python PnR vs VPR -> docs/reports/M12/pnr_vs_vpr.md

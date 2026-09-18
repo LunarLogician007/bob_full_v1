@@ -34,8 +34,13 @@
 module bob_fpga #(
     parameter [31:0]  IDCODE_VALUE   = 32'h8BEEF093,
     parameter [31:0]  USERCODE_VALUE = 32'h00000007,
-    // Simulation may shorten the free-running divider; the board uses 8.
-    parameter integer DIV_MIN_SHIFT  = `BOB_DIV_MIN_SHIFT
+    // Simulation may shorten the free-running divider; the board uses 9 (M16).
+    parameter integer DIV_MIN_SHIFT  = `BOB_DIV_MIN_SHIFT,
+    // The gce gap the XDC's sysclk multicycle is written against. It is a separate
+    // knob from the divider floor because they answer different questions - how fast
+    // the user clock may free-run, and how long a fabric path is allowed to take -
+    // and tests/test_layout.py checks this one against hw/constr/pynq_z2.xdc.
+    parameter integer GCE_MIN_GAP_SHIFT = `BOB_GCE_MIN_GAP_SHIFT
 )(
     input  wire                  sysclk,        // 125 MHz board clock (already on a BUFG)
     input  wire                  tck,
@@ -249,7 +254,8 @@ module bob_fpga #(
     clock_ctrl #(
         .DIV_W     (`BOB_CTRL_CLK_DIV_W),
         .MIN_SHIFT (DIV_MIN_SHIFT),
-        .GAP_SHIFT (DIV_MIN_SHIFT)            // M13: gce >= 2**8 sysclk cycles apart on the board
+        .GAP_SHIFT (GCE_MIN_GAP_SHIFT)        // M13: gce >= 2**BOB_GCE_MIN_GAP_SHIFT sysclk
+                                              // cycles apart on the board (M16: 2**9 = 512)
     ) u_clk (
         .sysclk   (sysclk),
         .tck      (tck),
