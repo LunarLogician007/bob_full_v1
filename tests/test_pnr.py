@@ -1,5 +1,5 @@
 """
-M12a: bob's own pack/place/route (tools/bob/pnr/), checked independently of itself.
+M12a: bob's own pack/place/route (software/bob/pnr/), checked independently of itself.
 
 For every example and variant the Python result must be legal (checked here from the
 written files, not by the PnR's own bookkeeping), deterministic for a seed, and its
@@ -14,8 +14,8 @@ import sys
 import pytest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(ROOT, "tools", "bob"))
-sys.path.insert(0, os.path.join(ROOT, "host"))
+sys.path.insert(0, os.path.join(ROOT, "software", "bob"))
+sys.path.insert(0, os.path.join(ROOT, "software", "host"))
 
 import bitstream as B  # noqa: E402
 import fasm_from_vpr as FV  # noqa: E402
@@ -33,7 +33,7 @@ def synthesised():
     import equiv
     for top in vpr_run.EXAMPLES:
         if not os.path.exists(os.path.join(ROOT, "build", "synth", top, f"{top}.trace.json")):
-            equiv.equiv([os.path.join(ROOT, "examples", f"{top}.v")], top, cycles=100)
+            equiv.equiv([os.path.join(ROOT, "work", "examples", top, f"{top}.v")], top, cycles=100)
 
 
 def _files_sha(work, name):

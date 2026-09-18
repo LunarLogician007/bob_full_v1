@@ -1,5 +1,5 @@
 """
-M2: tools/bob/chainbits.py implements docs/bitstream-format.md sections 5 and 8.
+M2: software/bob/chainbits.py implements docs/bitstream-format.md sections 5 and 8.
 The RTL CRC is checked against these functions by hw/tb/tb_cfg.v.
 """
 
@@ -10,7 +10,7 @@ import sys
 import pytest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(ROOT, "tools", "bob"))
+sys.path.insert(0, os.path.join(ROOT, "software", "bob"))
 
 import chainbits as cb  # noqa: E402
 
@@ -70,9 +70,9 @@ def test_chain_file_round_trip_and_rejections():
 
 
 def test_host_ir_codes_match_rtl():
-    """host/cfgplane.py and hw/src/core/jtag_tap6.v must agree on every code."""
+    """software/host/cfgplane.py and hw/src/core/jtag_tap6.v must agree on every code."""
     import re
-    sys.path.insert(0, os.path.join(ROOT, "host"))
+    sys.path.insert(0, os.path.join(ROOT, "software", "host"))
     import cfgplane
     rtl = open(os.path.join(ROOT, "hw", "src", "core", "jtag_tap6.v")).read()
     codes = {m.group(1): int(m.group(2), 2)

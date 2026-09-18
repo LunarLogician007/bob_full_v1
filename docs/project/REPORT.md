@@ -107,7 +107,7 @@ Later requests added:
  │  GUEST FLOW (ours)                                            │        │  HOST FLOW (AMD)            │
  │  design.v ─ yosys ─ VPR / bob PnR ─ FASM ─ bitgen ─ .bit      │        │  hw/ (bob RTL) ─ Vivado ─   │
  │                                   │                           │        │  bob_top.bit (XC7Z020)      │
- │  host/: cfgplane, hwtest ─ USB ─ Pico (DirtyJTAG) ──JTAG──┐   │        └──────────────┬──────────────┘
+ │  software/host/: cfgplane, hwtest ─ USB ─ Pico (DirtyJTAG) ──JTAG──┐   │        └──────────────┬──────────────┘
  └───────────────────────────────────────────────────────────┼───┘                       │ program once
                                                              ▼                            ▼
                               ┌──────────── PYNQ-Z2: XC7Z020 PL ─────────────────────────────────┐
@@ -122,7 +122,7 @@ Later requests added:
 
 - **Host flow.** bob's RTL goes through Vivado to an AMD bitstream for the XC7Z020. Once it is programmed, the PL *is* bob. It is rebuilt only when bob's hardware changes: M0–M7, M13 and M15.
 - **Guest flow.** A user design goes through bob's tools to a bob `.bit`, loaded over JTAG into the running fabric. No Vivado and no rebuild; M8–M12a used the M7 bitstream unchanged.
-- **Wiring.** The Pico runs DirtyJTAG and connects to PMODA (TCK, TMS, TDI, TDO, GND). `host/dirtyjtag.py` drives it and refuses TCK above 100 kHz from M13.
+- **Wiring.** The Pico runs DirtyJTAG and connects to PMODA (TCK, TMS, TDI, TDO, GND). `software/host/dirtyjtag.py` drives it and refuses TCK above 100 kHz from M13.
 
 ---
 
@@ -133,7 +133,7 @@ M0–M6 were built on 2026-09-14 and M7–M15 on 2026-09-16/17.
 | M | what was built | hardware result | host bitstream |
 |---|---|---|---|
 | M0 | Whole-tree copy; `hw/` layout; adaptable `build.tcl` (project reuse, fingerprint, stub-tested); `sources.f`; `hwtest.py`; Makefile. Found the inherited Tcl-in-XDC bug | idcode, bypass, selftest 11/11, showcase-live; 4341 LUT / 5910 FF, WNS +67.3 ns | `0x3BEEF093` |
-| M1 | `tools/bob/device.py`: single source of truth → `device.json`, `bob_params.vh`; bitstream engine driven by it | chain-length 2896 measured on the board | reused |
+| M1 | `software/bob/device.py`: single source of truth → `device.json`, `bob_params.vh`; bitstream engine driven by it | chain-length 2896 measured on the board | reused |
 | M2 | Configuration plane: 6-bit AMD IR, CFG_IN/OUT chain with shift + shadow, CRC-32C + length guard with a write key, JPROGRAM/JSTART startup, CAPTURE; standalone test top | 11/11; 175 LUT / 423 FF | `0x4BEEF093` |
 | M3 | The plane in the 4×4 fabric; host loader with per-pulse fallback | 12/12; 3951 LUT / 6115 FF, WNS +63.9 ns | `0x5BEEF093` |
 | M4 | CLB core per UG474 (routable CE/SR, FDRE/FDSE priority, LUT size K as a parameter); ctrl tile; user clock on sysclk with gce | 16/16 (first run: a check leaked the real switches into CE/SR); WNS +0.84 ns on 8 ns | `0x6BEEF093` |
@@ -156,7 +156,7 @@ M0–M6 were built on 2026-09-14 and M7–M15 on 2026-09-16/17.
 
 ### 5.1 Grid and blocks
 
-The architecture is written once in `tools/bob/device.py` (`ARCH_8X6` from M12b; `ARCH_6X4` for M7–M13).
+The architecture is written once in `software/bob/device.py` (`ARCH_8X6` from M12b; `ARCH_6X4` for M7–M13).
 - `vpr_arch.py` turns it into a VPR architecture XML.
 - VPR (OpenFPGA's Docker image) builds the **tileable routing-resource graph**, which is committed with a sha256 stamp.
 - `device.py` + `fabric_gen.py` then generate everything else from that graph: `bob_fabric.v`, `bob_params.vh`, `device.json` (every field, mux and frame), and the models.
@@ -329,7 +329,7 @@ FFFFFFFF FFFFFFFF AA995566 20000000          dummy, dummy, sync, NOP
 
 **`cfg_store.v`** is the memory and both write paths. Its first version wrote `cfg[frame_idx*128 +: 128] <= data` over the whole memory. That synthesises as a barrel shifter (~12k LUTs, 1.7 GB in yosys), and Vivado ran out of memory. The rule since: **never a computed part-select over the configuration memory; decode per frame.** Each memory bit is a plain clock-enabled flip-flop with its D input from the one buffer.
 
-**`tools/bob/packets.py`** builds every stream. Its `Controller` class is a **bit-level Python model** of `cfg_frames.v`, and every expected STAT value, memory and readback word in `tb_frames` comes from it, never from the RTL.
+**`software/bob/packets.py`** builds every stream. Its `Controller` class is a **bit-level Python model** of `cfg_frames.v`, and every expected STAT value, memory and readback word in `tb_frames` comes from it, never from the RTL.
 
 ---
 
@@ -411,15 +411,15 @@ design.v ─► synth.py (yosys) ─► equiv.py ─► vpr_run.prepare ─► V
 
 | stage | tool | what it guarantees |
 |---|---|---|
-| synthesis | `tools/bob/synth.py`: the `synth_xilinx` pass order with bob maps; `mul2dsp` 25×18; `memory_libmap` with bob's BRAM; `$alu` → `BOB_ADD`; `dfflegalize`; `abc -lut K` | only bob cells; one clock; no latches or async resets |
-| equivalence | `tools/bob/equiv.py` | source, yosys netlist and **golden netlist** (`golden.py`: one named wire per bit) simulated together over biased random vectors (50-cycle segments, because uniform inputs held the counter's reset half the time and its trace was all zeros); the trace and every golden net after every clock are saved |
+| synthesis | `software/bob/synth.py`: the `synth_xilinx` pass order with bob maps; `mul2dsp` 25×18; `memory_libmap` with bob's BRAM; `$alu` → `BOB_ADD`; `dfflegalize`; `abc -lut K` | only bob cells; one clock; no latches or async resets |
+| equivalence | `software/bob/equiv.py` | source, yosys netlist and **golden netlist** (`golden.py`: one named wire per bit) simulated together over biased random vectors (50-cycle segments, because uniform inputs held the counter's reset half the time and its trace was all zeros); the trace and every golden net after every clock are saved |
 | netlist rewrite | `vpr_run.prepare` | constants → IPIN const0/const1; carry chains cut to the column height with generator and tap CLBs; FF D buffers; `.pcf` pins |
 | place and route | VPR 9 in OpenFPGA's Docker image on the committed rr graph (`--read_rr_graph`, fixed seed, `--fix_clusters` pins), or bob's PnR | results committed with stamps (arch sha, eblif sha, seed, image digest, result hash); the same seed repeats |
 | FASM | `fasm_from_vpr.py` | `.net` → LUT INIT through VPR's port rotation, adder and FF flags; `.route` → each node selects its predecessor; legality against `device.json`; **`model.py` with those bits == the source trace** |
 | bitgen | `bitgen.py` | FASM ⇄ chain exact both ways (refuses bits no feature owns); `.bit` v2 = header + chain + `BRAM` and `META` sections + file CRC |
 | load | `cli.load`, `cfgplane` | frames (default) or chain; readback == `.bit`; BRAM contents (frames from M15); JSTART; DONE |
 
-**Examples** (`examples/`):
+**Examples** (`work/examples/`):
 - gates, adder, counter, blinky, ram, mult
 - switches and fir (M11)
 - `gates_swapped.pcf` (pins)
@@ -431,7 +431,7 @@ On the 36-CLB graph VPR routes all 10 designs with total wirelength 2162, and bo
 
 ## 13. bob's own place and route (M12a)
 
-`tools/bob/pnr/` reads the same prepared netlist and writes VPR-format `.net/.place/.route`, so everything after PnR is shared with VPR.
+`software/bob/pnr/` reads the same prepared netlist and writes VPR-format `.net/.place/.route`, so everything after PnR is shared with VPR.
 
 - **pack:** VPR's `ble` and `chain` patterns; carry chains as macros.
 - **place:** simulated annealing with VPR's schedule (T0 = 20σ, 10·N^(4/3) moves, α by acceptance, range limit); half-perimeter bounding-box cost; macro moves; legality checks; fixed seed.
@@ -467,13 +467,13 @@ Results (`docs/reports/M12b/pnr_vs_vpr.md`, 36-CLB graph, seed 1):
 
 | module | role |
 |---|---|
-| `host/dirtyjtag.py` | Pico DirtyJTAG USB protocol: pulses, IR/DR shifts, bulk `CMD_XFER` (MSB-first per byte, handled), TCK ≤ 100 kHz enforced |
-| `host/cfgplane.py` | everything on the configuration plane: IR codes, JPROGRAM/JSTART, CFG_CTRL, chain load with per-pulse fallback, `measure_chain`, CAPTURE, USER1, USER4 BRAM, DSP register, **frames** (`frames_send/read/stat/readback`, `load_frames(brams)`), **`load_partial`**, `bram_frames_read` |
-| `host/bitstream.py`, `host/designs.py` | hand-built designs on the rr graph (BFS router): showcase, counter, BRAM ROM, DSP designs, pipeline, `d_partial` |
-| `host/fpga.py` | boundary vectors, INTEST sweeps, SAMPLE, watch |
-| `host/hwtest.py` | per-milestone hardware test: regression + new checks, `--list`, `--manual`, `--only`; guided live checks (M11); appends `docs/hwtest/results.log` |
-| `tools/bob/cli.py` (`./bob`) | `build` (synth → equiv → PnR → FASM → model check → `.bit`), `load` (`--mode frames|chain`, `--partial`), `info`, `fasm` |
-| `tools/bob/packets.py` | streams, `Controller` model, `dump` |
+| `software/host/dirtyjtag.py` | Pico DirtyJTAG USB protocol: pulses, IR/DR shifts, bulk `CMD_XFER` (MSB-first per byte, handled), TCK ≤ 100 kHz enforced |
+| `software/host/cfgplane.py` | everything on the configuration plane: IR codes, JPROGRAM/JSTART, CFG_CTRL, chain load with per-pulse fallback, `measure_chain`, CAPTURE, USER1, USER4 BRAM, DSP register, **frames** (`frames_send/read/stat/readback`, `load_frames(brams)`), **`load_partial`**, `bram_frames_read` |
+| `software/host/bitstream.py`, `software/host/designs.py` | hand-built designs on the rr graph (BFS router): showcase, counter, BRAM ROM, DSP designs, pipeline, `d_partial` |
+| `software/host/fpga.py` | boundary vectors, INTEST sweeps, SAMPLE, watch |
+| `software/host/hwtest.py` | per-milestone hardware test: regression + new checks, `--list`, `--manual`, `--only`; guided live checks (M11); appends `docs/hwtest/results.log` |
+| `software/bob/cli.py` (`./bob`) | `build` (synth → equiv → PnR → FASM → model check → `.bit`), `load` (`--mode frames|chain`, `--partial`), `info`, `fasm` |
+| `software/bob/packets.py` | streams, `Controller` model, `dump` |
 
 **The stand-in board** (`tests/test_hwtest_fake.py`) puts `model.py` and the frame `Controller` behind the same JTAG API. It models the chain, CFG_CTRL, frames, freeze and partial reloads with state kept, BRAM content frames, the free-running clock in real time, INTEST/SAMPLE/CAPTURE, USER4 and JPROGRAM.
 
@@ -498,19 +498,19 @@ and VPR emit with a file and a line — and all of it went into a format string 
 thrown away. Nothing could watch a build happen: not a GUI, not a report, not a `--json`
 flag.
 
-`tools/bob/flow.py` runs the same steps as separate stages, each timed and each returning
+`software/bob/flow.py` runs the same steps as separate stages, each timed and each returning
 a record. `cli.py` is now a wrapper over it, and `tests/test_flow.py` requires the two to
 write a **byte-identical `.bit`** for every example, so the split cannot drift. New flags
 follow from it: `./bob build --json FILE`, `--project bob.proj`, and
 `./bob load --probe usb|fake`.
 
-**bob studio** (`host/studio.py`) is that engine behind an application, laid out the way
+**bob studio** (`software/host/studio.py`) is that engine behind an application, laid out the way
 Vivado is:
 
 | Vivado / Quartus | bob studio | what actually runs |
 |---|---|---|
 | Sources / Project Manager | Project | sources, top, `.pcf`, settings |
-| Synthesis | Synthesis | `tools/bob/synth.py` (yosys onto bob cells) |
+| Synthesis | Synthesis | `software/bob/synth.py` (yosys onto bob cells) |
 | — | Synthesis Verification | `equiv.py`: source == netlist == golden, 300 cycles |
 | Implementation | Implementation | pack / place / route — VPR, or bob's own Python PnR |
 | Generate Bitstream | Generate Bitstream | `fasm_from_vpr.py` → `bitgen.py` → `.bit` |
@@ -523,9 +523,9 @@ Two properties were design constraints rather than features. It **adds no depend
 the backend is stdlib `http.server` plus Server-Sent Events, and the page is one
 self-contained file with no external libraries, assembled from `docs/studio/` exactly as
 `arch.html` is assembled from `docs/arch/`. And it **runs with no board attached** —
-`--probe fake` uses `host/fakeboard.py`, the software stand-in that answers JTAG out of
-`tools/bob/model.py`. That class was written for `tests/test_hwtest_fake.py`; it moved to
-`host/` when the studio needed it, and the test now imports it, so the checks that prove
+`--probe fake` uses `software/host/fakeboard.py`, the software stand-in that answers JTAG out of
+`software/bob/model.py`. That class was written for `tests/test_hwtest_fake.py`; it moved to
+`software/host/` when the studio needed it, and the test now imports it, so the checks that prove
 the stand-in can *fail* still guard the one the tools use.
 
 One honest limit: a guest clock on the software board costs a `model.settle()`, about 2 ms
@@ -582,7 +582,7 @@ Every mutant is killed. Two guards survived their first mutation run and got new
 
 ### 15.4 Hardware checks
 
-`host/hwtest.py` holds 15 milestone lists. **M15** runs the M13 regression and then its own checks:
+`software/host/hwtest.py` holds 15 milestone lists. **M15** runs the M13 regression and then its own checks:
 - **M13 regression:** idcode, bypass, selftest; the M7 fabric checks through the chain (usercode, chain-length, IR status, CRC reject while live, GTS, GSR/GWE, CAPTURE vs USER1, JPROGRAM, CE/SR, counters, BRAM init/locked/ROM/modes/select, DSP modes/multiplier/accumulator, pipeline, 8-bit counter); five frame checks; the guest designs through frames; ram-readback; blinky-rate
 - **M12b:** bob-wide, pnr-wide
 - **M14:** partial-swap, partial-live, partial-bad-crc, partial-guest
@@ -690,7 +690,7 @@ Grow the fabric and `GCE_MIN_GAP_SHIFT` grows with it, in `device.py` and the XD
 - no `keep_hierarchy`
 - the XDC stays out of synthesis
 - implementation runs single-threaded, and the gce gap covers the fabric's static path
-- compare the whole-design yosys estimate (`tools/bob/synth_estimate.sh`) with the last successful build before a hand-off
+- compare the whole-design yosys estimate (`software/bob/synth_estimate.sh`) with the last successful build before a hand-off
 
 The M15 RTL estimates at 15 941 LUT / 11 069 FF / 1.36 GB, against M13's 15 358 / 12 220 / 1.04 GB.
 
@@ -797,12 +797,12 @@ The saved logic bought the 8×6 core with **36 CLBs (2.25×)**. The whole-design
 ```
 bob_full_v1/
   hw/          the Vivado bundle: src/{clb,core,tiles,fabric,top,generated}, tb/, constr/, scripts/build.tcl, build.cfg, sources.f
-  tools/bob/   device.py vpr_arch.py rrgraph.py fabric_gen.py model.py chainbits.py packets.py synth.py equiv.py golden.py
+  software/bob/   device.py vpr_arch.py rrgraph.py fabric_gen.py model.py chainbits.py packets.py synth.py equiv.py golden.py
                vpr_run.py fasm_from_vpr.py bitgen.py cli.py report.py pnr/ arch/ (rr graphs) vpr/ (VPR results)
-  host/        dirtyjtag.py cfgplane.py bitstream.py designs.py fpga.py hwtest.py buildcfg.py + bring-up tools
+  software/host/        dirtyjtag.py cfgplane.py bitstream.py designs.py fpga.py hwtest.py buildcfg.py + bring-up tools
   sim/         run_*.sh, gen_*vectors.py, gen_cosim.py, tb_cosim.v, mutate_{cfg,fabric,frames}.sh, lint.sh
   tests/       pytest (13 files)
-  examples/    gates adder counter blinky ram mult switches fir wide + gates_swapped.pcf
+  work/examples/    gates adder counter blinky ram mult switches fir wide + gates_swapped.pcf
   docs/        bitstream-format.md, hwtest/ (checklists, results.log), reports/, arch/ (arch.html sources), project/ (this report)
   release/     frozen bundles (hw_M3…hw_M7, mac_M6/M7, M7_8x8)
   arch.html project.html PLAN.md README.md REUSE.md CLAUDE.md Makefile bob
@@ -831,12 +831,12 @@ make rrgraph && make vpr   # after an architecture change (Docker/Colima)
 make pnr                   # Python PnR vs VPR report
 make hwtest M=M15          # the board test (interactive); ONLY=<check> reruns one
 
-./bob build examples/counter.v [--pcf pins.pcf] [--clock run --div 15] [--pnr python] -o build/bit/counter.bit
+./bob build work/examples/counter/counter.v [--pcf pins.pcf] [--clock run --div 15] [--pnr python] -o build/bit/counter.bit
 ./bob load build/bit/counter.bit                    # frames (BRAM contents in the stream)
 ./bob load build/bit/counter.bit --mode chain       # the chain (+ USER4)
 ./bob load build/bit/other.bit --partial            # M14: only the changed frames, design keeps running
-tools/bob/packets.py dump build/bit/counter.bit     # annotated packet stream
-tools/bob/synth_estimate.sh $PWD $PWD/build/est     # whole-design yosys estimate before a Vivado hand-off
+software/bob/packets.py dump build/bit/counter.bit     # annotated packet stream
+software/bob/synth_estimate.sh $PWD $PWD/build/est     # whole-design yosys estimate before a Vivado hand-off
 python3 docs/arch/build.py --data                   # arch.html
 python3 docs/project/collect.py && python3 docs/project/build.py   # this report's data and project.html
 ```
@@ -905,7 +905,7 @@ So the next steps are ordered by that, not by feature appeal:
    through STAT, as AMD's readback CRC does.
 7. **Region-protected partial bitstreams:** `bob build --partial --region`, with PnR
    constrained to a column range and a host check that a partial touches only its region.
-8. **A substantial demo design.** The largest example is `examples/big.v` — 21 lines,
+8. **A substantial demo design.** The largest example is `work/examples/big/big.v` — 21 lines,
    56 CLBs. A UART or a small CPU would exercise far more, and bob studio wants something
    worth opening.
 9. **CI.** The Mac-only half of `make check` (device, simulations, lint, pytest — no Docker)

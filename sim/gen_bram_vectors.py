@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Generate hw/tb/bram_vectors.vh for hw/tb/tb_bram.v - bram_core.v against
-tools/bob/model.py's Bram, every write mode x output-register combination.
+software/bob/model.py's Bram, every write mode x output-register combination.
 
 Each block: GSR, preload through the init port (GWE = 0) with readback, then
 random operations on both ports with random EN/WE/RST/REGCE/gce and the odd GSR.
@@ -15,7 +15,7 @@ import random
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(HERE, "..", "tools", "bob"))
+sys.path.insert(0, os.path.join(HERE, "..", "software", "bob"))
 
 import model as M  # noqa: E402
 

@@ -9,8 +9,8 @@ import subprocess
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(ROOT, "host"))
-sys.path.insert(0, os.path.join(ROOT, "tools", "bob"))
+sys.path.insert(0, os.path.join(ROOT, "software", "host"))
+sys.path.insert(0, os.path.join(ROOT, "software", "bob"))
 
 import buildcfg  # noqa: E402
 
@@ -22,7 +22,7 @@ def _xdc():
 
 
 def _device():
-    return json.load(open(os.path.join(ROOT, "tools", "bob", "device.json")))
+    return json.load(open(os.path.join(ROOT, "software", "bob", "device.json")))
 
 
 def test_every_source_exists_and_lives_in_hw():
@@ -102,7 +102,7 @@ def test_the_sysclk_multicycle_matches_the_gce_gap():
     assert m, "no sysclk -> sysclk setup multicycle in the XDC"
     assert int(m.group(1)) == want, (
         f"XDC relaxes sysclk by {m.group(1)} cycles but clock_ctrl.v only guarantees "
-        f"{want} (GCE_MIN_GAP_SHIFT = {gap} in tools/bob/device.py). "
+        f"{want} (GCE_MIN_GAP_SHIFT = {gap} in software/bob/device.py). "
         "Raise the gap or lower the exception - they must be the same number.")
 
 
@@ -119,7 +119,7 @@ def test_the_sysclk_hold_multicycle_is_one_less_than_setup():
 
 def test_the_rtl_gets_the_gap_from_the_generated_header():
     """bob_fpga.v must take GAP_SHIFT from BOB_GCE_MIN_GAP_SHIFT. Passing anything
-    else makes tools/bob/device.py's knob a decoration and the XDC check above a lie."""
+    else makes software/bob/device.py's knob a decoration and the XDC check above a lie."""
     src = open(os.path.join(HW, "src", "fabric", "bob_fpga.v")).read()
     m = re.search(r"clock_ctrl\s*#\((.*?)\)\s*u_clk", src, re.S)
     assert m, "bob_fpga.v does not instantiate clock_ctrl with parameters"

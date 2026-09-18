@@ -1,10 +1,10 @@
 # bob_full_v1 - everything that can be checked on the Mac, in one command.
 #
 #   make check     simulations + lint + pytest   (run before every hw/ handoff)
-#   make rrgraph   after changing the architecture in tools/bob/device.py: VPR (Docker)
+#   make rrgraph   after changing the architecture in software/bob/device.py: VPR (Docker)
 #                  builds the routing-resource graphs, then everything is regenerated
 #   make vpr       after changing an example, the synthesis flow or the architecture:
-#                  VPR (Docker) packs, places and routes every example -> tools/bob/vpr/
+#                  VPR (Docker) packs, places and routes every example -> software/bob/vpr/
 #   make hw        refresh generated files inside hw/ and print the handoff steps
 #   make hwtest M=M0   hardware test on the PYNQ-Z2 through the Pico (ONLY=check,check to rerun some)
 
@@ -14,19 +14,19 @@ M ?= $(shell sed -n 's/^tag *= *\([A-Za-z0-9]*\).*/\1/p' hw/build.cfg)
 
 # M7: arch XML -> VPR rr graph (Docker, committed) -> device.json / bob_params.vh / bob_fabric.v
 rrgraph:
-	tools/bob/device.py --arch-only
-	tools/bob/vpr_rrgraph.sh
-	tools/bob/device.py
+	software/bob/device.py --arch-only
+	software/bob/vpr_rrgraph.sh
+	software/bob/device.py
 
-# M9/M10: examples (+ pin variants) -> yosys -> VPR on the committed rr graph (Docker) -> tools/bob/vpr/<name>/ (committed)
+# M9/M10: examples (+ pin variants) -> yosys -> VPR on the committed rr graph (Docker) -> software/bob/vpr/<name>/ (committed)
 vpr:
-	for t in gates adder counter blinky ram mult switches fir wide big; do tools/bob/equiv.py examples/$$t.v || exit 1; done
-	tools/bob/vpr_run.py --repeat
-	tools/bob/fasm_from_vpr.py --check
+	for t in gates adder counter blinky ram mult switches fir wide big; do software/bob/equiv.py work/examples/$$t/$$t.v || exit 1; done
+	software/bob/vpr_run.py --repeat
+	software/bob/fasm_from_vpr.py --check
 
 # M12a: bob's own Python pack/place/route vs VPR's committed results (no Docker)
 pnr:
-	tools/bob/pnr/compare.py
+	software/bob/pnr/compare.py
 .DEFAULT_GOAL := check
 
 # every deliberately broken guard must fail its testbench (slow-ish; not in check)
@@ -40,11 +40,11 @@ mutate:
 
 check: device sim lint test
 
-# regenerate the architectures, tools/bob/device.json, bob_params.vh and bob_fabric.v
+# regenerate the architectures, software/bob/device.json, bob_params.vh and bob_fabric.v
 # (fails with "run make rrgraph" if the architecture changed since the rr graph was built)
 device:
-	tools/bob/device.py
-	tools/bob/devtable.py --check
+	software/bob/device.py
+	software/bob/devtable.py --check
 	@echo "=== make check: all green ==="
 
 sim:
@@ -81,7 +81,7 @@ hwtest:
 
 clean:
 	rm -f sim/*.vvp sim/*.vcd
-	rm -rf .pytest_cache tests/__pycache__ host/__pycache__
+	rm -rf .pytest_cache tests/__pycache__ software/host/__pycache__
 
 # build/ is scratch (gitignored). A whole-design yosys run logs every wire it sees,
 # so one estimate is over a gigabyte and they accumulate: 7.6 GB by M16.

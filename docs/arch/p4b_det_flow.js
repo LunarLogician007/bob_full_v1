@@ -1,6 +1,6 @@
   /* ============================ GUEST FLOW (M8 – M11) ============================ */
   D("flow", {
-    title: "Guest flow — Verilog to a running bob", sub: "./bob build design.v → .bit → ./bob load  ·  M8 synth · M9 VPR · M10 bitgen · M11 live", k: "SOFT", stage: "tools/bob/cli.py",
+    title: "Guest flow — Verilog to a running bob", sub: "./bob build design.v → .bit → ./bob load  ·  M8 synth · M9 VPR · M10 bitgen · M11 live", k: "SOFT", stage: "software/bob/cli.py",
     rows: [F("./bob build",
         ["design.v", "ports sw / btn / led / clk, or a .pcf", null, "BRD"],
         ["synth.py", "yosys → $lut BOB_ADD BOB_FDRE/FDSE BOB_BRAM18 BOB_DSP", null, "SOFT"],
@@ -13,24 +13,24 @@
         ["USER4", "all 1024 words of every used BRAM", "user4", "BRAM"],
         ["JSTART", "GSR → GTS → GWE → DONE", "startup", "CFG"],
         ["running", "--clock jtag (stepped) or run (125 MHz / 2^(div+8))", "clock", "CMT"])],
-    notes: ["Examples in <code>examples/</code>: gates, adder, counter, blinky, ram, mult (M8), switches, fir (M11); <code>gates_swapped.pcf</code> proves pin files reach the pads.",
-      "Docker is only needed to (re)route: VPR results are committed in <code>tools/bob/vpr/&lt;name&gt;/</code> with a stamp (arch sha, eblif sha, seed, image). A fresh result is reused; a stale one is refused.",
+    notes: ["Examples in <code>work/examples/</code>: gates, adder, counter, blinky, ram, mult (M8), switches, fir (M11); <code>gates_swapped.pcf</code> proves pin files reach the pads.",
+      "Docker is only needed to (re)route: VPR results are committed in <code>software/bob/vpr/&lt;name&gt;/</code> with a stamp (arch sha, eblif sha, seed, image). A fresh result is reused; a stale one is refused.",
       "Every build checks each step before the next: equivalence, FASM legality, chain → FASM → chain, model.py against the source trace.",
       "M8's <code>place.py</code> (hand placer on <code>bitstream.Design</code>) still exists and runs in tb_synth next to VPR's results; M12 replaces it with a real Python PnR checked against VPR."],
     src: [["yosys synth_xilinx", "pass order; xilinx ff/arith/dsp maps, brams_xc4v as patterns"], ["VPR 9 (OpenFPGA image)", "packing, placement, routing on bob's own rr graph"],
       ["F4PGA / prjxray FASM", "feature = value text between PnR and bits"], ["AMD UG470", ".bit carries all BRAM contents; readback; CRC before startup"]],
     why: ["synth_xilinx is yosys' most-used FPGA flow; bob mirrors 7-series cells so its patterns carry over.",
       "Routing on the committed rr graph means every route VPR finds is a path of muxes the bitstream already has — no Vivado rebuild from M8 to M11."],
-    files: [["tools/bob/cli.py · ./bob", "build / load / info / fasm"], ["tools/bob/synth.py, synth/*", "synthesis"], ["tools/bob/equiv.py, golden.py", "equivalence, golden nets"],
-      ["tools/bob/vpr_run.py, tools/bob/vpr/", "VPR run + committed results"], ["tools/bob/fasm_from_vpr.py, bitgen.py, chainbits.py", "FASM, chain, .bit"],
-      ["host/cfgplane.py", "JTAG load, USER4, CAPTURE"], ["tools/bob/report.py", "docs/reports/M11/designs.md"]],
+    files: [["software/bob/cli.py · ./bob", "build / load / info / fasm"], ["software/bob/synth.py, synth/*", "synthesis"], ["software/bob/equiv.py, golden.py", "equivalence, golden nets"],
+      ["software/bob/vpr_run.py, software/bob/vpr/", "VPR run + committed results"], ["software/bob/fasm_from_vpr.py, bitgen.py, chainbits.py", "FASM, chain, .bit"],
+      ["software/host/cfgplane.py", "JTAG load, USER4, CAPTURE"], ["software/bob/report.py", "docs/reports/M11/designs.md"]],
     tb: [["tests/test_synth.py, test_vpr.py, test_bitgen.py", "flow, VPR results, FASM/.bit round trips"], ["hw/tb/tb_synth.v", "12 designs (6 hand-placed, 6 VPR) on the fabric RTL"],
       ["sim/tb_cosim.v", "golden co-simulation: 9 designs from .bit, source live, LEDs + CAPTURE"], ["hwtest M8–M11", "board: synth-*, vpr-*, bob-*, live-*"]],
     drill: ["vpr", "pnr", "bitgen", "verify", "routing"]
   });
 
   D("pnr", {
-    title: "bob's own place & route (M12a)", sub: "Python: pack · simulated-annealing place · PathFinder route · same files as VPR · ./bob build --pnr python", k: "GTX", stage: "tools/bob/pnr/run.py",
+    title: "bob's own place & route (M12a)", sub: "Python: pack · simulated-annealing place · PathFinder route · same files as VPR · ./bob build --pnr python", k: "GTX", stage: "software/bob/pnr/run.py",
     rows: [F("same input, same output as VPR",
         ["vpr_run.prepare", "the eblif VPR gets + fixed pins", "vpr", "SOFT"],
         ["pack.py", "LUT+FF / adder+FF per CLB · carry macros", "clb", "CLB"],
@@ -47,13 +47,13 @@
       "Because the files are VPR-shaped, fasm_from_vpr, bitgen, the model check, tb_cosim and hwtest are shared unchanged between the two flows."],
     src: [["Betz & Rose, VPR (FPL 1997)", "annealing schedule, bounding-box cost, range limit"], ["McMurchie & Ebeling, PathFinder (FPGA 1995)", "negotiated-congestion routing"], ["VPR lut_in port_class", "LUT input equivalence"]],
     why: ["The plan's M12: a PnR bob owns, checked against VPR on the same graph — the step before growing the grid, where VPR in Docker under emulation is slow."],
-    files: [["tools/bob/pnr/netlist.py, pack.py", "netlist, clusters, macros"], ["tools/bob/pnr/place.py", "annealing"], ["tools/bob/pnr/route.py", "PathFinder"], ["tools/bob/pnr/write.py, run.py", "VPR-format results, driver"], ["tools/bob/pnr/compare.py", "report"]],
+    files: [["software/bob/pnr/netlist.py, pack.py", "netlist, clusters, macros"], ["software/bob/pnr/place.py", "annealing"], ["software/bob/pnr/route.py", "PathFinder"], ["software/bob/pnr/write.py, run.py", "VPR-format results, driver"], ["software/bob/pnr/compare.py", "report"]],
     tb: [["tests/test_pnr.py", "independent legality from the files, determinism, failing cases"], ["sim/tb_cosim.v", "18 designs: VPR and Python routed, source live"], ["hwtest M12 pnr-*, live-*-py", "board"]],
     drill: ["flow", "vpr", "routing", "bitgen"]
   });
 
   D("vpr", {
-    title: "VPR place & route (M9)", sub: "CLB modes logic / arithmetic · bob_add bob_ff · committed rr graph · fixed pins", k: "GTX", stage: "tools/bob/vpr_run.py",
+    title: "VPR place & route (M9)", sub: "CLB modes logic / arithmetic · bob_add bob_ff · committed rr graph · fixed pins", k: "GTX", stage: "software/bob/vpr_run.py",
     rows: [F("netlist for VPR (eblif)",
         ["constants", "open pins → IPIN const0/const1", "cbox", "GTX"],
         ["carry chains", "cut to column height: generator … tap", "carry", "DSP"],
@@ -68,13 +68,13 @@
       "VPR's timing numbers use the reference's 40 nm delays; they are not the emulated fabric's speed."],
     src: [["OpenFPGA k6_frac_N10_tileable…dsp36", "fle modes, adder/dffr models, ble6/chain pack patterns"], ["VTR prepack.cpp", "why the chain pattern needs the sumout → ff.D edge"]],
     why: ["VPR is the placer/router OpenFPGA fabrics are built for; using it on bob's own graph proves the fabric is routable by a real tool before M12 writes one."],
-    files: [["tools/bob/vpr_arch.py", "arch XML (CLB modes)"], ["tools/bob/device.py", "vpr_models: bob_add, bob_ff, bob_bram, bob_dsp"], ["tools/bob/vpr_run.py", "eblif, pins, Docker, commit, stale()"], ["tools/bob/vpr/<name>/", "eblif pins net place route vpr.json stamp"]],
+    files: [["software/bob/vpr_arch.py", "arch XML (CLB modes)"], ["software/bob/device.py", "vpr_models: bob_add, bob_ff, bob_bram, bob_dsp"], ["software/bob/vpr_run.py", "eblif, pins, Docker, commit, stale()"], ["software/bob/vpr/<name>/", "eblif pins net place route vpr.json stamp"]],
     tb: [["tests/test_vpr.py", "fresh, legal, pads where fixed, chains ≤ column, stale refused"], ["hwtest M9 vpr-*", "board, 64 clocks each"]],
     drill: ["flow", "bitgen", "routing", "carry"]
   });
 
   D("bitgen", {
-    title: "FASM, bitgen and the .bit (M10)", sub: "feature = W'hV · chain → FASM → chain exact · .bit v2: chain + BRAM + META + file CRC", k: "CFG", stage: "tools/bob/bitgen.py",
+    title: "FASM, bitgen and the .bit (M10)", sub: "feature = W'hV · chain → FASM → chain exact · .bit v2: chain + BRAM + META + file CRC", k: "CFG", stage: "software/bob/bitgen.py",
     rows: [F("VPR result → FASM",
         [".net", "LUT INIT via port_rotation_map · cy_en · ff flags", "clb", "CLB"],
         [".place", "(x, y) → tile", null, "SOFT"],
@@ -88,7 +88,7 @@
       "The .bit has a BRAM section for every BRAM the design uses, even all-zero; <code>bob load</code> writes all 1024 words — M11's first board run found stale words from earlier designs when only non-zero words were written."],
     src: [["F4PGA / prjxray FASM", "text features between PnR and bits"], ["AMD UG470", "BRAM contents are part of the bitstream; CRC checked before startup"]],
     why: ["A text layer between VPR and bits makes every configuration diffable and checkable against device.json."],
-    files: [["tools/bob/fasm_from_vpr.py", "features, capture_map, check_model"], ["tools/bob/bitgen.py", "FASM ⇄ chain, write_bit/read_bit"], ["tools/bob/chainbits.py", "file format v1/v2"], ["docs/bitstream-format.md §8, §8a", "specification"]],
+    files: [["software/bob/fasm_from_vpr.py", "features, capture_map, check_model"], ["software/bob/bitgen.py", "FASM ⇄ chain, write_bit/read_bit"], ["software/bob/chainbits.py", "file format v1/v2"], ["docs/bitstream-format.md §8, §8a", "specification"]],
     tb: [["tests/test_bitgen.py", "random + VPR round trips, bad FASM, file corruption, pcf"], ["hwtest M10 bob-*", "readback == FASM on the board"]],
     drill: ["flow", "chain", "user4"]
   });
@@ -110,7 +110,7 @@
       "tb_cosim was mutation-checked: wrong golden net, CRC-valid routing change, missing source clock, unswapped pins, dropped BRAM contents, wrong golden LUT all fail it."],
     src: [["AMD UG470 readback / capture", "CFG_OUT readback, CAPTURE of user state"], ["IEEE 1149.1 SAMPLE", "observe pins and outputs without disturbing them"]],
     why: ["Board results must be compared with something independent of the fabric: the source Verilog (LEDs) and the synthesised netlist (registers)."],
-    files: [["tools/bob/golden.py", "golden netlist"], ["sim/tb_cosim.v, sim/gen_cosim.py", "co-simulation"], ["host/hwtest.py", "_bob_check, _live_check, LIVE_GUIDE, check_ram_readback"], ["tests/test_hwtest_fake.py", "checks against a stand-in board"]],
+    files: [["software/bob/golden.py", "golden netlist"], ["sim/tb_cosim.v, sim/gen_cosim.py", "co-simulation"], ["software/host/hwtest.py", "_bob_check, _live_check, LIVE_GUIDE, check_ram_readback"], ["tests/test_hwtest_fake.py", "checks against a stand-in board"]],
     tb: [["sim/run_cosim_sim.sh", "9 designs × 100 cycles"], ["hwtest M10, M11", "passed 2026-09-17"]],
     drill: ["flow", "capture", "bsr"]
   });
@@ -132,10 +132,10 @@
     notes: ["The configuration memory is column-major frames: FAR column 0 = the ctrl tile, FAR column x+1 = grid column x, each padded to whole frames. The chain is exactly all frames end to end, so both paths write one memory and read it back identically (hwtest frames-vs-chain).",
       "Writes need WCFG, a matched IDCODE and GWE = 0; START needs a CRC match after the last frame. Any error parks the parser until JPROGRAM, as a 7-series device does.",
       "Simplified against 7-series: a frame lands when its 4th word arrives (no pad frame on load, no garbage frame on readback); no encryption, compression, COR/CTL, ECC or multiboot. BRAM contents became frames at M15 (FAR block type 001).",
-      "tools/bob/packets.py builds the streams and holds a bit-level Python model of this controller; every expected value in tb_frames comes from it."],
+      "software/bob/packets.py builds the streams and holds a bit-level Python model of this controller; every expected value in tb_frames comes from it."],
     src: [["AMD UG470 chapter 5", "sync word, packet headers, register and CMD codes, FAR layout"], ["resourses/04-config-bitstream/CONFIG-CONTROLLER.md", "parser states, frame writer, gotchas"], ["prjxray crc.py", "CRC over {address, data}"]],
     why: ["The user asked for frames 'just like AMD, slightly simplified', keeping the chain as an option: frames make the stream self-synchronising, addressable and readable per frame, which the chain is not."],
-    files: [["hw/src/core/cfg_frames.v", "parser, registers, frame writer, readback"], ["hw/src/core/cfg_store.v", "one memory, chain and frame write paths"], ["hw/src/core/jtag_tap6.v", "CFG_IN/CFG_OUT vs CHAIN_IN/CHAIN_OUT"], ["tools/bob/packets.py", "streams, model, dump"], ["host/cfgplane.py", "load_frames, frames_readback, frames_stat"], ["docs/bitstream-format.md §9–10", "specification"]],
+    files: [["hw/src/core/cfg_frames.v", "parser, registers, frame writer, readback"], ["hw/src/core/cfg_store.v", "one memory, chain and frame write paths"], ["hw/src/core/jtag_tap6.v", "CFG_IN/CFG_OUT vs CHAIN_IN/CHAIN_OUT"], ["software/bob/packets.py", "streams, model, dump"], ["software/host/cfgplane.py", "load_frames, frames_readback, frames_stat"], ["docs/bitstream-format.md §9–10", "specification"]],
     tb: [["hw/tb/tb_frames.v", "71 checks (M15): load, readback, split stream, CRC/ID/PKT/WR errors, GWE refusal, chain after frames, partial reconfiguration, BRAM frames"], ["sim/mutate_frames.sh", "29 guard mutants, all killed"], ["hwtest M13/M15 frames-*", "board"]],
     drill: ["area", "partial", "bramframes", "cfgctrl", "startup", "timing"]
   });
@@ -158,7 +158,7 @@
       "CHAIN_OUT after the last frame is a 128-bit delay line, so a repeated 32-bit marker measures the chain length exactly."],
     src: [["AMD UG470 chapter 5", "frames written as they arrive; CRC gates startup"], ["ZUMA (FCCM 2012) / OpenFPGA scan_chain", "area of configuration memory in an overlay"]],
     why: ["Measure first (yosys per module), then remove the biggest cost without touching the proven protocol on the wire."],
-    files: [["hw/src/core/cfg_store.v", "buffer, per-frame write enables, read mux"], ["tools/bob/device.py", "ARCH_8X6"], ["examples/wide.v", "31 CLBs: needs the bigger grid"], ["host/cfgplane.py", "measure_chain (repeated marker)"]],
+    files: [["hw/src/core/cfg_store.v", "buffer, per-frame write enables, read mux"], ["software/bob/device.py", "ARCH_8X6"], ["work/examples/wide/wide.v", "31 CLBs: needs the bigger grid"], ["software/host/cfgplane.py", "measure_chain (repeated marker)"]],
     tb: [["hw/tb/tb_bob.v", "852 checks on the 36-CLB fabric"], ["sim/tb_cosim.v", "5 220 checks incl. wide (VPR and Python PnR)"], ["sim/mutate_frames.sh", "chain-write-dropped, chain-out-no-reload, chain-writes-live"], ["hwtest M15 bob-wide, pnr-wide", "board"]],
     drill: ["frames", "chain", "routing"]
   });
@@ -180,7 +180,7 @@
       "Not in M14: region protection, BRAM writes while frozen, pad hold during the write."],
     src: [["AMD UG470 CMD AGHIGH / DGHIGH-LFRM, STAT GHIGH_B", "the command sequence around a partial bitstream"], ["AMD UG909", "dynamic function exchange flow"]],
     why: ["Frames are addressable, so reconfiguring part of a running design is the capability the chain could never give."],
-    files: [["hw/src/core/cfg_frames.v", "AGHIGH, LFRM release, GHIGH_B, acknowledgement synchroniser"], ["hw/src/core/clock_ctrl.v", "freeze: gce held, frozen"], ["tools/bob/packets.py", "partial_streams, changed_frames, model"], ["host/cfgplane.py", "load_partial"], ["tools/bob/cli.py", "bob load --partial"]],
+    files: [["hw/src/core/cfg_frames.v", "AGHIGH, LFRM release, GHIGH_B, acknowledgement synchroniser"], ["hw/src/core/clock_ctrl.v", "freeze: gce held, frozen"], ["software/bob/packets.py", "partial_streams, changed_frames, model"], ["software/host/cfgplane.py", "load_partial"], ["software/bob/cli.py", "bob load --partial"]],
     tb: [["hw/tb/tb_frames.v [13]-[17]", "counter holds and continues, gate changes, no CRC, bad CRC, no IDCODE, early frames"], ["hw/tb/tb_clock_gap.v [4]", "no gce while frozen"], ["sim/mutate_frames.sh", "5 M14 mutants"], ["hwtest M15 partial-*", "swap, live, bad-crc, guest"]],
     drill: ["frames", "clock", "startup"]
   });
@@ -199,7 +199,7 @@
       "Timing rule: frame requests are at least 32 TCK periods apart (320 µs at 100 kHz) and the sysclk side needs ~12 cycles."],
     src: [["AMD UG470 FAR block types", "BRAM contents as their own block type"], ["UG473", "RAMB18E1 contents"]],
     why: ["One stream, one CRC for the whole design, the way a 7-series bitstream is."],
-    files: [["hw/src/core/cfg_frames.v", "type-1 FAR decode, FDRI/FDRO, prefetch"], ["hw/src/tiles/bram_jtag.v", "content-frame sequencer"], ["tools/bob/packets.py", "bram_far, bram_readback_stream, load_stream(brams)"], ["host/cfgplane.py", "load_frames(brams), bram_frames_read"]],
+    files: [["hw/src/core/cfg_frames.v", "type-1 FAR decode, FDRI/FDRO, prefetch"], ["hw/src/tiles/bram_jtag.v", "content-frame sequencer"], ["software/bob/packets.py", "bram_far, bram_readback_stream, load_stream(brams)"], ["software/host/cfgplane.py", "load_frames(brams), bram_frames_read"]],
     tb: [["hw/tb/tb_frames.v [18]-[19]", "bram0 → bram1 crossing, FDRO readback, refusal while running"], ["sim/mutate_frames.sh", "5 M15 mutants"], ["hwtest M15 frames-bram-*, ram-readback-frames", "board"]],
     drill: ["frames", "user4", "bram"]
   });
@@ -226,7 +226,7 @@
       "That agreement is now checked, not remembered: tests/test_layout.py requires the XDC's sysclk multicycle to equal 2**GCE_MIN_GAP_SHIFT from device.json, hold to be setup − 1, and bob_fpga.v to take GAP_SHIFT from that macro — it passed DIV_MIN_SHIFT to both until M16, so the knob did nothing. Each guard was mutation-tested, and tb_clock_gap now also runs at the board's gap, which nothing had simulated."],
     src: [["docs/reports/M7/timing.rpt", "the failing paths"], ["AMD UG903 / UG949", "multicycle paths on clock-enabled logic; enables over derived clocks"]],
     why: ["Honest constraints: every relaxation is backed by an RTL guarantee or a host limit, and each has a test."],
-    files: [["hw/src/core/clock_ctrl.v", "gce gap guard"], ["hw/src/fabric/bob_fpga.v", "fully flattened (keep_hierarchy crashed Vivado)"], ["hw/constr/pynq_z2.xdc", "TCK period, multicycles"], ["host/dirtyjtag.py", "MAX_TCK_KHZ"]],
+    files: [["hw/src/core/clock_ctrl.v", "gce gap guard"], ["hw/src/fabric/bob_fpga.v", "fully flattened (keep_hierarchy crashed Vivado)"], ["hw/constr/pynq_z2.xdc", "TCK period, multicycles"], ["software/host/dirtyjtag.py", "MAX_TCK_KHZ"]],
     tb: [["hw/tb/tb_clock_gap.v", `spacing in both modes, at GAP = 4 and at the board's ${BOB.clock.gap_shift}`], ["tests/test_layout.py", "XDC multicycle == 2**GCE_MIN_GAP_SHIFT, and the RTL takes it from there"], ["tests/test_reports.py", "timing closure from M13"], ["sim/mutate_frames.sh", "gap guard mutants"]],
     drill: ["clock", "frames", "routing"]
   });

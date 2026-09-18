@@ -1,7 +1,7 @@
 """
-host/studio.py: the backend behind bob studio.
+software/host/studio.py: the backend behind bob studio.
 
-The page is thin on purpose - every route drives tools/bob/flow.py or host/cfgplane.py
+The page is thin on purpose - every route drives software/bob/flow.py or software/host/cfgplane.py
 and reports what they return - so testing the routes is most of testing the app. These
 run against the board in software, so they need no hardware and no Docker.
 """
@@ -19,8 +19,8 @@ from http.server import ThreadingHTTPServer
 import pytest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(ROOT, "tools", "bob"))
-sys.path.insert(0, os.path.join(ROOT, "host"))
+sys.path.insert(0, os.path.join(ROOT, "software", "bob"))
+sys.path.insert(0, os.path.join(ROOT, "software", "host"))
 
 import bitstream as B  # noqa: E402
 import studio  # noqa: E402
@@ -93,7 +93,7 @@ def test_examples_are_listed(srv):
 
 
 def test_a_source_file_can_be_read(srv):
-    r = get(srv, "/api/source?path=examples/gates.v")
+    r = get(srv, "/api/source?path=work/examples/gates/gates.v")
     assert "module gates" in r["text"]
 
 
@@ -101,7 +101,7 @@ def test_a_source_file_can_be_read(srv):
 
 
 def test_a_build_streams_its_stages_and_lands_a_bitstream(srv):
-    ev = build(srv, {"files": ["examples/gates.v"]})
+    ev = build(srv, {"files": ["work/examples/gates/gates.v"]})
     assert ev["event"] == "done" and ev["ok"], ev.get("error")
     assert [s["name"] for s in ev["stages"]] == list(__import__("flow").STAGES)
     assert all(s["ok"] for s in ev["stages"])
@@ -110,7 +110,7 @@ def test_a_build_streams_its_stages_and_lands_a_bitstream(srv):
 
 
 def test_a_build_reports_where_the_design_landed(srv):
-    ev = build(srv, {"files": ["examples/fir.v"]})
+    ev = build(srv, {"files": ["work/examples/fir/fir.v"]})
     pl = ev["placement"]
     assert pl and pl["blocks"], "no placement came back"
     kinds = {b["type"] for b in pl["blocks"]}
@@ -128,7 +128,7 @@ def test_a_build_with_no_sources_is_refused(srv):
 
 def test_a_build_with_a_bad_engine_is_refused_before_it_starts(srv):
     with pytest.raises(urllib.error.HTTPError) as e:
-        post(srv, "/api/build", {"files": ["examples/gates.v"], "pnr": "nonsense"})
+        post(srv, "/api/build", {"files": ["work/examples/gates/gates.v"], "pnr": "nonsense"})
     assert e.value.code == 400
 
 
@@ -154,7 +154,7 @@ def test_the_software_board_can_be_opened_and_reports_this_device(srv):
 
 
 def test_programming_the_software_board_and_reading_it_back(srv):
-    ev = build(srv, {"files": ["examples/counter.v"]})
+    ev = build(srv, {"files": ["work/examples/counter/counter.v"]})
     assert ev["ok"], ev.get("error")
     post(srv, "/api/target", {"kind": "fake"})
     r = post(srv, "/api/program", {"bit": ev["stages"][-1]["stats"]["path"], "mode": "frames"})
@@ -220,24 +220,24 @@ def test_finished_jobs_do_not_accumulate_forever(srv):
 
 
 def test_a_new_design_is_scaffolded_and_builds(srv, tmp_path):
-    """The point of designs/: create one from the template and run it through the
+    """The point of work/: create one from the template and run it through the
     whole flow, exactly as an example goes."""
     name = "studiotest"
-    shutil.rmtree(os.path.join(ROOT, "designs", name), ignore_errors=True)
+    shutil.rmtree(os.path.join(ROOT, "work", name), ignore_errors=True)
     try:
         r = post(srv, "/api/new", {"name": name})
-        assert r["path"] == f"designs/{name}/{name}.v"
+        assert r["path"] == f"work/{name}/{name}.v"
         text = get(srv, "/api/source?path=" + r["path"])["text"]
         assert f"module {name}" in text
         ev = build(srv, {"files": [r["path"]], "top": name})
         assert ev["ok"], ev.get("error")
     finally:
-        shutil.rmtree(os.path.join(ROOT, "designs", name), ignore_errors=True)
+        shutil.rmtree(os.path.join(ROOT, "work", name), ignore_errors=True)
 
 
 @pytest.mark.parametrize("name", ["../../etc/x", "a/b", "x.y", "9bad", "", "  "])
 def test_an_unsafe_design_name_is_refused_not_rewritten(srv, name):
-    """Asking for ../../etc/x and quietly getting designs/x/x.v is worse than an error."""
+    """Asking for ../../etc/x and quietly getting work/x/x.v is worse than an error."""
     with pytest.raises(urllib.error.HTTPError) as e:
         post(srv, "/api/new", {"name": name})
     assert e.value.code == 400
@@ -245,29 +245,29 @@ def test_an_unsafe_design_name_is_refused_not_rewritten(srv, name):
 
 def test_a_design_name_is_not_reused(srv):
     name = "studiodup"
-    shutil.rmtree(os.path.join(ROOT, "designs", name), ignore_errors=True)
+    shutil.rmtree(os.path.join(ROOT, "work", name), ignore_errors=True)
     try:
         post(srv, "/api/new", {"name": name})
         with pytest.raises(urllib.error.HTTPError) as e:
             post(srv, "/api/new", {"name": name})
         assert e.value.code == 400
     finally:
-        shutil.rmtree(os.path.join(ROOT, "designs", name), ignore_errors=True)
+        shutil.rmtree(os.path.join(ROOT, "work", name), ignore_errors=True)
 
 
 def test_the_editor_can_save_and_read_back(srv):
     name = "studiosave"
-    shutil.rmtree(os.path.join(ROOT, "designs", name), ignore_errors=True)
+    shutil.rmtree(os.path.join(ROOT, "work", name), ignore_errors=True)
     try:
         rel = post(srv, "/api/new", {"name": name})["path"]
         marker = "// written by the editor\n"
         post(srv, "/api/save", {"path": rel, "text": marker})
         assert get(srv, "/api/source?path=" + rel)["text"] == marker
     finally:
-        shutil.rmtree(os.path.join(ROOT, "designs", name), ignore_errors=True)
+        shutil.rmtree(os.path.join(ROOT, "work", name), ignore_errors=True)
 
 
-@pytest.mark.parametrize("path", ["/etc/passwd", "../../../tmp/x.v", "designs/x.exe",
+@pytest.mark.parametrize("path", ["/etc/passwd", "../../../tmp/x.v", "work/x.exe",
                                   "Makefile", ""])
 def test_saving_outside_the_repo_or_the_wrong_type_is_refused(srv, path):
     with pytest.raises(urllib.error.HTTPError) as e:
@@ -279,9 +279,9 @@ def test_browse_lists_examples_and_your_designs(srv):
     b = get(srv, "/api/browse")
     kinds = {f["kind"] for f in b["files"]}
     assert "example" in kinds
-    assert b["designs_dir"] == "designs"
+    assert b["designs_dir"] == "work"
     assert all(not os.path.isabs(f["path"]) for f in b["files"])
-    assert {f["path"] for f in b["files"] if f["kind"] == "example"} >= {"examples/fir.v"}
+    assert {f["path"] for f in b["files"] if f["kind"] == "example"} >= {"work/examples/fir/fir.v"}
 
 
 # --- programming something built earlier --------------------------------------
@@ -290,7 +290,7 @@ def test_browse_lists_examples_and_your_designs(srv):
 def test_bitstreams_built_earlier_are_listed(srv):
     """The Board pane offers every .bit in build/, not only one built in this tab —
     a design built from the command line has to be loadable from the studio too."""
-    ev = build(srv, {"files": ["examples/counter.v"]})
+    ev = build(srv, {"files": ["work/examples/counter/counter.v"]})
     assert ev["ok"], ev.get("error")
     bits = get(srv, "/api/bits")
     assert bits, "no bitstreams listed"
@@ -304,7 +304,7 @@ def test_bitstreams_built_earlier_are_listed(srv):
 
 def test_a_bitstream_from_a_previous_session_can_be_programmed(srv):
     """The exact case that failed: build it, forget the session, program it by path."""
-    ev = build(srv, {"files": ["examples/gates.v"]})
+    ev = build(srv, {"files": ["work/examples/gates/gates.v"]})
     path = ev["stages"][-1]["stats"]["path"]
     post(srv, "/api/target", {"kind": "fake"})
     r = post(srv, "/api/program", {"bit": path})
@@ -316,7 +316,7 @@ def test_programming_without_a_target_is_reported_not_ignored(srv):
     """A dead Program button is how 'I pressed it and nothing happened' happens."""
     studio.TARGET.probe = None
     studio.TARGET.kind = None
-    ev = build(srv, {"files": ["examples/gates.v"]})
+    ev = build(srv, {"files": ["work/examples/gates/gates.v"]})
     with pytest.raises(urllib.error.HTTPError) as e:
         post(srv, "/api/program", {"bit": ev["stages"][-1]["stats"]["path"]})
     assert e.value.code == 500
@@ -413,7 +413,7 @@ def test_an_unknown_pin_is_refused(srv):
 
 
 def test_readback_confirms_what_was_programmed(srv):
-    ev = build(srv, {"files": ["examples/gates.v"]})
+    ev = build(srv, {"files": ["work/examples/gates/gates.v"]})
     bit = ev["stages"][-1]["stats"]["path"]
     post(srv, "/api/target", {"kind": "fake"})
     post(srv, "/api/program", {"bit": bit})
@@ -423,8 +423,8 @@ def test_readback_confirms_what_was_programmed(srv):
 
 def test_readback_notices_a_different_bitstream(srv):
     """The check has to be able to fail: program one design, verify another."""
-    a = build(srv, {"files": ["examples/gates.v"]})["stages"][-1]["stats"]["path"]
-    b = build(srv, {"files": ["examples/counter.v"]})["stages"][-1]["stats"]["path"]
+    a = build(srv, {"files": ["work/examples/gates/gates.v"]})["stages"][-1]["stats"]["path"]
+    b = build(srv, {"files": ["work/examples/counter/counter.v"]})["stages"][-1]["stats"]["path"]
     post(srv, "/api/target", {"kind": "fake"})
     post(srv, "/api/program", {"bit": a})
     r = post(srv, "/api/readback", {"bit": b})
@@ -432,7 +432,7 @@ def test_readback_notices_a_different_bitstream(srv):
 
 
 def test_capture_reads_every_clb_register(srv):
-    ev = build(srv, {"files": ["examples/counter.v"]})
+    ev = build(srv, {"files": ["work/examples/counter/counter.v"]})
     post(srv, "/api/target", {"kind": "fake"})
     post(srv, "/api/program", {"bit": ev["stages"][-1]["stats"]["path"]})
     c = post(srv, "/api/capture", {})
@@ -449,7 +449,7 @@ def test_capture_on_an_unconfigured_board_says_so(srv):
 
 
 def test_the_bitstream_browser_describes_the_bit(srv):
-    ev = build(srv, {"files": ["examples/counter.v"]})
+    ev = build(srv, {"files": ["work/examples/counter/counter.v"]})
     f = get(srv, "/api/fasm?bit=" + ev["stages"][-1]["stats"]["path"])
     assert f["width"] == B.CHAIN_W
     assert len(f["frames"]) == B.DEVICE["frames"]["count"]

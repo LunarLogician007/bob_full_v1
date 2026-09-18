@@ -1,5 +1,5 @@
 // -----------------------------------------------------------------------------
-// tb_bram.v - bram_core.v against tools/bob/model.py (M5)
+// tb_bram.v - bram_core.v against software/bob/model.py (M5)
 //
 // All 3 x 3 write-mode and 2 x 2 output-register combinations: GSR, preload and
 // readback through the init port, then random two-port operations. Expected
@@ -64,7 +64,7 @@ module tb_bram;
 
     initial begin
         $display("");
-        $display("=== M5 bram_core vs tools/bob/model.py: WRITE_FIRST/READ_FIRST/NO_CHANGE x DOx_REG ===");
+        $display("=== M5 bram_core vs software/bob/model.py: WRITE_FIRST/READ_FIRST/NO_CHANGE x DOx_REG ===");
         `include "bram_vectors.vh"
         $display("    %0d checks", checks);
         if (errors == 0) $display("=== ALL TESTS PASSED ===");

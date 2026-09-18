@@ -1,0 +1,9 @@
+# fixed I/O: block x y subblk (software/bob/vpr_run.py)
+btn[2]	0	5	0
+btn[3]	0	6	0
+clk	1	0	0
+out:led[0]	13	1	0
+out:led[1]	13	2	0
+out:led[2]	13	3	0
+sw[0]	0	1	0
+sw[1]	0	2	0

@@ -116,7 +116,7 @@
     txt(PX + 18, 206, `I[5:0] = ${bits}₂ = ${idx}`, { size: 11, anchor: "start", mono: true, w: 700 });
     txt(PX + 18, 226, `O6 = INIT[${idx}] = ${o6}`, { size: 11, anchor: "start", mono: true, w: 700, fill: o6 ? C.GRN : C.MUTE });
     txt(PX + 18, 246, `O5 = INIT[${idx & 31}] = ${o5}`, { size: 9, anchor: "start", mono: true, fill: C.MUTE });
-    txt(PX + 18, 274, "host/bitstream.py LUT.* builds these tables; yosys abc", { size: 8, anchor: "start", fill: C.MUTE });
+    txt(PX + 18, 274, "software/host/bitstream.py LUT.* builds these tables; yosys abc", { size: 8, anchor: "start", fill: C.MUTE });
     txt(PX + 18, 286, "-lut 6 produces them for synthesised designs (M8).", { size: 8, anchor: "start", fill: C.MUTE });
     frame(PX, 312, PW, 96, "ON THE HOST XC7Z020", { bg: "#fdfdfb" });
     [["64", "configuration flip-flops (+64 shadow)"], ["≈21", "host LUTs for the 64:1 tree"], ["2", "host LUT levels on a real LUT6 + MUXF7/F8"], ["K", "one parameter: K=4 costs 16 bits"]]
@@ -300,7 +300,7 @@
     txt(780, 126, `= ${sum + (c << 4)}  (sum ${sum}, cout ${c})`, { size: 12, anchor: "start", mono: true, fill: C.GRN, w: 700 });
     txt(780, 160, "each bit is one CLB with cy_en = 1,", { size: 8, anchor: "start", fill: C.MUTE });
     txt(780, 174, "init = xor2 (xnor2 when subtracting)", { size: 8, anchor: "start", fill: C.MUTE });
-    txt(0, 500, "Sources: UG474 CARRY4 equations; yosys arith_map.v pattern (tools/bob/synth/bob_map.v); generator/tap CLBs: tools/bob/place.py (M8).", { size: 8, anchor: "start", fill: C.MUTE });
+    txt(0, 500, "Sources: UG474 CARRY4 equations; yosys arith_map.v pattern (software/bob/synth/bob_map.v); generator/tap CLBs: software/bob/place.py (M8).", { size: 8, anchor: "start", fill: C.MUTE });
     return svg(1064, 514, 880);
   };
   DEMO.carry = {

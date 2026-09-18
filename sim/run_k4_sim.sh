@@ -3,7 +3,7 @@
 # really one parameter (M4). The committed build stays K=6.
 #
 # A K=4 device.json, bob_params.vh and bob_fabric.v (generated from the K=4 rr
-# graph, tools/bob/arch/bob_k4_rr.xml.gz) are written into a temp directory, the
+# graph, software/bob/arch/bob_k4_rr.xml.gz) are written into a temp directory, the
 # vectors are regenerated from them, that directory is put FIRST on the include
 # path, and its bob_fabric.v replaces the committed one in the source list.
 #   ./run_k4_sim.sh
@@ -12,7 +12,7 @@ cd "$(dirname "$0")"
 
 K4=$(mktemp -d)
 trap 'rm -rf "$K4"' EXIT
-../tools/bob/device.py --lut-k 4 --out "$K4" >/dev/null
+../software/bob/device.py --lut-k 4 --out "$K4" >/dev/null
 export BOB_DEVICE_JSON="$K4/device.json"
 ./gen_clb_vectors.py --out "$K4/clb_vectors.vh"
 ./gen_vectors.py --out "$K4/vectors.vh"

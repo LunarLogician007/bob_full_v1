@@ -2,14 +2,14 @@
 """
 Generate build/cosim/cosim_designs.vh for sim/tb_cosim.v (M10 golden co-simulation).
 
-For every example and pin variant: `bob build` (tools/bob/cli.py: yosys -> source ==
+For every example and pin variant: `bob build` (software/bob/cli.py: yosys -> source ==
 netlist == golden -> VPR result -> FASM -> bits -> .bit), then the testbench is
 given, per design:
-  - the SOURCE Verilog and the golden netlist (tools/bob/golden.py) instantiated
+  - the SOURCE Verilog and the golden netlist (software/bob/golden.py) instantiated
     live, each with its own clock - not a recorded trace
   - the chain and BRAM contents read back from the .bit file, loaded into the
     complete FPGA RTL through CFG_IN / USER4
-  - fresh biased random input vectors (tools/bob/equiv.py, a different seed from
+  - fresh biased random input vectors (software/bob/equiv.py, a different seed from
     the trace the build checked), as the source sees them and as the board pads
     see them through the design's pins
   - the CAPTURE map: which CLB holds which golden register bit
@@ -24,8 +24,8 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
-sys.path.insert(0, os.path.join(ROOT, "host"))
-sys.path.insert(0, os.path.join(ROOT, "tools", "bob"))
+sys.path.insert(0, os.path.join(ROOT, "software", "host"))
+sys.path.insert(0, os.path.join(ROOT, "software", "bob"))
 
 import bitstream as B       # noqa: E402
 import bitgen               # noqa: E402
@@ -55,7 +55,7 @@ def main():
     W = B.CHAIN_W
     decl, mux, clk_on, runs, sources = [], [], [], [], set()
     for k, (label, name, top, pcf, pnr) in enumerate(designs()):
-        src = os.path.join(ROOT, "examples", f"{top}.v")
+        src = os.path.join(ROOT, "work", "examples", top, f"{top}.v")
         bit = os.path.join(OUT_DIR, f"{label}.bit")
         _p, _w, _c, _t, work = cli.build([src], top, pcf, bit, name=name, log=lambda *_: None, pnr=pnr)
         c = bitgen.read_bit(bit)

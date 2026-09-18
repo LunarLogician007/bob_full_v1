@@ -1,5 +1,5 @@
 // -----------------------------------------------------------------------------
-// tb_clb.sv - M4 CLB flag sweep against tools/bob/model.py
+// tb_clb.sv - M4 CLB flag sweep against software/bob/model.py
 //
 // Drives clb.sv directly: every combination of its seven flags, random INITs,
 // random LUT inputs / carry-in / routed CE and SR / gce / GSR / GWE, one clock
@@ -67,7 +67,7 @@ module tb_clb;
 
     initial begin
         $display("");
-        $display("=== M4 CLB flag sweep vs tools/bob/model.py: LUT K = %0d, %0d config bits ===",
+        $display("=== M4 CLB flag sweep vs software/bob/model.py: LUT K = %0d, %0d config bits ===",
                  LUT_K, CLB_CFG_W);
         `include "clb_vectors.vh"
         $display("    %0d checks", checks);

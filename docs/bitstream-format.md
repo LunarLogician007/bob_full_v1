@@ -1,6 +1,6 @@
 # bob configuration format: scan-chain plane (format version 2)
 
-This is the spec shared by the RTL (`hw/src/core/jtag_tap6.v`, `cfg_ctrl.v`, `cfg_mem.v`, `cfg_tile_sr.v`, `capture_chain.v`) and the Python tools (`tools/bob/chainbits.py`, `host/cfgplane.py`). If they disagree, this document decides, and the code is fixed.
+This is the spec shared by the RTL (`hw/src/core/jtag_tap6.v`, `cfg_ctrl.v`, `cfg_mem.v`, `cfg_tile_sr.v`, `capture_chain.v`) and the Python tools (`software/bob/chainbits.py`, `software/host/cfgplane.py`). If they disagree, this document decides, and the code is fixed.
 
 Valid from M2 to M12. M13 replaces the chain with frames (UG470 packets); section 9 lists what changes then.
 
@@ -55,7 +55,7 @@ Bits 5 and 4 follow 7-series usage (openFPGALoader reads DONE and INIT_B there).
 
 ## 4. The configuration chain
 
-- **Width W** comes from the device description (`tools/bob/device.json` `chain.width`). The M2 test top uses 64 = 4 tiles × 16; the fabric used 2896 at M3, 3064 at M4, 3488 at M5, 3720 at M6, **4216 from M7 on the board profile** (16 CLBs, `ARCH_6X4`; 3352 at K=4), 4992 at M13 (padded to frames), **8320 from M12b** (8×6 core, 36 CLBs, 28 pads, `ARCH_8X6`: 65 frames; 6016 = 47 at K=4), and **18 560 from M16** (12×10 core, 100 CLBs, 44 pads, `ARCH_12X10`: 145 frames; 12 800 = 100 at K=4). The frozen 48-CLB profile (`release/M7_8x8/`) is 9400 (6808 at K=4).
+- **Width W** comes from the device description (`software/bob/device.json` `chain.width`). The M2 test top uses 64 = 4 tiles × 16; the fabric used 2896 at M3, 3064 at M4, 3488 at M5, 3720 at M6, **4216 from M7 on the board profile** (16 CLBs, `ARCH_6X4`; 3352 at K=4), 4992 at M13 (padded to frames), **8320 from M12b** (8×6 core, 36 CLBs, 28 pads, `ARCH_8X6`: 65 frames; 6016 = 47 at K=4), and **18 560 from M16** (12×10 core, 100 CLBs, 44 pads, `ARCH_12X10`: 145 frames; 12 800 = 100 at K=4). The frozen 48-CLB profile (`release/M7_8x8/`) is 9400 (6808 at K=4).
 - **M7 layout** (replaces the M4–M6 tile description below, kept for the frozen bundles). Bits come in this order:
   - the 8-bit **ctrl tile**
   - one entry per **grid location**, row-major from VPR (0,0) (x East, y North): first the fields of the block rooted there, then that location's routing muxes in ascending rr node id
@@ -70,7 +70,7 @@ Bits 5 and 4 follow 7-series usage (openFPGALoader reads DONE and INIT_B there).
   | dsp | 16 | `[1:0]` opmode `[2]` use_d `[3]` d_sub `[9:4]` AREG BREG CREG DREG MREG PREG `[13:10]` jtag_a..jtag_d `[14]` jtag_ctrl `[15]` 0 |
   | io | 0 | — |
 
-  **Routing muxes** are VPR's routing-resource-graph nodes with driving edges (`tools/bob/arch/bob_k6_rr.xml.gz`):
+  **Routing muxes** are VPR's routing-resource-graph nodes with driving edges (`software/bob/arch/bob_k6_rr.xml.gz`):
   - For CHANX/CHANY, value 0 = const0 and value 1+i = the i-th driver, in ascending node id.
   - For IPIN (block input pins), 0 = const0, 1 = const1, and 2+i = the i-th driver.
   - Width = the smallest that fits; larger values read 0.
@@ -248,7 +248,7 @@ USER3 selects a read-only chain. Capture-DR snapshots the top's user-state vecto
 
 The loader checks magic, name, width and CRC **before** touching hardware.
 
-**Version 2 (M10, `.bit` from `tools/bob/bitgen.py` / `bob build`)** is version 1 with the version field = 2, followed by:
+**Version 2 (M10, `.bit` from `software/bob/bitgen.py` / `bob build`)** is version 1 with the version field = 2, followed by:
 
 | size | field |
 |---|---|
@@ -339,7 +339,7 @@ A type-1 header with count 0 must be followed by a type-2 header carrying the co
 
 **Readback (CFG_OUT).** Each READ packet queues words: FDRO gives frame words from FAR (advancing FAR per frame); STAT, FAR, IDCODE and CRC give one current value per word. A CFG_OUT DR scan shifts the queued words out MSB first, 32 bits per word; with nothing queued (and past the queue) each word reads STAT, so a bare 32-bit CFG_OUT scan is a status read. FDRO needs RCFG armed (else WR_ERROR, zeros).
 
-**Load sequence** (what `bob load` sends; `tools/bob/packets.py` builds and parses it):
+**Load sequence** (what `bob load` sends; `software/bob/packets.py` builds and parses it):
 
 ```
 FFFFFFFF FFFFFFFF          dummy
@@ -368,7 +368,7 @@ then JTAG: CFG_IN READ of STAT and CFG_OUT (START accepted, no error), FDRO read
 These rules make the Vivado timing constraints true (hw/constr/pynq_z2.xdc):
 
 1. **User-clock enables are at least 512 sysclk cycles apart** (4096 ns; 256 = 2048 ns through M15, raised at M16 because the 12×10 fabric's static path through the unconfigured routing muxes is about 2500 ns), enforced in `clock_ctrl.v` for both clock modes (a JTAG step arriving earlier waits). Every path from a fabric register through the fabric to a fabric register is therefore a 512-cycle multicycle. The fabric is flattened (keeping its hierarchy crashed Vivado 2025.2 on the routing loops) and flattening renames its registers, so the constraint is by clock (sysclk → sysclk); the only other sysclk logic, `u_clk` and `u_bram_jtag`, is held to one cycle by cell name (build.tcl lists the caught registers in `sysclk_1cycle.txt`; `tests/test_reports.py` requires gce and the BRAM strobes there), except the cin synchroniser's paths into the fabric.
-2. **TCK is at most 100 kHz** (`host/dirtyjtag.py` refuses more) and is constrained at that period, so TCK-to-TCK paths through the fabric (boundary cell → fabric → DSP/BRAM/CAPTURE capture register) have 10 µs.
+2. **TCK is at most 100 kHz** (`software/host/dirtyjtag.py` refuses more) and is constrained at that period, so TCK-to-TCK paths through the fabric (boundary cell → fabric → DSP/BRAM/CAPTURE capture register) have 10 µs.
 3. **Configuration changes only while GWE = 0**, so the fabric never samples configuration bits while they change - or (M14) while the user clock is frozen and the freeze has been acknowledged in the TCK domain: then no fabric register, BRAM or DSP register is enabled (every one of them is gated by gce), so bits changing under a held enable cannot be captured.
 4. **(M15) BRAM content frame requests are at least 32 TCK periods apart** (one frame word at 100 kHz = 320 µs; a frame on the sysclk side takes ~12 cycles = 96 ns). Requests travel as a toggle through a two-flop synchroniser with their data stable, as the USER4 commands always did.
 5. **(M14) The freeze handshake:** AGHIGH → `freeze` (TCK) → 2-flop synchroniser → `gce` forced low and `frozen` set on the same sysclk edge → 2-flop synchroniser on TCK → GHIGH_B = 0. The host reads STAT and sends frames only after GHIGH_B = 0; frames that arrive earlier are refused (WR_ERROR).
@@ -377,7 +377,7 @@ These rules make the Vivado timing constraints true (hw/constr/pynq_z2.xdc):
 
 AMD 7-series devices reconfigure part of a running design by writing only that region's frames, with GHIGH_B asserted around the write (UG470 CMD AGHIGH / DGHIGH-LFRM; UG909 for the flow). bob follows the same command sequence; what bob's GHIGH_B holds is its user clock: every fabric flip-flop, BRAM and DSP register is enabled only by gce, so a held gce keeps the **whole** fabric's state exactly while any frames change.
 
-**Sequence** (`tools/bob/packets.py` `partial_streams(old, new)`, `host/cfgplane.py` `load_partial`, `bob load --partial x.bit`):
+**Sequence** (`software/bob/packets.py` `partial_streams(old, new)`, `software/host/cfgplane.py` `load_partial`, `bob load --partial x.bit`):
 
 ```
 scan 1 (CFG_IN):  dummy, AA995566, NOP, CMD <- RCRC, IDCODE <- device, CMD <- AGHIGH, NOP

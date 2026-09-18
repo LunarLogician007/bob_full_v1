@@ -319,9 +319,9 @@ def s7_files(sc):
                 ("hw/src/core/bsc_cell.v", "one BC_1 boundary cell"),
                 ("hw/src/fabric/bob_fpga.v", "wires the ring, 2 cells per pad")],
         generated=[("hw/src/generated/bob_params.vh", "BOB_BSR_W = 88, pad numbers"),
-                   ("tools/bob/device.json", "bsr cells, board pad map")],
+                   ("software/bob/device.json", "bsr cells, board pad map")],
         verified=[("hw/tb/tb_bob.v", "IR, BYPASS, boundary, INTEST/EXTEST"),
-                  ("host/dirtyjtag.py", "the same shifts on real hardware"),
+                  ("software/host/dirtyjtag.py", "the same shifts on real hardware"),
                   ("docs/hwtest/*.md", "idcode + bypass open every board run")])
 
 

@@ -6,7 +6,7 @@
 // are rr-graph IPIN wires of hw/src/generated/bob_fabric.v; P is OPIN wires, and
 // PCOUT (= P) reaches the slice above as its PCIN through a VPR direct.
 //
-// Config (tools/bob/device.py 'dsp' fields):
+// Config (software/bob/device.py 'dsp' fields):
 //   [1:0] opmode  0 M, 1 M+C, 2 P+M, 3 (PCIN>>>17)+M
 //   [2] use_d  [3] d_sub  [4] areg [5] breg [6] creg [7] dreg [8] mreg [9] preg
 //   [10] jtag_a [11] jtag_b [12] jtag_c [13] jtag_d  bus from the drive word

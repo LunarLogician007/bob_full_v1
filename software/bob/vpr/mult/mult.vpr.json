@@ -1,0 +1,158 @@
+{
+"top": "mult",
+"lut": {
+"ffd1": {
+"n": 1,
+"tt": 2
+},
+"ffd2": {
+"n": 1,
+"tt": 2
+},
+"ffd3": {
+"n": 1,
+"tt": 2
+},
+"ffd4": {
+"n": 1,
+"tt": 2
+},
+"ffd5": {
+"n": 1,
+"tt": 2
+},
+"ffd6": {
+"n": 1,
+"tt": 2
+},
+"ffd7": {
+"n": 1,
+"tt": 2
+}
+},
+"add": {},
+"ff": {
+"$auto$ff.cc:337:slice$88": {
+"rstval": 0,
+"ce": false,
+"sr": false
+},
+"$auto$ff.cc:337:slice$89": {
+"rstval": 0,
+"ce": false,
+"sr": false
+},
+"$auto$ff.cc:337:slice$90": {
+"rstval": 0,
+"ce": false,
+"sr": false
+},
+"$auto$ff.cc:337:slice$91": {
+"rstval": 0,
+"ce": false,
+"sr": false
+},
+"$auto$ff.cc:337:slice$97": {
+"rstval": 0,
+"ce": false,
+"sr": false
+},
+"$auto$ff.cc:337:slice$98": {
+"rstval": 0,
+"ce": false,
+"sr": false
+},
+"$auto$ff.cc:337:slice$99": {
+"rstval": 0,
+"ce": false,
+"sr": false
+}
+},
+"bram": {},
+"dsp": {
+"$mul$work/examples/mult/mult.v:12$3": {
+"opmode": "M"
+}
+},
+"consts": {
+"$mul$work/examples/mult/mult.v:12$3": {
+"a[4]": 0,
+"a[5]": 0,
+"a[6]": 0,
+"a[7]": 0,
+"a[8]": 0,
+"a[9]": 0,
+"a[10]": 0,
+"a[11]": 0,
+"a[12]": 0,
+"a[13]": 0,
+"a[14]": 0,
+"a[15]": 0,
+"a[16]": 0,
+"a[17]": 0,
+"a[18]": 0,
+"a[19]": 0,
+"a[20]": 0,
+"a[21]": 0,
+"a[22]": 0,
+"a[23]": 0,
+"a[24]": 0,
+"b[4]": 0,
+"b[5]": 0,
+"b[6]": 0,
+"b[7]": 0,
+"b[8]": 0,
+"b[9]": 0,
+"b[10]": 0,
+"b[11]": 0,
+"b[12]": 0,
+"b[13]": 0,
+"b[14]": 0,
+"b[15]": 0,
+"b[16]": 0,
+"b[17]": 0
+}
+},
+"out_consts": {},
+"has_clk": true,
+"out_pads": {},
+"net_bits": {
+"btn[0]": 5,
+"btn[1]": 6,
+"btn[2]": 7,
+"btn[3]": 8,
+"clk": 2,
+"ffd1": 3,
+"ffd2": 4,
+"ffd3": 5,
+"ffd4": 6,
+"ffd5": 16,
+"ffd6": 17,
+"ffd7": 18,
+"led[0]": 9,
+"led[1]": 10,
+"led[2]": 11,
+"n12": 12,
+"n13": 13,
+"n14": 14,
+"n15": 15,
+"n16": 16,
+"n17": 17,
+"n18": 18,
+"sw[0]": 3,
+"sw[1]": 4
+},
+"pins": {
+"clk": 0,
+"sw[0]": 12,
+"sw[1]": 14,
+"btn[0]": 16,
+"btn[1]": 18,
+"btn[2]": 20,
+"btn[3]": 22,
+"out:led[0]": 13,
+"out:led[1]": 15,
+"out:led[2]": 17
+},
+"pcf": null
+}

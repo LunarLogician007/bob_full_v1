@@ -1,5 +1,5 @@
 """
-tools/bob/flow.py: the staged flow must be the same flow.
+software/bob/flow.py: the staged flow must be the same flow.
 
 flow.py exists so a GUI can watch a build stage by stage, and it runs beside cli.py's
 build() until the next milestone's tree can fold them together. The point of these
@@ -16,8 +16,8 @@ import sys
 import pytest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(ROOT, "tools", "bob"))
-sys.path.insert(0, os.path.join(ROOT, "host"))
+sys.path.insert(0, os.path.join(ROOT, "software", "bob"))
+sys.path.insert(0, os.path.join(ROOT, "software", "host"))
 
 import cli  # noqa: E402
 import flow  # noqa: E402
@@ -31,7 +31,7 @@ SAME = ["gates", "adder", "counter"]
 
 
 def _src(name):
-    return [os.path.join(ROOT, "examples", f"{name}.v")]
+    return [os.path.join(ROOT, "work", "examples", name, f"{name}.v")]
 
 
 def _sha(path):
@@ -157,8 +157,8 @@ def test_a_missing_source_fails_in_the_synth_stage(tmp_path):
 
 
 def test_messages_carry_file_and_line():
-    m = flow.messages("examples/fir.v:14: warning: 'rst' is not used\n", "iverilog")
-    assert m == [{"severity": "warning", "file": "examples/fir.v", "line": 14,
+    m = flow.messages("work/examples/fir/fir.v:14: warning: 'rst' is not used\n", "iverilog")
+    assert m == [{"severity": "warning", "file": "work/examples/fir/fir.v", "line": 14,
                   "text": "'rst' is not used", "source": "iverilog"}]
 
 
@@ -186,7 +186,7 @@ def test_a_position_with_a_column_or_a_span_still_parses():
     """yosys writes file.v:110.46-110.78, iverilog file.v:7 - both name line 110 / 7."""
     a = flow.messages("Warning: wire is assigned in a block at /x/bob_cells.v:110.46-110.78.")
     assert a and a[0]["file"].endswith("bob_cells.v") and a[0]["line"] == 110
-    b = flow.messages("examples/fir.v:7:3: error: something went wrong here")
+    b = flow.messages("work/examples/fir/fir.v:7:3: error: something went wrong here")
     assert b and b[0]["line"] == 7
 
 

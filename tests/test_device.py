@@ -1,7 +1,7 @@
 """
-tools/bob/device.py is a correct, complete description of the fabric - checked
+software/bob/device.py is a correct, complete description of the fabric - checked
 against itself (at K=6 and K=4), against VPR's routing-resource graph, against
-the RTL, and against host/bitstream.py.
+the RTL, and against software/host/bitstream.py.
 """
 
 import json
@@ -15,8 +15,8 @@ import sys
 import pytest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(ROOT, "tools", "bob"))
-sys.path.insert(0, os.path.join(ROOT, "host"))
+sys.path.insert(0, os.path.join(ROOT, "software", "bob"))
+sys.path.insert(0, os.path.join(ROOT, "software", "host"))
 
 import device  # noqa: E402
 
@@ -134,28 +134,28 @@ def test_board_pads():
 
 
 def test_generated_files_are_current():
-    r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "bob", "device.py"),
+    r = subprocess.run([sys.executable, os.path.join(ROOT, "software", "bob", "device.py"),
                         "--check"], capture_output=True, text=True)
     assert r.returncode == 0, r.stdout
 
 
 def test_non_default_k_never_overwrites_committed_files():
-    r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "bob", "device.py"),
+    r = subprocess.run([sys.executable, os.path.join(ROOT, "software", "bob", "device.py"),
                         "--lut-k", "4"], capture_output=True, text=True)
     assert r.returncode != 0 and "--out" in (r.stdout + r.stderr)
 
 
 @pytest.mark.parametrize("k", [6, 4])
 def test_vpr_routed_the_trivial_netlist_on_this_architecture(k):
-    log = open(os.path.join(ROOT, "tools", "bob", "arch", f"bob_k{k}_vpr.txt")).read()
+    log = open(os.path.join(ROOT, "software", "bob", "arch", f"bob_k{k}_vpr.txt")).read()
     assert "Circuit successfully routed" in log
-    stamp = open(os.path.join(ROOT, "tools", "bob", "arch", f"bob_k{k}_rr.stamp")).read()
+    stamp = open(os.path.join(ROOT, "software", "bob", "arch", f"bob_k{k}_rr.stamp")).read()
     assert "--route_chan_width 24" in stamp
 
 
 def test_arch_keeps_the_reference_routing():
     """What M7 takes from OpenFPGA's k6_frac_N10_tileable_adder_chain_dpram8K_dsp36 arch."""
-    xml = open(os.path.join(ROOT, "tools", "bob", "arch", "bob_k6.xml")).read()
+    xml = open(os.path.join(ROOT, "software", "bob", "arch", "bob_k6.xml")).read()
     assert 'tileable="true"' in xml and 'through_channel="false"' in xml
     assert '<switch_block type="wilton" fs="3"/>' in xml
     assert re.search(r'<segment name="L4"[^>]*length="4" type="unidir"', xml)
@@ -178,7 +178,7 @@ def test_params_vh_equals_clb_pkg_when_elaborated(k, tmp_path):
     gen = os.path.join(ROOT, "hw", "src", "generated")
     if k != 6:
         gen = str(tmp_path / "gen")
-        subprocess.run([sys.executable, os.path.join(ROOT, "tools", "bob", "device.py"),
+        subprocess.run([sys.executable, os.path.join(ROOT, "software", "bob", "device.py"),
                         "--lut-k", str(k), "--out", gen], check=True, capture_output=True)
     checks = "\n".join(
         f'    if (`BOB_{n} !== {n}) begin $display("MISMATCH {n} vh=%0d pkg=%0d", '
@@ -218,7 +218,7 @@ def test_generated_fabric_has_every_mux_and_block():
         assert f"m{m.node} (.sel(cfg[{m.lo} +: {m.width}])" in text
 
 
-# --- host/bitstream.py is driven by the description --------------------------------------
+# --- software/host/bitstream.py is driven by the description --------------------------------------
 
 def test_bitstream_py_constants_come_from_device_json():
     import bitstream as B
@@ -284,7 +284,7 @@ def test_routes_are_trees_and_never_share_a_wire():
 def test_bitstream_engine_at_k4(tmp_path):
     """The whole Python side works at K=4 from a K=4 device.json."""
     gen = tmp_path / "gen"
-    subprocess.run([sys.executable, os.path.join(ROOT, "tools", "bob", "device.py"),
+    subprocess.run([sys.executable, os.path.join(ROOT, "software", "bob", "device.py"),
                     "--lut-k", "4", "--out", str(gen)], check=True, capture_output=True)
     code = (
         "import designs, bitstream as B\n"
@@ -297,7 +297,7 @@ def test_bitstream_engine_at_k4(tmp_path):
         "print('K4_OK', len(designs.DESIGNS))\n")
     env = dict(os.environ, BOB_DEVICE_JSON=str(gen / "device.json"))
     r = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, env=env,
-                       cwd=os.path.join(ROOT, "host"))
+                       cwd=os.path.join(ROOT, "software", "host"))
     assert "K4_OK 10" in r.stdout, r.stdout + r.stderr
     assert json.load(open(gen / "device.json"))["lut_k"] == 4
 

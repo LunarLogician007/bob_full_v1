@@ -7,7 +7,7 @@
 // there. This module only adds the choice made in M5 between fabric pins and
 // the USER4 JTAG drive word, per port.
 //
-// Config (tools/bob/device.py 'bram' fields):
+// Config (software/bob/device.py 'bram' fields):
 //   [1:0] wmode_a  [3:2] wmode_b   0 WRITE_FIRST, 1 READ_FIRST, 2 NO_CHANGE
 //   [4] reg_a  [5] reg_b           DOA_REG / DOB_REG
 //   [6] jtag_a [7] jtag_b          port pins from the drive word, not the fabric

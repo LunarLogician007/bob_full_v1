@@ -1,14 +1,14 @@
 // ============================================================================
 // clb_pkg.sv -- CLB constants + CLB configuration helpers
 //
-// M4: the LUT size K comes from hw/src/generated/bob_params.vh (tools/bob/
+// M4: the LUT size K comes from hw/src/generated/bob_params.vh (software/bob/
 // device.py). Every width below is DERIVED from K here, independently of the
 // generated widths, and tests/test_device.py elaborates this package next to
 // bob_params.vh and compares every constant - so the two can never drift.
 //
 // M7: the routing constants (tracks, source bus, connection/switch box words)
 // left with the hand-written 4x4 fabric; routing is now generated from VPR's
-// rr graph and described only by tools/bob/device.json.
+// rr graph and described only by software/bob/device.json.
 // ============================================================================
 `timescale 1ns/1ps
 `include "bob_params.vh"

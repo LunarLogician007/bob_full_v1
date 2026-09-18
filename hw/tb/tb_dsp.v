@@ -1,5 +1,5 @@
 // -----------------------------------------------------------------------------
-// tb_dsp.v - two cascaded dsp_core.v slices against tools/bob/model.py (M6)
+// tb_dsp.v - two cascaded dsp_core.v slices against software/bob/model.py (M6)
 //
 // Slice 1's PCIN is slice 0's P, as the DSP tile wires them. Every opmode with
 // every pre-adder setting, random register stages, full-scale signed inputs,
@@ -71,7 +71,7 @@ module tb_dsp;
 
     initial begin
         $display("");
-        $display("=== M6 dsp_core x2 (cascade) vs tools/bob/model.py: every opmode x pre-adder ===");
+        $display("=== M6 dsp_core x2 (cascade) vs software/bob/model.py: every opmode x pre-adder ===");
         `include "dsp_vectors.vh"
         $display("    %0d checks", checks);
         if (errors == 0) $display("=== ALL TESTS PASSED ===");

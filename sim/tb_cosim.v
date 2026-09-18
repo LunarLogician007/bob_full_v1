@@ -2,10 +2,10 @@
 // tb_cosim.v - golden co-simulation (M10)
 //
 // Every example (and pin variant) runs three ways at once, on the same inputs:
-//   source   the example's own Verilog (examples/<top>.v)
-//   golden   its synthesised netlist with every net named (tools/bob/golden.py)
+//   source   the example's own Verilog (work/examples/<top>.v)
+//   golden   its synthesised netlist with every net named (software/bob/golden.py)
 //   fabric   the complete bob FPGA RTL, loaded with the chain from the design's
-//            .bit (tools/bob/cli.py build) through CFG_IN, BRAM contents over USER4
+//            .bit (software/bob/cli.py build) through CFG_IN, BRAM contents over USER4
 //
 // Per cycle: inputs applied (the source sees them as sw/btn, the fabric through
 // the design's pins); before the edge the fabric LEDs must equal the source's,
@@ -13,7 +13,7 @@
 // clock; the LEDs again; then CAPTURE, where every CLB that holds a flip-flop
 // must read the golden netlist's value of that register.
 //
-// Mac-only (needs examples/ and build/): sim/run_cosim_sim.sh
+// Mac-only (needs work/examples/ and build/): sim/run_cosim_sim.sh
 // -----------------------------------------------------------------------------
 
 `timescale 1ns / 1ps

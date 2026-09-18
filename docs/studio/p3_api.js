@@ -1,4 +1,4 @@
-// ── talking to host/studio.py ──────────────────────────────────────────────
+// ── talking to software/host/studio.py ──────────────────────────────────────────────
 // Nothing clever: fetch for requests, EventSource for a build's stage stream.
 
 const S = {

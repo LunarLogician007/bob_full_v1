@@ -1,0 +1,793 @@
+#!/usr/bin/env python3
+"""
+studio.py - the bob studio backend: an EDA tool for the bob FPGA, over HTTP.
+
+  ./host/studio.py [--port 8765] [--probe usb|fake] [--no-browser]
+
+Vivado's shape, mapped onto the flow this project already has. Nothing here
+reimplements a stage; every route drives software/bob/flow.py (synthesis and its
+equivalence check, place and route, FASM, bitgen, the model check) or
+software/host/cfgplane.py (program, readback), and reports what they return.
+
+  GET  /                        the page (studio.html, built by docs/studio/build.py)
+  GET  /api/device              the device: grid, blocks, columns, capacity, frames
+  GET  /api/examples            the example designs, as starting projects
+  GET  /api/source?path=        one source file, for the editor
+  POST /api/save                write the editor back to a file inside the repo
+  GET  /api/browse              the designs you can open: work/, work/examples/, and any .proj
+  GET  /api/bits                the bitstreams in build/bit/, newest first
+  POST /api/new                 scaffold work/<name>/<name>.v from a template
+  POST /api/build               start a build -> {"job": id}
+  GET  /api/events/<job>        Server-Sent Events: one per stage as it finishes
+  GET  /api/job/<job>           the finished result, as flow.Result.to_json()
+  GET  /api/placement/<name>    where the design landed, and its routed nets
+  GET  /api/target              the open probe, or none
+  POST /api/target              open one: {"kind": "usb" | "fake"}
+  POST /api/program             load a .bit: {"bit": path, "mode": frames|chain, "partial": bool}
+  GET  /api/board               IDCODE, STAT, DONE, LEDs, switches
+  GET  /api/pins                the pad map: board names, free pads, which are wired where
+  POST /api/pcf                 write a .pcf from a port -> pin assignment (into build/)
+  POST /api/readback            read the fabric back and compare it with a .bit
+  POST /api/capture             CAPTURE every CLB register
+  POST /api/partial             reconfigure the running design, changed frames only
+  GET  /api/fasm                a .bit as FASM, with its frame map
+
+Stdlib only: http.server and SSE, so the project gains no dependency. Builds write
+where the CLI writes them, under build/, and nothing here ever regenerates the
+device or touches hw/.
+"""
+
+import argparse
+import json
+import glob
+import mimetypes
+import os
+import re
+import queue
+import sys
+import threading
+import time
+import traceback
+import uuid
+import webbrowser
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import urlparse, parse_qs, unquote
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(os.path.dirname(HERE))
+sys.path.insert(0, HERE)
+sys.path.insert(0, os.path.join(ROOT, "software", "bob"))
+
+import bitstream as B  # noqa: E402
+import fakeboard  # noqa: E402
+import fasm_from_vpr as FV  # noqa: E402
+import flow  # noqa: E402
+import vpr_run  # noqa: E402
+
+PAGE = os.path.join(ROOT, "studio.html")
+EXAMPLES = os.path.join(ROOT, "work", "examples")
+
+
+# --- jobs --------------------------------------------------------------------
+
+
+class Job:
+    """One build, on its own thread, with a queue the SSE route drains."""
+
+    def __init__(self, spec):
+        self.id = uuid.uuid4().hex[:12]
+        self.started = time.time()
+        self.spec = spec
+        self.events = queue.Queue()
+        self.result = None
+        self.error = None
+        self.done = threading.Event()
+        self.thread = threading.Thread(target=self._run, daemon=True)
+
+    def _emit(self, kind, **body):
+        self.events.put({"event": kind, **body})
+
+    def _run(self):
+        try:
+            f = flow.Flow(**self.spec)
+            self._emit("start", design=f.name, top=f.top, stages=list(flow.STAGES))
+            res = f.run(on_stage=lambda st: self._emit("stage", **st.to_json()))
+            self.result = res.to_json()
+            self.result["placement"] = placement(f.name, res.work) if res.ok else None
+            self._emit("done", **self.result)
+        except Exception as e:                        # a bug here must reach the page
+            self.error = f"{type(e).__name__}: {e}"
+            traceback.print_exc()
+            self._emit("failed", error=self.error)
+        finally:
+            self.done.set()
+            self.events.put(None)
+
+    def start(self):
+        self.thread.start()
+        return self
+
+
+JOBS = {}
+JOBS_LOCK = threading.Lock()
+MAX_JOBS = 40                        # a long session should not hold every build it ran
+
+
+def _remember(job):
+    with JOBS_LOCK:
+        JOBS[job.id] = job
+        if len(JOBS) > MAX_JOBS:
+            for jid in [k for k, v in sorted(JOBS.items(), key=lambda kv: kv[1].started)
+                        if v.done.is_set()][:len(JOBS) - MAX_JOBS]:
+                JOBS.pop(jid, None)
+
+
+# --- device and results ------------------------------------------------------
+
+
+def device():
+    """Everything the Device view needs to draw this fabric, from device.json."""
+    d = B.DEVICE
+    used = {}
+    for b in d["blocks"]:
+        used[b["type"]] = used.get(b["type"], 0) + 1
+    return {"name": d["name"], "lut_k": d["lut_k"],
+            "grid": {"w": d["arch"]["grid_width"], "h": d["arch"]["grid_height"]},
+            "chan_width": d["arch"]["chan_width"],
+            "columns": d["arch"]["columns"],
+            "blocks": [{"name": b["name"], "type": b["type"], "x": b["x"], "y": b["y"]}
+                       for b in d["blocks"]],
+            "capacity": used,
+            "chain_w": B.CHAIN_W,
+            "frames": d["frames"]["count"],
+            "muxes": len(d["rr"]["muxes"]),
+            "pads": d["pads"]["count"],
+            "clock": d["clock"]}
+
+
+BLOCK_AT = {(b["x"], b["y"]): b for b in B.DEVICE["blocks"]}
+
+
+def placement(name, work):
+    """Where each netlist block landed, and the routed nets, for the Device view."""
+    if not work or not os.path.isdir(work):
+        return None
+    out = {"blocks": [], "nets": [], "wirelength": None}
+    place = os.path.join(work, f"{name}.place")
+    if os.path.exists(place):
+        for blk, (x, y) in sorted(FV.read_place(place).items()):
+            site = BLOCK_AT.get((x, y))
+            out["blocks"].append({"name": blk, "x": x, "y": y,
+                                  "type": site["type"] if site else "?",
+                                  "site": site["name"] if site else None})
+    route = os.path.join(work, f"{name}.route")
+    if os.path.exists(route):
+        nodes = {n[0]: n for n in B.DEVICE["rr"]["nodes"]}
+        span = set()
+        for net, branches in FV.read_route(route).items():
+            ids = [nid for br in branches for nid, _kind in br]
+            pts = []
+            for nid in ids:
+                n = nodes.get(nid)
+                if n:
+                    pts.append({"id": nid, "kind": n[1], "x0": n[2], "y0": n[3],
+                                "x1": n[4], "y1": n[5]})
+                    if n[1] in ("CHANX", "CHANY"):
+                        span.add(nid)
+            out["nets"].append({"name": net, "nodes": pts})
+        out["wirelength"] = len(span)
+    return out
+
+
+SAFE_NAME = re.compile(r"[^A-Za-z0-9._-]")
+DESIGNS = os.path.join(ROOT, "work")
+EDITABLE = (".v", ".sv", ".vh", ".pcf", ".proj")
+
+TEMPLATE = """// {name}.v - a bob design.
+//
+// The default pin convention is sw[1:0] -> SW1..0, btn[3:0] -> BTN3..0,
+// led[2:0] -> LD2..0. Use the Pin Planner for anything else; it writes a .pcf
+// and the next build picks it up.
+//
+// One clock only, no asynchronous resets, no latches: the fabric has one user
+// clock and every flip-flop is enabled by it.
+module {name} (
+    input  wire       clk,
+    input  wire [1:0] sw,
+    input  wire [3:0] btn,
+    output wire [2:0] led
+);
+
+    reg [2:0] q = 3'd0;
+
+    always @(posedge clk)
+        q <= btn[0] ? 3'd0 : q + {{2'd0, sw[0]}};
+
+    assign led = q;
+
+endmodule
+"""
+
+
+def browse():
+    """Everything openable, newest first within each group. work/ is where your own
+    work goes; work/examples/ ships with the project."""
+    out = []
+    for root, label in ((DESIGNS, "design"), (EXAMPLES, "example")):
+        if not os.path.isdir(root):
+            continue
+        for dirpath, _dirs, names in os.walk(root):
+            if os.path.basename(dirpath).startswith("."):
+                continue
+            # work/examples/ is walked as its own group, not as part of work/
+            if label == "design" and os.path.commonpath([dirpath, EXAMPLES]) == EXAMPLES:
+                continue
+            for n in sorted(names):
+                if not n.endswith(EDITABLE):
+                    continue
+                full = os.path.join(dirpath, n)
+                rel = os.path.relpath(full, ROOT)
+                out.append({"path": rel, "name": n, "kind": label,
+                            "type": os.path.splitext(n)[1].lstrip("."),
+                            "lines": sum(1 for _ in open(full, errors="replace")),
+                            "mtime": os.path.getmtime(full)})
+    return {"files": out, "designs_dir": os.path.relpath(DESIGNS, ROOT)}
+
+
+def save_source(rel, text):
+    """Write the editor back. Inside the repo, and only file types the flow reads -
+    the studio is a tool for this project, not a general file manager."""
+    ap = _inside(rel)
+    if ap is None:
+        raise ValueError("path is outside the repo")
+    if not ap.endswith(EDITABLE):
+        raise ValueError(f"only {', '.join(EDITABLE)} files can be saved")
+    os.makedirs(os.path.dirname(ap), exist_ok=True)
+    with open(ap, "w") as fh:
+        fh.write(text)
+    return os.path.relpath(ap, ROOT)
+
+
+def new_design(name):
+    """work/<name>/<name>.v from the template. -> its repo-relative path.
+
+    A name that is not already a plain name is refused, not quietly rewritten: asking
+    for "../../etc/x" and silently getting work/x/x.v is worse than an error."""
+    name = str(name).strip()
+    if not name or not re.fullmatch(r"[A-Za-z][A-Za-z0-9_-]*", name):
+        raise ValueError("a design name starts with a letter and holds letters, digits, "
+                         "_ or - (no slashes, no dots)")
+    rel = os.path.join("work", name, f"{name}.v")
+    if _inside(rel) is None:
+        raise ValueError("refusing to write outside the repo")
+    if os.path.exists(os.path.join(ROOT, rel)):
+        raise ValueError(f"{rel} already exists")
+    os.makedirs(os.path.dirname(os.path.join(ROOT, rel)), exist_ok=True)
+    open(os.path.join(ROOT, rel), "w").write(TEMPLATE.format(name=name))
+    return rel
+
+
+def bitstreams():
+    """Everything in build/bit/, newest first. A bitstream built in an earlier session or
+    from the command line is just as loadable as one built in this tab."""
+    import bitgen
+    out = []
+    for f in sorted(glob.glob(os.path.join(ROOT, "build", "bit", "*.bit"))):
+        rel = os.path.relpath(f, ROOT)
+        rec = {"path": rel, "name": os.path.basename(f)[:-4], "mtime": os.path.getmtime(f)}
+        try:
+            c = bitgen.read_bit(f)
+            rec.update(top=c["meta"].get("top"), design=c["meta"].get("design"),
+                       sources=c["meta"].get("sources"), clock=c["meta"].get("clock"),
+                       pcf=c["meta"].get("pcf"), crc=f"0x{c['crc']:08X}", ok=True)
+        except Exception as e:
+            rec.update(ok=False, error=str(e))
+        out.append(rec)
+    out.sort(key=lambda r: -r["mtime"])
+    return out
+
+
+def examples():
+    """One folder per example under work/examples/<name>/<name>.v, the same shape a
+    design of your own has."""
+    out = []
+    if not os.path.isdir(EXAMPLES):
+        return out
+    for name in sorted(os.listdir(EXAMPLES)):
+        src = os.path.join(EXAMPLES, name, f"{name}.v")
+        if not os.path.isfile(src):
+            continue
+        stamp = vpr_run.read_stamp(name) or {}
+        out.append({"name": name, "path": os.path.relpath(src, ROOT),
+                    "lines": sum(1 for _ in open(src)),
+                    "routed": bool(stamp), "wirelength": stamp.get("wirelength")})
+    return out
+
+
+def pins():
+    """The pad ring: which pads the board wires to a switch, button or LED, and which
+    are reachable by boundary scan only. This is what a .pcf may name."""
+    import vpr_run
+    d = B.DEVICE
+    named = {pad: name for name, pad in vpr_run.BOARD_PIN_NAMES.items()}
+    out = []
+    for io in d["pads"]["io"]:
+        pad = io["pad"]
+        out.append({"pad": pad, "x": io["x"], "y": io["y"],
+                    "name": named.get(pad), "kind": (
+                        "input" if named.get(pad, "").startswith(("SW", "BTN"))
+                        else "output" if named.get(pad, "").startswith("LD") else "scan")})
+    return {"pads": out, "board": vpr_run.BOARD_PIN_NAMES,
+            "convention": "sw[1:0] -> SW1..0, btn[3:0] -> BTN3..0, led[2:0] -> LD2..0"}
+
+
+def write_pcf(name, assign):
+    """{port bit: pin name} -> build/pcf/<name>.pcf, checked against the pad map.
+
+    `name` comes from the page, so it never reaches a path as given: it names a file in
+    build/pcf/ and nothing else. Without this, "../../../x" walked out of the repo."""
+    import vpr_run
+    name = SAFE_NAME.sub("_", os.path.basename(str(name))).strip("._-") or "design"
+    bad = [v for v in assign.values()
+           if v not in vpr_run.BOARD_PIN_NAMES
+           and not (re.fullmatch(r"pad\d+", str(v)) and int(str(v)[3:]) in B.PAD_XY)]
+    if bad:
+        raise ValueError(f"unknown pin(s) {sorted(set(bad))}")
+    if len(set(assign.values())) != len(assign):
+        raise ValueError("two ports on one pin")
+    # write_eblif names every port bit port[i], one-bit ports included, so a bare port
+    # name in a .pcf is silently ignored and the build then fails on the indexed net.
+    bare = sorted(k for k in assign if not re.fullmatch(r"[^\[\]]+\[\d+\]", str(k)))
+    if bare:
+        raise ValueError(f"name each bit as port[i], one-bit ports included: {bare}")
+    out = os.path.join(ROOT, "build", "pcf", f"{name}.pcf")
+    if _inside(os.path.relpath(out, ROOT)) is None:
+        raise ValueError(f"refusing to write outside the repo: {name}")
+    os.makedirs(os.path.dirname(out), exist_ok=True)
+    with open(out, "w") as fh:
+        fh.write(f"# written by bob studio for {name}\n")
+        for port, pin in sorted(assign.items()):
+            fh.write(f"set_io {port} {pin}\n")
+    vpr_run.read_pcf(out)                      # it must parse the way a build will read it
+    return os.path.relpath(out, ROOT)
+
+
+def fasm_of(bit):
+    """A .bit as FASM text plus the frame map, for the bitstream browser."""
+    import bitgen
+    import fasm_from_vpr as FV
+    c = bitgen.read_bit(bit)
+    F = bitgen.features_from_word(c["word"])
+    fw = B.DEVICE["frames"]["bits"]
+    word = c["word"]
+    frames = []
+    for i in range(B.DEVICE["frames"]["count"]):
+        v = (word >> (i * fw)) & ((1 << fw) - 1)
+        frames.append({"index": i, "set": bin(v).count("1"),
+                       "hex": f"{v:0{fw // 4}X}"})
+    cols = B.DEVICE["frames"]["columns"]
+    return {"features": len(F), "fasm": FV.to_fasm(F), "crc": f"0x{c['crc']:08X}",
+            "width": c["width"], "meta": c["meta"], "frames": frames, "columns": cols,
+            "brams": sorted(c["brams"])}
+
+
+REAL_ROOT = os.path.realpath(ROOT)
+
+
+def _inside(path):
+    """Only ever touch paths inside the repo, and never follow a link out of it.
+    Both sides are resolved, so a symlink anywhere in ROOT cannot make them differ."""
+    if not path:
+        return None
+    ap = os.path.realpath(os.path.join(ROOT, path))
+    return ap if ap == REAL_ROOT or ap.startswith(REAL_ROOT + os.sep) else None
+
+
+# --- the board ---------------------------------------------------------------
+
+
+class DemoBoard(fakeboard.FakeBob):
+    """FakeBob with its simulated free-running clock kept tractable.
+
+    FakeBob catches up on every guest clock edge that fell since JSTART, and one edge
+    costs a model.settle() - a Python fixed point over 3391 muxes, about a millisecond
+    at 100 CLBs. A design built with --clock run and a small --div asks for 61 kHz, so
+    a few seconds away from the page would queue tens of thousands of edges and the
+    board would stop answering. Bound the backlog instead: skip ahead, count what was
+    skipped, and let the page say the simulated clock is behind. The real board has no
+    such problem, and nothing here changes how a scan is answered."""
+
+    BUDGET = 0.05                    # seconds of simulation allowed per scan (every
+                                     # scan calls _run, so a request spends several)
+
+    def __init__(self, **kw):
+        super().__init__(**kw)
+        self.skipped = 0
+        self._per_edge = 0.008       # seconds per guest clock; measured as we go
+
+    def _run(self):
+        cap = max(1, int(self.BUDGET / max(self._per_edge, 1e-6)))
+        if self.done and self.fab is not None and hasattr(self, "clocks") and not self._held():
+            off, w = B.CTRL_FIELD["clk_div"]
+            hz = (125e6 / 2 ** (((self.chain >> off) & ((1 << w) - 1)) + B.DIV_MIN_SHIFT)
+                  * self.rate_scale)
+            if hz > 0:
+                over = int((time.time() - self.t_start) * hz) - self.clocks - cap
+                if over > 0:
+                    self.t_start += over / hz            # the guest simply ran slower
+                    self.skipped += over
+        # `clocks` only exists once JSTART has run, so read it defensively.
+        before, t0 = getattr(self, "clocks", 0), time.time()
+        out = super()._run()
+        ran, dt = getattr(self, "clocks", 0) - before, time.time() - t0
+        if ran > 0:
+            self._per_edge += 0.25 * (dt / ran - self._per_edge)      # settles quickly
+        return out
+
+
+class Target:
+    """The open probe. `kind` is None until the page opens one."""
+
+    def __init__(self, kind=None):
+        self.kind = None
+        self.probe = None
+        self.lock = threading.Lock()
+        if kind:
+            self.open(kind)
+
+    def open(self, kind):
+        with self.lock:
+            self.probe = DemoBoard() if kind == "fake" else fakeboard.probe(kind)
+            self.kind = kind
+            idcode = self.probe.read_idcode()
+        return {"kind": kind, "idcode": f"0x{idcode:08X}",
+                "expected": f"0x{_expected():08X}", "match": idcode == _expected()}
+
+    def status(self):
+        if not self.probe:
+            return {"kind": None, "open": False}
+        import cfgplane
+        import fpga
+        with self.lock:
+            idcode = self.probe.read_idcode()
+            st, pins = None, None
+            # An unprogrammed or unconfigured board answers neither; that is a state
+            # the page should show, not a failure it should raise on.
+            try:
+                st = cfgplane.status(self.probe)
+            except Exception as e:
+                st = {"error": str(e)}
+            try:
+                cfgplane.ir(self.probe, "SAMPLE")     # fpga.sample needs the IR held there
+                pins = fpga.sample(self.probe)
+            except Exception as e:
+                pins = {"error": str(e)}
+        return {"kind": self.kind, "open": True, "idcode": f"0x{idcode:08X}",
+                "expected": f"0x{_expected():08X}", "match": idcode == _expected(),
+                "status": st, "pins": pins,
+                "leds": (pins or {}).get("leds"), "sw": (pins or {}).get("sw"),
+                "btn": (pins or {}).get("btn"),
+                "simulated": self.kind == "fake",
+                "clocks": getattr(self.probe, "clocks", None),
+                "skipped": getattr(self.probe, "skipped", None),
+                "edge_ms": round(getattr(self.probe, "_per_edge", 0) * 1000, 2)}
+
+    def program(self, bit, mode="frames", partial=False):
+        import cli
+        if not self.probe:
+            raise RuntimeError("no target open: POST /api/target first")
+        with self.lock:
+            if partial:
+                ok, msg = cli.load_partial(self.probe, bit)
+            else:
+                ok, msg = cli.load(self.probe, bit, mode=mode)
+        return {"ok": ok, "message": msg, "mode": "partial" if partial else mode}
+
+
+    def readback(self, bit):
+        """Read the configuration back over FDRO and compare it with the .bit."""
+        import bitgen
+        import cfgplane
+        if not self.probe:
+            raise RuntimeError("no target open: POST /api/target first")
+        want = bitgen.read_bit(bit)["word"]
+        with self.lock:
+            try:
+                got = cfgplane.frames_readback(self.probe)
+            except Exception as e:
+                return {"ok": False, "differing_bits": None, "width": B.CHAIN_W,
+                        "message": f"could not read the fabric back: {e}"}
+        diff = bin(got ^ want).count("1")
+        return {"ok": diff == 0, "differing_bits": diff, "width": B.CHAIN_W,
+                "message": ("readback == the .bit" if diff == 0
+                            else f"{diff} of {B.CHAIN_W} bits differ")}
+
+    def capture(self):
+        """CAPTURE every CLB register: the fabric's own state, as the board holds it.
+
+        An unconfigured fabric has no registers to report, and a person clicking
+        Capture before Program should be told that, not handed a traceback."""
+        import cfgplane
+        if not self.probe:
+            raise RuntimeError("no target open: POST /api/target first")
+        with self.lock:
+            try:
+                v = cfgplane.capture(self.probe, B.NCLB)
+            except Exception as e:
+                return {"ok": False, "nclb": B.NCLB, "bits": [], "ones": 0,
+                        "message": f"nothing to capture - is a design loaded? ({e})"}
+        return {"ok": True, "nclb": B.NCLB, "value": f"{v:0{(B.NCLB + 3) // 4}X}",
+                "bits": [(v >> i) & 1 for i in range(B.NCLB)],
+                "ones": bin(v).count("1"),
+                "message": f"{bin(v).count('1')} of {B.NCLB} CLB registers set"}
+
+    def partial(self, bit):
+        """M14: rewrite only the frames that differ, with the user clock held."""
+        import cli
+        if not self.probe:
+            raise RuntimeError("no target open: POST /api/target first")
+        with self.lock:
+            ok, msg = cli.load_partial(self.probe, bit)
+        return {"ok": ok, "message": msg}
+
+
+def _expected():
+    import fpga
+    return fpga.IDCODE_FABRIC
+
+
+TARGET = Target()
+
+
+# --- HTTP --------------------------------------------------------------------
+
+
+class Handler(BaseHTTPRequestHandler):
+    server_version = "bob-studio"
+    protocol_version = "HTTP/1.1"
+
+    def log_message(self, fmt, *args):
+        if os.environ.get("BOB_STUDIO_QUIET"):
+            return
+        sys.stderr.write(f"  studio  {fmt % args}\n")
+
+    # -- helpers ----------------------------------------------------------
+
+    def _send(self, code, body=b"", ctype="application/json", extra=()):
+        if isinstance(body, str):
+            body = body.encode()
+        self.send_response(code)
+        self.send_header("Content-Type", ctype)
+        self.send_header("Content-Length", str(len(body)))
+        for k, v in extra:
+            self.send_header(k, v)
+        self.end_headers()
+        if body:
+            self.wfile.write(body)
+
+    def _json(self, obj, code=200):
+        self._send(code, json.dumps(obj), "application/json")
+
+    def _fail(self, code, msg):
+        self._json({"error": msg}, code)
+
+    def _body(self):
+        n = int(self.headers.get("Content-Length") or 0)
+        return json.loads(self.rfile.read(n) or b"{}")
+
+    # -- routes -----------------------------------------------------------
+
+    def do_GET(self):
+        u = urlparse(self.path)
+        p, q = u.path, parse_qs(u.query)
+        try:
+            if p in ("/", "/index.html"):
+                return self._page()
+            if p == "/api/device":
+                return self._json(device())
+            if p == "/api/examples":
+                return self._json(examples())
+            if p == "/api/source":
+                return self._source(q.get("path", [""])[0])
+            if p.startswith("/api/events/"):
+                return self._events(p.rsplit("/", 1)[1])
+            if p.startswith("/api/job/"):
+                return self._job(p.rsplit("/", 1)[1])
+            if p.startswith("/api/placement/"):
+                return self._placement(p.rsplit("/", 1)[1], q)
+            if p == "/api/target":
+                return self._json(TARGET.status())
+            if p == "/api/board":
+                return self._json(TARGET.status())
+            if p == "/api/bits":
+                return self._json(bitstreams())
+            if p == "/api/browse":
+                return self._json(browse())
+            if p == "/api/pins":
+                return self._json(pins())
+            if p == "/api/fasm":
+                bit = _inside(q.get("bit", [""])[0])
+                if not bit or not os.path.exists(bit):
+                    return self._fail(400, "no such .bit inside the repo")
+                return self._json(fasm_of(bit))
+            if p.startswith("/static/"):
+                return self._static(p[len("/static/"):])
+            return self._fail(404, f"no route {p}")
+        except BrokenPipeError:
+            pass
+        except Exception as e:
+            traceback.print_exc()
+            self._fail(500, f"{type(e).__name__}: {e}")
+
+    def do_POST(self):
+        p = urlparse(self.path).path
+        try:
+            if p == "/api/build":
+                return self._build()
+            if p == "/api/target":
+                return self._json(TARGET.open(self._body().get("kind", "fake")))
+            if p == "/api/program":
+                b = self._body()
+                bit = _inside(b.get("bit", ""))
+                if not bit or not os.path.exists(bit):
+                    return self._fail(400, "no such .bit inside the repo")
+                return self._json(TARGET.program(bit, b.get("mode", "frames"),
+                                                 bool(b.get("partial"))))
+            if p == "/api/save":
+                b = self._body()
+                try:
+                    return self._json({"path": save_source(b.get("path", ""), b.get("text", ""))})
+                except (ValueError, OSError) as e:
+                    return self._fail(400, str(e))
+            if p == "/api/new":
+                try:
+                    return self._json({"path": new_design(self._body().get("name", ""))})
+                except (ValueError, OSError) as e:
+                    return self._fail(400, str(e))
+            if p == "/api/pcf":
+                b = self._body()
+                try:
+                    return self._json({"pcf": write_pcf(b.get("name") or "design",
+                                                        b.get("assign") or {})})
+                except ValueError as e:
+                    return self._fail(400, str(e))
+            if p in ("/api/readback", "/api/partial"):
+                b = self._body()
+                bit = _inside(b.get("bit", ""))
+                if not bit or not os.path.exists(bit):
+                    return self._fail(400, "no such .bit inside the repo")
+                return self._json(TARGET.readback(bit) if p.endswith("readback")
+                                  else TARGET.partial(bit))
+            if p == "/api/capture":
+                return self._json(TARGET.capture())
+            return self._fail(404, f"no route {p}")
+        except Exception as e:
+            traceback.print_exc()
+            self._fail(500, f"{type(e).__name__}: {e}")
+
+    # -- implementations --------------------------------------------------
+
+    def _page(self):
+        if not os.path.exists(PAGE):
+            return self._send(503, "studio.html is not built yet:\n"
+                                   "  python3 docs/studio/build.py\n", "text/plain")
+        body = open(PAGE, "rb").read()
+        self._send(200, body, "text/html; charset=utf-8")
+
+    def _static(self, rel):
+        ap = _inside(os.path.join("docs", "studio", rel))
+        if not ap or not os.path.isfile(ap):
+            return self._fail(404, "no such file")
+        ctype = mimetypes.guess_type(ap)[0] or "application/octet-stream"
+        self._send(200, open(ap, "rb").read(), ctype)
+
+    def _source(self, rel):
+        ap = _inside(unquote(rel))
+        if not ap or not os.path.isfile(ap):
+            return self._fail(404, "no such file inside the repo")
+        return self._json({"path": rel, "text": open(ap, errors="replace").read()})
+
+    def _build(self):
+        spec = self._body()
+        files = [f for f in spec.get("files", []) if _inside(f)]
+        if not files:
+            return self._fail(400, "no source files inside the repo")
+        kw = {"files": [_inside(f) for f in files]}
+        for k in ("top", "pcf", "name", "pnr", "clock"):
+            if spec.get(k):
+                kw[k] = spec[k]
+        for k in ("div", "seed"):
+            if spec.get(k) is not None:
+                kw[k] = int(spec[k])
+        if kw.get("pcf"):
+            kw["pcf"] = _inside(kw["pcf"])
+        try:
+            flow.Flow(**kw)                     # reject bad options before starting a thread
+        except flow.FlowError as e:
+            return self._fail(400, str(e))
+        job = Job(kw)
+        _remember(job)
+        job.start()
+        return self._json({"job": job.id})
+
+    def _events(self, jid):
+        job = JOBS.get(jid)
+        if not job:
+            return self._fail(404, "no such job")
+        self.send_response(200)
+        self.send_header("Content-Type", "text/event-stream")
+        self.send_header("Cache-Control", "no-cache")
+        self.send_header("Connection", "close")
+        self.end_headers()
+        while True:
+            ev = job.events.get()
+            if ev is None:
+                break
+            self.wfile.write(f"data: {json.dumps(ev)}\n\n".encode())
+            self.wfile.flush()
+
+    def _job(self, jid):
+        job = JOBS.get(jid)
+        if not job:
+            return self._fail(404, "no such job")
+        if not job.done.is_set():
+            return self._json({"running": True, "job": jid})
+        return self._json(job.result or {"error": job.error})
+
+    def _placement(self, name, q):
+        work = q.get("work", [None])[0]
+        if work:
+            work = _inside(work)
+        else:
+            work = os.path.join(vpr_run.RESULTS, name)
+        pl = placement(name, work)
+        if pl is None:
+            return self._fail(404, f"no place-and-route result for {name}")
+        return self._json(pl)
+
+
+def serve(port=8765, probe=None, open_browser=True):
+    if probe:
+        t = TARGET.open(probe)
+        print(f"  target  {t['kind']}: IDCODE {t['idcode']}"
+              + ("" if t["match"] else f"  MISMATCH, expected {t['expected']}"), flush=True)
+    try:
+        srv = ThreadingHTTPServer(("127.0.0.1", port), Handler)
+    except OSError as e:
+        # Restarting the studio is a constant, and a stack trace is a poor way to say
+        # "the last one is still running".
+        busy = "in use" in str(e) or getattr(e, "errno", None) in (48, 98)
+        print(f"  studio  cannot listen on 127.0.0.1:{port}: {e}")
+        if busy:
+            print(f"  studio  something is already there. Stop it, or use --port {port + 1}.")
+            print(f"  studio  find it with:  lsof -ti tcp:{port}")
+        raise SystemExit(1)
+    url = f"http://127.0.0.1:{port}/"
+    print(f"  device  {B.DEVICE['name']}: {B.NCLB} CLBs, {B.CHAIN_W}-bit chain, "
+          f"{B.DEVICE['frames']['count']} frames")
+    print(f"  studio  {url}", flush=True)
+    if not os.path.exists(PAGE):
+        print("  studio  studio.html is not built: python3 docs/studio/build.py")
+    if open_browser:
+        threading.Timer(0.4, lambda: webbrowser.open(url)).start()
+    try:
+        srv.serve_forever()
+    except KeyboardInterrupt:
+        print("\n  studio  stopped")
+    finally:
+        srv.server_close()
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--port", type=int, default=8765)
+    ap.add_argument("--probe", choices=("usb", "fake"),
+                    help="open a target at startup (fake needs no hardware)")
+    ap.add_argument("--no-browser", action="store_true")
+    a = ap.parse_args()
+    serve(a.port, a.probe, not a.no_browser)
+
+
+if __name__ == "__main__":
+    main()

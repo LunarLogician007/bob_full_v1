@@ -26,7 +26,7 @@
 // construction, not by assumption about TCK. The board uses GAP_SHIFT = 9
 // (512 cycles, 4096 ns) from M16; it was 8 (256 cycles, 2048 ns) through M15, which
 // the 12x10 fabric's ~2500 ns routing path outgrew. Simulation may shorten it with
-// the divider, and tools/bob/device.py (GCE_MIN_GAP_SHIFT) plus the XDC multicycle
+// the divider, and software/bob/device.py (GCE_MIN_GAP_SHIFT) plus the XDC multicycle
 // must carry the same number.
 // -----------------------------------------------------------------------------
 

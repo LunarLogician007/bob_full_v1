@@ -1,7 +1,7 @@
 """
 M9: VPR packs, places and routes the examples on the committed rr graph.
 
-The VPR results are committed in tools/bob/vpr/<top>/ (`make vpr`, Docker), so
+The VPR results are committed in software/bob/vpr/<top>/ (`make vpr`, Docker), so
 these tests need no Docker: each result must be fresh (routed from today's netlist
 and architecture), its FASM legal against device.json, the fixed pins where VPR
 put the pads, and its chain must reproduce the source Verilog on model.py.
@@ -15,8 +15,8 @@ import sys
 import pytest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(ROOT, "tools", "bob"))
-sys.path.insert(0, os.path.join(ROOT, "host"))
+sys.path.insert(0, os.path.join(ROOT, "software", "bob"))
+sys.path.insert(0, os.path.join(ROOT, "software", "host"))
 
 import bitstream as B  # noqa: E402
 import fasm_from_vpr as FV  # noqa: E402
@@ -91,7 +91,7 @@ def test_legality_rejects_bad_features():
 @needs_tools
 def test_stale_result_is_refused(monkeypatch):
     import equiv
-    equiv.equiv([os.path.join(ROOT, "examples", "gates.v")], "gates", cycles=20)
+    equiv.equiv([os.path.join(ROOT, "work", "examples", "gates", "gates.v")], "gates", cycles=20)
     assert vpr_run.stale("gates") is None
     monkeypatch.setattr(vpr_run, "arch_sha", lambda: "0" * 64)
     assert "different architecture" in vpr_run.stale("gates")

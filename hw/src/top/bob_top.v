@@ -2,7 +2,7 @@
 // bob_top.v - PYNQ-Z2 board wrapper for the complete bob FPGA (M7)
 //
 // The fabric has NPAD pads; the board provides six inputs and three LEDs for
-// them, at the pad numbers tools/bob/device.py chose (bob_params.vh BOB_PAD_*):
+// them, at the pad numbers software/bob/device.py chose (bob_params.vh BOB_PAD_*):
 // SW0, SW1, BTN0..3 on West-edge pads, LD0..LD2 on East-edge pads. Every other
 // pad's input is 0 and its output goes nowhere - those pads are reachable
 // through boundary scan (INTEST/SAMPLE) only. LD3 is DONE.

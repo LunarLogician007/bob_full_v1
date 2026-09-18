@@ -3,7 +3,7 @@
 //
 // Drives cfg_test_top through its JTAG pins only, with the probe tasks from
 // tb_fpga4x4.v widened to a 6-bit IR. Expected CRCs come from
-// sim/gen_cfg_vectors.py (tools/bob/chainbits.py) via cfg_vectors.vh.
+// sim/gen_cfg_vectors.py (software/bob/chainbits.py) via cfg_vectors.vh.
 // Checks every "done when" item of M2 in PLAN.md.
 //
 //   sim/run_cfg_sim.sh

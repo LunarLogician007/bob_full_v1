@@ -1,7 +1,7 @@
 // -----------------------------------------------------------------------------
 // bob_mux.v - one routing multiplexer of the generated fabric (M7)
 //
-// tools/bob/fabric_gen.py instantiates one per routing-resource-graph node that
+// software/bob/fabric_gen.py instantiates one per routing-resource-graph node that
 // VPR's edges drive (OpenFPGA builds its routing the same way). The select comes
 // straight from the configuration chain:
 //

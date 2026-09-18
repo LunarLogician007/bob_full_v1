@@ -4,7 +4,7 @@
 
 def s1_what(sc):
     sc.heading("Synthesis is translation, not magic",
-               "tools/bob/synth.py drives yosys with bob's own cell library and maps")
+               "software/bob/synth.py drives yosys with bob's own cell library and maps")
 
     src = chip("counter.v\nordinary Verilog", INK, 3.0, 1.2, 20).move_to(np.array([-4.6, 1.5, 0]))
     ys = chip("yosys", C_VPR, 2.2, 1.0, 24, "BOLD").move_to(np.array([-0.6, 1.5, 0]))
@@ -73,7 +73,7 @@ def s2_passes(sc):
 
 def s3_proof(sc):
     sc.heading("Three copies of the same circuit, simulated together",
-               "tools/bob/equiv.py - this is what stops a wrong map from ever reaching the board")
+               "software/bob/equiv.py - this is what stops a wrong map from ever reaching the board")
 
     three = VGroup(
         chip("the source\ncounter.v", INK, 3.0, 1.2, 19),
@@ -146,15 +146,15 @@ def s4_stimulus(sc):
 
 def s5_files(sc):
     sc.files_used(
-        inputs=[("tools/bob/synth/bob_cells_sim.v", "the cell library, simulatable"),
-                ("tools/bob/synth/bob_map.v", "techmap rules, incl. _80_bob_alu"),
-                ("tools/bob/synth/bob_brams.txt", "memory_libmap rules"),
-                ("examples/*.v", "the designs themselves")],
+        inputs=[("software/bob/synth/bob_cells_sim.v", "the cell library, simulatable"),
+                ("software/bob/synth/bob_map.v", "techmap rules, incl. _80_bob_alu"),
+                ("software/bob/synth/bob_brams.txt", "memory_libmap rules"),
+                ("work/examples/*.v", "the designs themselves")],
         generated=[("build/synth/<top>/<top>.json", "for the placer and VPR"),
                    ("build/synth/<top>/<top>_syn.v", "the netlist, for simulation"),
-                   ("tools/bob/golden.py output", "one named wire per bit"),
+                   ("software/bob/golden.py output", "one named wire per bit"),
                    ("trace.json", "the source trace + every golden net per clock")],
-        verified=[("tools/bob/equiv.py", "source == netlist == golden, 300 cycles"),
+        verified=[("software/bob/equiv.py", "source == netlist == golden, 300 cycles"),
                   ("hw/tb/tb_synth.v", "972 checks: the designs on the real fabric"),
                   ("tests/test_synth.py", "non-bob cells rejected, chains split by column")])
 

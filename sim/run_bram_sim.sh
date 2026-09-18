@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# M5: bram_core.v against tools/bob/model.py, every write mode x output register.
+# M5: bram_core.v against software/bob/model.py, every write mode x output register.
 #   ./run_bram_sim.sh
 set -euo pipefail
 cd "$(dirname "$0")"

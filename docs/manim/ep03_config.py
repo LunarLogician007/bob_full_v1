@@ -542,8 +542,8 @@ def s8_files(sc):
                 ("hw/src/core/cfg_frames.v", "the UG470 packet parser"),
                 ("hw/src/core/cfg_ctrl.v", "chain CRC, length, startup FSM")],
         generated=[("hw/src/generated/bob_params.vh", "NFRAMES, FAR_TABLE"),
-                   ("tools/bob/device.json", "frames, columns, chain order"),
-                   ("tools/bob/packets.py", "stream builder + a bit-level model")],
+                   ("software/bob/device.json", "frames, columns, chain order"),
+                   ("software/bob/packets.py", "stream builder + a bit-level model")],
         verified=[("hw/tb/tb_frames.v", "71 checks, expectations from the model"),
                   ("sim/mutate_frames.sh", "29 mutants, all killed"),
                   ("tests/test_hwtest_fake.py", "a stand-in board, good and broken")])

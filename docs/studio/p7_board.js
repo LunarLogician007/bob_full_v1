@@ -1,6 +1,6 @@
 // ── Program and Debug ─────────────────────────────────────────────────────
 // A target is either the Pico on PMODA or the board in software. The software one
-// answers from tools/bob/model.py, so the whole flow works with no hardware - and
+// answers from software/bob/model.py, so the whole flow works with no hardware - and
 // the panel says so, including how far behind real time its guest clock is.
 
 const board = {

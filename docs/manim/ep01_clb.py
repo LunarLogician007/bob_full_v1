@@ -496,7 +496,7 @@ def s5_ff(sc):
 
 
 def s6_bits(sc):
-    sc.heading("The 71 bits", "tools/bob/device.py names them once; clb_pkg.sv derives the same "
+    sc.heading("The 71 bits", "software/bob/device.py names them once; clb_pkg.sv derives the same "
                               "layout independently and pytest compares the two")
 
     fields = [("INIT", 64, C_BIT), ("ff_en", 1, C_RTL), ("ff_rstval", 1, C_RTL),
@@ -604,8 +604,8 @@ def s8_files(sc):
                 ("hw/src/clb/lutk.sv", "the mux tree, K a parameter"),
                 ("hw/src/clb/clb.sv", "LUT -> carry -> flip-flop")],
         generated=[("hw/src/generated/bob_params.vh", "BOB_CLB_* offsets"),
-                   ("tools/bob/device.json", "the same fields, for Python"),
-                   ("tools/bob/model.py", "the cycle model of one CLB")],
+                   ("software/bob/device.json", "the same fields, for Python"),
+                   ("software/bob/model.py", "the cycle model of one CLB")],
         verified=[("hw/tb/tb_clb.sv", "7040 checks vs model.py"),
                   ("tests/test_lutk.py", "lutk(6) == the proven lut6.sv"),
                   ("tests/test_device.py", "clb_pkg.sv == bob_params.vh in iverilog"),

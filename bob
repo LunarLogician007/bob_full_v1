@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
-# bob: build a Verilog design for the bob FPGA and load it. See tools/bob/cli.py.
-exec python3 "$(dirname "$0")/tools/bob/cli.py" "$@"
+# bob: build a Verilog design for the bob FPGA and load it. See software/bob/cli.py.
+exec python3 "$(dirname "$0")/software/bob/cli.py" "$@"

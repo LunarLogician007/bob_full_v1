@@ -411,11 +411,11 @@ def s5_loops(sc):
 def s6_files(sc):
     sc.files_used(
         inputs=[("hw/src/fabric/bob_mux.v", "the one routing multiplexer"),
-                ("tools/bob/vpr_arch.py", "the architecture VPR is given"),
+                ("software/bob/vpr_arch.py", "the architecture VPR is given"),
                 ("hw/scripts/drc_waiver.tcl", "the LUTLP-1 downgrade, fabric tops only")],
         generated=[("hw/src/generated/bob_fabric.v", "3391 muxes, 138 directs, 4416 lines"),
-                   ("tools/bob/arch/bob_k6_rr.xml.gz", "VPR's graph, committed and stamped"),
-                   ("tools/bob/device.json", "every mux: node, bits, inputs")],
+                   ("software/bob/arch/bob_k6_rr.xml.gz", "VPR's graph, committed and stamped"),
+                   ("software/bob/device.json", "every mux: node, bits, inputs")],
         verified=[("hw/tb/tb_bob.v", "4 random routed netlists vs model.py every clock"),
                   ("tests/test_device.py", "every pip is one field value, every pin a node"),
                   ("sim/mutate_fabric.sh", "mux-no-const1, mux-inputs-shifted, carry-direct-cut")])

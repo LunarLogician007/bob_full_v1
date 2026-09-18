@@ -1,7 +1,7 @@
 """
 M8: yosys synthesis onto bob cells. For every example: only bob cells remain, the
 netlist equals the source Verilog in iverilog, and the placed/routed bitstream
-reproduces the source on tools/bob/model.py.
+reproduces the source on software/bob/model.py.
 """
 
 import os
@@ -11,8 +11,8 @@ import sys
 import pytest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(ROOT, "tools", "bob"))
-sys.path.insert(0, os.path.join(ROOT, "host"))
+sys.path.insert(0, os.path.join(ROOT, "software", "bob"))
+sys.path.insert(0, os.path.join(ROOT, "software", "host"))
 
 pytestmark = pytest.mark.skipif(shutil.which("yosys") is None or shutil.which("iverilog") is None,
                                 reason="needs yosys and iverilog")

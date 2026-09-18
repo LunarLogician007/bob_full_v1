@@ -79,7 +79,7 @@ const sources = {
   },
 
   async openPrompt() {
-    const path = window.prompt("Open a path inside the repo", S.open || "designs/");
+    const path = window.prompt("Open a path inside the repo", S.open || "work/");
     if (!path) return;
     try { await this.open(path.trim()); }
     catch (e) { logLine("error", String(e.message || e)); dock.show("log"); }
@@ -136,7 +136,7 @@ const sources = {
     v.appendChild(bar);
 
     const note = el("div", "empty",
-      `Your own work goes in ${this.dir || "designs/"} — New design scaffolds one from a `
+      `Your own work goes in ${this.dir || "work/"} — New design scaffolds one from a `
       + "template. Anything inside the repo can be opened by path. ⌘S / Ctrl-S saves.");
     note.style.cssText += ";max-width:760px;padding:6px 0 4px";
     v.appendChild(note);
@@ -164,8 +164,8 @@ const settings = {
     const p = el("div", "empty");
     p.style.maxWidth = "680px";
     p.innerHTML = d
-      ? `Every number on the right comes from <code>tools/bob/device.json</code>, which
-         <code>tools/bob/device.py</code> generates along with the fabric RTL, the VPR
+      ? `Every number on the right comes from <code>software/bob/device.json</code>, which
+         <code>software/bob/device.py</code> generates along with the fabric RTL, the VPR
          architecture, the FASM map and the host tools. studio never writes it: to change the
          device, edit <code>device.py</code> and run <code>make rrgraph</code>, then
          <code>make device</code>.<br><br>

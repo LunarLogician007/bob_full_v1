@@ -43,7 +43,7 @@ src/tiles/dsp_core.v
 src/tiles/dsp_jtag.v
 src/tiles/dsp_block.v
 
-# M7: the fabric generated from VPR's routing-resource graph (tools/bob/device.py)
+# M7: the fabric generated from VPR's routing-resource graph (software/bob/device.py)
 src/fabric/bob_mux.v
 src/generated/bob_fabric.v
 src/fabric/bob_fpga.v

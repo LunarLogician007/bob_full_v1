@@ -206,7 +206,7 @@ class BobScene(Scene):
 
 def s1_byhand(sc):
     sc.heading("Before there were tools, there was an API",
-               "host/bitstream.py - place a LUT, name its inputs, let a BFS router connect them")
+               "software/host/bitstream.py - place a LUT, name its inputs, let a BFS router connect them")
 
     code = code_block([
         "from bitstream import Design, LUT",
@@ -352,9 +352,9 @@ def s4_board(sc):
 
 def s5_files(sc):
     sc.files_used(
-        inputs=[("host/bitstream.py", "the hand-design API and its BFS router"),
-                ("tools/bob/cli.py", "./bob build and load"),
-                ("host/hwtest.py", "15 milestone check lists")],
+        inputs=[("software/host/bitstream.py", "the hand-design API and its BFS router"),
+                ("software/bob/cli.py", "./bob build and load"),
+                ("software/host/hwtest.py", "15 milestone check lists")],
         generated=[("build/bit/*.bit", "loadable bitstreams"),
                    ("build/cosim/", "the co-simulation harness"),
                    ("docs/hwtest/results.log", "57 board runs, append only")],

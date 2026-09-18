@@ -2,8 +2,8 @@
 // tb_frames.v - the frame configuration path on the complete bob FPGA (M13)
 //
 // UG470-style packet streams on CFG_IN / CFG_OUT (docs/bitstream-format.md section
-// 10), built by tools/bob/packets.py; every expected STAT, memory and LED value
-// comes from its Controller model, host/bitstream.py and model.py (frame_vectors.vh,
+// 10), built by software/bob/packets.py; every expected STAT, memory and LED value
+// comes from its Controller model, software/host/bitstream.py and model.py (frame_vectors.vh,
 // sim/gen_frame_vectors.py), never from this RTL.
 //
 //   [1] a good frame load: STAT, memory == chain word, CHAIN_OUT readback of the

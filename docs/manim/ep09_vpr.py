@@ -810,14 +810,14 @@ def s9_python(sc):
 # ================================================ P10  PYTHON PnR ============
 def s10_pythonpnr(sc):
     sc.heading("M12a:  Python doing VPR's job",
-               "tools/bob/pnr/  -  same input, same output files, no Docker")
+               "software/bob/pnr/  -  same input, same output files, no Docker")
 
     src = chip("vpr_run.prepare()\n.eblif  +  pins", C_PY, 3.4, 1.1, 19)
     src.move_to(np.array([-4.3, 1.4, 0]))
     sc.play(FadeIn(src), run_time=0.6)
 
     top = chip("VPR  (Docker)", C_VPR, 3.0, 0.85, 21)
-    bot = chip("tools/bob/pnr/", C_PY, 3.0, 0.85, 21)
+    bot = chip("software/bob/pnr/", C_PY, 3.0, 0.85, 21)
     top.move_to(np.array([-0.3, 2.4, 0]))
     bot.move_to(np.array([-0.3, 0.3, 0]))
     out = chip(".net  .place  .route", C_BIT, 3.6, 0.9, 19)

@@ -10,5 +10,5 @@ SRC=(); while read -r l; do SRC+=("$l"); done < <(./hwfiles.sh)
 EX=(); while read -r l; do EX+=("$l"); done < ../build/cosim/sources.txt
 
 iverilog -g2012 -DSIMULATION -I../hw/src/generated -I../hw/tb -I../build/cosim -s tb_cosim \
-    -o ../build/cosim/tb_cosim.vvp "${SRC[@]}" ../tools/bob/synth/bob_cells_sim.v "${EX[@]}" tb_cosim.v
+    -o ../build/cosim/tb_cosim.vvp "${SRC[@]}" ../software/bob/synth/bob_cells_sim.v "${EX[@]}" tb_cosim.v
 vvp ../build/cosim/tb_cosim.vvp

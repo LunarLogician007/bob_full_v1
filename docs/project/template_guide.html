@@ -212,10 +212,10 @@ const LAYERS = [
 (function start() {
   const cards = [
     ["Try it in five commands", `<pre class="code">make check
-./bob build examples/counter.v -o build/bit/counter.bit
+./bob build work/examples/counter/counter.v -o build/bit/counter.bit
 ./bob info build/bit/counter.bit
 ./bob fasm build/bit/counter.bit | head
-tools/bob/packets.py dump build/bit/counter.bit | head -20</pre>`],
+software/bob/packets.py dump build/bit/counter.bit | head -20</pre>`],
     ["The device right now", `<table class="tt"><tbody>
       <tr><td>CLBs</td><td>${D.device.blocks.clb} (1 BLE each: LUT${D.device.lut_k}, carry, flip-flop)</td></tr>
       <tr><td>hard blocks</td><td>${D.device.blocks.bram} × BRAM 1024×18 · ${D.device.blocks.dsp} × DSP48E1-style</td></tr>

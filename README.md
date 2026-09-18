@@ -12,7 +12,7 @@ A Raspberry Pi Pico running DirtyJTAG on PMODA configures it from a Mac.
 an EDA tool for this FPGA, laid out the way Vivado is. Write Verilog, run Synthesis,
 Implementation and Generate Bitstream, watch each stage report what it measured, see the
 design land on the real floorplan, then program a board and watch the LEDs. `--probe fake`
-runs the whole thing against the board in software ([`host/fakeboard.py`](host/fakeboard.py)),
+runs the whole thing against the board in software ([`software/host/fakeboard.py`](software/host/fakeboard.py)),
 so it works with no hardware attached.
 
 **Start here:** [`guide.html`](guide.html) / [`docs/project/GUIDE.md`](docs/project/GUIDE.md) explain every part — what it is, why it is built that way, how to use it and how to tweak it — and compare bob with OpenFPGA, Aegis and ZUMA. [`project.html`](project.html) / [`docs/project/REPORT.md`](docs/project/REPORT.md) are the project report: what was built, measured and learned. [`arch.html`](arch.html) is the interactive die slice.
@@ -41,7 +41,7 @@ After M7 the Vivado bitstream stayed the same through M11: those milestones only
 
 ## The device
 
-Generated from `tools/bob/device.json` by `tools/bob/devtable.py`; `tests/test_device_table.py` fails if it drifts.
+Generated from `software/bob/device.json` by `software/bob/devtable.py`; `tests/test_device_table.py` fails if it drifts.
 
 <!-- device:begin -->
 
@@ -60,7 +60,7 @@ Generated from `tools/bob/device.json` by `tools/bob/devtable.py`; `tests/test_d
 
 <!-- device:end -->
 
-A 48-CLB M7 profile (8 × 8 core, 9400-bit chain, IDCODE `0x9BEEF093`) is frozen in [`release/M7_8x8/`](release/M7_8x8/); it was synthesised with the XDC loop breaking that later crashed Vivado. M12b's 36-CLB profile costs no more logic than M13 thanks to the smaller configuration store. Changing the grid is one setting (`ARCH` in `tools/bob/device.py`) followed by `make rrgraph`.
+A 48-CLB M7 profile (8 × 8 core, 9400-bit chain, IDCODE `0x9BEEF093`) is frozen in [`release/M7_8x8/`](release/M7_8x8/); it was synthesised with the XDC loop breaking that later crashed Vivado. M12b's 36-CLB profile costs no more logic than M13 thanks to the smaller configuration store. Changing the grid is one setting (`ARCH` in `software/bob/device.py`) followed by `make rrgraph`.
 
 ## Build and test it (every milestone)
 
@@ -102,27 +102,27 @@ python3 docs/studio/build.py         # rebuild studio.html from docs/studio/p*.{
 
 | Vivado / Quartus | bob studio | what actually runs |
 |---|---|---|
-| Synthesis | Synthesis | `tools/bob/synth.py` (yosys onto bob cells) |
-| — | Synthesis Verification | `tools/bob/equiv.py`: source == netlist == golden, 300 cycles |
+| Synthesis | Synthesis | `software/bob/synth.py` (yosys onto bob cells) |
+| — | Synthesis Verification | `software/bob/equiv.py`: source == netlist == golden, 300 cycles |
 | Implementation | Implementation | pack / place / route — VPR, or bob's own Python PnR |
 | Generate Bitstream | Generate Bitstream | `fasm_from_vpr.py` → `bitgen.py` → `.bit` |
 | Device window | Device view | the placement and routed channels on the real grid |
 | I/O Planning | Pin Planner | the 44 pads → writes a `.pcf` |
-| Open Target / Program | Program and Debug | `host/cfgplane.py`, readback, CAPTURE, partial reconfiguration |
+| Open Target / Program | Program and Debug | `software/host/cfgplane.py`, readback, CAPTURE, partial reconfiguration |
 | Messages | Messages | yosys / iverilog / VPR diagnostics, clickable to the source line |
 
-Your own work lives in `designs/`. **Sources → New design** scaffolds
-`designs/<name>/<name>.v` from a template and opens it; edit and save with ⌘S / Ctrl-S;
+Your own work lives in `work/`. **Sources → New design** scaffolds
+`work/<name>/<name>.v` from a template and opens it; edit and save with ⌘S / Ctrl-S;
 **Open path…** opens anything inside the repo. The Pin Planner writes a `.pcf` the next
 build picks up. The same design from the command line:
 
 ```sh
-./bob build designs/mything/mything.v
-./bob build designs/mything/mything.v --pcf designs/mything/mything_pins.pcf
+./bob build work/mything/mything.v
+./bob build work/mything/mything.v --pcf work/mything/mything_pins.pcf
 ./bob load  build/bit/mything.bit --probe usb
 ```
 
-The stages come from [`tools/bob/flow.py`](tools/bob/flow.py), which runs the same flow
+The stages come from [`software/bob/flow.py`](software/bob/flow.py), which runs the same flow
 `./bob build` does but as separate timed steps, each returning what it measured.
 `./bob build --json FILE` writes that record; `tests/test_flow.py` requires `flow.py` and
 `cli.build()` to produce a byte-identical `.bit`. The page is one self-contained file with
@@ -131,36 +131,36 @@ no external libraries, assembled from `docs/studio/` the way `arch.html` is.
 ## The guest flow (M8–M10, today)
 
 ```sh
-tools/bob/synth.py examples/counter.v     # yosys → $lut / BOB_FDRE / BOB_ADD / BOB_BRAM18 / BOB_DSP
-tools/bob/equiv.py examples/counter.v     # synthesised netlist == source Verilog (iverilog)
-tools/bob/place.py counter --check        # M8 hand placer; placed bitstream == source (model)
-make vpr                                  # M9: VPR packs/places/routes every example (Docker) -> tools/bob/vpr/
-tools/bob/fasm_from_vpr.py --check        # committed VPR results -> FASM -> chain == source (model)
-./bob build examples/counter.v            # M10: all of the above in one command -> build/bit/counter.bit
-./bob build examples/gates.v --pcf examples/gates_swapped.pcf
+software/bob/synth.py work/examples/counter/counter.v     # yosys → $lut / BOB_FDRE / BOB_ADD / BOB_BRAM18 / BOB_DSP
+software/bob/equiv.py work/examples/counter/counter.v     # synthesised netlist == source Verilog (iverilog)
+software/bob/place.py counter --check        # M8 hand placer; placed bitstream == source (model)
+make vpr                                  # M9: VPR packs/places/routes every example (Docker) -> software/bob/vpr/
+software/bob/fasm_from_vpr.py --check        # committed VPR results -> FASM -> chain == source (model)
+./bob build work/examples/counter/counter.v            # M10: all of the above in one command -> build/bit/counter.bit
+./bob build work/examples/gates/gates.v --pcf work/examples/gates/gates_swapped.pcf
 ./bob load build/bit/counter.bit          # frames on CFG_IN + FDRO readback, BRAM contents, JSTART (Pico attached)
 ./bob load build/bit/counter.bit --mode chain   # the same memory through the scan chain (CHAIN_IN)
-tools/bob/packets.py dump build/bit/counter.bit # the UG470-style packet stream
-./bob build examples/switches.v --clock run --div 15   # free-running user clock (7.45 Hz); then ./bob load
+software/bob/packets.py dump build/bit/counter.bit # the UG470-style packet stream
+./bob build work/examples/switches/switches.v --clock run --div 15   # free-running user clock (7.45 Hz); then ./bob load
 ./bob info build/bit/counter.bit          # or: ./bob fasm build/bit/counter.bit
-./bob build examples/fir.v --pnr python   # M12: bob's own pack/place/route instead of VPR (no Docker)
-tools/bob/pnr/compare.py                  # Python PnR vs VPR -> docs/reports/M12/pnr_vs_vpr.md
+./bob build work/examples/fir/fir.v --pnr python   # M12: bob's own pack/place/route instead of VPR (no Docker)
+software/bob/pnr/compare.py                  # Python PnR vs VPR -> docs/reports/M12/pnr_vs_vpr.md
 sim/run_cosim_sim.sh                      # golden co-simulation: source live vs fabric RTL loaded from .bit
 sim/run_synth_sim.sh                      # the same bitstreams on the complete FPGA RTL
 ```
 
-Examples in `examples/`: `gates`, `adder`, `counter`, `blinky`, `ram`, `mult`, `switches`, `fir` (per-design report: `docs/reports/M11/designs.md`). The hand-written designs in `host/designs.py` load with `host/fpga.py --load showcase`.
+Examples in `work/examples/`: `gates`, `adder`, `counter`, `blinky`, `ram`, `mult`, `switches`, `fir` (per-design report: `docs/reports/M11/designs.md`). The hand-written designs in `software/host/designs.py` load with `software/host/fpga.py --load showcase`.
 
 ## Folder map
 
 ```
 hw/            the Vivado bundle: sources.f, build.cfg, src/ (RTL + generated fabric), tb/, constr/, scripts/
-tools/bob/     device.py (single source of truth), VPR arch + rr graphs, fabric generator, model,
+software/bob/     device.py (single source of truth), VPR arch + rr graphs, fabric generator, model,
                chainbits, synth/equiv/place (M8), vpr_run/fasm_from_vpr + committed vpr/ results (M9), bitgen/golden/cli (M10)
-host/          Pico/JTAG tools: cfgplane, fpga, hwtest, bitstream (router), designs
+software/host/          Pico/JTAG tools: cfgplane, fpga, hwtest, bitstream (router), designs
 sim/           iverilog/verilator scripts, vector generators, mutation tests
 tests/         pytest
-examples/      Verilog designs for the synthesis flow
+work/examples/      Verilog designs for the synthesis flow
 docs/          bitstream-format.md, hwtest/Mx.md checklists, reports/, arch/ (arch.html sources)
 release/       frozen bundles: hw_M3…hw_M7, mac_M6/M7 (host tools), M7_8x8 (48-CLB profile)
 ```

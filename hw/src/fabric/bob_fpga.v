@@ -3,7 +3,7 @@
 // scan-chain configuration plane, board-independent
 //
 // No BUFG, no pin assignments, no vendor primitives: the identical file runs in
-// simulation and in synthesis. Sizes come from bob_params.vh (tools/bob/device.py).
+// simulation and in synthesis. Sizes come from bob_params.vh (software/bob/device.py).
 //
 // Configuration (docs/bitstream-format.md sections 4-11):
 //   jtag_tap6    6-bit AMD 7-series IR (CFG_IN/CFG_OUT/USER1-4/JPROGRAM/JSTART/DSP,
@@ -353,7 +353,7 @@ module bob_fpga #(
     );
 
     // ---------------------------------------------------------------------
-    // The generated fabric (tools/bob/fabric_gen.py). Nothing in bob_top keeps its
+    // The generated fabric (software/bob/fabric_gen.py). Nothing in bob_top keeps its
     // hierarchy, as at M7: any keep_hierarchy (on u_fabric, or even on u_clk and
     // u_bram_jtag) made Vivado 2025.2 crash while breaking the unconfigured routing
     // loops (M13 builds 1 and 2). The XDC relaxes sysclk by clock, not by fabric names

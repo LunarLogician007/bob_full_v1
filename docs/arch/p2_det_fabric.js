@@ -32,8 +32,8 @@
     why: ["UG474 is the silicon bob is emulated on: matching its LUT6_2 and FDRE semantics means yosys' xilinx-proven mapping ideas apply directly.",
       "OpenFPGA's arch is regression-tested with VPR, so the pin/fc choices route in practice; bob only reduced N10 to N1."],
     files: [["hw/src/clb/clb.sv", "the BLE"], ["hw/src/clb/lutk.sv", "K-input fracturable LUT"], ["hw/src/clb/clb_pkg.sv", "field offsets, INIT helpers"],
-      ["hw/src/generated/bob_fabric.v", "16 instances u_clb_x*y*"], ["tools/bob/device.py", "clb fields, pins, VPR tile"],
-      ["tools/bob/model.py", "clb_comb / clb_next"], ["host/bitstream.py", "Design.lut()"], ["tools/bob/place.py", "M8 packer"]],
+      ["hw/src/generated/bob_fabric.v", "16 instances u_clb_x*y*"], ["software/bob/device.py", "clb fields, pins, VPR tile"],
+      ["software/bob/model.py", "clb_comb / clb_next"], ["software/host/bitstream.py", "Design.lut()"], ["software/bob/place.py", "M8 packer"]],
     tb: [["hw/tb/tb_clb.sv", "7040 checks — every flag combination vs model.py"], [TB + " [9][10][21][22]", "routed CE/SR, carry counters, random netlists every clock"],
       ["hw/tb/tb_synth.v", "yosys designs on the fabric vs source Verilog"], ["tests/test_lutk.py", "lutk(6) == original lut6"]],
     drill: ["lut", "carry", "ff", "cbox", "sbox"]
@@ -47,7 +47,7 @@
       "O5 lets the M8 packer keep a LUT's extra loads when its flip-flop takes O6."],
     src: [["AMD UG474 LUT6_2", "O6/O5 fracture definition"], ["bob/rtl/lut6.sv", "hardware-proven original (docs/reference/lut6.sv)"]],
     why: ["Keeping the proven lut6 as the golden reference lets pytest prove the parameterised version equal at K=6."],
-    files: [["hw/src/clb/lutk.sv", "RTL"], ["tools/bob/model.py", "clb_comb"], ["tools/bob/synth.py", "abc -lut K"]],
+    files: [["hw/src/clb/lutk.sv", "RTL"], ["software/bob/model.py", "clb_comb"], ["software/bob/synth.py", "abc -lut K"]],
     tb: [["tests/test_lutk.py", "lutk(6) == lut6 on 3000 vectors; K=4 vs Python"], ["hw/tb/tb_clb.sv", "flag sweep"]],
     drill: ["clb", "chain"]
   });
@@ -63,7 +63,7 @@
     src: [["AMD UG474 CARRY4", "MUXCY/XORCY equations, DI/S naming"], ["OpenFPGA arch directlist adder_carry", "carry as a VPR direct (bob runs it South→North)"],
       ["yosys share/xilinx/arith_map.v", "$alu → per-bit carry cells (M8 BOB_ADD)"]],
     why: ["The direct keeps arithmetic off the general routing — the same reason CARRY4 exists.", "arith_map.v is yosys' tested mapping; bob only adds the DI = I0 constraint."],
-    files: [["hw/src/clb/clb.sv", "carry logic"], ["hw/src/generated/bob_fabric.v", "assign rCIN = rCOUT (directs)"], ["tools/bob/synth/bob_map.v", "_80_bob_alu"], ["tools/bob/place.py", "chains, generators, taps"]],
+    files: [["hw/src/clb/clb.sv", "carry logic"], ["hw/src/generated/bob_fabric.v", "assign rCIN = rCOUT (directs)"], ["software/bob/synth/bob_map.v", "_80_bob_alu"], ["software/bob/place.py", "chains, generators, taps"]],
     tb: [[TB + " [10][11][21]", "4-bit and 8-bit counters vs model"], ["hwtest counter-step / counter8 / synth-blinky", "on the board"]],
     drill: ["clb", "ff"]
   });
@@ -77,13 +77,13 @@
       "CE and SR are <b>routed pins</b> (UG474 per-slice CE/SR), so M8 synthesis puts enables and sync resets straight on them."],
     src: [["AMD UG474 FDRE/FDSE", "SR over CE, INIT"], ["AMD UG470 startup", "GSR / GWE meaning"], ["AMD UG949", "clock enables instead of derived clocks"]],
     why: ["Matching FDRE/FDSE lets yosys dfflegalize target $_SDFFE_PP0P_/PP1P_ with init = reset."],
-    files: [["hw/src/clb/clb.sv", "q_reg"], ["hw/src/core/clock_ctrl.v", "gce, synchronised GSR/GWE"], ["tools/bob/synth/bob_map.v", "FF techmap"]],
+    files: [["hw/src/clb/clb.sv", "q_reg"], ["hw/src/core/clock_ctrl.v", "gce, synchronised GSR/GWE"], ["software/bob/synth/bob_map.v", "FF techmap"]],
     tb: [["hw/tb/tb_clb.sv", "GSR/GWE/gce/CE/SR sweep"], [TB + " [7][9]", "startup edges, routed CE/SR incl. INTEST autostep"]],
     drill: ["clb", "startup", "clock"]
   });
 
   D("routing", {
-    title: "Routing — VPR's rr graph as hardware", sub: "W=24 · L4 unidirectional · Wilton Fs=3 · 2105 muxes · 5934 bits", k: "GTX", stage: "tools/bob/fabric_gen.py",
+    title: "Routing — VPR's rr graph as hardware", sub: "W=24 · L4 unidirectional · Wilton Fs=3 · 2105 muxes · 5934 bits", k: "GTX", stage: "software/bob/fabric_gen.py",
     rows: [F("the flow that builds it",
         ["device.py ARCH", "grid, pins, W, fc", null, "HARD"], ["vpr_arch.py", "bob_k6.xml", null, "HARD"],
         ["VPR (Docker)", "routes and2.blif, writes rr_graph", null, "HARD"], ["device.py", "nodes with drivers → muxes → chain", "chain", "CFG"],
@@ -91,15 +91,15 @@
       B("mux kinds", ["CHANX 719", "wire starts: 0=const0, 1+i", "sbox", "GTX"], ["CHANY 594", "same encoding", "sbox", "GTX"],
         ["IPIN 792", "0=const0 1=const1 2+i", "cbox", "GTX"]),
       B("free", ["90 directs", "carry + DSP cascade", "carry", "DSP"], ["125 undriven", "bottom cin, clk, dsp0 pcin, 19 edge wires", null, "GTX"])],
-    notes: ["<b>RTL, router, model and VPR use one graph.</b> The rr graph is committed (<code>tools/bob/arch/bob_k6_rr.xml.gz</code>) with the sha256 of the arch that made it; <code>make check</code> fails if they drift.",
+    notes: ["<b>RTL, router, model and VPR use one graph.</b> The rr graph is committed (<code>software/bob/arch/bob_k6_rr.xml.gz</code>) with the sha256 of the arch that made it; <code>make check</code> fails if they drift.",
       "An all-zero chain selects const0 everywhere, so a dark fabric has <b>no loops</b>; the netlist still has thousands of potential cycles — Vivado LUTLP-1 is waived for bob_top.",
       "W=24 was measured: 8×8 with W=16 → 4.2k routing bits, W=24 → 6.0k, W=32 → 7.8k."],
     src: [["OpenFPGA k6_frac_N10_tileable_adder_chain_dpram8K_dsp36_fracff_40nm.xml", "tileable layout, L4 unidir segment, Wilton Fs=3, fc, switches"],
       ["OpenFPGA fabric generation method", "every rr node with fan-in becomes a routing multiplexer"], ["VPR 9 (OpenFPGA Docker)", "builds the tileable rr graph"]],
     why: ["A router and a fabric generated from different descriptions produce bitstreams that route in software and fail in hardware; VPR's graph is the single source.",
       "The reference arch is regression-tested, so the channel structure is known to route real benchmarks (M9 will run VPR on bob's own designs)."],
-    files: [["tools/bob/vpr_arch.py", "arch XML"], ["tools/bob/vpr_rrgraph.sh", "VPR run"], ["tools/bob/rrgraph.py", "graph reader"], ["tools/bob/device.py", "muxes + chain"],
-      ["tools/bob/fabric_gen.py", "RTL"], ["hw/src/fabric/bob_mux.v", "one mux"], ["host/bitstream.py", "BFS router over the graph"], ["tools/bob/model.py", "evaluates the same muxes"]],
+    files: [["software/bob/vpr_arch.py", "arch XML"], ["software/bob/vpr_rrgraph.sh", "VPR run"], ["software/bob/rrgraph.py", "graph reader"], ["software/bob/device.py", "muxes + chain"],
+      ["software/bob/fabric_gen.py", "RTL"], ["hw/src/fabric/bob_mux.v", "one mux"], ["software/host/bitstream.py", "BFS router over the graph"], ["software/bob/model.py", "evaluates the same muxes"]],
     tb: [[TB + " [3][22]", "routed designs + 4 random routed netlists, every CLB output every clock"], ["tests/test_device.py", "encoding, pips unique, pins, directs, trees never share wires"],
       ["sim/mutate_fabric.sh", "mux-no-const1, mux-inputs-shifted, carry-direct-cut killed"]],
     drill: ["sbox", "cbox", "chain", "clb"]
@@ -124,7 +124,7 @@
     notes: ["const1 on IPINs lets designs tie CE/EN/B-bits high <b>without routing</b> (the pipeline's B = 3 uses it).", "680 IPINs have fan-in 4, 112 have fan-in 2."],
     src: [["OpenFPGA arch fc_in 0.15", "tracks per pin"], ["bob (M7)", "const1 option on IPINs"]],
     why: ["Constants are common on hard-block pins; generating them in LUTs would waste CLBs out of 16."],
-    files: [["hw/src/fabric/bob_mux.v", "C1 parameter"], ["host/bitstream.py", "Design._sink / Const"]],
+    files: [["hw/src/fabric/bob_mux.v", "C1 parameter"], ["software/host/bitstream.py", "Design._sink / Const"]],
     tb: [["sim/mutate_fabric.sh", "mux-no-const1 killed"], [TB + " [20]", "pipeline uses const1 B pins"]],
     drill: ["routing", "sbox", "clb"]
   });

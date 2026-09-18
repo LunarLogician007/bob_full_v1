@@ -240,7 +240,7 @@ def s1_fasm(sc):
 
 def s2_bitgen(sc):
     sc.heading("bitgen: FASM to bits, and back again exactly",
-               "tools/bob/bitgen.py checks every feature against device.json before setting a bit")
+               "software/bob/bitgen.py checks every feature against device.json before setting a bit")
 
     f = mono("clb_x2y3.ff_en = 1'h1", 22, C_BIT).shift(UP * 2.1)
     sc.play(FadeIn(f), run_time=0.5)
@@ -360,9 +360,9 @@ def s4_load(sc):
 
 def s5_files(sc):
     sc.files_used(
-        inputs=[("tools/bob/bitgen.py", "FASM <-> chain, .bit reader and writer"),
-                ("tools/bob/fasm_from_vpr.py", "PnR result -> FASM features"),
-                ("tools/bob/cli.py", "./bob build | load | info | fasm")],
+        inputs=[("software/bob/bitgen.py", "FASM <-> chain, .bit reader and writer"),
+                ("software/bob/fasm_from_vpr.py", "PnR result -> FASM features"),
+                ("software/bob/cli.py", "./bob build | load | info | fasm")],
         generated=[("build/bit/<name>.bit", "the loadable bitstream"),
                    ("the FASM text", "./bob fasm x.bit prints it back out"),
                    ("docs/reports/M11/designs.md", "per-design cells, CLBs, CRC")],

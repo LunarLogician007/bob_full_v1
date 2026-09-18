@@ -7,7 +7,7 @@ build.py - assemble studio.html from its parts, the way docs/arch/build.py does.
 p1_head.html is the style (tokens copied from docs/arch/p1_head.html so studio looks
 like the rest of the project), p2_body.html the DOM, p3..p8 the behaviour in load
 order. One self-contained file, no external libraries, no network: the page talks only
-to host/studio.py on localhost.
+to software/host/studio.py on localhost.
 """
 
 import glob

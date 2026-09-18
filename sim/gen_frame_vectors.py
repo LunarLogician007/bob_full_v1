@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Generate hw/tb/frame_vectors.vh for hw/tb/tb_frames.v (M13): packet streams from
-tools/bob/packets.py, and every expected STAT, memory and LED value from its
-Controller model, tools/bob/model.py and host/bitstream.py - never from the RTL.
+software/bob/packets.py, and every expected STAT, memory and LED value from its
+Controller model, software/bob/model.py and software/host/bitstream.py - never from the RTL.
 
   ./gen_frame_vectors.py
 """
@@ -12,8 +12,8 @@ import random
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(HERE, "..", "host"))
-sys.path.insert(0, os.path.join(HERE, "..", "tools", "bob"))
+sys.path.insert(0, os.path.join(HERE, "..", "software", "host"))
+sys.path.insert(0, os.path.join(HERE, "..", "software", "bob"))
 
 import bitstream as B                    # noqa: E402
 import packets as P                      # noqa: E402

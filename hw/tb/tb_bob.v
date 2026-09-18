@@ -7,8 +7,8 @@
 // resource graph; it runs on sysclk with the user clock as an enable.
 //
 // hw/tb/vectors.vh (sim/gen_vectors.py) supplies bitstreams routed by
-// host/bitstream.py, expected values from tools/bob/model.py, and CRCs from
-// tools/bob/chainbits.py. Sections [1]-[19] are tb_fpga4x4.v's (M3-M6) on the
+// software/host/bitstream.py, expected values from software/bob/model.py, and CRCs from
+// software/bob/chainbits.py. Sections [1]-[19] are tb_fpga4x4.v's (M3-M6) on the
 // new fabric; [20]-[23] are M7's.
 //
 //   sim/run_fabric_sim.sh
@@ -574,7 +574,7 @@ module tb_bob;
               {62'h0, dut.u_ctrl.committed, configured}, {62'h0, 2'b10});
 
         $display("");
-        $display("[3] designs routed by host/bitstream.py, each loaded with CRC + JSTART");
+        $display("[3] designs routed by software/host/bitstream.py, each loaded with CRC + JSTART");
         run_designs;
 
         $display("");

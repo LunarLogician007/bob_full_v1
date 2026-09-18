@@ -4,7 +4,7 @@ The device table in the documents is generated, not typed.
 The same numbers used to be hand-copied into README.md, PLAN.md, HANDOFF.md, CLAUDE.md,
 GUIDE.md and REPORT.md. They drifted: after M16 put 100 CLBs on the board, README.md's
 table still described the 36-CLB M12b profile under a heading that said M16. Every
-marked block now comes from tools/bob/devtable.py, and this fails if one goes stale.
+marked block now comes from software/bob/devtable.py, and this fails if one goes stale.
 """
 
 import os
@@ -14,8 +14,8 @@ import sys
 import pytest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(ROOT, "tools", "bob"))
-sys.path.insert(0, os.path.join(ROOT, "host"))
+sys.path.insert(0, os.path.join(ROOT, "software", "bob"))
+sys.path.insert(0, os.path.join(ROOT, "software", "host"))
 
 import devtable  # noqa: E402
 
@@ -28,7 +28,7 @@ def test_at_least_one_document_carries_the_table():
 @pytest.mark.parametrize("rel", [r for r, _ in devtable.apply(write=False)])
 def test_the_marked_block_is_up_to_date(rel):
     ok = dict(devtable.apply(write=False))[rel]
-    assert ok, f"{rel} is stale: run tools/bob/devtable.py --write"
+    assert ok, f"{rel} is stale: run software/bob/devtable.py --write"
 
 
 def test_the_table_reports_this_device():

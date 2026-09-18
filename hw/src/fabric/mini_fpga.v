@@ -32,7 +32,7 @@
 // INTEST is pipelined by one scan: the outputs captured at Capture-DR reflect
 // the vector committed at the PREVIOUS Update-DR. Walking a truth table is
 // therefore one drscan per row plus one extra at the end to collect the last
-// answer. host/minifpga.py does this for you.
+// answer. software/host/minifpga.py does this for you.
 // -----------------------------------------------------------------------------
 
 `timescale 1ns / 1ps
@@ -54,7 +54,7 @@ module mini_fpga #(
     output wire       configured   // 1 once a non-zero config has been loaded
 );
 
-    // clb_pkg::CLB_CFG_W, from tools/bob/device.py via bob_params.vh (71 for K=6).
+    // clb_pkg::CLB_CFG_W, from software/bob/device.py via bob_params.vh (71 for K=6).
     localparam integer CFG_W = `BOB_CLB_CFG_W;
 
     wire                bsr_capture, bsr_shift, bsr_update, bsr_mode;

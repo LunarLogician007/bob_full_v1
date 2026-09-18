@@ -1,8 +1,8 @@
 """
-hwtest's checks against a software stand-in for the board. FakeBob (host/fakeboard.py,
+hwtest's checks against a software stand-in for the board. FakeBob (software/host/fakeboard.py,
 promoted out of this file once bob studio needed it too) answers the
 JTAG instructions the checks use (JPROGRAM, CFG_CTRL, CFG_IN/OUT, JSTART, USER1
-autostep, INTEST, SAMPLE, CAPTURE, USER4 BRAM write/read) from tools/bob/model.py,
+autostep, INTEST, SAMPLE, CAPTURE, USER4 BRAM write/read) from software/bob/model.py,
 and runs the free-running user clock in real time (ctrl.clk_mode / clk_div). It cannot find
 hardware problems; it proves the checks' own scan ordering, bit indexing and
 golden comparisons before they meet the board, and that they can fail.
@@ -16,8 +16,8 @@ import time
 import pytest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(ROOT, "tools", "bob"))
-sys.path.insert(0, os.path.join(ROOT, "host"))
+sys.path.insert(0, os.path.join(ROOT, "software", "bob"))
+sys.path.insert(0, os.path.join(ROOT, "software", "host"))
 
 pytestmark = pytest.mark.skipif(shutil.which("yosys") is None or shutil.which("iverilog") is None,
                                 reason="needs yosys and iverilog")

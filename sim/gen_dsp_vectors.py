@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Generate hw/tb/dsp_vectors.vh for hw/tb/tb_dsp.v - dsp_core.v against
-tools/bob/model.py's Dsp.
+software/bob/model.py's Dsp.
 
 Every opmode x use_d x d_sub, with random register configurations, random
 signed inputs (including full-scale corners), random CE/RST, gce and the odd
@@ -15,7 +15,7 @@ import random
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(HERE, "..", "tools", "bob"))
+sys.path.insert(0, os.path.join(HERE, "..", "software", "bob"))
 
 import model as M  # noqa: E402
 

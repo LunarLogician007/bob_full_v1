@@ -1,0 +1,48 @@
+{
+"top": "gates",
+"lut": {
+"led[2]": {
+"n": 4,
+"tt": 61678
+},
+"led[1]": {
+"n": 6,
+"tt": 7608434000728254870
+},
+"led[0]": {
+"n": 2,
+"tt": 8
+}
+},
+"add": {},
+"ff": {},
+"bram": {},
+"dsp": {},
+"consts": {},
+"out_consts": {},
+"has_clk": false,
+"out_pads": {},
+"net_bits": {
+"btn[0]": 4,
+"btn[1]": 5,
+"btn[2]": 6,
+"btn[3]": 7,
+"led[0]": 8,
+"led[1]": 9,
+"led[2]": 10,
+"sw[0]": 2,
+"sw[1]": 3
+},
+"pins": {
+"sw[0]": 14,
+"sw[1]": 12,
+"btn[0]": 16,
+"btn[1]": 18,
+"btn[2]": 20,
+"btn[3]": 22,
+"out:led[0]": 17,
+"out:led[1]": 15,
+"out:led[2]": 13
+},
+"pcf": "work/examples/gates/gates_swapped.pcf"
+}

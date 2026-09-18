@@ -365,8 +365,8 @@ def s5_files(sc):
         inputs=[("hw/src/tiles/bram_core.v", "the inferable 1024x18 TDP memory"),
                 ("hw/src/tiles/bram_block.v", "fabric pins or the USER4 drive word"),
                 ("hw/src/tiles/bram_jtag.v", "USER4 commands + the M15 frame sequencer")],
-        generated=[("tools/bob/device.json", "the 8 fields, USER4 command codes"),
-                   ("tools/bob/model.py", "class Bram - the reference behaviour")],
+        generated=[("software/bob/device.json", "the 8 fields, USER4 command codes"),
+                   ("software/bob/model.py", "class Bram - the reference behaviour")],
         verified=[("hw/tb/tb_bram.v", "5292 checks, all 36 combinations"),
                   ("sim/mutate_fabric.sh", "bram-no-write-first, bram-en-ignored, ..."),
                   ("docs/hwtest/results.log", "ram-readback on the real board")])

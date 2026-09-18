@@ -1,8 +1,8 @@
 """
-host/fakeboard.py: the software board, and proof it is the one the tests already trust.
+software/host/fakeboard.py: the software board, and proof it is the one the tests already trust.
 
 FakeBob was written inside tests/test_hwtest_fake.py, where every hardware check runs
-against it with a passing and a failing case. host/fakeboard.py carries the same class
+against it with a passing and a failing case. software/host/fakeboard.py carries the same class
 so tools that are not pytest - bob studio, a --probe fake flag - can use it. While M16
 is in flight the test module keeps its own copy, so the job here is to prove the two
 answer identically: same scan sequence, same bits out. When the next milestone's tree
@@ -16,8 +16,8 @@ import sys
 import pytest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(ROOT, "tools", "bob"))
-sys.path.insert(0, os.path.join(ROOT, "host"))
+sys.path.insert(0, os.path.join(ROOT, "software", "bob"))
+sys.path.insert(0, os.path.join(ROOT, "software", "host"))
 
 import bitstream as B  # noqa: E402
 import cfgplane  # noqa: E402
@@ -27,7 +27,7 @@ import fpga  # noqa: E402
 pytestmark = pytest.mark.skipif(shutil.which("yosys") is None or shutil.which("iverilog") is None,
                                reason="needs yosys and iverilog")
 
-# dirtyjtag.Probe's surface, as the rest of host/ uses it.
+# dirtyjtag.Probe's surface, as the rest of software/host/ uses it.
 SURFACE = ("shift_ir", "shift_dr", "shift_dr_fast", "pulse", "reset_to_idle",
            "read_idcode", "set_freq_khz")
 
@@ -74,7 +74,7 @@ def test_the_two_copies_agree_on_a_real_load(tmp_path):
     """A whole M16 design through the frame path on each copy."""
     import cli
     bit = str(tmp_path / "counter.bit")
-    cli.build([os.path.join(ROOT, "examples", "counter.v")], out=bit, log=lambda *_: None)
+    cli.build([os.path.join(ROOT, "work", "examples", "counter", "counter.v")], out=bit, log=lambda *_: None)
     mine, theirs = fakeboard.FakeBob(), _test_module_fakebob()()
     a = cli.load(mine, bit, mode="frames")
     b = cli.load(theirs, bit, mode="frames")

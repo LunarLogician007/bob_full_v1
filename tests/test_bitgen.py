@@ -10,8 +10,8 @@ import sys
 import pytest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(ROOT, "tools", "bob"))
-sys.path.insert(0, os.path.join(ROOT, "host"))
+sys.path.insert(0, os.path.join(ROOT, "software", "bob"))
+sys.path.insert(0, os.path.join(ROOT, "software", "host"))
 
 import bitgen  # noqa: E402
 import bitstream as B  # noqa: E402
@@ -102,7 +102,7 @@ def test_variant_pins_really_differ():
     import equiv
     import json
     import model
-    equiv.equiv([os.path.join(ROOT, "examples", "gates.v")], "gates")          # fresh clone: no build/ yet
+    equiv.equiv([os.path.join(ROOT, "work", "examples", "gates", "gates.v")], "gates")          # fresh clone: no build/ yet
     bs, contents, _text = FV.build("gates_swapped")
     tr = json.load(open(os.path.join(ROOT, "build", "synth", "gates", "gates.trace.json")))
     m = model.Fabric(bs)

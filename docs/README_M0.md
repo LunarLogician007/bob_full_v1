@@ -81,7 +81,7 @@ On the board: `pad_i[5:0]` is `{BTN3..BTN0, SW1, SW0}` and `pad_o[2:0]` is
 
 ## The bitstream engine
 
-`host/bitstream.py` mirrors `clb_pkg.sv` constant for constant, and adds
+`software/host/bitstream.py` mirrors `clb_pkg.sv` constant for constant, and adds
 placement, routing and a software model.
 
 ```python
@@ -140,11 +140,11 @@ or just `-tclargs mini_fpga_top`.
 
 | IDCODE | Top | CONFIG | Tool |
 |---|---|---|---|
-| `0x2BEEF093` | `mini_fpga_top` | 71 bits | `host/minifpga.py` |
-| `0x3BEEF093` | `fpga4x4_top` | 2896 bits | `host/fpga.py` |
+| `0x2BEEF093` | `mini_fpga_top` | 71 bits | `software/host/minifpga.py` |
+| `0x3BEEF093` | `fpga4x4_top` | 2896 bits | `software/host/fpga.py` |
 
 The version nibble tracks the design, and every tool checks it, so loading the
-wrong bitstream says so instead of behaving strangely. `host/detect.sh` names
+wrong bitstream says so instead of behaving strangely. `software/host/detect.sh` names
 whichever one it finds.
 
 They share the TAP, the instruction set and the boundary ring; only `CFG_W`
@@ -248,7 +248,7 @@ more at the end.
 stop the build over it.** A mesh where any switch box mux can select any
 neighbouring track has cycles in the netlist graph: tile A's east output can
 feed tile B whose west output feeds tile A. Whether a loop actually *exists*
-depends on the bitstream — and none that `host/bitstream.py` emits contains
+depends on the bitstream — and none that `software/host/bitstream.py` emits contains
 one, because the router builds a tree from each source to its sinks.
 
 Verilator says `UNOPTFLAT`. Vivado fails implementation with:
@@ -331,15 +331,15 @@ if the bulk transfer disagrees.
 ## Tools
 
 ```
-host/bitstream.py    architecture model, placement, routing, software model
-host/designs.py      the example designs, shared by simulation and hardware
-host/fpga.py         compile, load and run on the 4x4 fabric
-host/bscan.py        interactive boundary-scan control (INTEST/EXTEST/SAMPLE)
-host/minifpga.py     the same for the single-CLB build
-host/dirtyjtag.py    shared transport: TAP navigation and bulk shifting
-host/tap_probe.py    raw TDO stream, --leds, --loopback, --idle
-host/wire_check.py   test each jumper, then the PMODA pin numbering
-host/detect.sh       IDCODE read, naming whichever build it finds
+software/host/bitstream.py    architecture model, placement, routing, software model
+software/host/designs.py      the example designs, shared by simulation and hardware
+software/host/fpga.py         compile, load and run on the 4x4 fabric
+software/host/bscan.py        interactive boundary-scan control (INTEST/EXTEST/SAMPLE)
+software/host/minifpga.py     the same for the single-CLB build
+software/host/dirtyjtag.py    shared transport: TAP navigation and bulk shifting
+software/host/tap_probe.py    raw TDO stream, --leds, --loopback, --idle
+software/host/wire_check.py   test each jumper, then the PMODA pin numbering
+software/host/detect.sh       IDCODE read, naming whichever build it finds
 sim/gen_vectors.py   turn the designs into simulation vectors
 ```
 

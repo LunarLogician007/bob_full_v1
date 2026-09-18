@@ -389,7 +389,7 @@ def s6_files(sc):
                    ("guide.html", "the learning guide"),
                    ("arch.html", "the interactive die slice")],
         verified=[("tests/test_vpr.py", "the reference routing parameters are still kept"),
-                  ("tools/bob/arch/*.stamp", "which OpenFPGA image built the graph"),
+                  ("software/bob/arch/*.stamp", "which OpenFPGA image built the graph"),
                   ("docs/hwtest/results.log", "the hardware claim, run by run")])
 
 

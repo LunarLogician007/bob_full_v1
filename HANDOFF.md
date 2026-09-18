@@ -15,8 +15,8 @@ This file is the live state: what is finished, what is in flight, and exactly wh
 | Whole-project report | `docs/project/REPORT.md` + `project.html`; the learning guide is `docs/project/GUIDE.md` + `guide.html` (**done**, committed in `807f2b9`) |
 | In flight | nothing. Tag `m16` when you are ready, and rerun `docs/project/collect.py` + `build.py` so the report and `project.html` include M16 |
 
-The device table in `README.md` is generated from `tools/bob/device.json` by
-`tools/bob/devtable.py`; `make check` fails if it drifts.
+The device table in `README.md` is generated from `software/bob/device.json` by
+`software/bob/devtable.py`; `make check` fails if it drifts.
 
 ---
 
@@ -66,11 +66,11 @@ timings and diagnostics, a Device view showing where the design landed and which
 routed through, a Pin Planner that writes a `.pcf`, and Program and Debug — program, readback
 and verify, CAPTURE, partial reconfiguration.
 
-- **`tools/bob/flow.py`** is the engine: the same flow `./bob build` runs, as separate timed
+- **`software/bob/flow.py`** is the engine: the same flow `./bob build` runs, as separate timed
   stages each returning what it measured. `cli.build()` is now a wrapper over it, and
   `tests/test_flow.py` requires both to write a **byte-identical `.bit`**.
-- **`host/fakeboard.py`** is `FakeBob`, moved out of `tests/test_hwtest_fake.py` (which now
-  imports it) so tools that are not pytest can use it. It answers from `tools/bob/model.py`.
+- **`software/host/fakeboard.py`** is `FakeBob`, moved out of `tests/test_hwtest_fake.py` (which now
+  imports it) so tools that are not pytest can use it. It answers from `software/bob/model.py`.
   It cannot find hardware problems — it is for running the flow with no board attached.
 - **`docs/studio/`** builds `studio.html` the way `docs/arch/` builds `arch.html`: one
   self-contained page, vanilla JS and hand-drawn SVG, no external libraries. The backend is
@@ -96,8 +96,8 @@ make mutate           # the three mutation suites
 make hwtest M=M16     # board test (interactive); ONLY=<check> reruns one
 make clean-logs       # build/ grows to gigabytes of yosys estimate logs
 ./host/studio.py --probe fake        # bob studio, no hardware
-tools/bob/devtable.py --write        # regenerate the device table in the documents
-tools/bob/synth_estimate.sh $PWD $PWD/build/est      # whole-design yosys estimate before a Vivado hand-off
+software/bob/devtable.py --write        # regenerate the device table in the documents
+software/bob/synth_estimate.sh $PWD $PWD/build/est      # whole-design yosys estimate before a Vivado hand-off
 python3 docs/project/collect.py && python3 docs/project/build.py   # report data + project.html
 python3 docs/arch/build.py --data                    # arch.html (--data after make device)
 python3 docs/studio/build.py                         # studio.html
@@ -141,7 +141,7 @@ guest clock" trade permanently.
 Also open: ZUMA-style LUTRAM configuration memory (`PLAN.md:752`; configuration is 21 511
 flip-flops, ~86% of every FF in the design, a fraction that grows with the grid); more than
 one BLE per CLB, so 3391 routing muxes amortise over more logic; a substantial demo design
-(the largest example is `examples/big.v`, 21 lines and 56 CLBs); and CI — the Mac-only half
+(the largest example is `work/examples/big/big.v`, 21 lines and 56 CLBs); and CI — the Mac-only half
 of `make check` would run on a hosted runner today and there is no `.github/` at all.
 
 ---

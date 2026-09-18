@@ -377,11 +377,11 @@ def s5_files(sc):
         inputs=[("hw/src/tiles/dsp_core.v", "the arithmetic, registers and opmodes"),
                 ("hw/src/tiles/dsp_block.v", "per-bus source: fabric or drive word"),
                 ("hw/src/tiles/dsp_jtag.v", "the 248-bit drive register")],
-        generated=[("tools/bob/device.json", "16 fields, opmodes, cascade"),
-                   ("tools/bob/model.py", "class Dsp + the cascade helpers")],
+        generated=[("software/bob/device.json", "16 fields, opmodes, cascade"),
+                   ("software/bob/model.py", "class Dsp + the cascade helpers")],
         verified=[("hw/tb/tb_dsp.v", "1344 checks: every opmode x pre-adder, 2 slices"),
                   ("sim/mutate_fabric.sh", "dsp-no-d-sub, dsp-shift-16, dsp-no-cascade"),
-                  ("examples/fir.v", "a 2-tap FIR on both slices, live on the board")])
+                  ("work/examples/fir/fir.v", "a 2-tap FIR on both slices, live on the board")])
 
 
 EP06 = [s1_datapath, s2_cfg, s3_opmodes, s4_jtag, s5_files]

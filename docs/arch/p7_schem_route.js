@@ -51,7 +51,7 @@
     for (let b = 0; b < 3; b++) cell(IX + 300 + (2 - b) * 26, IY + 70, 22, 16, (RT.ipin >> b) & 1, { showv: true });
 
     txt(0, 500, `Whole fabric: ${BOB.nmux} muxes (IPIN ${BOB.ntype.IPIN} · CHANX ${BOB.ntype.CHANX} · CHANY ${BOB.ntype.CHANY}), ${BOB.mbits} bits.`
-      + " Inputs are the driving rr nodes in ascending id — what tools/bob/device.py writes and host/bitstream.py selects.", { size: 8, anchor: "start", fill: C.MUTE });
+      + " Inputs are the driving rr nodes in ascending id — what software/bob/device.py writes and software/host/bitstream.py selects.", { size: 8, anchor: "start", fill: C.MUTE });
     txt(0, 514, "CHANX/CHANY fan-in histogram: " + BOB.chanfanin.map(([n, c]) => `${n}×${c}`).join("  ·  "), { size: 7.4, anchor: "start", mono: true, fill: C.FAINT });
     return svg(1064, 528, 900);
   };

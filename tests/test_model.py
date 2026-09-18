@@ -1,5 +1,5 @@
 """
-tools/bob/model.py - the cycle model over the routing-resource graph - gives the
+software/bob/model.py - the cycle model over the routing-resource graph - gives the
 right answers: combinational designs against their truth tables (independent of
 the router and the graph), sequential ones against their definitions, and the
 BRAM/DSP models against UG473/UG479 behaviour.
@@ -9,8 +9,8 @@ import os
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(ROOT, "tools", "bob"))
-sys.path.insert(0, os.path.join(ROOT, "host"))
+sys.path.insert(0, os.path.join(ROOT, "software", "bob"))
+sys.path.insert(0, os.path.join(ROOT, "software", "host"))
 
 import bitstream as B  # noqa: E402
 import model as M      # noqa: E402

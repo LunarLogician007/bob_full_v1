@@ -20,7 +20,7 @@ ROOT = os.path.dirname(os.path.dirname(HERE))
 
 
 def dump_data():
-    sys.path.insert(0, os.path.join(ROOT, "tools", "bob"))
+    sys.path.insert(0, os.path.join(ROOT, "software", "bob"))
     import collections
     import device
     d = device.Device()

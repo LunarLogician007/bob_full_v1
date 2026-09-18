@@ -5,8 +5,8 @@ repository itself (never typed by hand):
 
   docs/hwtest/results.log      every board run: date, milestone, checks passed / failed
   docs/reports/M*/             Vivado utilisation and timing per build
-  tools/bob/device.json        the current device
-  tools/bob/vpr/*/stamp.txt    VPR results per example; docs/reports/M12b/pnr_vs_vpr.md
+  software/bob/device.json        the current device
+  software/bob/vpr/*/stamp.txt    VPR results per example; docs/reports/M12b/pnr_vs_vpr.md
   build/m15_check2.log         check counts of the last `make check` (if present)
   sim/mutate_*.sh              mutants per suite
   git                          commits, tags, lines of code per area
@@ -74,7 +74,7 @@ def vivado():
 
 
 def device():
-    d = json.load(open(os.path.join(ROOT, "tools", "bob", "device.json")))
+    d = json.load(open(os.path.join(ROOT, "software", "bob", "device.json")))
     blocks = collections.Counter(b["type"] for b in d.get("blocks", [])) if isinstance(d.get("blocks"), list) else {}
     return {"chain_width": d["chain"]["width"], "frames": d["frames"]["count"], "frame_bits": d["frames"]["bits"],
             "grid": [d["arch"]["grid_width"], d["arch"]["grid_height"]], "chan_width": d["arch"]["chan_width"],
@@ -83,7 +83,7 @@ def device():
 
 def layout():
     """the current grid (blocks, board pads, frame columns) for the device picture"""
-    d = json.load(open(os.path.join(ROOT, "tools", "bob", "device.json")))
+    d = json.load(open(os.path.join(ROOT, "software", "bob", "device.json")))
     names = {p["pad"]: p["name"] for p in d["pads"]["board_inputs"] + d["pads"]["board_outputs"]}
     pads = [{"pad": p["pad"], "x": p["x"], "y": p["y"], "name": names.get(p["pad"])} for p in d["pads"]["io"]]
     heights = {c["type"]: c["height"] for c in d["arch"]["columns"]} if "columns" in d["arch"] else {}
@@ -92,10 +92,10 @@ def layout():
 
 
 def streams():
-    """real packet streams from tools/bob/packets.py, annotated (the first and last words of each)"""
+    """real packet streams from software/bob/packets.py, annotated (the first and last words of each)"""
     import sys
-    sys.path.insert(0, os.path.join(ROOT, "tools", "bob"))
-    sys.path.insert(0, os.path.join(ROOT, "host"))
+    sys.path.insert(0, os.path.join(ROOT, "software", "bob"))
+    sys.path.insert(0, os.path.join(ROOT, "software", "host"))
     import packets as P
     from designs import d_partial, d_showcase
 
@@ -120,7 +120,7 @@ def streams():
 
 def vpr_examples():
     out = []
-    base = os.path.join(ROOT, "tools", "bob", "vpr")
+    base = os.path.join(ROOT, "software", "bob", "vpr")
     for name in sorted(os.listdir(base)):
         st = os.path.join(base, name, "stamp.txt")
         if not os.path.exists(st):
@@ -178,7 +178,7 @@ def checks():
 def code():
     files = sh("git", "ls-files").split()
     areas = collections.Counter()
-    skip = ("release/", "docs/reports/", "tools/bob/vpr/", "tools/bob/arch/", "hw/src/generated/")
+    skip = ("release/", "docs/reports/", "software/bob/vpr/", "software/bob/arch/", "hw/src/generated/")
     for f in files:
         if f.startswith(skip) or f.endswith((".vh", ".json", ".gz", ".tex", ".log", ".html")):
             continue

@@ -18,10 +18,10 @@ Companion documents: [`REPORT.md`](REPORT.md) is what was built and what happene
 
 ```sh
 make check                                   # regenerate, simulate, lint, test: everything must be green
-./bob build examples/counter.v -o build/bit/counter.bit
+./bob build work/examples/counter/counter.v -o build/bit/counter.bit
 ./bob info build/bit/counter.bit             # what is in the file
 ./bob fasm build/bit/counter.bit | head      # the configuration as readable features
-tools/bob/packets.py dump build/bit/counter.bit | head -20   # the JTAG packet stream
+software/bob/packets.py dump build/bit/counter.bit | head -20   # the JTAG packet stream
 ```
 
 With the board and the Pico attached:
@@ -63,7 +63,7 @@ bob has all four, plus **I/O pads** (with boundary-scan cells) and a **JTAG cont
 ### 1.3 The five layers
 
 ```
- 1  ARCHITECTURE   tools/bob/device.py          one description: grid, tiles, routing, fields
+ 1  ARCHITECTURE   software/bob/device.py          one description: grid, tiles, routing, fields
         │  writes the VPR architecture XML, runs VPR once to get the routing graph
  2  HARDWARE       hw/src/…, bob_fabric.v       Verilog generated from that graph + hand-written tiles and plane
         │  Vivado builds it into the host FPGA
@@ -80,10 +80,10 @@ bob has all four, plus **I/O pads** (with boundary-scan cells) and a **JTAG cont
 
 ```
 counter.v
-  │  yosys (tools/bob/synth.py)          → bob cells: $lut, BOB_ADD, BOB_FDRE, BOB_BRAM18, BOB_DSP
+  │  yosys (software/bob/synth.py)          → bob cells: $lut, BOB_ADD, BOB_FDRE, BOB_BRAM18, BOB_DSP
   │  equiv.py                            → source == netlist == golden netlist (300 random cycles)
   │  vpr_run.prepare                     → .eblif: constants folded, carry chains cut to column height, pins fixed
-  │  VPR (or tools/bob/pnr)              → .net (packing) .place (where) .route (which wires)
+  │  VPR (or software/bob/pnr)              → .net (packing) .place (where) .route (which wires)
   │  fasm_from_vpr.py                    → FASM: clb_x2y3.init = 64'h…, rr1234 = 3'h5
   │  bitgen.py                           → the configuration word + CRC + .bit file
   │  cli.load → cfgplane                 → JTAG packets → configuration memory → JSTART
@@ -122,14 +122,14 @@ Every arrow is checked: yosys against the source, FASM against `device.json`, th
 
 ## 3. Part by part
 
-### 3.1 `tools/bob/device.py` — the single source of truth
+### 3.1 `software/bob/device.py` — the single source of truth
 
 **What it is.** One Python file that describes the whole device: the grid (`ARCH_*` dictionaries), the tile types and their fields (CLB 71 bits, BRAM 8, DSP 16, ctrl 8), where every block sits, which rr nodes are muxes and how wide each one is, the frame layout, and the board pad mapping. It writes:
 
-- `tools/bob/device.json` — the machine-readable device, read by every tool and the host software
+- `software/bob/device.json` — the machine-readable device, read by every tool and the host software
 - `hw/src/generated/bob_params.vh` — the same numbers as Verilog macros
 - `hw/src/generated/bob_fabric.v` — the fabric RTL
-- `tools/bob/arch/bob_k{6,4}.xml` — the VPR architecture
+- `software/bob/arch/bob_k{6,4}.xml` — the VPR architecture
 
 **Why this way.** Any FPGA project has to keep hardware, tools and host software agreeing about thousands of numbers. Two copies of a number is a bug waiting to happen (bob's M1 milestone exists precisely to remove that risk). Generating everything from one description also makes the architecture a *variable*: the 16 → 36 → 100 CLB steps were dictionary edits, not rewrites.
 
@@ -137,9 +137,9 @@ Every arrow is checked: yosys against the source, FASM against `device.json`, th
 
 ```sh
 make device        # regenerate everything from the committed routing graphs
-tools/bob/device.py --check      # fail if any generated file is out of date
-tools/bob/device.py --lut-k 4 --out build/k4   # a K = 4 device, written elsewhere
-python3 -c "import json; d=json.load(open('tools/bob/device.json')); print(d['chain']['width'])"
+software/bob/device.py --check      # fail if any generated file is out of date
+software/bob/device.py --lut-k 4 --out build/k4   # a K = 4 device, written elsewhere
+python3 -c "import json; d=json.load(open('software/bob/device.json')); print(d['chain']['width'])"
 ```
 
 **How to tweak it.**
@@ -147,11 +147,11 @@ python3 -c "import json; d=json.load(open('tools/bob/device.json')); print(d['ch
 - **A new configuration field** (say a second flip-flop mode): add it to the tile type's field list. Width, offsets, `device.json`, `bob_params.vh` and the FASM feature name follow automatically; then teach `model.py` and the RTL what the bit does.
 - **Board pads:** `BOARD_INPUTS` / `BOARD_OUTPUTS` name which pad is SW0, LD2 and so on.
 
-**Code and tests.** `tools/bob/device.py`, `vpr_arch.py`, `rrgraph.py`, `fabric_gen.py`; `tests/test_device.py` (field overlaps, chain round-trip, frame tiling, pinned sizes, constants against `clb_pkg.sv`).
+**Code and tests.** `software/bob/device.py`, `vpr_arch.py`, `rrgraph.py`, `fabric_gen.py`; `tests/test_device.py` (field overlaps, chain round-trip, frame tiling, pinned sizes, constants against `clb_pkg.sv`).
 
 ### 3.2 The VPR architecture (`vpr_arch.py`) and the routing graph
 
-**What it is.** `vpr_arch.py` writes a VPR architecture XML: the tile types and their pins, the CLB's two modes (`logic` and `arithmetic`), the models VPR needs (`bob_add`, `bob_ff`), the layout (I/O ring, CLB fill, BRAM and DSP columns), the routing segment (L4 unidirectional), the switch box (Wilton, Fs = 3) and the connection-box fractions. `tools/bob/vpr_rrgraph.sh` then runs VPR once inside Docker on a trivial design and asks it to **write out the routing-resource graph** it built. That graph is committed (gzipped, with a sha256 stamp of the architecture it came from).
+**What it is.** `vpr_arch.py` writes a VPR architecture XML: the tile types and their pins, the CLB's two modes (`logic` and `arithmetic`), the models VPR needs (`bob_add`, `bob_ff`), the layout (I/O ring, CLB fill, BRAM and DSP columns), the routing segment (L4 unidirectional), the switch box (Wilton, Fs = 3) and the connection-box fractions. `software/bob/vpr_rrgraph.sh` then runs VPR once inside Docker on a trivial design and asks it to **write out the routing-resource graph** it built. That graph is committed (gzipped, with a sha256 stamp of the architecture it came from).
 
 **Why this way.** This is OpenFPGA's method and it is the heart of the project: rather than inventing a routing structure and hoping VPR can use it, bob lets **VPR build the routing** and then generates hardware that matches it node for node. The result is that the router's model of the chip and the chip are the same object, so a route that VPR finds is always loadable, and a mux in the RTL always exists in the router's graph.
 
@@ -160,7 +160,7 @@ python3 -c "import json; d=json.load(open('tools/bob/device.json')); print(d['ch
 ```sh
 colima start                        # Docker for the OpenFPGA image
 make rrgraph                        # arch XML → VPR → rr graph (committed) → device files
-cat tools/bob/arch/bob_k6_rr.stamp  # what that graph was built from
+cat software/bob/arch/bob_k6_rr.stamp  # what that graph was built from
 ```
 
 **How to tweak it.**
@@ -201,7 +201,7 @@ d.output(0, d.lut(1, 1, LUT.and2(), [a, b]))       # AND of the two switches on 
 From Verilog, you never touch it: yosys and the placer do.
 
 **How to tweak it.**
-- **LUT size K:** `tools/bob/device.py --lut-k 4`, or the `lut_k` default. Everything derives from it, and `make check` runs the whole fabric at K = 4 as well. The hardware build stays K = 6.
+- **LUT size K:** `software/bob/device.py --lut-k 4`, or the `lut_k` default. Everything derives from it, and `make check` runs the whole fabric at K = 4 as well. The hardware build stays K = 6.
 - **More BLEs per CLB:** a real change — `clb.sv`, the pb_type in `vpr_arch.py`, the field list in `device.py`, `model.py`, the packer in `pnr/pack.py`.
 - **Flip-flop behaviour** (e.g. an asynchronous reset): `clb.sv` plus `model.py`, and a new field if it is configurable.
 
@@ -220,7 +220,7 @@ d.bram_mode("a", "READ_FIRST", bram=0)
 d.bram_pin("a", "addr0", d.input(0), bram=0)      # SW0 → address bit 0
 d.output(0, d.bram_out("a", 0, bram=0))           # data bit 0 → LD0
 ```
-From Verilog, write ordinary inferable memory (`examples/ram.v`) and yosys maps it to `BOB_BRAM18`.
+From Verilog, write ordinary inferable memory (`work/examples/ram/ram.v`) and yosys maps it to `BOB_BRAM18`.
 
 **How to tweak it.**
 - **More BRAMs:** column `height` in the `ARCH_*` dict decides how many fit in the column (`ny / height`).
@@ -233,9 +233,9 @@ From Verilog, write ordinary inferable memory (`examples/ram.v`) and yosys maps 
 
 **What it is.** `dsp_core.v` is a trimmed DSP48E1: A25, B18, C48, D25 inputs, a pre-adder (D ± A), a 25 × 18 signed multiplier, a 48-bit accumulator, four static opmodes (M, M+C, P+M, (PCIN >> 17)+M), optional registers on every stage, and a PCOUT → PCIN cascade between the two slices. 16 configuration bits per slice.
 
-**Why this way.** UG479's structure, minus everything that would need dynamic control pins (OPMODE/INMODE/ALUMODE) — those would cost routing and configuration for features a small fabric will not use. The cascade is kept because it is what makes two slices useful for filters (`examples/fir.v`).
+**Why this way.** UG479's structure, minus everything that would need dynamic control pins (OPMODE/INMODE/ALUMODE) — those would cost routing and configuration for features a small fabric will not use. The cascade is kept because it is what makes two slices useful for filters (`work/examples/fir/fir.v`).
 
-**How to use it.** yosys maps `*` to `BOB_DSP` automatically (`examples/mult.v`, `fir.v`). By hand: `d.dsp_config(...)`, `d.dsp_pin(...)`, `d.dsp_ctrl(...)`, `d.dsp_out(...)`.
+**How to use it.** yosys maps `*` to `BOB_DSP` automatically (`work/examples/mult/mult.v`, `fir.v`). By hand: `d.dsp_config(...)`, `d.dsp_pin(...)`, `d.dsp_ctrl(...)`, `d.dsp_out(...)`.
 
 **How to tweak it.** More opmodes (`dsp_core.v` + the `opmode` field width + `model.py`), more slices (column height), or dynamic OPMODE (needs new pins in the pb_type, more routing).
 
@@ -270,8 +270,8 @@ raw  = fpga.sample(p)                        # the real switches and LEDs, at on
 **How to use it.** Per design, from the `.bit`:
 
 ```sh
-./bob build examples/blinky.v --clock run --div 15 -o build/bit/blinky.bit   # free-running
-./bob build examples/counter.v -o build/bit/counter.bit                      # JTAG-stepped (default)
+./bob build work/examples/blinky/blinky.v --clock run --div 15 -o build/bit/blinky.bit   # free-running
+./bob build work/examples/counter/counter.v -o build/bit/counter.bit                      # JTAG-stepped (default)
 ```
 `bob build` prints the resulting rate, because a `--div 26` build once looked like a dead board.
 
@@ -288,7 +288,7 @@ raw  = fpga.sample(p)                        # the real switches and LEDs, at on
 
 **Why this way.** Using the real 7-series codes means standard tools and habits transfer: `openFPGALoader` reads DONE and INIT_B exactly where they are on a real part. The private codes are for things 7-series does not have (bob keeps its scan chain beside the frame path).
 
-**How to use it.** Everything goes through `host/cfgplane.py`, which names the instructions:
+**How to use it.** Everything goes through `software/host/cfgplane.py`, which names the instructions:
 
 ```python
 cfgplane.ir(p, "CFG_IN"); cfgplane.frames_send(p, packets.load_stream(word))
@@ -356,7 +356,7 @@ words = packets.load_stream(word, brams=contents)   # the full stream bob load s
 cfgplane.frames_send(p, words)
 print(cfgplane.frames_stat(p))                      # decoded STAT
 print(cfgplane.frames_readback(p) == word)          # FDRO readback of the whole memory
-tools/bob/packets.py dump build/bit/counter.bit     # the same stream, annotated, from the shell
+software/bob/packets.py dump build/bit/counter.bit     # the same stream, annotated, from the shell
 ```
 
 **How to tweak it.** New CMD verbs and registers are small additions (`cfg_frames.v` + `packets.py` + a scenario in `tb_frames.v` + a mutant). Keep the Python model and the RTL in step: **every expected value in `tb_frames` comes from `packets.Controller`**, so if you change one and not the other, the testbench fails immediately — that is the point.
@@ -435,13 +435,13 @@ print(f"{f.outputs(0b01):03b}", hex(f.clb_o(0b01)))
 
 **How to tweak it.** If you change fabric semantics, change `model.py` in the same commit — the K=4 and K=6 sweeps will tell you immediately if the two disagree.
 
-### 3.17 Synthesis (`tools/bob/synth.py`, `synth/bob_cells*.v`)
+### 3.17 Synthesis (`software/bob/synth.py`, `synth/bob_cells*.v`)
 
 **What it is.** A yosys script in the shape of `synth_xilinx`, mapping to bob's cell library: `$lut` (K inputs), `BOB_ADD` (one CLB in carry mode), `BOB_FDRE`/`BOB_FDSE`, `BOB_BRAM18`, `BOB_DSP`. It fails if any other cell survives, or if the design has more than one clock.
 
 **Why this way.** Reusing yosys's passes in their proven order avoids reinventing synthesis, and the strict cell check means a design either maps onto hardware bob actually has, or the flow stops with a clear error instead of producing something unroutable.
 
-**How to use it.** `./bob build design.v` runs it. Directly: `tools/bob/synth.py examples/fir.v --top fir --out build/synth/fir`.
+**How to use it.** `./bob build design.v` runs it. Directly: `software/bob/synth.py work/examples/fir/fir.v --top fir --out build/synth/fir`.
 
 **How to tweak it.**
 - Map a new operator to a hard block: add a rule (the DSP path uses `mul2dsp`, the BRAM path `memory_libmap` with `bob_brams.txt`).
@@ -457,11 +457,11 @@ print(f"{f.outputs(0b01):03b}", hex(f.clb_o(0b01)))
 
 Stimulus quality matters: uniform random inputs once held a counter's synchronous reset half the time, so its trace was all zeros and the check could not fail. Vectors are biased and generated in 50-cycle segments now.
 
-**How to use it.** `tools/bob/equiv.py examples/fir.v` prints the cell counts and the comparison result.
+**How to use it.** `software/bob/equiv.py work/examples/fir/fir.v` prints the cell counts and the comparison result.
 
 **How to tweak it.** Cycle count and bias live in `equiv.random_vectors`. If you add an example whose ports are not `clk/sw/btn/led`, give it a `.pcf` — the model and trace checks need to know which pad is which.
 
-### 3.19 Place and route: VPR (`vpr_run.py`) and bob's own (`tools/bob/pnr/`)
+### 3.19 Place and route: VPR (`vpr_run.py`) and bob's own (`software/bob/pnr/`)
 
 **What it is.** `vpr_run.prepare` rewrites the yosys netlist into an `.eblif` VPR can pack: constants become IPIN constants, carry chains are cut to the column height with generator and tap CLBs, buffers are inserted where a flip-flop's D is not a single-load LUT output, and `.pcf` pins are fixed. Then either **VPR 9** (in Docker, on the committed rr graph, fixed seed) or **bob's own PnR** (`pack.py`, `place.py` simulated annealing, `route.py` PathFinder negotiated congestion with A*) produces `.net`/`.place`/`.route` in the same formats.
 
@@ -471,7 +471,7 @@ Stimulus quality matters: uniform random inputs once held a counter's synchronou
 
 ```sh
 make vpr                                   # re-route every example with VPR (Docker)
-./bob build examples/fir.v --pnr python    # use bob's PnR instead
+./bob build work/examples/fir/fir.v --pnr python    # use bob's PnR instead
 make pnr                                   # compare them: docs/reports/M16/pnr_vs_vpr.md
 ```
 
@@ -490,7 +490,7 @@ make pnr                                   # compare them: docs/reports/M16/pnr_
 ```sh
 ./bob fasm build/bit/counter.bit | head          # read a configuration
 ./bob info build/bit/counter.bit                 # header, sections, metadata
-tools/bob/bitgen.py --roundtrip build/bit/counter.bit
+software/bob/bitgen.py --roundtrip build/bit/counter.bit
 ```
 
 **How to tweak it.** Feature names come from `device.py`'s field names, so renaming a field renames its FASM feature. New `.bit` sections are a tag plus a reader/writer pair.
@@ -504,7 +504,7 @@ tools/bob/bitgen.py --roundtrip build/bit/counter.bit
 **How to use it.**
 
 ```sh
-./bob build examples/switches.v --clock run --div 15 -o build/bit/switches.bit
+./bob build work/examples/switches/switches.v --clock run --div 15 -o build/bit/switches.bit
 ./bob load build/bit/switches.bit            # frames
 ./bob load build/bit/switches.bit --mode chain
 ./bob load build/bit/other.bit --partial
@@ -514,7 +514,7 @@ tools/bob/bitgen.py --roundtrip build/bit/counter.bit
 
 ### 3.22 Hardware tests (`hwtest.py`) and the stand-in board
 
-**What it is.** `host/hwtest.py` holds a list of named checks per milestone. Each check is a function `(probe, ctx) -> (ok, message)`. A run does the regression first (IDCODE, bypass, self-test, then the earlier milestones' checks) and then the new ones, and appends every result to `docs/hwtest/results.log`. `tests/test_hwtest_fake.py` contains a **stand-in board**: `model.py` and `packets.Controller` behind the same JTAG API, including the free-running clock in real time, BRAM contents, the frame path, the freeze and partial reloads.
+**What it is.** `software/host/hwtest.py` holds a list of named checks per milestone. Each check is a function `(probe, ctx) -> (ok, message)`. A run does the regression first (IDCODE, bypass, self-test, then the earlier milestones' checks) and then the new ones, and appends every result to `docs/hwtest/results.log`. `tests/test_hwtest_fake.py` contains a **stand-in board**: `model.py` and `packets.Controller` behind the same JTAG API, including the free-running clock in real time, BRAM contents, the frame path, the freeze and partial reloads.
 
 **Why this way.** A hardware check that has never failed is not a check. Every check is first run against the stand-in board twice: on a *good* board (it must pass) and on a deliberately *broken* one — a corrupted CAPTURE, a clock 1.5× too fast, wrong BRAM contents, a board that loses state on a partial reload, a freeze that does not hold. Several real bugs were caught this way before the board saw them.
 
@@ -567,7 +567,7 @@ sim/run_frames_sim.sh     # one testbench on its own
 1. No computed part-select over the configuration memory (it becomes a barrel shifter).
 2. No `keep_hierarchy` anywhere (it changed how Vivado breaks the fabric's routing loops, and it crashed).
 3. The XDC is **implementation-only** (`USED_IN_SYNTHESIS false`); synthesis with clocks crashed, and once restarted Windows.
-4. Before any hand-off, compare `tools/bob/synth_estimate.sh` with the last successful build.
+4. Before any hand-off, compare `software/bob/synth_estimate.sh` with the last successful build.
 
 **How to use it.**
 
@@ -580,7 +580,7 @@ make check  # now also checks those reports (timing must close from M13 on)
 
 **How to tweak it.** `build.cfg` is where the tag, IDCODE nibble, USERCODE, `jobs` and the synthesis directive live. The XDC must stay **plain XDC** — Tcl in an XDC is silently skipped, which once left TCK unconstrained while the report said "all constraints met".
 
-### 3.25 `tools/bob/flow.py` and bob studio (`host/studio.py`)
+### 3.25 `software/bob/flow.py` and bob studio (`software/host/studio.py`)
 
 **What it is.** `flow.py` runs the guest flow as separate stages — synth (with its equivalence
 check), pnr, fasm, bits, model, write — each one timed and each returning what it measured:
@@ -588,7 +588,7 @@ cell counts, wirelength, routing iterations, FASM feature count, model samples, 
 compiler diagnostic with the file and line it names. `./bob build` is a wrapper over it, and
 `./bob build --json FILE` writes the record instead of prose.
 
-**bob studio** (`host/studio.py`) is that engine behind an application, laid out the way
+**bob studio** (`software/host/studio.py`) is that engine behind an application, laid out the way
 Vivado is: sources and an editor, a Flow Navigator with Synthesis / Implementation / Generate
 Bitstream, a Device view of where the design landed and which channels it routed through, a
 Pin Planner that writes a `.pcf`, and Program and Debug — program, readback and verify,
@@ -605,8 +605,8 @@ self-contained file with no external libraries, assembled from `docs/studio/` ex
 `arch.html` is assembled from `docs/arch/`. So the project gained no dependency, and the
 page opens offline.
 
-It also runs with **no board attached**: `--probe fake` uses `host/fakeboard.py`, the software
-stand-in that answers JTAG out of `tools/bob/model.py`. That class was written for
+It also runs with **no board attached**: `--probe fake` uses `software/host/fakeboard.py`, the software
+stand-in that answers JTAG out of `software/bob/model.py`. That class was written for
 `tests/test_hwtest_fake.py` and moved here when the studio needed it; the test now imports it,
 so the checks that prove the stand-in can *fail* go on guarding the one the tools use.
 
@@ -615,7 +615,7 @@ so the checks that prove the stand-in can *fail* go on guarding the one the tool
 ```sh
 ./host/studio.py --probe fake     # no hardware; http://127.0.0.1:8765
 ./host/studio.py --probe usb      # the Pico on PMODA
-./bob build --json rec.json examples/fir.v
+./bob build --json rec.json work/examples/fir/fir.v
 ./bob build --project bob.proj    # sources, top, pins and settings in one file
 ./bob load design.bit --probe fake
 python3 docs/studio/build.py      # rebuild studio.html from docs/studio/p*.{html,js}
@@ -630,8 +630,8 @@ bit and refuses an un-indexed name.
 
 **How to tweak it.** A new stage is a method on `Flow` plus its name in `STAGES`; it returns a
 `Stage` and the page picks it up with no change. A new view is a part file in `docs/studio/`
-(they are concatenated in name order) and a route in `host/studio.py`. The one thing to keep
-is that every route drives `flow.py` or `host/cfgplane.py` and reports what they return —
+(they are concatenated in name order) and a route in `software/host/studio.py`. The one thing to keep
+is that every route drives `flow.py` or `software/host/cfgplane.py` and reports what they return —
 the studio must never become a second implementation of the flow.
 
 **A caveat worth knowing.** One guest clock on the software board costs a `model.settle()`,
@@ -648,9 +648,9 @@ Each recipe is the whole change, in order. All of them end the same way: `make c
 ### 4.1 Build and run a design
 
 ```sh
-./bob build examples/fir.v -o build/bit/fir.bit           # VPR
-./bob build examples/fir.v --pnr python -o build/bit/fir_py.bit
-./bob build examples/blinky.v --clock run --div 15 -o build/bit/blinky.bit   # free-running clock
+./bob build work/examples/fir/fir.v -o build/bit/fir.bit           # VPR
+./bob build work/examples/fir/fir.v --pnr python -o build/bit/fir_py.bit
+./bob build work/examples/blinky/blinky.v --clock run --div 15 -o build/bit/blinky.bit   # free-running clock
 ./bob load build/bit/fir.bit                              # frames (default)
 ./bob load build/bit/fir.bit --mode chain                 # the scan chain instead
 ./bob load build/bit/other.bit --partial                  # rewrite only what differs, design keeps running
@@ -658,7 +658,7 @@ Each recipe is the whole change, in order. All of them end the same way: `make c
 
 ### 4.2 Change the grid (this is milestone M16 in one recipe)
 
-1. Edit or add an `ARCH_*` dictionary in `tools/bob/device.py` and set `ARCH = …`:
+1. Edit or add an `ARCH_*` dictionary in `software/bob/device.py` and set `ARCH = …`:
    ```python
    ARCH_12X10 = {"nx": 12, "ny": 10, "chan_width": 24, "segment_length": 4, "fs": 3,
                  "fc_in": 0.15, "fc_out": 0.10, "io_capacity": 1,
@@ -668,26 +668,26 @@ Each recipe is the whole change, in order. All of them end the same way: `make c
    CLB count = (nx − number of hard columns) × ny. Hard blocks per column = ny / height.
 2. `colima start && make rrgraph` — VPR rebuilds the routing graph (Docker), then the device files.
 3. `make vpr` — re-route every example on the new graph. `make pnr` for the comparison report.
-4. `tools/bob/synth_estimate.sh $PWD $PWD/build/est` — **the size gate**. Compare with the last build that Vivado actually finished, and tell the user the numbers.
+4. `software/bob/synth_estimate.sh $PWD $PWD/build/est` — **the size gate**. Compare with the last build that Vivado actually finished, and tell the user the numbers.
 5. `make check`. Expect to fix: pinned sizes in `tests/test_device.py`, anything in the testbenches that assumed the old widths, and mutants pinned to a grid position (`carry-direct-cut` follows the last CLB column).
 6. `hw/build.cfg`: new `tag`, `idcode` nibble, `usercode`. Write `docs/hwtest/Mx.md`.
-7. Add a board check only the new grid can pass (M16 added `examples/big.v`, 56 CLBs), with stand-in cases first.
+7. Add a board check only the new grid can pass (M16 added `work/examples/big/big.v`, 56 CLBs), with stand-in cases first.
 8. `make hw`, hand `hw/` to Vivado, copy `out/<tag>/` back, `make check`, `make hwtest M=Mx`.
 
 ### 4.3 Change the LUT size K
 
 ```sh
-tools/bob/device.py --lut-k 4 --out build/k4      # try it without touching the repo
+software/bob/device.py --lut-k 4 --out build/k4      # try it without touching the repo
 make check                                        # the K = 4 fabric is simulated in every run
 ```
 To make it the board's K: set `lut_k` in `device.py`, `make rrgraph` (the architecture changes), then the same steps as §4.2. Everything that depends on K — `lutk.sv`, `clb_pkg.sv`, field widths, `bitstream.py`, yosys `abc -lut K` — reads it from one place.
 
 ### 4.4 Add an example design
 
-1. Write `examples/name.v` with ports `clk`, `sw[1:0]`, `btn[3:0]`, `led[2:0]` (or any ports plus a `.pcf`).
-2. Add `"name"` to `EXAMPLES` in `tools/bob/vpr_run.py` and to the `equiv` loop in the `Makefile`.
-3. `tools/bob/equiv.py examples/name.v` — source == netlist.
-4. `tools/bob/vpr_run.py --repeat name` — route it and commit the result.
+1. Write `work/examples/name.v` with ports `clk`, `sw[1:0]`, `btn[3:0]`, `led[2:0]` (or any ports plus a `.pcf`).
+2. Add `"name"` to `EXAMPLES` in `software/bob/vpr_run.py` and to the `equiv` loop in the `Makefile`.
+3. `software/bob/equiv.py work/examples/name.v` — source == netlist.
+4. `software/bob/vpr_run.py --repeat name` — route it and commit the result.
 5. `make check` — it joins `tb_cosim`, `test_vpr`, `test_bitgen` automatically.
 6. Board check: `("bob-name", _bob_check("name"))` in the milestone list, with a stand-in case.
 
@@ -704,7 +704,7 @@ To make it the board's K: set `lut_k` in `device.py`, `make rrgraph` (the archit
 
 1. A code and a `sel_*` strobe in `jtag_tap6.v` (private codes only — do not collide with AMD's).
 2. A data register module, and its `so` into the TAP's TDO mux.
-3. `cfgplane.IR` and a helper function in `host/cfgplane.py`.
+3. `cfgplane.IR` and a helper function in `software/host/cfgplane.py`.
 4. A row in `docs/bitstream-format.md` §2.
 5. A scenario in `tb_bob.v` or `tb_cfg.v`, and a stand-in board answer in `tests/test_hwtest_fake.py`.
 
@@ -717,9 +717,9 @@ To make it the board's K: set `lut_k` in `device.py`, `make rrgraph` (the archit
 ### 4.8 Use partial reconfiguration
 
 ```sh
-./bob build examples/gates.v -o build/bit/a.bit
+./bob build work/examples/gates/gates.v -o build/bit/a.bit
 ./bob load build/bit/a.bit
-./bob build examples/gates.v --pcf examples/gates_swapped.pcf -o build/bit/b.bit
+./bob build work/examples/gates/gates.v --pcf work/examples/gates/gates_swapped.pcf -o build/bit/b.bit
 ./bob load --partial build/bit/b.bit        # prints how many frames it rewrote
 ```
 The design keeps running: registers, BRAM and DSP state survive. A bad CRC leaves the fabric frozen — `./bob load build/bit/a.bit` (a full load, which starts with JPROGRAM) recovers it.
@@ -808,7 +808,7 @@ bob is not a better OpenFPGA, and it is not trying to be: OpenFPGA is a research
 | LEDs disagree with the source | run the same design in `tb_cosim` | usually a PnR or FASM bug, which the model check normally catches first |
 | a partial reload is refused | STAT `GHIGH_B`, `CRC_ERROR`, `WR_ERROR` | frames sent before the freeze was acknowledged, or a bad CRC — do a full load to recover |
 | VPR cannot route | the design's CLB count vs the grid | too big, or a `.pcf` that pins signals impossibly |
-| `make check` says a result is stale | the stamp in `tools/bob/vpr/<name>/` | the architecture changed: `make rrgraph`, then `make vpr` |
+| `make check` says a result is stale | the stamp in `software/bob/vpr/<name>/` | the architecture changed: `make rrgraph`, then `make vpr` |
 | Vivado synthesis is very slow or crashes | the four rules in §3.24 | a part-select over the memory, `keep_hierarchy`, or the XDC in synthesis |
 | timing does not close | `docs/reports/<tag>/timing.rpt` | a path that is not covered by the `gce` guarantee — read §17.2 of the report before relaxing anything |
 
@@ -820,4 +820,4 @@ bob is not a better OpenFPGA, and it is not trying to be: OpenFPGA is a research
 - **`REPORT.md` §19** — 42 problems and their fixes. It is the fastest way to learn the traps.
 - **`PLAN.md` §10** — every milestone's "as built" notes, including what was deliberately left out.
 - **`arch.html`** — click any block to see what it is, what it came from, and which testbench covers it.
-- **Good first changes:** add an example design (§4.4); change the router's cost function in `tools/bob/pnr/route.py` and watch `make pnr`; add a configuration field and a mutant for it (§4.5); try `--lut-k 4` end to end.
+- **Good first changes:** add an example design (§4.4); change the router's cost function in `software/bob/pnr/route.py` and watch `make pnr`; add a configuration field and a mutant for it (§4.5); try `--lut-k 4` end to end.

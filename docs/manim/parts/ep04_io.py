@@ -48,9 +48,9 @@ def s1_iotile(sc):
 
 def s2_padmap(sc):
     sc.heading("44 pads, 9 of them wired to something you can see",
-               "tools/bob/device.py picks the numbers; bob_top.v is the only file that knows about a board")
+               "software/bob/device.py picks the numbers; bob_top.v is the only file that knows about a board")
 
-    # tools/bob/device.json "pads.io" gives every pad's (x, y) on this 14x12 grid
+    # software/bob/device.json "pads.io" gives every pad's (x, y) on this 14x12 grid
     # (bob_params.vh: BOB_GRID_W=14, BOB_GRID_H=12). Reproduced here so the square
     # that lights up is the square that pad number actually is, not just its draw
     # order around the loop.
@@ -230,7 +230,7 @@ def s6_files(sc):
                 ("hw/src/top/bob_top.v", "the only file that knows a board exists"),
                 ("hw/constr/pynq_z2.xdc", "pins and the multicycle promises")],
         generated=[("hw/src/generated/bob_params.vh", "BOB_PAD_*, BOB_NPAD, BOB_GCE_MIN_GAP_SHIFT"),
-                   ("tools/bob/device.json", "pads, board_inputs, board_outputs")],
+                   ("software/bob/device.json", "pads, board_inputs, board_outputs")],
         verified=[("hw/tb/tb_clock_gap.v", "11 checks on gce spacing and freeze"),
                   ("tests/test_layout.py", "the XDC is plain XDC, no Tcl"),
                   ("tests/test_reports.py", "WNS >= 0, 0 failing endpoints, from M13")])

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # M4 CLB flag sweep: every combination of the 7 CLB flags x random INITs x
 # sequences of LUT inputs, routed CE/SR, gce, GSR and GWE, checked every cycle
-# against tools/bob/model.py (which generates hw/tb/clb_vectors.vh).
+# against software/bob/model.py (which generates hw/tb/clb_vectors.vh).
 #   ./run_clb_sim.sh
 set -euo pipefail
 cd "$(dirname "$0")"

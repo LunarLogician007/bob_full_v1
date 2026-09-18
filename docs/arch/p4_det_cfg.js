@@ -10,7 +10,7 @@
       "USER1 bit 4 <b>autostep</b> gives exactly one fabric clock per INTEST scan: how the board checks run sequential designs."],
     src: [["IEEE 1149.1", "TAP state machine, edge timing"], ["AMD UG470 + OpenOCD xc7.cfg + openFPGALoader", "6-bit codes, IR capture DONE/INIT_B bits"], ["bob/rtl/jtag_tap.v", "hardware-proven 4-bit TAP it was copied from"]],
     why: ["Using AMD's codes makes bob look like a 7-series part to standard tools; the FSM is the proven one, unchanged."],
-    files: [["hw/src/core/jtag_tap6.v", "TAP"], ["host/dirtyjtag.py", "shift_ir / shift_dr_fast"], ["host/cfgplane.py", "IR table"]],
+    files: [["hw/src/core/jtag_tap6.v", "TAP"], ["software/host/dirtyjtag.py", "shift_ir / shift_dr_fast"], ["software/host/cfgplane.py", "IR table"]],
     tb: [["hw/tb/tb_cfg.v", "180 checks on the config plane"], [TB + " [1][8][23]", "IDCODE, BYPASS, IR capture, TLR"], ["hwtest idcode / bypass / ir-status", "board"]],
     drill: ["cfgctrl", "startup", "chain", "bsr"]
   });
@@ -24,7 +24,7 @@
       "A corrupted chain sets CRC_ERR and the <b>running design keeps working</b> (tb section [4], hwtest crc-reject-live)."],
     src: [["AMD UG470", "CRC before startup, write-protected registers (the key idea)"], ["CRC-32C (Castagnoli)", "polynomial 0x1EDC6F41"]],
     why: ["A scan chain has no framing: without length + CRC a dropped bit silently loads a different design."],
-    files: [["hw/src/core/cfg_ctrl.v", "RTL"], ["tools/bob/chainbits.py", "crc32c_bits, ctrl words"], ["host/cfgplane.py", "load() sequence"], ["docs/bitstream-format.md", "the spec"]],
+    files: [["hw/src/core/cfg_ctrl.v", "RTL"], ["software/bob/chainbits.py", "crc32c_bits, ctrl words"], ["software/host/cfgplane.py", "load() sequence"], ["docs/bitstream-format.md", "the spec"]],
     tb: [["hw/tb/tb_cfg.v", "CRC vs Python, length/CRC reject, key"], ["sim/mutate_cfg.sh", "guards deleted one at a time, all killed"], ["tests/test_chainbits.py", "CRC check value 0xE3069283"]],
     drill: ["startup", "chain", "jtag"]
   });
@@ -51,7 +51,7 @@
       "M13 replaces exactly this module with UG470 frames; tiles, VPR and the tools stay."],
     src: [["OpenFPGA config_protocol scan_chain", "chain through every tile's configuration flops"], ["Aegis docs/arch/configuration.md", "shift register + shadow config register"]],
     why: ["Scan chain is the simplest protocol proven in both projects; frames come last (M13) once everything else is solid."],
-    files: [["hw/src/core/cfg_tile_sr.v", "cell"], ["tools/bob/device.py", "chain layout"], ["tools/bob/device.json", "tiles, chain_lo"], ["host/bitstream.py", "Bitstream word"]],
+    files: [["hw/src/core/cfg_tile_sr.v", "cell"], ["software/bob/device.py", "chain layout"], ["software/bob/device.json", "tiles, chain_lo"], ["software/host/bitstream.py", "Bitstream word"]],
     tb: [[TB + " [2]", "random loop-free chain: commit, readback twice, 32-bit marker length"], ["tests/test_device.py", "every bit mapped exactly once, encode/decode round trip"]],
     drill: ["cfgctrl", "routing", "clb"]
   });
@@ -65,7 +65,7 @@
       "M4's build closed with only +0.84 ns WNS on sysclk even with these multicycles; M7's much deeper routing depends on them."],
     src: [["AMD UG949", "clock enables instead of logic-generated clocks"], ["Aegis docs/arch/clock.md", "divider-based user clock"]],
     why: ["A single BUFG clock + enable keeps the host timing analysable; a generated clock through the fabric would not be."],
-    files: [["hw/src/core/clock_ctrl.v", "RTL"], ["hw/constr/pynq_z2.xdc", "clock groups, multicycles"], ["host/bitstream.py", "Design.set_clock"]],
+    files: [["hw/src/core/clock_ctrl.v", "RTL"], ["hw/constr/pynq_z2.xdc", "clock groups, multicycles"], ["software/host/bitstream.py", "Design.set_clock"]],
     tb: [[TB + " [10][11]", "one count per TCK edge; 100 pulses in 3200 ns"], ["sim/mutate_fabric.sh", "step-ignores-ce, divider-off-by-1 killed"], ["hwtest counter-run", "7.45 counts/s on the board"]],
     drill: ["ff", "startup", "jtag"]
   });
@@ -75,7 +75,7 @@
     rows: [F("scan", ["Capture-DR", "snapshot clb_o[47:0]", null, "CFG"], ["Shift-DR", "LSB first", null, "CFG"], ["Update-DR", "nothing", null, "CFG"])],
     notes: ["AMD readback capture in scan form: nothing in the design is disturbed.", "Bit i is CLB i in row-major order (device.json capture.order)."],
     src: [["AMD UG470 readback capture", "snapshot user state over JTAG"]], why: ["Lets hardware checks see flip-flops without spending pads."],
-    files: [["hw/src/core/capture_chain.v", "RTL"], ["host/hwtest.py", "counter checks decode it"]],
+    files: [["hw/src/core/capture_chain.v", "RTL"], ["software/host/hwtest.py", "counter checks decode it"]],
     tb: [[TB + " [6]", "CAPTURE == model.py for every CLB; == USER1[19:4]"], ["hwtest capture-user1 / counter8", "board"]],
     drill: ["jtag", "clb"]
   });
@@ -86,7 +86,7 @@
       B("immediate in TCK domain", ["SET_DRIVE", "drive[target]", null, "CFG"], ["SELECT", "target ← payload if < NBRAM", null, "CFG"])],
     notes: ["A READ's word appears in the <b>next</b> scan's capture.", "WRITE after JSTART sets err — contents are locked like UG470."],
     src: [["AMD UG470", "BRAM contents separate, written before startup"]], why: ["Keeps megabytes of contents out of the configuration chain and its CRC."],
-    files: [["hw/src/tiles/bram_jtag.v", "RTL"], ["host/cfgplane.py", "bram_scan / bram_select"]],
+    files: [["hw/src/tiles/bram_jtag.v", "RTL"], ["software/host/cfgplane.py", "bram_scan / bram_select"]],
     tb: [[TB + " [12][14][19]", "contents, lock, SELECT"], ["sim/mutate_fabric.sh", "bram-init-unlocked, bram-select-ignored killed"]],
     drill: ["bram", "jtag"]
   });
@@ -96,7 +96,7 @@
     rows: [F("scan", ["Capture", "P0 · P1 · version 0x07", null, "CFG"], ["Shift", "", null, "CFG"], ["Update cmd 4", "drive ← [247:0]", null, "CFG"], ["dsp_block", "uses drive where jtag_* set", "dsp", "DSP"])],
     notes: ["All four AMD USER codes were taken, so the DSP gets a private code."],
     src: [["bob M6", "stepped DSP verification design"]], why: ["Lets every opmode be checked cycle by cycle on silicon without routing 248 signals."],
-    files: [["hw/src/tiles/dsp_jtag.v", "RTL"], ["host/cfgplane.py", "dsp_scan"]],
+    files: [["hw/src/tiles/dsp_jtag.v", "RTL"], ["software/host/cfgplane.py", "dsp_scan"]],
     tb: [[TB + " [16]", "60 stepped operations vs model"], ["hwtest dsp-modes", "board"]],
     drill: ["dsp", "jtag"]
   });
@@ -106,7 +106,7 @@
     rows: [F("one cell", ["capture_reg (posedge)", "data_in or scan_in", null, "CFG"], ["update_reg (negedge)", "", null, "CFG"], ["mode mux", "EXTEST/INTEST drive, else transparent", null, "CFG"])],
     notes: ["The capture/update split is what lets a scan change pins once, as a unit.", "Test-Logic-Reset is sampled synchronously — the fix proven on the PYNQ-Z2."],
     src: [["IEEE 1149.1 BC_1", "cell structure"], ["bob/rtl/bsc_cell.v", "hardware-proven cell with the TLR fix"]], why: ["Proven on this exact board; INTEST is the hardware test harness."],
-    files: [["hw/src/core/bsc_cell.v", "cell"], ["hw/src/fabric/bob_fpga.v", "40-cell ring"], ["host/fpga.py", "intest_sweep, sample"]],
+    files: [["hw/src/core/bsc_cell.v", "cell"], ["hw/src/fabric/bob_fpga.v", "40-cell ring"], ["software/host/fpga.py", "intest_sweep, sample"]],
     tb: [[TB + " [5][9]", "EXTEST/SAMPLE/INTEST"], ["hwtest selftest / ce-sr / synth-*", "board"]],
     drill: ["io", "jtag"]
   });

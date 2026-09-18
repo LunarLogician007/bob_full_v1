@@ -4014,6 +4014,266 @@
      "loaded 145 frames (580 words) through CFG_IN, CRC 4DD8FF3E, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 40 registers == golden"
     ]
    ]
+  },
+  {
+   "date": "2026-09-18",
+   "time": "17:37:27",
+   "milestone": "M16",
+   "tag": "M16",
+   "pass": 49,
+   "fail": 1,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0xFBEEF093, build.cfg expects 0xFBEEF093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "selftest",
+     "12/12 designs match the model"
+    ],
+    [
+     "PASS",
+     "usercode",
+     "0x00000010, build.cfg expects 0x00000010"
+    ],
+    [
+     "PASS",
+     "chain-length",
+     "18560 bits, design intact after the marker scan"
+    ],
+    [
+     "PASS",
+     "ir-status",
+     "{'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}"
+    ],
+    [
+     "PASS",
+     "crc-reject-live",
+     "crc_err=1 DONE=1 config kept=True showcase vectors wrong=0"
+    ],
+    [
+     "PASS",
+     "gts",
+     "outputs before JSTART=000, after=011, model=011"
+    ],
+    [
+     "PASS",
+     "gsr-gwe",
+     "q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1"
+    ],
+    [
+     "PASS",
+     "capture-user1",
+     "CAPTURE=0x0801 USER1[19:4]=0x0801 (switches must not move during the check)"
+    ],
+    [
+     "PASS",
+     "jprogram",
+     "DONE=0 GTS=1 chain zero=True outputs=000"
+    ],
+    [
+     "PASS",
+     "showcase-live",
+     "pad_i=000011 LD2..0=011 model=011"
+    ],
+    [
+     "PASS",
+     "ce-sr",
+     "CE loads, SR clears (beats CE), both low holds - 7 steps match model.py"
+    ],
+    [
+     "PASS",
+     "counter-step",
+     "counts [15, 8, 1, 10, 3, 12] (steps [9, 9, 9, 9, 9], want 9 each); ce off: [3, 3, 3] (want constant)"
+    ],
+    [
+     "PASS",
+     "counter-run",
+     "11 counts in 3.01 s = 3.65/s (expected 3.73)"
+    ],
+    [
+     "PASS",
+     "bram-init",
+     "64/64 words read back"
+    ],
+    [
+     "PASS",
+     "bram-locked",
+     "err=1 gwe=1"
+    ],
+    [
+     "PASS",
+     "bram-rom",
+     "LEDs ['000', '001', '011', '110'] contents ['000', '001', '011', '110']"
+    ],
+    [
+     "PASS",
+     "bram-modes",
+     "72/72 stepped operations match model.py"
+    ],
+    [
+     "PASS",
+     "dsp-modes",
+     "60/60 stepped operations match model.py "
+    ],
+    [
+     "PASS",
+     "dsp-mult",
+     "LEDs ['000', '011', '110', '001'] expected ['000', '011', '110', '001']"
+    ],
+    [
+     "PASS",
+     "dsp-accum",
+     "P0 0 -> 11 in 3.02 s = 3.64/s (expected 3.73)"
+    ],
+    [
+     "PASS",
+     "bram-select",
+     "16 words each read back from bram0 and bram1; SELECT 9 ignored (target 0)"
+    ],
+    [
+     "PASS",
+     "pipeline",
+     "LEDs ['011', '100', '111', '110', '100', '011', '110', '111'] model ['011', '100', '111', '110', '100', '011', '110', '111']"
+    ],
+    [
+     "PASS",
+     "counter8",
+     "counts [15, 120, 225, 330, 435, 540, 645, 750, 855, 960, 41, 146] (steps [105, 105, 105, 105, 105, 105, 105, 105, 105, 105, 105], want 105 each)"
+    ],
+    [
+     "PASS",
+     "frames-load",
+     "loaded 145 frames (580 words) through CFG_IN, CRC 6093BBC5, FDRO readback verified; CHAIN_OUT == word: True; DONE=1; 4/4 vectors == model"
+    ],
+    [
+     "PASS",
+     "frames-crc-reject",
+     "CRC_ERROR=1 START_OK=0 DONE=0 INIT_B=0"
+    ],
+    [
+     "PASS",
+     "frames-idcode-reject",
+     "ID_ERROR=1 memory empty=True"
+    ],
+    [
+     "PASS",
+     "frames-live-refused",
+     "frames: WR_ERROR=1 memory kept=True; chain while running kept=True; DONE=1; showcase 4/4 vectors == model"
+    ],
+    [
+     "PASS",
+     "frames-vs-chain",
+     "chain load -> FDRO == word: True; frame load -> CHAIN_OUT == word: True"
+    ],
+    [
+     "PASS",
+     "bob-gates",
+     "loaded 145 frames (580 words) through CFG_IN, CRC 7B5915F5, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 0 CAPTUREs x 0 registers == golden"
+    ],
+    [
+     "PASS",
+     "bob-counter",
+     "loaded 145 frames (580 words) through CFG_IN, CRC B0E6B1F3, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 6 registers == golden"
+    ],
+    [
+     "PASS",
+     "bob-ram",
+     "loaded 145 frames (580 words) through CFG_IN + 256 BRAM content frames (1 BRAM, all 1024 words), CRC 1716893F, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 0 CAPTUREs x 0 registers == golden"
+    ],
+    [
+     "PASS",
+     "bob-mult",
+     "loaded 145 frames (580 words) through CFG_IN, CRC FD6A6853, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 7 registers == golden"
+    ],
+    [
+     "FAIL",
+     "bob-fir",
+     "4 wrong, first ['clock 16: CAPTURE bit 46 = 0, golden n10 = 1', 'clock 16: LEDs 000 vs source 010', 'clock 50: CAPTURE bit 36 = 1, golden n9 = 0']"
+    ],
+    [
+     "PASS",
+     "pnr-switches",
+     "loaded 145 frames (580 words) through CFG_IN, CRC CCA52AAB, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 3 registers == golden"
+    ],
+    [
+     "PASS",
+     "ram-readback",
+     "64 clocks (50 with BTN0 write), bram0[0..15] = [2, 2, 4, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] read back after JPROGRAM == model (all 1024 words were written at load, so no earlier design's words remain); chain readback"
+    ],
+    [
+     "PASS",
+     "blinky-rate",
+     "31 counts in 4.10 s = 7.55 Hz (expected 7.45)"
+    ],
+    [
+     "PASS",
+     "bob-wide",
+     "loaded 145 frames (580 words) through CFG_IN, CRC D88BE861, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 20 registers == golden"
+    ],
+    [
+     "PASS",
+     "pnr-wide",
+     "loaded 145 frames (580 words) through CFG_IN, CRC 3BC30D02, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 20 registers == golden"
+    ],
+    [
+     "PASS",
+     "partial-swap",
+     "1 of 145 frames rewritten; counter 5 -> 5 across the partial -> 8 after 3 clocks; LD1 A (AND) [0, 0, 0, 1] (model [0, 0, 0, 1]), B (OR) [0, 1, 1, 1] (model [0, 1, 1, 1]); DONE=1"
+    ],
+    [
+     "PASS",
+     "partial-live",
+     "before: counting=True; frozen (GHIGH_B=0): 3 -> 3 over 1.2 s; 1 frame(s) written; released (GHIGH_B=1): 3 -> 5; LD1 [0, 1, 1, 1] (OR model [0, 1, 1, 1])"
+    ],
+    [
+     "PASS",
+     "partial-bad-crc",
+     "refused=True CRC_ERROR=1 GHIGH_B=0; frozen counter 0 -> 0; DONE=1; JPROGRAM + full load counts again=True"
+    ],
+    [
+     "PASS",
+     "partial-guest",
+     "partial: 27 of 145 frames rewritten with the design running, released; LEDs [0, 2, 3, 5] == gates_swapped model [0, 2, 3, 5]: True (27 frames differ)"
+    ],
+    [
+     "PASS",
+     "frames-bram-load",
+     "loaded 145 frames (580 words) through CFG_IN + 512 BRAM content frames (2 BRAMs, all 1024 words), CRC BA6F47CD, FDRO readback verified; USER4 reads the same words: True; ROM LEDs [3, 6, 7, 4] == mem[SW] [3, 6, 7, 4]"
+    ],
+    [
+     "PASS",
+     "frames-bram-live-refused",
+     "WR_ERROR=1; bram0[0..31] after JPROGRAM unchanged=True"
+    ],
+    [
+     "PASS",
+     "ram-readback-frames",
+     "bram0[0..15] = [2, 2, 4, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] over FDRO block type 1 after JPROGRAM == model, == USER4"
+    ],
+    [
+     "PASS",
+     "bob-big",
+     "loaded 145 frames (580 words) through CFG_IN, CRC 4DD8FF3E, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 40 registers == golden"
+    ],
+    [
+     "PASS",
+     "pnr-big",
+     "loaded 145 frames (580 words) through CFG_IN, CRC 5A244BE9, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 40 registers == golden"
+    ],
+    [
+     "PASS",
+     "pipeline-live",
+     "SW1..0 = 00/01/10/11 should light LD0 / LD1 / LD2 / all three"
+    ]
+   ]
   }
  ],
  "vivado": {
@@ -4341,49 +4601,23 @@
   ]
  },
  "checks": {
-  "testbenches": {
-   "M4 CLB flag sweep vs tools/bob/model.py: LUT K = 6, 71 config bits": 7040,
-   "M5 bram_core vs tools/bob/model.py: WRITE_FIRST/READ_FIRST/NO_CHANGE x DOx_REG": 5292,
-   "M6 dsp_core x2 (cascade) vs tools/bob/model.py: every opmode x pre-adder": 1344,
-   "bob (M7): 10x8 grid, W=24, 36 CLBs (LUT6), 2 BRAMs, 2 DSPs, 28 pads": 852,
-   "M2 configuration plane: 6-bit AMD IR, 64-bit scan chain": 180,
-   "M4 CLB flag sweep vs tools/bob/model.py: LUT K = 4, 23 config bits": 7040,
-   "bob (M7): 10x8 grid, W=24, 36 CLBs (LUT4), 2 BRAMs, 2 DSPs, 28 pads": 722,
-   "synthesised designs on the complete bob FPGA (M8 hand-placed, M9 VPR)": 972,
-   "golden co-simulation: source Verilog vs the fabric loaded from .bit (M10; VPR and Python PnR, M12)": 5220,
-   "frame configuration path on the complete bob FPGA (M13)": 71,
-   "clock_ctrl: user-clock enables at least 2**GAP_SHIFT sysclk cycles apart (M13), freeze (M14)": 11,
-   "pytest": 183
-  },
-  "mutants": {
-   "mutate_cfg": {
-    "killed": 5,
-    "survived": 0
-   },
-   "mutate_fabric": {
-    "killed": 25,
-    "survived": 0
-   },
-   "mutate_frames": {
-    "killed": 29,
-    "survived": 0
-   }
-  }
+  "testbenches": {},
+  "mutants": {}
  },
  "code": {
   "lines": {
-   "other": 355,
-   "Markdown": 5330,
-   "Python": 13915,
-   "JavaScript": 1614,
+   "other": 13088,
+   "Markdown": 5441,
+   "Python": 28664,
+   "JavaScript": 2905,
    "Tcl": 919,
    "SystemVerilog": 385,
-   "Verilog": 6351,
-   "shell": 634,
-   "XDC": 131
+   "XDC": 131,
+   "Verilog": 6375,
+   "shell": 634
   },
   "generated_fabric_lines": 4416,
-  "commits": 28,
+  "commits": 29,
   "tags": [
    "m10",
    "m11",
@@ -4392,6 +4626,8 @@
    "m13",
    "m14",
    "m15",
+   "m16",
+   "m17",
    "m7",
    "m8",
    "m9"
