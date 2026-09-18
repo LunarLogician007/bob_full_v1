@@ -489,6 +489,52 @@ It found two of its own gaps on the way: it never modelled USER1 `cin`, and its 
 
 ---
 
+### 14.4 The flow as stages, and bob studio
+
+`./bob build` ran the guest flow as one 89-line function whose only output was printed
+prose. Every stage already computed numbers worth keeping — cell counts, wirelength,
+routing iterations, FASM feature count, model samples, and the diagnostics yosys, iverilog
+and VPR emit with a file and a line — and all of it went into a format string and was
+thrown away. Nothing could watch a build happen: not a GUI, not a report, not a `--json`
+flag.
+
+`tools/bob/flow.py` runs the same steps as separate stages, each timed and each returning
+a record. `cli.py` is now a wrapper over it, and `tests/test_flow.py` requires the two to
+write a **byte-identical `.bit`** for every example, so the split cannot drift. New flags
+follow from it: `./bob build --json FILE`, `--project bob.proj`, and
+`./bob load --probe usb|fake`.
+
+**bob studio** (`host/studio.py`) is that engine behind an application, laid out the way
+Vivado is:
+
+| Vivado / Quartus | bob studio | what actually runs |
+|---|---|---|
+| Sources / Project Manager | Project | sources, top, `.pcf`, settings |
+| Synthesis | Synthesis | `tools/bob/synth.py` (yosys onto bob cells) |
+| — | Synthesis Verification | `equiv.py`: source == netlist == golden, 300 cycles |
+| Implementation | Implementation | pack / place / route — VPR, or bob's own Python PnR |
+| Generate Bitstream | Generate Bitstream | `fasm_from_vpr.py` → `bitgen.py` → `.bit` |
+| Device window | Device view | the placement and the channel segments it routed through |
+| I/O Planning | Pin Planner | the 44 pads → writes a `.pcf` |
+| Open Target / Program | Program and Debug | program, readback and verify, CAPTURE, partial reconfiguration |
+| Messages | Messages | diagnostics parsed to clickable source lines |
+
+Two properties were design constraints rather than features. It **adds no dependency**:
+the backend is stdlib `http.server` plus Server-Sent Events, and the page is one
+self-contained file with no external libraries, assembled from `docs/studio/` exactly as
+`arch.html` is assembled from `docs/arch/`. And it **runs with no board attached** —
+`--probe fake` uses `host/fakeboard.py`, the software stand-in that answers JTAG out of
+`tools/bob/model.py`. That class was written for `tests/test_hwtest_fake.py`; it moved to
+`host/` when the studio needed it, and the test now imports it, so the checks that prove
+the stand-in can *fail* still guard the one the tools use.
+
+One honest limit: a guest clock on the software board costs a `model.settle()`, about 2 ms
+at 100 CLBs, so a free-running design runs behind the rate it asks for.
+`studio.DemoBoard` bounds the backlog to a time budget and the page reports how many edges
+it skipped. The real board has no such problem.
+
+---
+
 ## 15. Verification
 
 ### 15.1 Layers
@@ -805,22 +851,65 @@ python3 docs/project/collect.py && python3 docs/project/build.py   # this report
 
 ## 23. Open items and what comes next
 
-**Done:** every milestone M0–M15 passed on the PYNQ-Z2; tags `m7`…`m15`.
+**Done:** every milestone **M0–M16** passed on the PYNQ-Z2. M16 is the 12 × 10 core:
+100 CLBs, 145 frames, 18 560 configuration bits, IDCODE `0xFBEEF093`, built at 20 498 LUTs
+(38.5% of the XC7Z020) and 21 511 FFs (20.2%), WNS +0.667 ns, 50/50 on the board.
 
 **Known limits:**
+- **Guest clock:** at most 244 kHz free-running, and the ceiling is a function of the grid,
+  not a constant — see below.
 - **Timing-driven PnR:** VPR's timing uses the reference 40 nm delays, not the emulated fabric.
 - **Partial reconfiguration:** no region protection, no BRAM writes while frozen, pads not held during the write.
 - **FAR:** does not cross from configuration frames into BRAM frames.
 - **I/O:** no true tristate or per-pad options.
 - **CAPTURE:** covers CLB registers only (not BRAM/DSP internal registers).
 - **Synthesis:** one clock domain for guest designs; no async resets or latches.
+- **IDCODE:** `0xF` was the last free version nibble. M17 needs a new numbering scheme.
 
-**Candidates:**
-1. **Readback CRC / SEU scan:** a background CRC over the configuration memory reporting through STAT, as AMD's readback CRC does.
-2. **Region-protected partial bitstreams:** `bob build --partial --region` with PnR constrained to a column range, and host checks that a partial touches only its region.
-3. **ZUMA-style LUTRAM routing memory:** a larger area step for a bigger grid.
-4. **Timing-driven placement** in bob's PnR with a delay model of the emulated fabric.
-5. **A larger board device:** M15 uses 19.6% of the LUTs and 10.4% of the registers with 36 CLBs, synthesising in 5 minutes; a 64-CLB grid looks affordable.
+**What M16 taught, and what it makes urgent.** The gce gap had to go from 256 to 512 cycles
+because the 12 × 10 fabric's static path through the unconfigured routing muxes reached
+about 2500 ns. That halved the free-running guest clock, 488 → 244 kHz, and the next grid
+step halves it again. Both M16 implementation failures (§17.4) trace to the same place: the size of the routing
+mesh the timer has to cut — one strongly connected component of 2146 wires with 11 270
+independent cycles, against M15's 1018 and 4130. The second needed
+`general.maxThreads 1` to route at all.
+
+So the next steps are ordered by that, not by feature appeal:
+
+1. **Shrink the frame readback mux.** `cfg_store.v` builds readback as a flat
+   `2**FIDX_W = 256`-entry × 128-bit array indexed at run time. Measured with yosys on
+   `cfg_store` alone, with a control run that replaces the mux with a constant:
+
+   | `cfg_store` | LUTs |
+   |---|---|
+   | NFRAMES = 65 (M15) | 5 726 |
+   | NFRAMES = 145 (M16) | 12 402 |
+   | NFRAMES = 145, readback mux removed | **599** |
+
+   The mux is ~11 800 of 12 402 LUTs — **95% of `cfg_store` and about a third of the whole
+   design** — it scales linearly with the grid, and it serves only JTAG readback, which has
+   no timing requirement at all. The coding style must stay (a computed part-select over the
+   configuration memory is what ran Vivado out of memory at M13, §17); the fix is to mirror
+   the write path's hierarchical FAR decode — a small per-column mux feeding a ~15-way
+   column mux, O(Σ columns) instead of O(2⁸), with nothing on the wire changing.
+2. **Case-analysis timing sign-off.** Constrain the configuration bits so the timer never
+   walks a path that exists only in an unconfigured fabric. This is what breaks the "every
+   grid step halves the guest clock" trade permanently, and it should also shrink the
+   component that took the timing engine down.
+3. **ZUMA-style LUTRAM configuration memory.** Configuration is 21 511 flip-flops, ~86% of
+   every FF in the design, and that fraction grows with the grid (it was ~75% at M15).
+4. **More than one BLE per CLB.** 100 CLBs is 100 LUT6s of user logic behind 3391 routing
+   muxes; clustering (OpenFPGA's reference architecture uses 10) amortises the routing.
+5. **Timing-driven placement** in bob's PnR with a delay model of the emulated fabric.
+6. **Readback CRC / SEU scan:** a background CRC over the configuration memory reporting
+   through STAT, as AMD's readback CRC does.
+7. **Region-protected partial bitstreams:** `bob build --partial --region`, with PnR
+   constrained to a column range and a host check that a partial touches only its region.
+8. **A substantial demo design.** The largest example is `examples/big.v` — 21 lines,
+   56 CLBs. A UART or a small CPU would exercise far more, and bob studio wants something
+   worth opening.
+9. **CI.** The Mac-only half of `make check` (device, simulations, lint, pytest — no Docker)
+   would run on a hosted runner today. There is no `.github/` at all.
 
 ---
 

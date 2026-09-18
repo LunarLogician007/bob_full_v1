@@ -1,0 +1,1644 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>bob studio</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  /* Tokens are docs/arch/p1_head.html's, so studio looks like the rest of the
+     project. The layout is not: this is an application shell, not a sheet of paper. */
+  :root {
+    --ink: #17171a; --ink-2: #4a4a52; --mute: #74747e; --faint: #9a9aa4;
+    --rule: #e4e4dd; --rule-2: #f0efe9; --paper: #ffffff; --desk: #b9b7b0;
+    --accent: #b8500f; --accent-2: #d97a28; --accent-bg: #fdf6ef;
+    --ok: #2f7d4f; --warn: #a8791b; --err: #b1342c;
+    --run: #2b6ca3; --run-bg: #eef5fb;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
+    --nav: 244px; --props: 268px; --dock: 210px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #e9e8e3; --ink-2: #c0bfba; --mute: #8f8e89; --faint: #6d6c68;
+      --rule: #34343a; --rule-2: #26262b; --paper: #1c1c20; --desk: #121215;
+      --accent: #e08a45; --accent-2: #f0a468; --accent-bg: #2a2119;
+      --ok: #5fb083; --warn: #d8ab4e; --err: #e4756b;
+      --run: #6aa6d8; --run-bg: #1d2731;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ink: #e9e8e3; --ink-2: #c0bfba; --mute: #8f8e89; --faint: #6d6c68;
+    --rule: #34343a; --rule-2: #26262b; --paper: #1c1c20; --desk: #121215;
+    --accent: #e08a45; --accent-2: #f0a468; --accent-bg: #2a2119;
+    --ok: #5fb083; --warn: #d8ab4e; --err: #e4756b;
+    --run: #6aa6d8; --run-bg: #1d2731;
+  }
+
+  * { box-sizing: border-box }
+  html, body { margin: 0; height: 100%; overflow: hidden }
+  body {
+    background: var(--paper); color: var(--ink); font-family: var(--sans);
+    font-size: 13px; -webkit-font-smoothing: antialiased;
+    display: flex; flex-direction: column;
+  }
+  button { font: inherit; cursor: pointer }
+  ::-webkit-scrollbar { width: 10px; height: 10px }
+  ::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 5px }
+
+  /* ── top bar ─────────────────────────────────────────────── */
+  .bar {
+    display: flex; gap: 14px; align-items: center; flex: none;
+    padding: 0 14px; height: 46px; background: #1e1e22; color: #eceae4;
+    border-bottom: 1px solid #000; font-size: 13px;
+  }
+  .bar .brand { font-weight: 620; letter-spacing: -.015em }
+  .bar .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent-2); flex: none }
+  .bar .sp { flex: 1 }
+  .bar .meta { font-family: var(--mono); font-size: 10.5px; color: #85858e; letter-spacing: .03em }
+  .bar button {
+    background: #303036; color: #eceae4; border: 1px solid #46464e;
+    border-radius: 6px; padding: 5px 11px; font-size: 12px;
+  }
+  .bar button:hover { background: #3c3c44; border-color: #63636e }
+  .bar .tgt { font-family: var(--mono); font-size: 11px; display: flex; align-items: center; gap: 6px }
+  .led { width: 7px; height: 7px; border-radius: 50%; background: #55555e; flex: none }
+  .led.on { background: var(--accent-2); box-shadow: 0 0 6px var(--accent-2) }
+  .led.good { background: #4caf72; box-shadow: 0 0 6px #4caf72 }
+  .led.bad { background: #d9534f; box-shadow: 0 0 6px #d9534f }
+
+  /* ── app grid ────────────────────────────────────────────── */
+  .app {
+    flex: 1; min-height: 0; display: grid;
+    grid-template-columns: var(--nav) minmax(0, 1fr) var(--props);
+    grid-template-rows: minmax(0, 1fr) var(--dock);
+  }
+  .nav  { grid-area: 1 / 1 / 3 / 2; border-right: 1px solid var(--rule); overflow: auto }
+  .main { grid-area: 1 / 2 / 2 / 3; min-width: 0; display: flex; flex-direction: column }
+  .props{ grid-area: 1 / 3 / 2 / 4; border-left: 1px solid var(--rule); overflow: auto }
+  .dock { grid-area: 2 / 2 / 3 / 4; border-top: 1px solid var(--rule); display: flex; flex-direction: column; min-height: 0 }
+
+  /* ── flow navigator ──────────────────────────────────────── */
+  .grp { border-bottom: 1px solid var(--rule-2); padding: 8px 0 10px }
+  .grp > h3 {
+    margin: 0; padding: 4px 14px 6px;
+    font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase;
+    color: var(--mute); font-weight: 600;
+  }
+  .item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 14px 5px 22px; color: var(--ink-2); cursor: pointer;
+    border-left: 2px solid transparent; font-size: 12.5px;
+  }
+  .item:hover { background: var(--rule-2); color: var(--ink) }
+  .item.on { border-left-color: var(--accent); color: var(--ink); background: var(--accent-bg); font-weight: 550 }
+  .item .k { font-family: var(--mono); font-size: 10px; color: var(--faint); margin-left: auto }
+  .item.act { color: var(--accent); font-weight: 560 }
+  .item.act::before { content: "▸"; font-size: 9px; color: var(--accent) }
+
+  .st { width: 13px; text-align: center; font-size: 11px; flex: none; font-family: var(--mono) }
+  .st.wait { color: var(--faint) }
+  .st.run  { color: var(--run) }
+  .st.ok   { color: var(--ok) }
+  .st.err  { color: var(--err) }
+
+  /* ── tabs ────────────────────────────────────────────────── */
+  .tabs {
+    display: flex; align-items: stretch; flex: none; height: 32px;
+    border-bottom: 1px solid var(--rule); background: var(--rule-2);
+    overflow-x: auto; overflow-y: hidden;
+  }
+  .tab {
+    display: flex; align-items: center; gap: 7px; padding: 0 13px;
+    font-size: 12px; color: var(--mute); cursor: pointer; white-space: nowrap;
+    border-right: 1px solid var(--rule); background: transparent;
+  }
+  .tab.on { background: var(--paper); color: var(--ink); font-weight: 550; box-shadow: inset 0 2px 0 var(--accent) }
+  .pane { flex: 1; min-height: 0; overflow: auto; position: relative; display: none }
+  .pane.on { display: block }
+
+  /* ── editor ──────────────────────────────────────────────── */
+  .ed { position: relative; height: 100%; display: flex; font-family: var(--mono); font-size: 12.5px; line-height: 1.55 }
+  .ed .gut {
+    flex: none; padding: 10px 8px 10px 12px; text-align: right; color: var(--faint);
+    background: var(--rule-2); border-right: 1px solid var(--rule);
+    user-select: none; white-space: pre; min-width: 46px;
+  }
+  .ed .gut b { display: block; color: var(--err); font-weight: 700 }
+  .ed .wrap { position: relative; flex: 1; min-width: 0; overflow: auto }
+  .ed pre, .ed textarea {
+    margin: 0; padding: 10px 14px; border: 0; font: inherit; line-height: inherit;
+    white-space: pre; tab-size: 4; min-height: 100%;
+  }
+  .ed pre { pointer-events: none; color: var(--ink) }
+  .ed textarea {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    background: transparent; color: transparent; caret-color: var(--accent);
+    resize: none; outline: none; overflow: hidden;
+  }
+  .kw  { color: var(--accent); font-weight: 600 }
+  .ty  { color: var(--run) }
+  .num { color: var(--ok) }
+  .cm  { color: var(--faint); font-style: italic }
+  .str { color: var(--warn) }
+  .mark { background: color-mix(in srgb, var(--err) 18%, transparent); box-shadow: 0 1px 0 var(--err) }
+
+  /* ── device view ─────────────────────────────────────────── */
+  .dev { padding: 14px; height: 100%; display: flex; flex-direction: column; gap: 10px }
+  .dev .top { display: flex; align-items: center; gap: 14px; flex: none; flex-wrap: wrap }
+  .dev svg { flex: 1; min-height: 0; width: 100%; height: auto }
+  .sw { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--ink-2) }
+  .sw input { accent-color: var(--accent) }
+  .lg { display: flex; gap: 12px; flex-wrap: wrap; font-size: 11px; color: var(--mute); font-family: var(--mono) }
+
+  /* The pin planner and the bitstream browser scroll their own content: the pad ring
+     must not grow until the assignment rows fall off the bottom. */
+  #pinview, #bitview, #srcview, #setview, #boardview { overflow: auto; min-height: 0; flex: 1 }
+  #pinview svg { flex: none; max-height: 340px; align-self: flex-start }
+  .lg i { width: 9px; height: 9px; border-radius: 2px; display: inline-block; margin-right: 4px; vertical-align: -1px }
+
+  /* ── properties ──────────────────────────────────────────── */
+  .row { display: flex; justify-content: space-between; gap: 10px; padding: 3px 14px; font-size: 12px }
+  .row span:first-child { color: var(--mute) }
+  .row span:last-child { font-family: var(--mono); font-size: 11.5px; text-align: right }
+  .props select, .props input {
+    font: inherit; font-size: 11.5px; padding: 2px 5px; width: 104px;
+    background: var(--paper); color: var(--ink);
+    border: 1px solid var(--rule); border-radius: 4px;
+  }
+  .meter { padding: 4px 14px 7px }
+  .meter .lab { display: flex; justify-content: space-between; font-size: 11.5px; margin-bottom: 3px }
+  .meter .lab b { font-family: var(--mono); font-weight: 500; color: var(--ink-2) }
+  .meter .bg { height: 5px; background: var(--rule-2); border-radius: 3px; overflow: hidden }
+  .meter .fg { height: 100%; background: var(--accent); border-radius: 3px; transition: width .35s }
+  .meter.hot .fg { background: var(--err) }
+
+  /* ── dock ────────────────────────────────────────────────── */
+  .dock .tabs { background: var(--rule-2) }
+  .dock .body { flex: 1; min-height: 0; overflow: auto; font-family: var(--mono); font-size: 11.5px }
+  .msg { display: flex; gap: 9px; padding: 3px 14px; border-bottom: 1px solid var(--rule-2); align-items: baseline }
+  .msg:hover { background: var(--rule-2) }
+  .msg .sev { flex: none; width: 13px; text-align: center }
+  .msg.error .sev { color: var(--err) } .msg.warning .sev { color: var(--warn) } .msg.info .sev { color: var(--mute) }
+  .msg .loc { flex: none; color: var(--run); cursor: pointer; text-decoration: underline dotted }
+  .msg .txt { color: var(--ink-2); min-width: 0 }
+  .msg .src { margin-left: auto; color: var(--faint); font-size: 10px; flex: none }
+  .stg { display: flex; gap: 10px; padding: 3px 14px; align-items: baseline; border-bottom: 1px solid var(--rule-2) }
+  .stg .nm { width: 62px; flex: none; color: var(--ink) }
+  .stg .tm { width: 56px; flex: none; text-align: right; color: var(--mute) }
+  .stg .dt { color: var(--ink-2); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+  .empty { padding: 16px; color: var(--faint); font-family: var(--sans); font-size: 12px }
+
+  .pill {
+    font-family: var(--mono); font-size: 10px; padding: 1px 6px; border-radius: 8px;
+    border: 1px solid var(--rule); color: var(--mute); white-space: nowrap;
+  }
+  .pill.ok { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 40%, var(--rule)) }
+  .pill.err { color: var(--err); border-color: color-mix(in srgb, var(--err) 40%, var(--rule)) }
+  .pill.run { color: var(--run); border-color: color-mix(in srgb, var(--run) 40%, var(--rule)) }
+
+  .go {
+    margin: 8px 14px 2px; width: calc(100% - 28px); padding: 7px;
+    background: var(--accent); color: #fff; border: 0; border-radius: 6px;
+    font-size: 12.5px; font-weight: 570;
+  }
+  .go:hover { background: var(--accent-2) }
+  .go:disabled { background: var(--rule); color: var(--faint); cursor: default }
+  .go.sec { background: transparent; color: var(--accent); border: 1px solid var(--accent) }
+  .go.sec:hover { background: var(--accent-bg) }
+  .go.sec:disabled { border-color: var(--rule); color: var(--faint); background: transparent }
+
+  @media (max-width: 1100px) {
+    .app { grid-template-columns: 200px minmax(0,1fr); grid-template-rows: minmax(0,1fr) var(--dock) }
+    .props { display: none }
+    .dock { grid-area: 2 / 2 / 3 / 3 }
+  }
+</style>
+<body>
+<div class="bar">
+  <span class="dot"></span>
+  <span class="brand">bob studio</span>
+  <span class="meta" id="devmeta">loading…</span>
+  <span class="sp"></span>
+  <span class="tgt" id="tgt"><span class="led" id="tgtled"></span><span id="tgttxt">no target</span></span>
+  <button id="btheme" title="light / dark">◐</button>
+</div>
+
+<div class="app">
+  <!-- ── flow navigator ──────────────────────────────────── -->
+  <div class="nav">
+    <div class="grp">
+      <h3>Project</h3>
+      <div class="item" data-go="sources"><span class="st"> </span>Sources<span class="k" id="nsrc"></span></div>
+      <div class="item" data-go="pins"><span class="st"> </span>Pin Planner</div>
+      <div class="item" data-go="settings"><span class="st"> </span>Settings</div>
+    </div>
+
+    <div class="grp">
+      <h3>Synthesis</h3>
+      <div class="item act" id="runsynth"><span class="st"> </span>Run Synthesis</div>
+      <div class="item" data-stage="synth"><span class="st wait">○</span>Report<span class="k" id="k-synth"></span></div>
+    </div>
+
+    <div class="grp">
+      <h3>Implementation</h3>
+      <div class="item act" id="runimpl"><span class="st"> </span>Run Implementation</div>
+      <div class="item" data-stage="pnr"><span class="st wait">○</span>Place &amp; Route<span class="k" id="k-pnr"></span></div>
+      <div class="item" data-go="device"><span class="st"> </span>Device view</div>
+    </div>
+
+    <div class="grp">
+      <h3>Bitstream</h3>
+      <div class="item act" id="runbit"><span class="st"> </span>Generate Bitstream</div>
+      <div class="item" data-stage="fasm"><span class="st wait">○</span>FASM<span class="k" id="k-fasm"></span></div>
+      <div class="item" data-stage="bits"><span class="st wait">○</span>Bits<span class="k" id="k-bits"></span></div>
+      <div class="item" data-stage="model"><span class="st wait">○</span>Model check<span class="k" id="k-model"></span></div>
+      <div class="item" data-stage="write"><span class="st wait">○</span>.bit<span class="k" id="k-write"></span></div>
+      <div class="item" data-go="bitstream"><span class="st"> </span>Browse bitstream</div>
+    </div>
+
+    <div class="grp">
+      <h3>Program and Debug</h3>
+      <div class="item" id="opentgt"><span class="st"> </span>Open Target</div>
+      <div class="item" id="program"><span class="st"> </span>Program Device</div>
+      <div class="item" id="partial"><span class="st"> </span>Partial reconfigure</div>
+      <div class="item" id="readback"><span class="st"> </span>Readback and Verify</div>
+      <div class="item" id="capture"><span class="st"> </span>Capture registers</div>
+      <div class="item" data-go="board"><span class="st"> </span>Board</div>
+    </div>
+  </div>
+
+  <!-- ── main ────────────────────────────────────────────── -->
+  <div class="main">
+    <div class="tabs" id="tabs"></div>
+
+    <div class="pane on" id="pane-editor">
+      <div class="ed">
+        <div class="gut" id="gut">1</div>
+        <div class="wrap" id="edwrap">
+          <pre id="hl"></pre>
+          <textarea id="ta" spellcheck="false" autocomplete="off" wrap="off"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="pane" id="pane-device">
+      <div class="dev">
+        <div class="top">
+          <strong id="devtitle" style="font-size:13px">device</strong>
+          <label class="sw"><input type="checkbox" id="shownets" checked> routed nets</label>
+          <label class="sw"><input type="checkbox" id="showids"> names</label>
+          <span class="pill" id="devpill">nothing placed yet</span>
+        </div>
+        <svg id="floor" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet"></svg>
+        <div class="lg" id="devlegend"></div>
+      </div>
+    </div>
+
+    <div class="pane" id="pane-board">
+      <div class="dev">
+        <div class="top">
+          <strong style="font-size:13px">Board</strong>
+          <span class="pill" id="boardpill">no target</span>
+          <button class="go sec" id="refresh" style="margin:0;width:auto;padding:4px 12px">refresh</button>
+          <label class="sw"><input type="checkbox" id="autopoll"> watch</label>
+        </div>
+        <div id="boardview"></div>
+      </div>
+    </div>
+
+    <div class="pane" id="pane-sources">
+      <div class="dev"><strong style="font-size:13px">Sources</strong><div id="srcview"></div></div>
+    </div>
+
+    <div class="pane" id="pane-pins">
+      <div class="dev"><strong style="font-size:13px">Pin Planner</strong><div id="pinview"></div></div>
+    </div>
+
+    <div class="pane" id="pane-bitstream">
+      <div class="dev"><strong style="font-size:13px">Bitstream</strong><div id="bitview"></div></div>
+    </div>
+
+    <div class="pane" id="pane-settings">
+      <div class="dev"><strong style="font-size:13px">Settings</strong><div id="setview"></div></div>
+    </div>
+  </div>
+
+  <!-- ── properties ──────────────────────────────────────── -->
+  <div class="props">
+    <div class="grp"><h3>Design</h3><div id="props"></div></div>
+    <div class="grp"><h3>Utilization</h3><div id="util"></div></div>
+    <div class="grp"><h3>Device</h3><div id="devprops"></div></div>
+  </div>
+
+  <!-- ── dock ────────────────────────────────────────────── -->
+  <div class="dock">
+    <div class="tabs" id="docktabs"></div>
+    <div class="body" id="dockbody"></div>
+  </div>
+</div>
+
+<script>
+/* ---- p3_api.js ---- */
+// ── talking to host/studio.py ──────────────────────────────────────────────
+// Nothing clever: fetch for requests, EventSource for a build's stage stream.
+
+const S = {
+  device: null,          // /api/device
+  examples: [],
+  project: { files: [], top: null, pcf: null, clock: "jtag", div: 0, seed: 1, pnr: "vpr", name: null },
+  open: null,            // path of the file in the editor
+  text: {},              // path -> source
+  result: null,          // the last finished build
+  placement: null,
+  stages: {},            // name -> stage record
+  messages: [],
+  log: [],
+  target: null,
+  busy: false,
+  job: null,
+};
+
+const $ = (id) => document.getElementById(id);
+const el = (tag, cls, txt) => { const n = document.createElement(tag); if (cls) n.className = cls; if (txt != null) n.textContent = txt; return n; };
+
+async function api(path, body) {
+  const opt = body === undefined ? {} :
+    { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) };
+  const r = await fetch(path, opt);
+  const t = await r.text();
+  let j = null;
+  try { j = t ? JSON.parse(t) : null; } catch (e) { throw new Error(`${path}: ${t.slice(0, 200)}`); }
+  if (!r.ok) throw new Error((j && j.error) || `${path}: HTTP ${r.status}`);
+  return j;
+}
+
+function logLine(kind, text) {
+  S.log.push({ t: new Date().toLocaleTimeString(), kind, text });
+  if (dock.which === "log") dock.render();
+}
+
+// Start a build and stream its stages. onStage/onDone are called as they arrive.
+function startBuild(spec, onStage, onDone) {
+  return api("/api/build", spec).then((j) => {
+    S.job = j.job;
+    const es = new EventSource(`/api/events/${j.job}`);
+    es.onmessage = (m) => {
+      const ev = JSON.parse(m.data);
+      if (ev.event === "stage") onStage(ev);
+      else if (ev.event === "done" || ev.event === "failed") { es.close(); onDone(ev); }
+      else if (ev.event === "start") logLine("info", `build ${ev.design} (top ${ev.top})`);
+    };
+    es.onerror = () => { es.close(); onDone({ event: "failed", error: "the event stream closed" }); };
+    return j.job;
+  });
+}
+
+/* ---- p4_editor.js ---- */
+// ── the editor ────────────────────────────────────────────────────────────
+// A textarea with transparent text over a highlighted <pre>, which is enough for
+// the 8-200 line designs bob takes and keeps the page free of libraries. Error
+// markers come from the flow's own diagnostics, so a yosys or iverilog complaint
+// lands on the line it names.
+
+const KW = new RegExp("\\b(" + (
+  "module|endmodule|input|output|inout|wire|reg|logic|assign|always|always_ff|always_comb|" +
+  "posedge|negedge|begin|end|if|else|case|casez|endcase|default|for|while|parameter|localparam|" +
+  "integer|genvar|generate|endgenerate|initial|function|endfunction|task|endtask|" +
+  "signed|unsigned|automatic|typedef|struct|packed|enum|`define|`include|`ifdef|`endif|`timescale"
+).split("|").join("|") + ")\\b", "g");
+
+const editor = {
+  marks: {},                                   // line -> severity
+
+  set(path, text) {
+    S.open = path; S.text[path] = text;
+    $("ta").value = text;
+    this.marks = {};
+    this.paint();
+    if (typeof tabs !== "undefined") tabs.render();   // the tab is named after the file
+  },
+
+  get() { return $("ta").value; },
+
+  esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); },
+
+  highlight(src) {
+    // One pass, comments and strings first so keywords inside them stay plain.
+    const parts = [];
+    const re = /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|("(?:[^"\\]|\\.)*")/g;
+    let last = 0, m;
+    const code = (s) => this.esc(s)
+      .replace(KW, '<span class="kw">$1</span>')
+      .replace(/\b(\d+'[bhdo][0-9a-fA-FxzZ_]+|\d+\.\d+|\d+)\b/g, '<span class="num">$1</span>');
+    while ((m = re.exec(src))) {
+      parts.push(code(src.slice(last, m.index)));
+      parts.push(`<span class="${m[1] ? "cm" : "str"}">${this.esc(m[0])}</span>`);
+      last = m.index + m[0].length;
+    }
+    parts.push(code(src.slice(last)));
+    return parts.join("");
+  },
+
+  paint() {
+    const src = $("ta").value;
+    const lines = src.split("\n");
+    $("hl").innerHTML = this.highlight(src) + "\n";
+    const g = $("gut");
+    g.innerHTML = "";
+    lines.forEach((_, i) => {
+      const n = i + 1, sev = this.marks[n];
+      const row = el(sev ? "b" : "div", null, String(n));
+      row.title = sev ? `${sev} on line ${n}` : "";
+      g.appendChild(row);
+    });
+    $("nsrc").textContent = `${lines.length} lines`;
+  },
+
+  mark(messages) {
+    this.marks = {};
+    for (const m of messages) {
+      if (!m.line) continue;
+      if (!S.open || !m.file || S.open.endsWith(m.file) || m.file.endsWith(S.open.split("/").pop()))
+        this.marks[m.line] = m.severity;
+    }
+    this.paint();
+  },
+
+  goto(line) {
+    const ta = $("ta");
+    const pos = ta.value.split("\n").slice(0, Math.max(0, line - 1)).join("\n").length;
+    ta.focus();
+    ta.setSelectionRange(pos, pos);
+    const lh = parseFloat(getComputedStyle($("hl")).lineHeight) || 19;
+    $("edwrap").scrollTop = Math.max(0, (line - 4) * lh);
+    tabs.show("editor");
+  },
+
+  wire() {
+    const ta = $("ta"), wrap = $("edwrap");
+    ta.addEventListener("input", () => {
+      S.text[S.open] = ta.value;
+      if (!S.dirty) { S.dirty = true; tabs.render(); }
+      this.paint();
+    });
+    ta.addEventListener("scroll", () => { wrap.scrollTop = ta.scrollTop; wrap.scrollLeft = ta.scrollLeft; });
+    ta.addEventListener("keydown", (e) => {
+      if (e.key === "Tab") {                   // a tab indents, it does not leave the box
+        e.preventDefault();
+        const s = ta.selectionStart, t = ta.value;
+        ta.value = t.slice(0, s) + "    " + t.slice(ta.selectionEnd);
+        ta.selectionStart = ta.selectionEnd = s + 4;
+        S.text[S.open] = ta.value; this.paint();
+      }
+    });
+  },
+};
+
+/* ---- p5_device.js ---- */
+// ── the Device view ───────────────────────────────────────────────────────
+// The real grid from device.json, with this design's placement on top. Drawn with
+// the same hand-rolled SVG the rest of the project uses - no library, and every
+// coordinate comes from the device description rather than a picture of it.
+
+const COLOR = {
+  clb:  { fill: "#e8e6df", used: "#b8500f" },
+  bram: { fill: "#dfe6ea", used: "#2b6ca3" },
+  dsp:  { fill: "#e6e1ea", used: "#6b4a9a" },
+  io:   { fill: "#eeece6", used: "#2f7d4f" },
+};
+const CELL = 30, PAD = 16, GAP = 3;
+
+const device = {
+  svgns: "http://www.w3.org/2000/svg",
+
+  n(tag, attrs, txt) {
+    const e = document.createElementNS(this.svgns, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (txt != null) e.textContent = txt;
+    return e;
+  },
+
+  // Grid (x, y) -> pixels. VPR's y grows upward; the screen's grows down.
+  px(x, y) {
+    const h = S.device.grid.h;
+    return [PAD + x * CELL, PAD + (h - 1 - y) * CELL];
+  },
+
+  render() {
+    const d = S.device;
+    if (!d) return;
+    const svg = $("floor");
+    svg.innerHTML = "";
+    const W = PAD * 2 + d.grid.w * CELL, H = PAD * 2 + d.grid.h * CELL;
+    svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+
+    const placed = {}, byType = {};
+    for (const b of (S.placement ? S.placement.blocks : [])) {
+      placed[`${b.x},${b.y}`] = b;
+      byType[b.type] = (byType[b.type] || 0) + 1;
+    }
+
+    // channels, so the routing has something to sit on
+    const chan = this.n("g", { stroke: "var(--rule)", "stroke-width": 0.5, opacity: 0.55 });
+    for (let x = 0; x <= d.grid.w; x++) {
+      const [px] = this.px(x, 0);
+      chan.appendChild(this.n("line", { x1: px - GAP / 2, y1: PAD, x2: px - GAP / 2, y2: H - PAD }));
+    }
+    for (let y = 0; y <= d.grid.h; y++) {
+      const [, py] = this.px(0, y);
+      chan.appendChild(this.n("line", { x1: PAD, y1: py - GAP / 2, x2: W - PAD, y2: py - GAP / 2 }));
+    }
+    svg.appendChild(chan);
+
+    // blocks
+    const g = this.n("g", {});
+    for (const b of d.blocks) {
+      const [x, y] = this.px(b.x, b.y);
+      const c = COLOR[b.type] || COLOR.clb;
+      const hit = placed[`${b.x},${b.y}`];
+      const r = this.n("rect", {
+        x: x + GAP / 2, y: y + GAP / 2, width: CELL - GAP, height: CELL - GAP, rx: 2.5,
+        fill: hit ? c.used : c.fill,
+        stroke: hit ? c.used : "var(--rule)",
+        "stroke-width": hit ? 1.2 : 0.6,
+        "fill-opacity": hit ? 0.9 : 1,
+      });
+      r.appendChild(this.n("title", {}, hit ? `${hit.name}\n${b.name} (${b.type}) at ${b.x},${b.y}`
+                                           : `${b.name} (${b.type}) at ${b.x},${b.y} - free`));
+      g.appendChild(r);
+      const label = b.type === "io" ? "" : b.type === "bram" ? "B" : b.type === "dsp" ? "D" : "";
+      if (label || ($("showids").checked && hit)) {
+        g.appendChild(this.n("text", {
+          x: x + CELL / 2, y: y + CELL / 2 + 3.2, "text-anchor": "middle",
+          "font-family": "var(--mono)", "font-size": 9.5,
+          fill: hit ? "#fff" : "var(--mute)",
+        }, $("showids").checked && hit ? hit.name.replace(/^[^_]*_/, "").slice(0, 5) : label));
+      }
+    }
+    svg.appendChild(g);
+
+    // Routed nets. Each CHANX/CHANY node occupies a channel segment along its own
+    // span, so draw the span - joining node centres would suggest point-to-point
+    // wires the fabric does not have. A segment used by several nets is darker.
+    if ($("shownets").checked && S.placement && S.placement.nets.length) {
+      const seg = new Map();
+      for (const net of S.placement.nets) {
+        for (const n of net.nodes) {
+          if (n.kind !== "CHANX" && n.kind !== "CHANY") continue;
+          const prev = seg.get(n.id);
+          if (prev) { prev.n++; prev.nets.add(net.name); }
+          else seg.set(n.id, { n: 1, node: n, nets: new Set([net.name]) });
+        }
+      }
+      const ng = this.n("g", { fill: "none", "stroke-linecap": "round" });
+      for (const { n, node, nets } of seg.values()) {
+        const [ax, ay] = this.px(node.x0, node.y0);
+        const [bx, by] = this.px(node.x1, node.y1);
+        const horiz = node.kind === "CHANX";
+        // Offset off the block centres so the channel reads as a channel.
+        const off = horiz ? -CELL / 2 + 2 : -CELL / 2 + 2;
+        const ln = this.n("line", {
+          x1: ax + CELL / 2 + (horiz ? -CELL / 2 : off),
+          y1: ay + CELL / 2 + (horiz ? off : CELL / 2),
+          x2: bx + CELL / 2 + (horiz ? CELL / 2 : off),
+          y2: by + CELL / 2 + (horiz ? off : -CELL / 2),
+          stroke: "var(--accent-2)",
+          "stroke-width": Math.min(1 + n * 0.5, 3),
+          opacity: Math.min(0.35 + n * 0.18, 0.95),
+        });
+        ln.appendChild(this.n("title", {},
+          `${node.kind} ${node.id}\n${[...nets].join("\n")}`));
+        ng.appendChild(ln);
+      }
+      svg.appendChild(ng);
+    }
+
+    // legend and the one-line summary
+    const lg = $("devlegend");
+    lg.innerHTML = "";
+    for (const t of ["clb", "bram", "dsp", "io"]) {
+      if (!d.capacity[t]) continue;
+      const s = el("span", null);
+      s.innerHTML = `<i style="background:${COLOR[t].used}"></i>${t} ${byType[t] || 0}/${d.capacity[t]}`;
+      lg.appendChild(s);
+    }
+    if (S.placement && S.placement.nets.length) {
+      const s = el("span", null);
+      s.innerHTML = `<i style="background:var(--accent-2)"></i>${S.placement.nets.length} nets, wirelength ${S.placement.wirelength}`;
+      lg.appendChild(s);
+    }
+    $("devtitle").textContent = `${d.name} — ${d.grid.w} x ${d.grid.h} grid, W = ${d.chan_width}`;
+    const pill = $("devpill");
+    if (S.placement) {
+      pill.textContent = `${S.result ? S.result.design : ""}: ${byType.clb || 0} CLBs placed`;
+      pill.className = "pill ok";
+    } else {
+      pill.textContent = "nothing placed yet"; pill.className = "pill";
+    }
+  },
+};
+
+/* ---- p6_flow.js ---- */
+// ── the Flow Navigator and the build it drives ────────────────────────────
+// Every "Run" button starts the same flow; there is one pipeline, and stopping it
+// halfway would mean lying about what a stage proved. What differs is where the
+// view goes when it finishes - the report, the Device view, or the bitstream.
+
+const STAGE_LABEL = {
+  synth: "Synthesis", pnr: "Place & Route", fasm: "FASM",
+  bits: "Bits", model: "Model check", write: ".bit",
+};
+
+const flow = {
+  reset() {
+    S.stages = {}; S.messages = []; S.placement = null; S.result = null;
+    for (const n of Object.keys(STAGE_LABEL)) {
+      this.dot(n, "wait", "○");
+      $("k-" + n).textContent = "";
+    }
+    dock.render(); props.render(); device.render();
+  },
+
+  dot(stage, cls, glyph) {
+    const row = document.querySelector(`.item[data-stage="${stage}"] .st`);
+    if (row) { row.className = "st " + cls; row.textContent = glyph; }
+  },
+
+  spec() {
+    const p = S.project;
+    return {
+      files: p.files, top: p.top || null, pcf: p.pcf || null, name: p.name || null,
+      clock: p.clock, div: p.div, seed: p.seed, pnr: p.pnr,
+    };
+  },
+
+  async run(goTo) {
+    if (S.busy) return;
+    if (!S.project.files.length) { logLine("error", "no sources: pick an example first"); dock.show("log"); return; }
+    S.busy = true;
+    this.reset();
+    buttons();
+    const t0 = performance.now();
+    for (const n of Object.keys(STAGE_LABEL)) this.dot(n, "wait", "○");
+    this.dot("synth", "run", "◐");
+    try {
+      await startBuild(this.spec(),
+        (ev) => {                                       // a stage finished
+          S.stages[ev.name] = ev;
+          this.dot(ev.name, ev.ok ? "ok" : "err", ev.ok ? "●" : "✕");
+          $("k-" + ev.name).textContent = ev.seconds.toFixed(2) + "s";
+          const order = Object.keys(STAGE_LABEL);
+          const nxt = order[order.indexOf(ev.name) + 1];
+          if (ev.ok && nxt) this.dot(nxt, "run", "◐");
+          S.messages = S.messages.concat(ev.messages || []);
+          editor.mark(S.messages);
+          dock.render(); props.render();
+        },
+        (ev) => {                                       // the whole thing finished
+          S.busy = false; buttons();
+          if (ev.event === "failed" || !ev.ok) {
+            logLine("error", ev.error || "build failed");
+            dock.show(S.messages.length ? "messages" : "log");
+          } else {
+            S.result = ev;
+            S.placement = ev.placement;
+            logLine("info", `build ok in ${((performance.now() - t0) / 1000).toFixed(2)} s -> ${bitPath()}`);
+            device.render();
+            if (goTo) tabs.show(goTo);
+            dock.show("stages");
+          }
+          props.render();
+        });
+    } catch (e) {
+      S.busy = false; buttons();
+      logLine("error", String(e.message || e));
+      dock.show("log");
+    }
+  },
+};
+
+function bitPath() {
+  const w = S.stages.write;
+  return w && w.stats ? w.stats.path : null;
+}
+
+function buttons() {
+  for (const id of ["runsynth", "runimpl", "runbit"]) {
+    const n = $(id);
+    n.style.opacity = S.busy ? 0.45 : 1;
+    n.style.pointerEvents = S.busy ? "none" : "auto";
+  }
+  // Program stays clickable even when it cannot run: a dead control that says nothing
+  // is how "I pressed Program and nothing happened" happens. board.program() reports
+  // exactly which part is missing.
+  const p = $("program");
+  const ready = !S.busy && board.target_bit() && S.target && S.target.open;
+  p.style.opacity = S.busy ? 0.45 : 1;
+  p.style.pointerEvents = S.busy ? "none" : "auto";
+  p.title = ready ? `program ${board.target_bit()}`
+    : "needs a target and a bitstream — click to see which is missing";
+}
+
+// ── the dock: messages, stages, log ───────────────────────────────────────
+
+const dock = {
+  which: "stages",
+
+  tabs() {
+    const t = $("docktabs");
+    t.innerHTML = "";
+    const counts = {
+      messages: S.messages.length,
+      stages: Object.keys(S.stages).length,
+      log: S.log.length,
+    };
+    for (const k of ["messages", "stages", "log"]) {
+      const b = el("div", "tab" + (this.which === k ? " on" : ""));
+      b.textContent = k[0].toUpperCase() + k.slice(1);
+      if (counts[k]) b.appendChild(el("span", "pill", String(counts[k])));
+      b.onclick = () => this.show(k);
+      t.appendChild(b);
+    }
+  },
+
+  show(k) { this.which = k; this.render(); },
+
+  render() {
+    this.tabs();
+    const b = $("dockbody");
+    b.innerHTML = "";
+    if (this.which === "messages") {
+      if (!S.messages.length) return void b.appendChild(el("div", "empty", "No diagnostics."));
+      for (const m of S.messages) {
+        const row = el("div", "msg " + m.severity);
+        row.appendChild(el("span", "sev", m.severity === "error" ? "✕" : m.severity === "warning" ? "!" : "·"));
+        if (m.file && m.line) {
+          const loc = el("span", "loc", `${m.file.split("/").pop()}:${m.line}`);
+          loc.onclick = () => editor.goto(m.line);
+          row.appendChild(loc);
+        }
+        row.appendChild(el("span", "txt", m.text));
+        row.appendChild(el("span", "src", m.source || ""));
+        b.appendChild(row);
+      }
+    } else if (this.which === "stages") {
+      const names = Object.keys(STAGE_LABEL).filter((n) => S.stages[n]);
+      if (!names.length) return void b.appendChild(el("div", "empty", "Run the flow to see its stages."));
+      for (const n of names) {
+        const s = S.stages[n];
+        const row = el("div", "stg");
+        row.appendChild(el("span", "sev " + (s.ok ? "" : "error"), s.ok ? "✓" : "✕"));
+        row.appendChild(el("span", "nm", n));
+        row.appendChild(el("span", "tm", s.seconds.toFixed(2) + "s"));
+        row.appendChild(el("span", "dt", s.detail));
+        row.title = s.detail;
+        b.appendChild(row);
+      }
+    } else {
+      if (!S.log.length) return void b.appendChild(el("div", "empty", "Nothing logged yet."));
+      for (const l of S.log.slice().reverse()) {
+        const row = el("div", "msg " + (l.kind === "error" ? "error" : "info"));
+        row.appendChild(el("span", "sev", l.kind === "error" ? "✕" : "·"));
+        row.appendChild(el("span", "loc", l.t));
+        row.appendChild(el("span", "txt", l.text));
+        b.appendChild(row);
+      }
+    }
+  },
+};
+
+// ── the properties pane ───────────────────────────────────────────────────
+
+const props = {
+  row(parent, k, v) {
+    const r = el("div", "row");
+    r.appendChild(el("span", null, k));
+    r.appendChild(el("span", null, v == null ? "—" : String(v)));
+    parent.appendChild(r);
+  },
+
+  meter(parent, label, used, total) {
+    const m = el("div", "meter");
+    const frac = total ? used / total : 0;
+    if (frac > 0.8) m.classList.add("hot");
+    const lab = el("div", "lab");
+    lab.appendChild(el("span", null, label));
+    lab.appendChild(el("b", null, `${used} / ${total}`));
+    m.appendChild(lab);
+    const bg = el("div", "bg"), fg = el("div", "fg");
+    fg.style.width = (frac * 100).toFixed(1) + "%";
+    bg.appendChild(fg); m.appendChild(bg);
+    parent.appendChild(m);
+  },
+
+  render() {
+    const p = S.project, d = S.device, box = $("props");
+    box.innerHTML = "";
+    this.row(box, "design", p.name || p.top || "—");
+    this.row(box, "sources", p.files.length ? p.files.map((f) => f.split("/").pop()).join(", ") : "—");
+
+    const sel = (key, opts) => {
+      const r = el("div", "row");
+      r.appendChild(el("span", null, key));
+      const s = document.createElement("select");
+      for (const o of opts) { const op = document.createElement("option"); op.value = o; op.textContent = o; s.appendChild(op); }
+      s.value = p[key];
+      s.onchange = () => { p[key] = s.value; this.render(); };
+      const w = el("span", null); w.appendChild(s); r.appendChild(w);
+      box.appendChild(r);
+    };
+    const num = (key, min, max) => {
+      const r = el("div", "row");
+      r.appendChild(el("span", null, key));
+      const i = document.createElement("input");
+      i.type = "number"; i.min = min; i.max = max; i.value = p[key];
+      i.onchange = () => { p[key] = Math.max(min, Math.min(max, parseInt(i.value || "0", 10))); i.value = p[key]; };
+      const w = el("span", null); w.appendChild(i); r.appendChild(w);
+      box.appendChild(r);
+    };
+    sel("pnr", ["vpr", "python"]);
+    sel("clock", ["jtag", "run"]);
+    num("div", 0, 31);
+    num("seed", 1, 9999);
+    if (p.clock === "run" && d) {
+      const hz = d.clock.sysclk_hz / Math.pow(2, p.div + d.clock.div_min_shift);
+      this.row(box, "guest clock", hz >= 1000 ? (hz / 1000).toFixed(2) + " kHz" : hz.toFixed(2) + " Hz");
+    }
+
+    const u = $("util");
+    u.innerHTML = "";
+    if (!d) return;
+    const by = {};
+    for (const b of (S.placement ? S.placement.blocks : [])) by[b.type] = (by[b.type] || 0) + 1;
+    for (const t of ["clb", "bram", "dsp", "io"]) if (d.capacity[t]) this.meter(u, t.toUpperCase(), by[t] || 0, d.capacity[t]);
+    if (S.placement) this.row(u, "wirelength", S.placement.wirelength);
+    if (S.stages.fasm) this.row(u, "features", S.stages.fasm.stats.features);
+    if (S.stages.pnr) this.row(u, "engine", S.stages.pnr.stats.engine + (S.stages.pnr.stats.reused ? " (cached)" : ""));
+    if (bitPath()) this.row(u, "bitstream", bitPath().split("/").pop());
+
+    const dp = $("devprops");
+    dp.innerHTML = "";
+    this.row(dp, "device", d.name);
+    this.row(dp, "grid", `${d.grid.w} x ${d.grid.h}`);
+    this.row(dp, "LUT K", d.lut_k);
+    this.row(dp, "channel W", d.chan_width);
+    this.row(dp, "routing muxes", d.muxes);
+    this.row(dp, "config bits", d.chain_w);
+    this.row(dp, "frames", d.frames);
+    this.row(dp, "pads", d.pads);
+  },
+};
+
+/* ---- p7_board.js ---- */
+// ── Program and Debug ─────────────────────────────────────────────────────
+// A target is either the Pico on PMODA or the board in software. The software one
+// answers from tools/bob/model.py, so the whole flow works with no hardware - and
+// the panel says so, including how far behind real time its guest clock is.
+
+const board = {
+  poll: null,
+  bits: [],
+  chosen: null,          // the .bit the Board pane will program
+
+  async open(kind) {
+    if (!kind) { tabs.show("board"); logLine("info", "pick a target in the Board tab"); return; }
+    try {
+      const t = await api("/api/target", { kind });
+      logLine("info", `target ${t.kind}: IDCODE ${t.idcode}`
+        + (t.match ? "" : ` — MISMATCH, expected ${t.expected}: the PL holds a different bob build`));
+      await this.refresh();
+      tabs.show("board");
+    } catch (e) {
+      logLine("error", `cannot open ${kind}: ${e.message || e}`);
+      dock.show("log");
+      tabs.show("board");
+    }
+  },
+
+  async loadBits() {
+    try { this.bits = await api("/api/bits"); } catch (e) { this.bits = []; }
+    if (!this.chosen && this.bits.length) {
+      // prefer this design's bitstream, else whatever was built last
+      const mine = this.bits.find((b) => b.top === S.project.top || b.name === S.project.name);
+      this.chosen = (mine || this.bits[0]).path;
+    }
+  },
+
+  // What the Board pane will program: this session's build wins, else the picked one.
+  target_bit() { return bitPath() || this.chosen; },
+
+  // Program never silently does nothing: if it cannot, it says which part is missing.
+  async program(bit) {
+    bit = bit || this.target_bit();
+    const problems = [];
+    if (!S.target || !S.target.open) problems.push("no target is open — pick usb or fake in the Board tab");
+    if (!bit) problems.push("no bitstream — run Generate Bitstream, or pick one in the Board tab");
+    if (problems.length) {
+      for (const p of problems) logLine("error", p);
+      dock.show("log");
+      tabs.show("board");
+      return;
+    }
+    try {
+      const r = await api("/api/program", { bit, mode: "frames" });
+      logLine(r.ok ? "info" : "error", `program ${bit}: ${r.message}`);
+      await this.loadBits();
+      await this.refresh();
+      tabs.show("board");
+      dock.show("log");
+    } catch (e) {
+      logLine("error", `program ${bit}: ${e.message || e}`);
+      dock.show("log");
+    }
+  },
+
+  async verify() {
+    const bit = bitPath();
+    if (!bit) return void logLine("error", "no bitstream to verify against");
+    try {
+      const r = await api("/api/readback", { bit });
+      logLine(r.ok ? "info" : "error", `readback: ${r.message}`);
+    } catch (e) { logLine("error", String(e.message || e)); }
+    dock.show("log");
+    tabs.show("board");
+  },
+
+  async capture() {
+    try {
+      const c = await api("/api/capture", {});
+      S.capture = c.ok ? c : null;
+      logLine(c.ok ? "info" : "error", `CAPTURE: ${c.message}`);
+      this.render();
+    } catch (e) { logLine("error", String(e.message || e)); dock.show("log"); }
+    tabs.show("board");
+  },
+
+  async partial() {
+    const bit = bitPath();
+    if (!bit) return void logLine("error", "build a bitstream first");
+    try {
+      const r = await api("/api/partial", { bit });
+      logLine(r.ok ? "info" : "error", `partial: ${r.message}`);
+      await this.refresh();
+    } catch (e) { logLine("error", String(e.message || e)); }
+    dock.show("log");
+  },
+
+  async refresh() {
+    // A poll can fail while the board is busy - the software one holds its lock
+    // while it simulates guest clocks - and a busy board is not a missing one. Keep
+    // what we last knew and say so, rather than reporting the target gone.
+    try {
+      S.target = await api("/api/board");
+    } catch (e) {
+      if (S.target && S.target.open) S.target = { ...S.target, stale: true };
+      else S.target = { open: false, error: String(e.message || e) };
+    }
+    this.render();
+    topbar();
+    buttons();
+  },
+
+  render() {
+    const t = S.target, v = $("boardview");
+    v.innerHTML = "";
+    const pill = $("boardpill");
+    if (!t || !t.open) {
+      pill.textContent = "no target"; pill.className = "pill";
+      v.appendChild(this.controls());
+      v.appendChild(el("div", "empty",
+        "No target open. `usb` is the Pico on PMODA; `fake` is the board in software, "
+        + "which needs no hardware. Building a design does not load it — Program does."));
+      return;
+    }
+    pill.textContent = t.kind === "fake" ? "software board" : "Pico on PMODA";
+    pill.className = "pill " + (t.match ? "ok" : "err");
+    v.appendChild(this.controls());
+
+    const box = el("div", null);
+    box.style.cssText = "display:flex;gap:26px;flex-wrap:wrap;margin-top:12px;align-items:flex-start";
+
+    // LEDs and switches, as the board has them
+    const leds = el("div", null);
+    leds.appendChild(el("div", "row", "")).remove();
+    const lrow = el("div", null);
+    lrow.style.cssText = "display:flex;gap:14px;align-items:center;margin-bottom:12px";
+    const nled = 3;
+    for (let i = nled - 1; i >= 0; i--) {
+      const on = t.leds != null && ((t.leds >> i) & 1);
+      const c = el("div", null);
+      c.style.cssText = "text-align:center;font-family:var(--mono);font-size:10px;color:var(--mute)";
+      const d = el("div", "led" + (on ? " on" : ""));
+      d.style.cssText += ";width:16px;height:16px;margin:0 auto 4px";
+      c.appendChild(d); c.appendChild(el("div", null, "LD" + i));
+      lrow.appendChild(c);
+    }
+    const done = el("div", null);
+    done.style.cssText = "text-align:center;font-family:var(--mono);font-size:10px;color:var(--mute)";
+    const dd = el("div", "led" + (t.status && t.status.done ? " good" : ""));
+    dd.style.cssText += ";width:16px;height:16px;margin:0 auto 4px";
+    done.appendChild(dd); done.appendChild(el("div", null, "DONE"));
+    lrow.appendChild(done);
+    leds.appendChild(lrow);
+
+    const sw = el("div", null);
+    sw.style.cssText = "display:flex;gap:14px;align-items:center;font-family:var(--mono);font-size:11px;color:var(--ink-2)";
+    sw.appendChild(el("span", null, `SW ${t.sw == null ? "—" : t.sw.toString(2).padStart(2, "0")}`));
+    sw.appendChild(el("span", null, `BTN ${t.btn == null ? "—" : t.btn.toString(2).padStart(4, "0")}`));
+    leds.appendChild(sw);
+    box.appendChild(leds);
+
+    // the numbers behind it
+    const info = el("div", null);
+    info.style.cssText = "min-width:240px";
+    const add = (k, val) => {
+      const r = el("div", "row");
+      r.appendChild(el("span", null, k));
+      r.appendChild(el("span", null, val == null ? "—" : String(val)));
+      info.appendChild(r);
+    };
+    add("target", t.kind);
+    add("IDCODE", t.idcode + (t.match ? " ✓" : " ✕ expected " + t.expected));
+    if (t.status && !t.status.error) {
+      add("DONE", t.status.done);
+      for (const k of ["crc_error", "committed", "gwe", "gsr"]) if (k in t.status) add(k, t.status[k]);
+    } else if (t.status) {
+      add("status", t.status.error.slice(0, 60));
+    }
+    if (t.simulated) {
+      add("guest clocks", t.clocks);
+      if (t.skipped) add("clocks skipped", t.skipped);
+      if (t.edge_ms) add("ms per guest clock", t.edge_ms);
+    }
+    box.appendChild(info);
+    v.appendChild(box);
+
+    // CAPTURE, as a small logic analyser over the fabric's own registers
+    if (S.capture) {
+      const cap = el("div", null);
+      cap.style.cssText = "margin-top:18px";
+      const h = el("div", null, `CAPTURE — ${S.capture.ones} of ${S.capture.nclb} CLB registers set`);
+      h.style.cssText = "font-size:12px;color:var(--ink-2);margin-bottom:6px";
+      cap.appendChild(h);
+      const g = el("div", null);
+      g.style.cssText = "display:flex;flex-wrap:wrap;gap:2px;max-width:560px";
+      S.capture.bits.forEach((b, i) => {
+        const c = el("div", null);
+        c.style.cssText = `width:12px;height:12px;border-radius:2px;border:1px solid var(--rule);`
+          + `background:${b ? "var(--accent)" : "var(--rule-2)"}`;
+        c.title = `CLB register ${i} = ${b}`;
+        g.appendChild(c);
+      });
+      cap.appendChild(g);
+      v.appendChild(cap);
+    }
+
+    if (t.simulated && t.skipped) {
+      const note = el("div", "empty",
+        "This is the board in software: one guest clock costs a model.settle() over "
+        + `${S.device ? S.device.muxes : "the"} routing muxes, so it runs behind the rate the design asks for `
+        + `(${t.skipped.toLocaleString()} edges skipped). The real board does not.`);
+      note.style.maxWidth = "620px";
+      v.appendChild(note);
+    }
+  },
+
+  // Target choice and the bitstream to program, as controls rather than a prompt.
+  controls() {
+    const wrap = el("div", null);
+    wrap.style.cssText = "display:flex;gap:10px;align-items:center;flex-wrap:wrap;"
+      + "margin:12px 0 4px;padding-bottom:12px;border-bottom:1px solid var(--rule)";
+
+    wrap.appendChild(el("span", null, "target"));
+    for (const kind of ["usb", "fake"]) {
+      const on = S.target && S.target.open && S.target.kind === kind;
+      const b = el("button", "go" + (on ? "" : " sec"), kind === "usb" ? "Pico (usb)" : "software (fake)");
+      b.style.cssText = "margin:0;width:auto;padding:4px 12px";
+      b.onclick = () => this.open(kind);
+      wrap.appendChild(b);
+    }
+
+    const sep = el("span", null, "bitstream");
+    sep.style.marginLeft = "10px";
+    wrap.appendChild(sep);
+
+    const sel = document.createElement("select");
+    sel.style.cssText = "font:inherit;font-size:11.5px;padding:3px 5px;max-width:260px;"
+      + "background:var(--paper);color:var(--ink);border:1px solid var(--rule);border-radius:4px";
+    const session = bitPath();
+    if (session) {
+      const o = document.createElement("option");
+      o.value = session; o.textContent = session.split("/").pop() + "  (just built)";
+      sel.appendChild(o);
+    }
+    for (const b of this.bits) {
+      if (b.path === session) continue;
+      const o = document.createElement("option");
+      o.value = b.path;
+      o.textContent = b.name + (b.top && b.top !== b.name ? `  (${b.top})` : "")
+        + (b.clock === "run" ? "  · free-running" : "");
+      sel.appendChild(o);
+    }
+    if (!sel.childElementCount) {
+      const o = document.createElement("option");
+      o.value = ""; o.textContent = "nothing built yet";
+      sel.appendChild(o);
+    }
+    sel.value = this.target_bit() || "";
+    sel.onchange = () => { this.chosen = sel.value; this.render(); };
+    wrap.appendChild(sel);
+
+    const go = el("button", "go", "Program");
+    go.style.cssText = "margin:0;width:auto;padding:4px 16px";
+    go.onclick = () => this.program(sel.value);
+    wrap.appendChild(go);
+
+    const b = this.bits.find((x) => x.path === sel.value);
+    if (b && b.sources) {
+      const src = el("span", "pill", b.sources.join(", "));
+      src.title = `top ${b.top} · clock ${b.clock}` + (b.pcf ? ` · ${b.pcf}` : "");
+      wrap.appendChild(src);
+    }
+    return wrap;
+  },
+
+  watch(on) {
+    if (this.poll) { clearInterval(this.poll); this.poll = null; }
+    if (on) this.poll = setInterval(() => this.refresh(), 900);
+  },
+};
+
+/* ---- p8_app.js ---- */
+// ── tabs, sources, settings, and boot ─────────────────────────────────────
+
+const TABS = [
+  ["editor", "Source"], ["device", "Device"], ["bitstream", "Bitstream"],
+  ["pins", "Pins"], ["board", "Board"], ["sources", "Sources"], ["settings", "Settings"],
+];
+
+const tabs = {
+  which: "editor",
+  render() {
+    const t = $("tabs");
+    t.innerHTML = "";
+    for (const [k, label] of TABS) {
+      const b = el("div", "tab" + (this.which === k ? " on" : ""));
+      b.textContent = (k === "editor" && S.open ? S.open.split("/").pop() : label)
+        + (k === "editor" && S.dirty ? " •" : "");
+      b.onclick = () => this.show(k);
+      t.appendChild(b);
+    }
+  },
+  show(k) {
+    this.which = k;
+    for (const [n] of TABS) $("pane-" + n).classList.toggle("on", n === k);
+    this.render();
+    if (k === "device") device.render();
+    if (k === "board") board.loadBits().then(() => board.refresh());
+    if (k === "sources") sources.render();
+    if (k === "pins") pinplan.load();
+    if (k === "bitstream") bitstream.load();
+    if (k === "settings") settings.render();
+  },
+};
+
+const sources = {
+  files: [],
+
+  async open(path, top) {
+    const r = await api("/api/source?path=" + encodeURIComponent(path));
+    const base = path.split("/").pop().replace(/\.[^.]+$/, "");
+    S.project = { ...S.project, files: [path], top: top || base, name: null, pcf: null };
+    editor.set(path, r.text);
+    S.dirty = false;
+    pinplan.assign = {};                          // pins belong to a design, not the app
+    flow.reset();
+    tabs.show("editor");
+    props.render();
+    logLine("info", `opened ${path}`);
+  },
+
+  pick(name) {                                   // by example name, kept for the API
+    const ex = S.examples.find((e) => e.name === name);
+    return ex ? this.open(ex.path, name) : Promise.resolve();
+  },
+
+  async save() {
+    if (!S.open) return;
+    try {
+      const r = await api("/api/save", { path: S.open, text: editor.get() });
+      S.dirty = false;
+      logLine("info", `saved ${r.path}`);
+      tabs.render();
+      await this.load();
+    } catch (e) {
+      logLine("error", String(e.message || e)); dock.show("log");
+    }
+  },
+
+  async create() {
+    const name = window.prompt("New design name (letters, digits, _ or -)", "mydesign");
+    if (!name) return;
+    try {
+      const r = await api("/api/new", { name: name.trim() });
+      await this.load();
+      await this.open(r.path, name.trim());
+      logLine("info", `created ${r.path}`);
+    } catch (e) {
+      logLine("error", String(e.message || e)); dock.show("log");
+    }
+  },
+
+  async openPrompt() {
+    const path = window.prompt("Open a path inside the repo", S.open || "designs/");
+    if (!path) return;
+    try { await this.open(path.trim()); }
+    catch (e) { logLine("error", String(e.message || e)); dock.show("log"); }
+  },
+
+  async load() {
+    try { const b = await api("/api/browse"); this.files = b.files; this.dir = b.designs_dir; }
+    catch (e) { this.files = []; }
+    if (tabs.which === "sources") this.render();
+  },
+
+  card(f) {
+    const c = el("div", null);
+    const mine = S.project.files.includes(f.path);
+    c.style.cssText = "border:1px solid " + (mine ? "var(--accent)" : "var(--rule)")
+      + ";border-radius:6px;padding:9px 11px;cursor:pointer;background:"
+      + (mine ? "var(--accent-bg)" : "transparent");
+    c.onclick = () => this.open(f.path);
+    const h = el("div", null, f.name);
+    h.style.cssText = "font-weight:580;margin-bottom:3px";
+    c.appendChild(h);
+    const ex = S.examples.find((e) => e.path === f.path);
+    const sub = f.type === "v" || f.type === "sv"
+      ? `${f.lines} lines` + (ex ? ` · ${ex.routed ? "routed, wirelength " + ex.wirelength : "not routed yet"}` : "")
+      : `${f.type} · ${f.lines} lines`;
+    const s = el("div", null, sub);
+    s.style.cssText = "font-family:var(--mono);font-size:10.5px;color:var(--mute)";
+    c.appendChild(s);
+    const p = el("div", null, f.path);
+    p.style.cssText = "font-family:var(--mono);font-size:9.5px;color:var(--faint);margin-top:2px";
+    c.appendChild(p);
+    return c;
+  },
+
+  render() {
+    const v = $("srcview");
+    v.innerHTML = "";
+
+    const bar = el("div", null);
+    bar.style.cssText = "display:flex;gap:8px;margin:10px 0 4px;align-items:center;flex-wrap:wrap";
+    const btn = (label, fn, sec) => {
+      const b = el("button", "go" + (sec ? " sec" : ""), label);
+      b.style.cssText = "margin:0;width:auto;padding:5px 13px";
+      b.onclick = fn;
+      bar.appendChild(b);
+      return b;
+    };
+    btn("New design", () => this.create());
+    btn("Open path…", () => this.openPrompt(), true);
+    const sv = btn("Save", () => this.save(), true);
+    sv.disabled = !S.open;
+    if (S.open) bar.appendChild(el("span", "pill" + (S.dirty ? "" : " ok"),
+      S.open + (S.dirty ? " · unsaved" : " · saved")));
+    v.appendChild(bar);
+
+    const note = el("div", "empty",
+      `Your own work goes in ${this.dir || "designs/"} — New design scaffolds one from a `
+      + "template. Anything inside the repo can be opened by path. ⌘S / Ctrl-S saves.");
+    note.style.cssText += ";max-width:760px;padding:6px 0 4px";
+    v.appendChild(note);
+
+    for (const [kind, title] of [["design", "Your designs"], ["example", "Examples"]]) {
+      const group = this.files.filter((f) => f.kind === kind);
+      if (!group.length) continue;
+      const h = el("div", null, title);
+      h.style.cssText = "font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;"
+        + "color:var(--mute);font-weight:600;margin:14px 0 6px";
+      v.appendChild(h);
+      const t = el("div", null);
+      t.style.cssText = "display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px";
+      for (const f of group) t.appendChild(this.card(f));
+      v.appendChild(t);
+    }
+  },
+};
+
+const settings = {
+  render() {
+    const v = $("setview");
+    v.innerHTML = "";
+    const d = S.device;
+    const p = el("div", "empty");
+    p.style.maxWidth = "680px";
+    p.innerHTML = d
+      ? `Every number on the right comes from <code>tools/bob/device.json</code>, which
+         <code>tools/bob/device.py</code> generates along with the fabric RTL, the VPR
+         architecture, the FASM map and the host tools. studio never writes it: to change the
+         device, edit <code>device.py</code> and run <code>make rrgraph</code>, then
+         <code>make device</code>.<br><br>
+         This device is <b>${d.name}</b>: ${d.capacity.clb} CLBs, ${d.capacity.bram} BRAM,
+         ${d.capacity.dsp} DSP, ${d.pads} pads, channel width ${d.chan_width},
+         ${d.muxes} routing muxes, ${d.chain_w} configuration bits in ${d.frames} frames.
+         The free-running guest clock tops out at
+         ${(d.clock.sysclk_hz / Math.pow(2, d.clock.div_min_shift) / 1000).toFixed(0)} kHz
+         (125 MHz / 2<sup>${d.clock.div_min_shift}</sup>), which is what makes the fabric's
+         timing exception honest.`
+      : "loading…";
+    v.appendChild(p);
+  },
+};
+
+function topbar() {
+  const d = S.device, t = S.target;
+  if (d) $("devmeta").textContent =
+    `${d.name} · ${d.capacity.clb} CLB · ${d.chain_w} bits · ${d.frames} frames`;
+  const led = $("tgtled"), txt = $("tgttxt");
+  if (!t || !t.open) { led.className = "led"; txt.textContent = "no target"; return; }
+  led.className = "led " + (t.stale ? "" : t.match ? "good" : "bad");
+  txt.textContent = (t.kind === "fake" ? "software board" : "Pico") + " " + t.idcode
+    + (t.stale ? " (busy)" : "");
+}
+
+async function boot() {
+  editor.wire();
+  tabs.render();
+  dock.render();
+
+  $("runsynth").onclick = () => flow.run(null);
+  $("runimpl").onclick = () => flow.run("device");
+  $("runbit").onclick = () => flow.run(null);
+  $("opentgt").onclick = () => tabs.show("board");
+  $("program").onclick = () => board.program();
+  $("partial").onclick = () => board.partial();
+  $("readback").onclick = () => board.verify();
+  $("capture").onclick = () => board.capture();
+  $("refresh").onclick = () => board.refresh();
+  $("autopoll").onchange = (e) => board.watch(e.target.checked);
+  $("shownets").onchange = () => device.render();
+  $("showids").onchange = () => device.render();
+  for (const n of document.querySelectorAll(".item[data-go]"))
+    n.onclick = () => tabs.show(n.dataset.go);
+  for (const n of document.querySelectorAll(".item[data-stage]"))
+    n.onclick = () => dock.show("stages");
+  // ⌘S / Ctrl-S saves the editor, as it does everywhere else
+  document.addEventListener("keydown", (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") {
+      e.preventDefault();
+      sources.save();
+    }
+  });
+  $("btheme").onclick = () => {
+    const cur = document.documentElement.getAttribute("data-theme");
+    const next = cur === "dark" ? "light" : cur === "light" ? "dark"
+      : (matchMedia("(prefers-color-scheme: dark)").matches ? "light" : "dark");
+    document.documentElement.setAttribute("data-theme", next);
+    try { localStorage.setItem("bob-studio-theme", next); } catch (e) { /* private window */ }
+    device.render();
+  };
+  try {
+    const th = localStorage.getItem("bob-studio-theme");
+    if (th) document.documentElement.setAttribute("data-theme", th);
+  } catch (e) { /* private window: the media query decides */ }
+
+  try {
+    S.device = await api("/api/device");
+    S.examples = await api("/api/examples");
+    await sources.load();
+    topbar(); props.render(); device.render(); settings.render();
+    logLine("info", `${S.device.name}: ${S.device.capacity.clb} CLBs, ${S.device.frames} frames`);
+    await sources.pick("fir");
+    await board.loadBits();
+    await board.refresh();
+  } catch (e) {
+    logLine("error", "cannot reach the backend: " + (e.message || e));
+    dock.show("log");
+  }
+  buttons();
+}
+
+document.addEventListener("DOMContentLoaded", boot);
+
+/* ---- p9_debug.js ---- */
+// ── Pin Planner and the Bitstream browser ─────────────────────────────────
+// The two views that make the flow's ends inspectable: which port sits on which
+// pad before a build, and what the bitstream actually says after one.
+
+const pinplan = {
+  map: null,
+  assign: {},
+
+  async load() {
+    if (!this.map) this.map = await api("/api/pins");
+    this.render();
+  },
+
+  ports() {
+    // One row per PIN, not per port. vpr_run.write_eblif names every port bit
+    // `port[i]` — including a one-bit port, which is `en[0]` and not `en`. Getting that
+    // wrong produces a .pcf the flow rejects with "input en[0] has no pin".
+    // Widths come from the synth stage; before a build, fall back to the convention.
+    const s = S.stages.synth;
+    const decl = s && s.stats.ports && typeof s.stats.ports[0] === "object"
+      ? s.stats.ports
+      : [{ name: "sw", width: 2, dir: "input" }, { name: "btn", width: 4, dir: "input" },
+         { name: "led", width: 3, dir: "output" }];
+    const out = [];
+    for (const p of decl) {
+      if (p.name === "clk") continue;            // the clock is not a pad
+      for (let i = 0; i < p.width; i++) out.push({ pin: `${p.name}[${i}]`, dir: p.dir });
+    }
+    return out;
+  },
+
+  // An input belongs on a switch or a button, an output on an LED. Any pad works for
+  // either (boundary scan reaches all 44), so the rest are always offered.
+  pinsFor(dir) {
+    if (!this.map) return [];
+    const board = Object.keys(this.map.board);
+    const want = dir === "output" ? (n) => n.startsWith("LD") : (n) => !n.startsWith("LD");
+    const scan = this.map.pads.filter((p) => !p.name).map((p) => `pad${p.pad}`);
+    return board.filter(want).concat(board.filter((n) => !want(n)), scan);
+  },
+
+  render() {
+    const v = $("pinview");
+    v.innerHTML = "";
+    if (!this.map) return void v.appendChild(el("div", "empty", "loading…"));
+    const d = S.device;
+
+    const note = el("div", "empty",
+      "Without a pin file the flow uses the convention: " + this.map.convention
+      + ". Assign a port to a pad here and studio writes a .pcf the build reads. "
+      + "Pads with no board name are reachable by boundary scan only.");
+    note.style.maxWidth = "780px";
+    v.appendChild(note);
+
+    // the pad ring, drawn where the pads actually are on the die
+    const NS = "http://www.w3.org/2000/svg";
+    const C = 26, P = 14;
+    const svg = document.createElementNS(NS, "svg");
+    const W = P * 2 + d.grid.w * C, H = P * 2 + d.grid.h * C;
+    svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+    svg.style.cssText = "max-width:420px;max-height:340px;margin:10px 0";
+    for (const pad of this.map.pads) {
+      const x = P + pad.x * C, y = P + (d.grid.h - 1 - pad.y) * C;
+      const taken = Object.entries(this.assign).find(([, v2]) => v2 === (pad.name || `pad${pad.pad}`));
+      const fill = taken ? "var(--accent)" : pad.kind === "input" ? "#cfe3d6"
+        : pad.kind === "output" ? "#f2ddc8" : "var(--rule-2)";
+      const r = document.createElementNS(NS, "rect");
+      r.setAttribute("x", x + 1.5); r.setAttribute("y", y + 1.5);
+      r.setAttribute("width", C - 3); r.setAttribute("height", C - 3);
+      r.setAttribute("rx", 3); r.setAttribute("fill", fill);
+      r.setAttribute("stroke", taken ? "var(--accent)" : "var(--rule)");
+      const t = document.createElementNS(NS, "title");
+      t.textContent = `pad${pad.pad}${pad.name ? " = " + pad.name : " (scan only)"}`
+        + (taken ? `\n${taken[0]}` : "");
+      r.appendChild(t);
+      svg.appendChild(r);
+      const lab = document.createElementNS(NS, "text");
+      lab.setAttribute("x", x + C / 2); lab.setAttribute("y", y + C / 2 + 3);
+      lab.setAttribute("text-anchor", "middle");
+      lab.setAttribute("font-family", "var(--mono)"); lab.setAttribute("font-size", 7.5);
+      lab.setAttribute("fill", taken ? "#fff" : "var(--mute)");
+      lab.textContent = pad.name || pad.pad;
+      svg.appendChild(lab);
+    }
+    v.appendChild(svg);
+
+    // one row per pin
+    const rows = this.ports();
+    const tbl = el("div", null);
+    tbl.style.cssText = "max-width:380px;border-top:1px solid var(--rule);padding-top:8px";
+    if (!rows.length) {
+      tbl.appendChild(el("div", "empty", "Run Synthesis to see this design's ports."));
+    }
+    for (const { pin, dir } of rows) {
+      const r = el("div", "row");
+      const lab = el("span", null, pin);
+      lab.title = `${dir} · the netlist calls this net ${pin}`;
+      r.appendChild(lab);
+      const sel = document.createElement("select");
+      for (const o of ["(convention)"].concat(this.pinsFor(dir))) {
+        const op = document.createElement("option"); op.value = o; op.textContent = o; sel.appendChild(op);
+      }
+      sel.value = this.assign[pin] || "(convention)";
+      sel.onchange = () => {
+        if (sel.value === "(convention)") delete this.assign[pin];
+        else this.assign[pin] = sel.value;
+        this.render();
+      };
+      const w = el("span", null);
+      w.appendChild(sel);
+      const d = el("span", null, dir === "output" ? " out" : " in");
+      d.style.cssText = "font-family:var(--mono);font-size:9.5px;color:var(--faint);margin-left:5px";
+      w.appendChild(d);
+      r.appendChild(w);
+      tbl.appendChild(r);
+    }
+    v.appendChild(tbl);
+
+    const bar = el("div", null);
+    bar.style.cssText = "display:flex;gap:10px;margin-top:12px;align-items:center";
+    const save = el("button", "go sec", "write .pcf and use it");
+    save.style.cssText = "margin:0;width:auto;padding:5px 14px";
+    save.disabled = !Object.keys(this.assign).length;
+    save.onclick = () => this.save();
+    bar.appendChild(save);
+    const clear = el("button", "go sec", "back to the convention");
+    clear.style.cssText = "margin:0;width:auto;padding:5px 14px";
+    clear.onclick = () => { this.assign = {}; S.project.pcf = null; S.project.name = null; this.render(); props.render(); };
+    bar.appendChild(clear);
+    if (S.project.pcf) bar.appendChild(el("span", "pill ok", S.project.pcf));
+    v.appendChild(bar);
+  },
+
+  async save() {
+    try {
+      const name = (S.project.top || "design") + "_pins";
+      // Only pins this design actually has. Assignments made before Synthesis come from
+      // the sw/btn/led fallback, and writing those into a .pcf puts a set_io line there
+      // for a port the module does not declare.
+      const real = new Set(this.ports().map((p) => p.pin));
+      const assign = {}, dropped = [];
+      for (const [pin, v] of Object.entries(this.assign)) {
+        if (real.has(pin)) assign[pin] = v; else dropped.push(pin);
+      }
+      if (dropped.length) {
+        logLine("info", `not in ${S.project.top || "this design"}, left out of the .pcf: `
+          + dropped.join(", "));
+        for (const p of dropped) delete this.assign[p];
+      }
+      if (!Object.keys(assign).length) {
+        logLine("error", "nothing to write: run Synthesis, then assign this design's pins");
+        dock.show("log");
+        return;
+      }
+      const r = await api("/api/pcf", { name, assign });
+      S.project.pcf = r.pcf;
+      S.project.name = name;
+      logLine("info", `wrote ${r.pcf}; the next build uses it`);
+      this.render(); props.render();
+    } catch (e) {
+      logLine("error", String(e.message || e)); dock.show("log");
+    }
+  },
+};
+
+const bitstream = {
+  data: null,
+
+  async load() {
+    const bit = bitPath();
+    const v = $("bitview");
+    if (!bit) { v.innerHTML = ""; v.appendChild(el("div", "empty", "Generate a bitstream first.")); return; }
+    try { this.data = await api("/api/fasm?bit=" + encodeURIComponent(bit)); }
+    catch (e) { logLine("error", String(e.message || e)); return; }
+    this.render();
+  },
+
+  render() {
+    const v = $("bitview"), d = this.data;
+    v.innerHTML = "";
+    if (!d) return;
+    const head = el("div", null);
+    head.style.cssText = "display:flex;gap:16px;flex-wrap:wrap;margin:10px 0;align-items:center";
+    for (const [k, val] of [["features", d.features], ["chain", d.width + " bits"],
+                            ["frames", d.frames.length], ["CRC", d.crc],
+                            ["BRAM", d.brams.length ? d.brams.join(", ") : "none"]]) {
+      const s = el("span", "pill", `${k} ${val}`);
+      head.appendChild(s);
+    }
+    v.appendChild(head);
+
+    // the frame map: one cell per frame, shaded by how many bits it sets
+    const used = d.frames.filter((f) => f.set).length;
+    v.appendChild(el("div", "lg", `${used} of ${d.frames.length} frames carry bits; `
+      + `each is ${d.width / d.frames.length} bits. Columns follow the FAR map.`));
+    const grid = el("div", null);
+    grid.style.cssText = "display:flex;flex-wrap:wrap;gap:2px;margin:8px 0 14px;max-width:760px";
+    const max = Math.max(1, ...d.frames.map((f) => f.set));
+    for (const f of d.frames) {
+      const c = el("div", null);
+      const a = f.set / max;
+      c.style.cssText = `width:13px;height:13px;border-radius:2px;background:${
+        f.set ? `color-mix(in srgb, var(--accent) ${Math.round(20 + a * 80)}%, var(--rule-2))`
+              : "var(--rule-2)"};border:1px solid var(--rule)`;
+      c.title = `frame ${f.index}: ${f.set} bits set\n${f.hex.slice(0, 32)}…`;
+      grid.appendChild(c);
+    }
+    v.appendChild(grid);
+
+    const pre = document.createElement("pre");
+    pre.style.cssText = "font-family:var(--mono);font-size:11px;line-height:1.5;margin:0;"
+      + "max-height:340px;overflow:auto;background:var(--rule-2);padding:10px;border-radius:5px";
+    pre.textContent = d.fasm;
+    v.appendChild(pre);
+  },
+};
+
+</script>
+</body>
+</html>

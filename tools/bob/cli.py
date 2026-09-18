@@ -3,12 +3,14 @@
 bob - build a Verilog design for the bob FPGA and load it (M10).
 
   ./bob build examples/counter.v [--top counter] [--pcf pins.pcf] [-o counter.bit]
-              [--clock jtag|run] [--div N] [--seed N] [--pnr vpr|python]
-  ./bob load  counter.bit [--watch]          (Pico on PMODA, M7 bitstream in the PL)
+              [--clock jtag|run] [--div N] [--seed N] [--pnr vpr|python] [--json FILE]
+  ./bob build --project bob.proj             (the same settings, in one file)
+  ./bob load  counter.bit [--watch] [--probe usb|fake]
   ./bob info  counter.bit
   ./bob fasm  counter.bit                     the chain as FASM
 
-build, every step checked before the next:
+build runs tools/bob/flow.py: every step checked before the next, each one timed and
+reported. `--json` writes that record instead of prose.
   1. synthesis   tools/bob/synth.py (yosys onto bob cells)
   2. equivalence tools/bob/equiv.py: source == yosys netlist == golden netlist in
                  iverilog; saves the source trace and every golden net per clock
@@ -29,7 +31,7 @@ A .pcf has `set_io <port bit> <SW0|SW1|BTN0..3|LD0..2|pad<N>>` lines.
 """
 
 import argparse
-import hashlib
+import json
 import os
 import sys
 
@@ -51,6 +53,28 @@ class BuildError(Exception):
     pass
 
 
+PROJECT_KEYS = ("files", "top", "pcf", "name", "clock", "div", "seed", "pnr")
+
+
+def read_project(path):
+    """bob.proj -> the keyword arguments build() takes. Paths are relative to the
+    project file, so a project can be moved or shared with its sources."""
+    try:
+        d = json.load(open(path))
+    except (OSError, ValueError) as e:
+        raise BuildError(f"{path}: {e}")
+    bad = set(d) - set(PROJECT_KEYS)
+    if bad:
+        raise BuildError(f"{path}: unknown key(s) {sorted(bad)}; expected {list(PROJECT_KEYS)}")
+    if not d.get("files"):
+        raise BuildError(f"{path}: no 'files'")
+    base = os.path.dirname(os.path.abspath(path))
+    d["files"] = [os.path.normpath(os.path.join(base, f)) for f in d["files"]]
+    if d.get("pcf"):
+        d["pcf"] = os.path.normpath(os.path.join(base, d["pcf"]))
+    return d
+
+
 def result_dir(name, pnr="vpr"):
     """where build() took the place-and-route result from"""
     if pnr == "python":
@@ -61,95 +85,22 @@ def result_dir(name, pnr="vpr"):
     return os.path.join(ROOT, "build", "vpr", name)
 
 
-def build(files, top=None, pcf=None, out=None, clock="jtag", div=0, seed=1, name=None, log=print, pnr="vpr"):
-    """-> (bit path, word, bram contents, board trace or None, result directory)"""
-    import equiv
-    top = top or os.path.splitext(os.path.basename(files[0]))[0]
-    if not name and pcf:
-        base = os.path.splitext(os.path.basename(pcf))[0]
-        name = base if base.startswith(top) else f"{top}_{base}"
-    name = name or top
-    if name in vpr_run.VARIANTS and pcf is None:
-        top_v, pcf = vpr_run.VARIANTS[name]
-        if top_v != top:
-            raise BuildError(f"{name} is a committed variant of {top_v}, not {top}")
+def build(files, top=None, pcf=None, out=None, clock="jtag", div=0, seed=1, name=None,
+          log=print, pnr="vpr"):
+    """-> (bit path, word, bram contents, board trace or None, result directory)
 
-    ok, lines, mod = equiv.equiv(files, top)
-    if not ok:
-        raise BuildError(f"{top}: synthesised netlist differs from the source:\n" + "\n".join(lines))
-    from synth import summary
-    log(f"  synth    {top}: {summary(mod)}; source == netlist == golden, 300 random cycles")
-
-    stamp = vpr_run.read_stamp(name)
-    same_pins = stamp is not None and stamp.get("pcf", "-") == (os.path.relpath(os.path.abspath(pcf), ROOT)
-                                                               if pcf else "-")
-    pnr_stats = None
-    if pnr == "python":
-        from pnr import pack as pnr_pack, place as pnr_place, route as pnr_route, run as pnr_run
-        try:
-            work, pnr_stats = pnr_run.run(top, seed, pcf, name)
-        except (vpr_run.VprError, pnr_pack.PackError, pnr_place.PlaceError, pnr_route.RouteError) as e:
-            raise BuildError(f"python pnr: {e}")
-        log(f"  pnr      python: {pnr_stats['clusters']['clb']} CLBs, wirelength {pnr_stats['wirelength']}, "
-            f"{pnr_stats['iterations']} routing iteration(s), "
-            f"{pnr_stats['pack_s'] + pnr_stats['place_s'] + pnr_stats['route_s']:.2f} s -> {os.path.relpath(work, ROOT)}")
-    elif pnr != "vpr":
-        raise BuildError("--pnr is vpr or python")
-    elif same_pins and vpr_run.stale(name) is None:
-        work = os.path.join(vpr_run.RESULTS, name)
-        log(f"  vpr      reused committed {os.path.relpath(work, ROOT)} (routed from this netlist and arch)")
-    else:
-        try:
-            work = vpr_run.run(top, seed, pcf=pcf, name=name)
-        except vpr_run.VprError as e:
-            raise BuildError(str(e))
-        s = vpr_run.summary(work, name)
-        log(f"  vpr      routed in Docker: wirelength {s['wirelength']}, result {s['result_sha']} "
-            f"-> {os.path.relpath(work, ROOT)}")
-
-    bs, contents, text = FV.build(name, work)
-    F = bitgen.parse_fasm(text)
-    if clock not in B.CLOCK_MODES:
-        raise BuildError(f"--clock is one of {sorted(B.CLOCK_MODES)}")
-    F.pop("ctrl.clk_mode", None)
-    F.pop("ctrl.clk_div", None)
-    if B.CLOCK_MODES[clock]:
-        F["ctrl.clk_mode"] = B.CLOCK_MODES[clock]
-    if div:
-        F["ctrl.clk_div"] = div
-    word = bitgen.word_from_features(F)
-    if clock == "run":
-        hz = 125e6 / 2 ** (div + B.DIV_MIN_SHIFT)
-        log(f"  clock    free-running: 125 MHz / 2^{div + B.DIV_MIN_SHIFT} = {hz:.4g} Hz "
-            f"(one user clock every {1 / hz:.3g} s)")
-    log(f"  fasm     {len(F)} features, legal against device.json; bits -> FASM -> bits identical: "
-        f"{bitgen.word_from_features(bitgen.features_from_word(word)) == word}")
-
-    tr = None
-    if set(mod["ports"]) <= CONVENTION:
-        bad, n, tr = FV.check_model(name, bs, contents, work, top)     # routed chain, jtag clock
-        if bad:
-            raise BuildError(f"model.py differs from the source trace in {len(bad)} of {2 * n} samples")
-        log(f"  model    {2 * n}/{2 * n} samples == source trace")
-    else:
-        log("  model    skipped: ports outside the sw/btn/led convention")
-
-    out = out or os.path.join(ROOT, "build", "bit", f"{name}.bit")
-    os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
-    stampd = vpr_run.read_stamp(name) if work.startswith(vpr_run.RESULTS) else {}
-    meta = {"design": name, "top": top,
-            "sources": [os.path.relpath(os.path.abspath(f), ROOT) for f in files],
-            "source_sha256": hashlib.sha256(b"".join(open(f, "rb").read() for f in files)).hexdigest(),
-            "pcf": os.path.relpath(os.path.abspath(pcf), ROOT) if pcf else None,
-            "pnr": pnr,
-            "vpr_result": (None if pnr == "python" else
-                           stampd.get("result_sha") or vpr_run.summary(work, name)["result_sha"]),
-            "pnr_seed": pnr_stats["seed"] if pnr_stats else None,
-            "clock": clock, "div": div}
-    bitgen.write_bit(out, word, contents, meta)
-    log(f"  bit      {os.path.relpath(os.path.abspath(out), ROOT)}: {B.CHAIN_W}-bit chain"
-        + (f", BRAM {sorted(b for b, w in contents.items() if any(w))}" if any(map(any, contents.values())) else ""))
-    return out, word, contents, tr, work
+    The stages live in tools/bob/flow.py, which times each one and hands back what it
+    measured; this prints those lines and keeps the tuple older callers expect."""
+    import flow
+    try:
+        f = flow.Flow(files, top=top, pcf=pcf, out=out, clock=clock, div=div,
+                      seed=seed, name=name, pnr=pnr)
+    except flow.FlowError as e:
+        raise BuildError(str(e))
+    res = f.run(on_stage=lambda st: log(f"  {st.name:8s} {st.detail}"))
+    if not res.ok:
+        raise BuildError(res.error)
+    return res.bit, res.word, res.brams, res.trace, res.work
 
 
 def write_brams(p, brams):
@@ -206,7 +157,7 @@ def main():
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
     b = sub.add_parser("build")
-    b.add_argument("files", nargs="+")
+    b.add_argument("files", nargs="*")
     b.add_argument("--top")
     b.add_argument("--pcf")
     b.add_argument("-o", "--output")
@@ -215,10 +166,15 @@ def main():
     b.add_argument("--seed", type=int, default=1)
     b.add_argument("--name", help="result name (default top, or top_<pcf>)")
     b.add_argument("--pnr", default="vpr", choices=("vpr", "python"), help="place and route with VPR or bob's own (M12)")
+    b.add_argument("--project", help="read files, top, pins and settings from a .proj file")
+    b.add_argument("--json", metavar="FILE", help="write the build record (stages, timings, "
+                                                  "diagnostics) as JSON; - for stdout")
     ld = sub.add_parser("load")
     ld.add_argument("bit")
     ld.add_argument("--watch", action="store_true", help="show the LEDs afterwards (fpga.py --watch)")
     ld.add_argument("--freq", type=int, default=100, help="TCK kHz (at most 100)")
+    ld.add_argument("--probe", default="usb", choices=("usb", "fake"),
+                    help="the board: the Pico on PMODA, or the one in software (host/fakeboard.py)")
     ld.add_argument("--mode", default="frames", choices=("frames", "chain"),
                     help="configuration path: UG470-style frames on CFG_IN (default) or the chain")
     ld.add_argument("--partial", action="store_true",
@@ -229,9 +185,33 @@ def main():
 
     try:
         if args.cmd == "build":
-            print(f"bob build {' '.join(args.files)}")
-            build(args.files, args.top, args.pcf, args.output, args.clock, args.div, args.seed, args.name,
-                  pnr=args.pnr)
+            import flow
+            kw = dict(files=args.files, top=args.top, pcf=args.pcf, name=args.name,
+                      clock=args.clock, div=args.div, seed=args.seed, pnr=args.pnr)
+            if args.project:
+                # the file supplies the defaults; anything given on the command line wins
+                given = {k: v for k, v in kw.items()
+                         if v not in (None, [], "jtag", 0, 1, "vpr") or k == "files" and v}
+                kw = {**{k: v for k, v in kw.items() if k != "files"}, **read_project(args.project)}
+                kw.update({k: v for k, v in given.items() if k != "files" and v is not None})
+            if not kw.get("files"):
+                raise BuildError("no sources: give files, or --project")
+            kw["out"] = args.output
+            print(f"bob build {' '.join(kw['files'])}")
+            try:
+                f = flow.Flow(**kw)
+            except flow.FlowError as e:
+                raise BuildError(str(e))
+            res = f.run(on_stage=lambda st: print(f"  {st.name:8s} {st.detail}"))
+            if args.json:
+                text = json.dumps(res.to_json(), indent=2)
+                if args.json == "-":
+                    print(text)
+                else:
+                    open(args.json, "w").write(text + "\n")
+                    print(f"  json     {os.path.relpath(os.path.abspath(args.json), ROOT)}")
+            if not res.ok:
+                raise BuildError(res.error)
             return 0
         if args.cmd == "info":
             c = bitgen.read_bit(args.bit)
@@ -247,9 +227,9 @@ def main():
             return 0
         if args.cmd == "load":
             import fpga
-            from dirtyjtag import Probe
+            from fakeboard import probe as open_probe
             bitgen.read_bit(args.bit)                                   # refuse before touching hardware
-            p = Probe(freq_khz=args.freq)
+            p = open_probe(args.probe, freq_khz=args.freq)
             idcode = p.read_idcode()
             if idcode != fpga.IDCODE_FABRIC:
                 print(f"IDCODE 0x{idcode:08X}, expected 0x{fpga.IDCODE_FABRIC:08X}: program the matching bob bitstream")

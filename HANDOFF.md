@@ -10,7 +10,7 @@ This file is the live state: what is finished, what is in flight, and exactly wh
 | | |
 |---|---|
 | Milestones M0–M16 | **all passed on the PYNQ-Z2** |
-| Bitstream in the PL | **M16** (`0xFBEEF093`): 100 CLBs (12 × 10 core), 145 frames = 18 560 bits, 2 BRAM, 2 DSP, 44 pads. 20 498 LUTs (38.5%), 21 511 FFs (20.2%), WNS +0.667 ns, WHS +0.119 ns, DRC clean |
+| Bitstream in the PL | **M16** (`0xFBEEF093`): 100 CLBs (12 × 10 core), 145 frames = 18 560 bits, 2 BRAM, 2 DSP, 44 pads. 20 498 LUTs (38.5%), 21 511 FFs (20.2%), WNS +0.667 ns, WHS +0.112 ns, DRC clean |
 | Guest tooling | `./bob build｜load｜info｜fasm`, and **bob studio** (`./host/studio.py`) |
 | Whole-project report | `docs/project/REPORT.md` + `project.html`; the learning guide is `docs/project/GUIDE.md` + `guide.html` (**done**, committed in `807f2b9`) |
 | In flight | nothing. Tag `m16` when you are ready, and rerun `docs/project/collect.py` + `build.py` so the report and `project.html` include M16 |
@@ -28,10 +28,17 @@ the constraint, not the tool. The fabric's budget was `-setup 256` × 8 ns = 204
 only because `clock_ctrl.v` guaranteed gce pulses ≥ 256 sysclk cycles apart; the 12 × 10
 fabric's static path through the unconfigured routing muxes is about **2500 ns**.
 
-Raising the gap to 2⁹ = 512 cycles (4096 ns) fixed it, and disabling `phys_opt_design`
-removed an hour of pointless chasing. The cost is the free-running guest clock:
-**244 kHz maximum instead of 488 kHz**. Stepped mode is unaffected (TCK at 100 kHz is
-10 µs per request, slower than the 4.1 µs gap).
+Raising the gap to 2⁹ = 512 cycles (4096 ns) fixed the timing. The cost is the free-running
+guest clock: **244 kHz maximum instead of 488 kHz**. Stepped mode is unaffected (TCK at
+100 kHz is 10 µs per request, slower than the 4.1 µs gap).
+
+Then `route_design` died inside "Phase 2.3 Update Timing" — no error line, and by hand it
+took Vivado itself down. The cause was threading, not the design: the timer has to cut every
+combinational loop in the routing mesh, and M16 has one strongly connected component of
+**2146 wires with 11 270 independent cycles** against M15's 1018 / 4130. `general.maxThreads 1`
+in `drc_waiver.tcl` (hooked as TCL.PRE on `opt_design`, `route_design` and `write_bitstream`,
+because `launch_runs` implements in a separate process) routes the same checkpoint through.
+`phys_opt_design` is **on**: with the gap right it costs seconds.
 
 **The rule this confirms:** the gce gap is not a constant, it is a function of the grid.
 Grow the fabric and `GCE_MIN_GAP_SHIFT` grows with it. The next step up is 10 (1024 cycles,

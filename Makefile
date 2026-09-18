@@ -10,7 +10,7 @@
 
 M ?= $(shell sed -n 's/^tag *= *\([A-Za-z0-9]*\).*/\1/p' hw/build.cfg)
 
-.PHONY: check device rrgraph vpr pnr sim lint test mutate hw hwtest clean
+.PHONY: check device rrgraph vpr pnr sim lint test mutate hw hwtest clean clean-logs
 
 # M7: arch XML -> VPR rr graph (Docker, committed) -> device.json / bob_params.vh / bob_fabric.v
 rrgraph:
@@ -44,6 +44,7 @@ check: device sim lint test
 # (fails with "run make rrgraph" if the architecture changed since the rr graph was built)
 device:
 	tools/bob/device.py
+	tools/bob/devtable.py --check
 	@echo "=== make check: all green ==="
 
 sim:
@@ -81,3 +82,15 @@ hwtest:
 clean:
 	rm -f sim/*.vvp sim/*.vcd
 	rm -rf .pytest_cache tests/__pycache__ host/__pycache__
+
+# build/ is scratch (gitignored). A whole-design yosys run logs every wire it sees,
+# so one estimate is over a gigabyte and they accumulate: 7.6 GB by M16.
+clean-logs:
+	@du -sh build 2>/dev/null || true
+	@# Only the known giants, and only ones nothing has written for an hour: a glob
+	@# over *.log will happily unlink the log a running `make mutate` is writing to.
+	@find build -maxdepth 1 \( -name 'est_*.log' -o -name 'est_*.time' \
+	     -o -name 'fab_*.log' -o -name 'fab_*.time' \) -mmin +60 -delete 2>/dev/null || true
+	@find build -maxdepth 1 -name synthcheck -type d -mmin +60 -exec rm -rf {} + 2>/dev/null || true
+	@echo "kept: bitstreams, VPR and PnR work dirs, cosim, the page checks, and anything recent"
+	@du -sh build 2>/dev/null || true

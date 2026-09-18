@@ -1,5 +1,5 @@
   /* ============================================================================
-     FLOORPLAN  —  the home screen: bob's real VPR grid (M12b: 10 × 8 with the io ring, 36 CLBs) inside the XC7Z020 PL
+     FLOORPLAN  —  the home screen: bob's real VPR grid, read from data.json (M16: 14 × 12 with the io ring, 100 CLBs) inside the XC7Z020 PL
      ========================================================================= */
   const W = 1700, H = 1112;
   const DIE = { x: 44, y: 70, w: 1196, h: 818 };

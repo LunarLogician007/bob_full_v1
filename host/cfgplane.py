@@ -50,6 +50,12 @@ TEST_TOP_CHAIN_W = 64
 TEST_TOP_CAPTURE_W = 16
 
 
+class CfgError(RuntimeError):
+    """The configuration plane refused, or answered as no bob bitstream would: a wrong
+    version, a length that does not match, a write while GWE is high. A RuntimeError so
+    every existing caller still catches it, its own class so new ones need not guess."""
+
+
 def ir(p, name):
     """Load an instruction; returns the 6 captured IR bits."""
     return p.shift_ir(IR[name], width=IR_W)
@@ -87,7 +93,7 @@ def status(p):
     ir(p, "CFG_CTRL")
     st = chainbits.decode_ctrl(p.shift_dr(64, 0))
     if st["version"] != chainbits.CTRL_VERSION:
-        raise RuntimeError(f"CFG_CTRL version 0x{st['version']:02X}, expected "
+        raise CfgError(f"CFG_CTRL version 0x{st['version']:02X}, expected "
                            f"0x{chainbits.CTRL_VERSION:02X} - wrong bitstream or no config plane")
     return st
 
@@ -139,7 +145,7 @@ def bram_scan(p, cmd="nop", payload=0):
     ir(p, "BRAM")
     st = decode_bram(p.shift_dr_fast(96, (BRAM_CMD[cmd] << 92) | (payload & ((1 << 64) - 1))))
     if st["version"] != BRAM_VERSION:
-        raise RuntimeError(f"USER4 version 0x{st['version']:02X}, expected 0x{BRAM_VERSION:02X}: "
+        raise CfgError(f"USER4 version 0x{st['version']:02X}, expected 0x{BRAM_VERSION:02X}: "
                            "wrong bitstream in the PL")
     return st
 
@@ -149,7 +155,7 @@ def bram_select(p, b):
     bram_scan(p, "select", b)
     st = bram_scan(p, "nop")
     if st["target"] != b:
-        raise RuntimeError(f"USER4 SELECT {b} not taken (target {st['target']})")
+        raise CfgError(f"USER4 SELECT {b} not taken (target {st['target']})")
     return st
 
 
@@ -168,7 +174,7 @@ def bram_fill(p, words, addr=0):
         p.shift_dr_fast(96, (BRAM_CMD["write"] << 92) | (w & 0x3FFFF))
     st = bram_scan(p, "nop")
     if st["err"]:
-        raise RuntimeError("USER4 WRITE refused (GWE is 1: contents are only written before JSTART)")
+        raise CfgError("USER4 WRITE refused (GWE is 1: contents are only written before JSTART)")
     return st
 
 
@@ -192,7 +198,7 @@ def dsp_scan(p, drive=None):
     v = p.shift_dr_fast(256, word)
     st = {"p0": v & ((1 << 48) - 1), "p1": (v >> 48) & ((1 << 48) - 1), "version": (v >> 248) & 0xFF}
     if st["version"] != DSP_VERSION:
-        raise RuntimeError(f"DSP register version 0x{st['version']:02X}, expected 0x{DSP_VERSION:02X}: "
+        raise CfgError(f"DSP register version 0x{st['version']:02X}, expected 0x{DSP_VERSION:02X}: "
                            "wrong bitstream in the PL")
     return st
 

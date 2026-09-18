@@ -111,6 +111,17 @@ python3 docs/studio/build.py         # rebuild studio.html from docs/studio/p*.{
 | Open Target / Program | Program and Debug | `host/cfgplane.py`, readback, CAPTURE, partial reconfiguration |
 | Messages | Messages | yosys / iverilog / VPR diagnostics, clickable to the source line |
 
+Your own work lives in `designs/`. **Sources → New design** scaffolds
+`designs/<name>/<name>.v` from a template and opens it; edit and save with ⌘S / Ctrl-S;
+**Open path…** opens anything inside the repo. The Pin Planner writes a `.pcf` the next
+build picks up. The same design from the command line:
+
+```sh
+./bob build designs/mything/mything.v
+./bob build designs/mything/mything.v --pcf designs/mything/mything_pins.pcf
+./bob load  build/bit/mything.bit --probe usb
+```
+
 The stages come from [`tools/bob/flow.py`](tools/bob/flow.py), which runs the same flow
 `./bob build` does but as separate timed steps, each returning what it measured.
 `./bob build --json FILE` writes that record; `tests/test_flow.py` requires `flow.py` and

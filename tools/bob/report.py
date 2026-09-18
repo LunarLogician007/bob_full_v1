@@ -11,7 +11,6 @@ are in docs/hwtest/results.log.
 """
 
 import argparse
-import json
 import os
 import sys
 

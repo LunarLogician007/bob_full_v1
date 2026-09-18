@@ -41,6 +41,16 @@ def dump_data():
                                                 if rr.nodes[m.node].type != "IPIN").items()),
         "ipinfanin": sorted(collections.Counter(len(m.inputs) for m in d.muxes.values()
                                                 if rr.nodes[m.node].type == "IPIN").items()),
+        # The user-clock numbers the timing card quotes. They live here so the page
+        # cannot disagree with the XDC: M16 raised the gap from 256 to 512 cycles and
+        # the page still said 256 until this was generated rather than typed.
+        "clock": {"gap": 1 << device.GCE_MIN_GAP_SHIFT,
+                  "gap_shift": device.GCE_MIN_GAP_SHIFT,
+                  "div_shift": device.DIV_MIN_SHIFT,
+                  "max_hz": device.SYSCLK_HZ / 2 ** device.DIV_MIN_SHIFT,
+                  "sysclk_ns": 1e9 / device.SYSCLK_HZ},
+        "nclb": sum(1 for b in d.blocks if b.type == "clb"),
+        "npad": len(d.board_inputs) + len(d.board_outputs) or d.npad,
     }
     open(os.path.join(HERE, "data.json"), "w").write(json.dumps(data, separators=(",", ":")))
 

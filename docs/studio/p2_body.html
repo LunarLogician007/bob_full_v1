@@ -1,0 +1,122 @@
+<div class="bar">
+  <span class="dot"></span>
+  <span class="brand">bob studio</span>
+  <span class="meta" id="devmeta">loading…</span>
+  <span class="sp"></span>
+  <span class="tgt" id="tgt"><span class="led" id="tgtled"></span><span id="tgttxt">no target</span></span>
+  <button id="btheme" title="light / dark">◐</button>
+</div>
+
+<div class="app">
+  <!-- ── flow navigator ──────────────────────────────────── -->
+  <div class="nav">
+    <div class="grp">
+      <h3>Project</h3>
+      <div class="item" data-go="sources"><span class="st"> </span>Sources<span class="k" id="nsrc"></span></div>
+      <div class="item" data-go="pins"><span class="st"> </span>Pin Planner</div>
+      <div class="item" data-go="settings"><span class="st"> </span>Settings</div>
+    </div>
+
+    <div class="grp">
+      <h3>Synthesis</h3>
+      <div class="item act" id="runsynth"><span class="st"> </span>Run Synthesis</div>
+      <div class="item" data-stage="synth"><span class="st wait">○</span>Report<span class="k" id="k-synth"></span></div>
+    </div>
+
+    <div class="grp">
+      <h3>Implementation</h3>
+      <div class="item act" id="runimpl"><span class="st"> </span>Run Implementation</div>
+      <div class="item" data-stage="pnr"><span class="st wait">○</span>Place &amp; Route<span class="k" id="k-pnr"></span></div>
+      <div class="item" data-go="device"><span class="st"> </span>Device view</div>
+    </div>
+
+    <div class="grp">
+      <h3>Bitstream</h3>
+      <div class="item act" id="runbit"><span class="st"> </span>Generate Bitstream</div>
+      <div class="item" data-stage="fasm"><span class="st wait">○</span>FASM<span class="k" id="k-fasm"></span></div>
+      <div class="item" data-stage="bits"><span class="st wait">○</span>Bits<span class="k" id="k-bits"></span></div>
+      <div class="item" data-stage="model"><span class="st wait">○</span>Model check<span class="k" id="k-model"></span></div>
+      <div class="item" data-stage="write"><span class="st wait">○</span>.bit<span class="k" id="k-write"></span></div>
+      <div class="item" data-go="bitstream"><span class="st"> </span>Browse bitstream</div>
+    </div>
+
+    <div class="grp">
+      <h3>Program and Debug</h3>
+      <div class="item" id="opentgt"><span class="st"> </span>Open Target</div>
+      <div class="item" id="program"><span class="st"> </span>Program Device</div>
+      <div class="item" id="partial"><span class="st"> </span>Partial reconfigure</div>
+      <div class="item" id="readback"><span class="st"> </span>Readback and Verify</div>
+      <div class="item" id="capture"><span class="st"> </span>Capture registers</div>
+      <div class="item" data-go="board"><span class="st"> </span>Board</div>
+    </div>
+  </div>
+
+  <!-- ── main ────────────────────────────────────────────── -->
+  <div class="main">
+    <div class="tabs" id="tabs"></div>
+
+    <div class="pane on" id="pane-editor">
+      <div class="ed">
+        <div class="gut" id="gut">1</div>
+        <div class="wrap" id="edwrap">
+          <pre id="hl"></pre>
+          <textarea id="ta" spellcheck="false" autocomplete="off" wrap="off"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="pane" id="pane-device">
+      <div class="dev">
+        <div class="top">
+          <strong id="devtitle" style="font-size:13px">device</strong>
+          <label class="sw"><input type="checkbox" id="shownets" checked> routed nets</label>
+          <label class="sw"><input type="checkbox" id="showids"> names</label>
+          <span class="pill" id="devpill">nothing placed yet</span>
+        </div>
+        <svg id="floor" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet"></svg>
+        <div class="lg" id="devlegend"></div>
+      </div>
+    </div>
+
+    <div class="pane" id="pane-board">
+      <div class="dev">
+        <div class="top">
+          <strong style="font-size:13px">Board</strong>
+          <span class="pill" id="boardpill">no target</span>
+          <button class="go sec" id="refresh" style="margin:0;width:auto;padding:4px 12px">refresh</button>
+          <label class="sw"><input type="checkbox" id="autopoll"> watch</label>
+        </div>
+        <div id="boardview"></div>
+      </div>
+    </div>
+
+    <div class="pane" id="pane-sources">
+      <div class="dev"><strong style="font-size:13px">Sources</strong><div id="srcview"></div></div>
+    </div>
+
+    <div class="pane" id="pane-pins">
+      <div class="dev"><strong style="font-size:13px">Pin Planner</strong><div id="pinview"></div></div>
+    </div>
+
+    <div class="pane" id="pane-bitstream">
+      <div class="dev"><strong style="font-size:13px">Bitstream</strong><div id="bitview"></div></div>
+    </div>
+
+    <div class="pane" id="pane-settings">
+      <div class="dev"><strong style="font-size:13px">Settings</strong><div id="setview"></div></div>
+    </div>
+  </div>
+
+  <!-- ── properties ──────────────────────────────────────── -->
+  <div class="props">
+    <div class="grp"><h3>Design</h3><div id="props"></div></div>
+    <div class="grp"><h3>Utilization</h3><div id="util"></div></div>
+    <div class="grp"><h3>Device</h3><div id="devprops"></div></div>
+  </div>
+
+  <!-- ── dock ────────────────────────────────────────────── -->
+  <div class="dock">
+    <div class="tabs" id="docktabs"></div>
+    <div class="body" id="dockbody"></div>
+  </div>
+</div>

@@ -5,8 +5,15 @@
 // when step requests arrive faster (docs/bitstream-format.md section 11): that is
 // what makes the fabric's 2**GAP_SHIFT-cycle multicycle constraint true on the board
 // (512 cycles from M16, 256 through M15).
-//   [1] steps every 3 cycles (far faster than the gap): min spacing >= 2**GAP_SHIFT
-//       and no request lost while the gap allows one per window
+//   [1] steps every 3 cycles (far faster than the gap): min spacing is EXACTLY
+//       2**GAP_SHIFT and no request lost. Exactly, not at least: a request that
+//       arrives during the gap is held pending and fires the instant the gap expires,
+//       so the spacing is the gap itself. Drop the pending bit and the next request
+//       only arrives on the following 6-cycle boundary, so the spacing becomes the
+//       first multiple of 6 above the gap - 18 instead of 16, 516 instead of 512.
+//       A >= bound cannot see that; the pulse count cannot either once the gap is
+//       large (516/512 is a 0.8% error). This is what kills sim/mutate_frames.sh's
+//       gce-pending-lost mutant.
 //   [2] slow steps (every 40 cycles): one gce per step, none delayed past the gap
 //   [3] free-running with the shortest divider: spacing exactly 2**MIN_SHIFT
 //   [4] M14 freeze: while frozen no gce at all (free-running and steps), frozen rises
@@ -75,7 +82,7 @@ module tb_clock_gap;
             step = 1'b0; repeat (3) @(posedge sysclk);
         end
         repeat (2 * G) @(posedge sysclk);                       // let any pending request drain
-        check("[1] fast steps: min spacing", mingap, G, 1000000);
+        check("[1] fast steps: min spacing is exactly the gap", mingap, G, G);
         check("[1] fast steps: pulses", pulses, 20 - 2, 20 + 2);
 
         mingap = 1000000; pulses = 0; last = -1000;

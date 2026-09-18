@@ -580,6 +580,65 @@ make check  # now also checks those reports (timing must close from M13 on)
 
 **How to tweak it.** `build.cfg` is where the tag, IDCODE nibble, USERCODE, `jobs` and the synthesis directive live. The XDC must stay **plain XDC** — Tcl in an XDC is silently skipped, which once left TCK unconstrained while the report said "all constraints met".
 
+### 3.25 `tools/bob/flow.py` and bob studio (`host/studio.py`)
+
+**What it is.** `flow.py` runs the guest flow as separate stages — synth (with its equivalence
+check), pnr, fasm, bits, model, write — each one timed and each returning what it measured:
+cell counts, wirelength, routing iterations, FASM feature count, model samples, and any
+compiler diagnostic with the file and line it names. `./bob build` is a wrapper over it, and
+`./bob build --json FILE` writes the record instead of prose.
+
+**bob studio** (`host/studio.py`) is that engine behind an application, laid out the way
+Vivado is: sources and an editor, a Flow Navigator with Synthesis / Implementation / Generate
+Bitstream, a Device view of where the design landed and which channels it routed through, a
+Pin Planner that writes a `.pcf`, and Program and Debug — program, readback and verify,
+CAPTURE, partial reconfiguration. Messages are clickable to the source line.
+
+**Why this way.** The flow was one 89-line function whose only output was printed prose, so
+nothing could watch it happen — not a GUI, not a report, not a `--json` flag. Separating the
+engine from the CLI costs nothing and makes all three possible. The two are kept honest by
+`tests/test_flow.py`, which requires `flow.py` and `cli.build()` to write a **byte-identical
+`.bit`** for every example.
+
+The backend is stdlib `http.server` plus Server-Sent Events, and the page is one
+self-contained file with no external libraries, assembled from `docs/studio/` exactly as
+`arch.html` is assembled from `docs/arch/`. So the project gained no dependency, and the
+page opens offline.
+
+It also runs with **no board attached**: `--probe fake` uses `host/fakeboard.py`, the software
+stand-in that answers JTAG out of `tools/bob/model.py`. That class was written for
+`tests/test_hwtest_fake.py` and moved here when the studio needed it; the test now imports it,
+so the checks that prove the stand-in can *fail* go on guarding the one the tools use.
+
+**How to use it.**
+
+```sh
+./host/studio.py --probe fake     # no hardware; http://127.0.0.1:8765
+./host/studio.py --probe usb      # the Pico on PMODA
+./bob build --json rec.json examples/fir.v
+./bob build --project bob.proj    # sources, top, pins and settings in one file
+./bob load design.bit --probe fake
+python3 docs/studio/build.py      # rebuild studio.html from docs/studio/p*.{html,js}
+```
+
+**Pin files, exactly.** A `.pcf` names one bit per line and every port bit is `port[i]`,
+*including a one-bit port*: `en` is the net `en[0]`. `vpr_run.write_eblif` builds those
+names from the yosys port bits with no special case for width 1, so a bare name in a
+`.pcf` is silently ignored and place-and-route then stops with
+`input en[0] has no pin (pcf set_io)`. The Pin Planner expands every port to one row per
+bit and refuses an un-indexed name.
+
+**How to tweak it.** A new stage is a method on `Flow` plus its name in `STAGES`; it returns a
+`Stage` and the page picks it up with no change. A new view is a part file in `docs/studio/`
+(they are concatenated in name order) and a route in `host/studio.py`. The one thing to keep
+is that every route drives `flow.py` or `host/cfgplane.py` and reports what they return —
+the studio must never become a second implementation of the flow.
+
+**A caveat worth knowing.** One guest clock on the software board costs a `model.settle()`,
+about 2 ms at 100 CLBs, so a free-running design runs behind the rate it asks for.
+`studio.DemoBoard` bounds the backlog to a time budget and the page says how many edges it
+skipped. The real board has no such problem.
+
 ---
 
 ## 4. Cookbook

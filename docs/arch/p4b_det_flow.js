@@ -142,7 +142,7 @@
 
   /* ============================ M12b / M14 / M15 ============================ */
   D("area", {
-    title: "Configuration memory — one frame buffer (M12b)", sub: `cfg_store.v · ${BOB.chain} bits = ${BOB.chain / 128} frames · chain streamed frame by frame · paid for 16 → 36 CLBs`, k: "CFG", stage: "hw/src/core/cfg_store.v",
+    title: "Configuration memory — one frame buffer (M12b)", sub: `cfg_store.v · ${BOB.chain} bits = ${BOB.chain / 128} frames · chain streamed frame by frame · paid for 16 → 36 → ${BOB.nclb} CLBs`, k: "CFG", stage: "hw/src/core/cfg_store.v",
     rows: [F("M13 (yosys: cfg_store 5.1k LUT, 10.0k FF)",
         ["W-bit shift register", "capture / shift / frame load: a LUT per bit", null, "CFG"],
         ["W-bit memory", "commit at Update-DR after the CRC", null, "CFG"],
@@ -154,6 +154,7 @@
     notes: ["Half of M13's logic was configuration bookkeeping, not fabric. Streaming the chain like the frame path removed a W-bit register and its per-bit mux: store + controller went from 7 755 LUT / 10 309 FF to 4 104 / 5 469 (yosys).",
       "Semantics now match the frame path (UG470): bits land as they arrive, the CRC gates COMMITTED and startup. A bad chain leaves new bits in memory but JSTART refuses; nothing is written while GWE = 1.",
       "The savings bought an 8 × 6 core (VPR 10 × 8): 36 CLBs, 2 BRAMs and 2 DSPs of height 3, 28 pads, W = 24. The whole design estimates at 15.9k LUT / 11.1k FF, M13-sized, which Vivado built in 3.5 min.",
+      `M16 took the same grid setting further: a 12 × 10 core, ${BOB.nclb} CLBs, ${BOB.chain} configuration bits in ${BOB.chain / 128} frames, built at 20 498 LUTs (38.5% of the XC7Z020) and 21 511 FFs. The frame read mux in cfg_store scales with the frame count, so it is now roughly a third of the whole design and the first thing to shrink before the grid grows again.`,
       "CHAIN_OUT after the last frame is a 128-bit delay line, so a repeated 32-bit marker measures the chain length exactly."],
     src: [["AMD UG470 chapter 5", "frames written as they arrive; CRC gates startup"], ["ZUMA (FCCM 2012) / OpenFPGA scan_chain", "area of configuration memory in an overlay"]],
     why: ["Measure first (yosys per module), then remove the biggest cost without touching the proven protocol on the wire."],
@@ -204,7 +205,7 @@
   });
 
   D("timing", {
-    title: "Host timing — why M7 failed and what M13 guarantees", sub: "M7: WNS −1102 ns · TNS −1 608 726 ns · 1858 failing endpoints → M13 constraints that are true by construction", k: "CMT", stage: "hw/constr/pynq_z2.xdc",
+    title: "Host timing — why M7 failed, what M13 guarantees, and why M16 had to raise it", sub: `M7: WNS −1102 ns · 1858 failing endpoints → constraints true by construction · the gap is ${BOB.clock.gap} cycles (2**${BOB.clock.gap_shift}) today`, k: "CMT", stage: "hw/constr/pynq_z2.xdc",
     rows: [F("sysclk (M7 −1102 ns)",
         ["fabric register", "e.g. BRAM hold register", "bram", "BRAM"],
         ["1202 logic levels", "through unconfigured routing loops", "routing", "GTX"],
@@ -213,17 +214,19 @@
         ["IR / boundary update", "", "jtag", "CFG"],
         ["fabric + DSP comb", "~1650 ns", "dsp", "DSP"],
         ["DSP JTAG capture", "under a 1 MHz clock, driven at 100 kHz", "dspjtag", "CFG"]),
-      B("M13",
-        ["gce gap ≥ 256 cycles", "clock_ctrl.v, both modes", "clock", "CMT"],
-        ["multicycle 256 by clock", "u_clk, u_bram_jtag held to 1 cycle by name", null, "CMT"],
+      B("M13, raised at M16",
+        [`gce gap ≥ ${BOB.clock.gap} cycles`, "clock_ctrl.v, both modes (was 256 through M15)", "clock", "CMT"],
+        [`multicycle ${BOB.clock.gap} by clock`, "u_clk, u_bram_jtag held to 1 cycle by name", null, "CMT"],
         ["TCK 10 µs", "dirtyjtag.py refuses > 100 kHz", "jtag", "CFG"],
         ["config only while GWE = 0", "chain and frames", "cfgctrl", "CFG"])],
     notes: ["The static analyser cannot know a configuration, so it walks paths through routing muxes that no legal (loop-free) configuration uses. Those paths are bounded by the user clock, which is an enable on sysclk: guaranteeing the enable spacing in RTL turns the multicycle from an assumption into a fact (tb_clock_gap.v).",
       "M7's constraints named cells by patterns like *u_bram*/u_core/*; synthesis flattened and renamed some registers (hold_qb_reg[17]_i_5__0), so the worst paths were timed as single-cycle. Keeping the fabric's hierarchy crashed Vivado 2025.2 while it broke the routing loops, so the fabric stays flattened and sysclk is relaxed by clock; only u_clk and u_bram_jtag are held to one cycle by name, and build.tcl lists the registers that filter caught (sysclk_1cycle.txt, checked by test_reports.py).",
-      "tests/test_reports.py now requires WNS ≥ 0, no failing endpoint, WHS ≥ 0 and no 'No valid object' for M13 builds."],
+      "tests/test_reports.py now requires WNS ≥ 0, no failing endpoint, WHS ≥ 0 and no 'No valid object' for M13 builds.",
+      `M16: the gap is a function of the grid, not a constant. The 12 × 10 fabric's static path through the unconfigured routing muxes is about 2500 ns, and 256 cycles only bought 2048 ns — implementation opened at WNS −465.7 ns, phys_opt_design spent 1 h 15 min recovering 128 ns, and the router gave up on timing with growing congestion. Raising the gap to ${BOB.clock.gap} cycles (${(BOB.clock.gap * BOB.clock.sysclk_ns / 1000).toFixed(1)} µs) closed it at WNS +0.667 ns. The cost is the free-running guest clock: at most ${(BOB.clock.max_hz / 1000).toFixed(0)} kHz, half of what M15 allowed. Grow the grid again and this number grows with it.`,
+      "That agreement is now checked, not remembered: tests/test_layout.py requires the XDC's sysclk multicycle to equal 2**GCE_MIN_GAP_SHIFT from device.json, hold to be setup − 1, and bob_fpga.v to take GAP_SHIFT from that macro — it passed DIV_MIN_SHIFT to both until M16, so the knob did nothing. Each guard was mutation-tested, and tb_clock_gap now also runs at the board's gap, which nothing had simulated."],
     src: [["docs/reports/M7/timing.rpt", "the failing paths"], ["AMD UG903 / UG949", "multicycle paths on clock-enabled logic; enables over derived clocks"]],
     why: ["Honest constraints: every relaxation is backed by an RTL guarantee or a host limit, and each has a test."],
     files: [["hw/src/core/clock_ctrl.v", "gce gap guard"], ["hw/src/fabric/bob_fpga.v", "fully flattened (keep_hierarchy crashed Vivado)"], ["hw/constr/pynq_z2.xdc", "TCK period, multicycles"], ["host/dirtyjtag.py", "MAX_TCK_KHZ"]],
-    tb: [["hw/tb/tb_clock_gap.v", "spacing in both modes"], ["tests/test_reports.py", "timing closure from M13"], ["sim/mutate_frames.sh", "gap guard mutants"]],
+    tb: [["hw/tb/tb_clock_gap.v", `spacing in both modes, at GAP = 4 and at the board's ${BOB.clock.gap_shift}`], ["tests/test_layout.py", "XDC multicycle == 2**GCE_MIN_GAP_SHIFT, and the RTL takes it from there"], ["tests/test_reports.py", "timing closure from M13"], ["sim/mutate_frames.sh", "gap guard mutants"]],
     drill: ["clock", "frames", "routing"]
   });

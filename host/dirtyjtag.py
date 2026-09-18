@@ -35,7 +35,18 @@ XFER_MAX_BYTES = 60
 SIG_TCK, SIG_TDI, SIG_TDO, SIG_TMS = 1 << 1, 1 << 2, 1 << 3, 1 << 4
 LEVELS = SIG_TMS | SIG_TDI
 
-# Instruction opcodes - must match rtl/jtag_tap.v
+# ---------------------------------------------------------------------------
+# THE 4-BIT M0/M1 INSTRUCTION SET, for the bring-up tops only.
+#
+# This is the *old* TAP (rtl/jtag_tap.v, 4-bit IR, the single-CLB and 4x4 bitstreams)
+# and it is kept because host/tap_probe.py, host/minifpga.py and this module's own
+# load_config / read_config still drive those. It is NOT what bob_top speaks.
+#
+# The current device is a 6-bit AMD 7-series IR and its table lives in
+# host/cfgplane.py (IR), with the IDCODE in host/fpga.py (IDCODE_FABRIC, read from
+# hw/build.cfg). Look there, not here: this module is the transport everything
+# imports, so these names are the first a reader meets and the wrong ones to use.
+# ---------------------------------------------------------------------------
 IR_EXTEST, IR_SAMPLE, IR_IDCODE = 0b0000, 0b0001, 0b0010
 IR_USER, IR_INTEST, IR_CONFIG = 0b0011, 0b0100, 0b0101
 IR_BYPASS = 0b1111
@@ -47,7 +58,7 @@ BSR_W = 9
 # USER control word bit positions
 USER_CE, USER_SR, USER_CIN, USER_STEP, USER_AUTOSTEP = 0, 1, 2, 3, 4
 
-IDCODE_EXPECTED = 0x2BEEF093
+IDCODE_EXPECTED = 0x2BEEF093      # the M0 single-CLB top; the fabric's is fpga.IDCODE_FABRIC
 
 
 MAX_TCK_KHZ = 100          # M13: the XDC constrains TCK at 10 us; never drive it faster
