@@ -48,23 +48,38 @@ const bd = {
   },
 
   // ── the board's two pseudo-blocks: its inputs on the left, its outputs on the right ──
-  // The board's extra pins: board-named ones (SW0 ... LD2) and scan-only pads, kept in the
-  // .bd as {in_pins: ["SW0", "pad5"], out_pins: ["LD1"]}. Older files list pads as numbers.
+  // The board blocks hold only the ports you add - a whole bus (sw, btn, led), one of the
+  // board's pins (SW0 ... LD2) or a scan-only pad - kept in the .bd as
+  // {in_pins: ["sw", "SW0", "pad5"], out_pins: ["LD1"]}. A port a wire already uses is
+  // always shown, so older designs (bd_demo wires the buses) open as they were.
+  BUS_W: { sw: 2, btn: 4, led: 3 },
+  pinDir(name) {
+    if (/^(sw|btn|SW\d|BTN\d)$/.test(name)) return "input";
+    if (/^(led|LD\d)$/.test(name)) return "output";
+    return null;                                   // a pad: its direction is how it is used
+  },
   extraPins(dir) {
     const bb = this.doc.board;
     const k = dir === "input" ? "in" : "out";
-    return (bb[k + "_pins"] || []).concat((bb[k + "_pads"] || []).map((n) => "pad" + n));
+    const out = (bb[k + "_pins"] || []).concat((bb[k + "_pads"] || []).map((n) => "pad" + n));
+    for (const w of this.doc.wires) {              // ports the wires use, even if never added
+      for (const [end, d] of [[w.src, "input"], [w.dst, "output"]]) {
+        const e = this.parse(end);
+        if (!e || e.blk !== "board" || out.includes(e.port)) continue;
+        if ((this.pinDir(e.port) || d) === dir) out.push(e.port);
+      }
+    }
+    return out;
   },
 
   boardBlocks() {
     const bb = this.doc.board;
-    const ins = [{ name: "sw", dir: "output", width: 2 }, { name: "btn", dir: "output", width: 4 }]
-      .concat(this.extraPins("input").map((n) => ({ name: n, dir: "output", width: 1 })));
-    const outs = [{ name: "led", dir: "input", width: 3 }]
-      .concat(this.extraPins("output").map((n) => ({ name: n, dir: "input", width: 1 })));
+    const port = (n, dir) => ({ name: n, dir, width: this.BUS_W[n] || 1 });
+    const ins = this.extraPins("input").map((n) => port(n, "output"));
+    const outs = this.extraPins("output").map((n) => port(n, "input"));
     return [
-      { id: "board", key: "board_in", label: "board inputs", ty: "switches, buttons, pads", x: bb.ix ?? 20, y: bb.iy ?? 40, ports: ins, cls: "board" },
-      { id: "board", key: "board_out", label: "board outputs", ty: "LEDs, pads", x: bb.ox ?? 980, y: bb.oy ?? 40, ports: outs, cls: "board" },
+      { id: "board", key: "board_in", label: "board inputs", ty: ins.length ? "switches, buttons, pads" : "+ input pin to add one", x: bb.ix ?? 20, y: bb.iy ?? 40, ports: ins, cls: "board" },
+      { id: "board", key: "board_out", label: "board outputs", ty: outs.length ? "LEDs, pads" : "+ output pin to add one", x: bb.ox ?? 980, y: bb.oy ?? 40, ports: outs, cls: "board" },
     ];
   },
 
@@ -158,14 +173,16 @@ const bd = {
       const port = (p, i, side) => {
         const y = BD_HEAD + i * BD_ROW + 9;
         const ep = `${s.id}.${p.name}`;
-        const pg = mk("g", { class: "port" + (this.bad(ep) ? " bad" : "") }, g);
+        const pg = mk("g", { class: "port" + (this.bad(ep) ? " bad" : ""), "data-ep": ep, "data-side": side,
+          "data-width": p.width }, g);
         const cx = side === "in" ? 0 : BD_W;
         const c = mk("circle", { cx, cy: y, r: 5 }, pg);
+        const hit = mk("circle", { cx, cy: y, r: 11, fill: "transparent", stroke: "none", style: "cursor:crosshair" }, pg);
         const lab = mk("text", { x: side === "in" ? 10 : BD_W - 10, y: y + 4, "text-anchor": side === "in" ? "start" : "end" }, pg);
         lab.textContent = p.width > 1 ? `${p.name}[${p.width - 1}:0]` : p.name;
         const tt = mk("title", {}, pg); tt.textContent = `${ep} — ${p.dir}, ${p.width} bit${p.width > 1 ? "s" : ""}`;
-        c.onmousedown = (e) => { e.stopPropagation(); this.startWire(e, { ep, side, width: p.width, x: s.x + cx, y: s.y + y }); };
-        c.onmouseup = (e) => { e.stopPropagation(); this.endWire({ ep, side, width: p.width }); };
+        // press on a port (its dot, its hit ring or its name) and release on another to wire them
+        pg.onmousedown = (e) => { e.stopPropagation(); e.preventDefault(); this.startWire(e, { ep, side, width: p.width, x: s.x + cx, y: s.y + y }); };
       };
       s.ins.forEach((p, i) => port(p, i, "in"));
       s.outs.forEach((p, i) => port(p, i, "out"));
@@ -201,20 +218,31 @@ const bd = {
     document.addEventListener("mousemove", move); document.addEventListener("mouseup", up);
   },
 
+  // The guide line follows the pointer, so it must never be what the release lands on:
+  // it ignores the mouse, and the port under the pointer is looked up at release.
+  portAt(x, y) {
+    let n = document.elementFromPoint(x, y);
+    while (n && n.nodeType === 1 && !(n.dataset && n.dataset.ep)) n = n.parentNode;
+    return n && n.dataset && n.dataset.ep ? { ep: n.dataset.ep, side: n.dataset.side, width: +n.dataset.width } : null;
+  },
+
   startWire(e, from) {
     this.drag = from;
     const svg = $("bdsvg");
     const ghost = document.createElementNS("http://www.w3.org/2000/svg", "path");
     ghost.setAttribute("class", "ghost");
+    ghost.setAttribute("pointer-events", "none");
     svg.appendChild(ghost);
     const move = (ev) => {
       const p = this.svgPoint(ev);
       ghost.setAttribute("d", `M${from.x},${from.y} L${p.x},${p.y}`);
     };
-    const up = () => {
+    const up = (ev) => {
       document.removeEventListener("mousemove", move); document.removeEventListener("mouseup", up);
       ghost.remove();
-      setTimeout(() => { this.drag = null; }, 0);
+      const to = this.portAt(ev.clientX, ev.clientY);
+      if (to) this.endWire(to);
+      this.drag = null;
     };
     document.addEventListener("mousemove", move); document.addEventListener("mouseup", up);
   },
@@ -271,7 +299,7 @@ const bd = {
         const g = el("div");
         g.style.cssText = "display:flex;flex-wrap:wrap;gap:6px";
         for (const n of names) {
-          const c = el("button", "go sec", n);
+          const c = el("button", "go sec", this.BUS_W[n] ? `${n}[${this.BUS_W[n] - 1}:0]` : n);
           c.style.cssText = "margin:0;width:auto;padding:3px 10px;font-family:var(--mono);font-size:11.5px";
           c.disabled = used.has(n);
           c.title = used.has(n) ? "already on the board block" : "";
@@ -280,7 +308,8 @@ const bd = {
         }
         box.appendChild(g);
       };
-      group(dir === "input" ? "Board pins (switches and buttons)" : "Board pins (LEDs)", b.pins[dir] || []);
+      group("Whole buses", dir === "input" ? ["sw", "btn"] : ["led"]);
+      group(dir === "input" ? "Single pins (switches and buttons)" : "Single pins (LEDs)", b.pins[dir] || []);
       group(`Scan-only pads (no switch or LED; pad${b.clk_pad ?? 0} carries the clock)`, b.pads.map((n) => "pad" + n));
     }, [["Cancel", null, true], ["Add", async () => {
       if (!picked) throw new Error("pick a pin");
@@ -295,7 +324,8 @@ const bd = {
     const bb = this.doc.board;
     for (const k of ["in_pins", "out_pins"]) bb[k] = (bb[k] || []).filter((n) => n !== name);
     for (const k of ["in_pads", "out_pads"]) bb[k] = (bb[k] || []).filter((n) => "pad" + n !== name);
-    this.doc.wires = this.doc.wires.filter((w) => w.src !== "board." + name && w.dst !== "board." + name);
+    const on = (t) => { const e = this.parse(t); return e && e.blk === "board" && e.port === name; };
+    this.doc.wires = this.doc.wires.filter((w) => !on(w.src) && !on(w.dst));
     this.dirty = true; this.check = null;
     this.render();
   },
