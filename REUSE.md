@@ -245,7 +245,7 @@ Status: **same** = byte-identical to `bob/`, **moved** = same content at a new p
 | staged flow engine | `software/bob/flow.py` | **new**, but every stage calls what `cli.py` already called (`equiv.equiv`, `vpr_run.run`, `pnr.run.run`, `fasm_from_vpr.build`, `bitgen`, `model`). `cli.build()` is now a wrapper over it; `tests/test_flow.py` requires both to write a byte-identical `.bit` |
 | software board | `software/host/fakeboard.py` | **moved**, not written: `FakeBob` came verbatim out of `tests/test_hwtest_fake.py`, which now imports it. `tests/test_fakeboard.py` checks the hardware checks still drive this very class |
 | studio backend | `software/host/studio.py` | **new**; stdlib `http.server` + Server-Sent Events only, so the project gains no dependency (pyusb was already required). Every route drives `flow.py` or `software/host/cfgplane.py` |
-| studio page | `docs/studio/`, `studio.html` | **new**, assembled by `docs/studio/build.py` exactly as `docs/arch/build.py` assembles `arch.html`, reusing that page's tokens and SVG primitives. No external libraries |
+| studio page | `software/studio/`, `studio.html` | **new**, assembled by `software/studio/build.py` exactly as `docs/arch/build.py` assembles `arch.html`, reusing that page's tokens and SVG primitives. No external libraries |
 | device table | `software/bob/devtable.py` | **new**; the table was hand-copied into six documents and drifted (README described the 36-CLB M12b profile after M16 put 100 CLBs on the board). Generated from `device.json` between markers, checked by `tests/test_device_table.py` and `make check` |
 | timing-contract guards | `tests/test_layout.py` | **new** checks over existing files: the XDC's sysclk multicycle must equal `2**GCE_MIN_GAP_SHIFT`, hold must be setup − 1, and the RTL must take the gap from that macro. Each one was mutation-tested |
 | the gap in simulation | `hw/tb/tb_clock_gap.v`, `sim/run_frames_sim.sh` | the existing testbench, parameterised: it ran only at GAP = 4, and now also runs at the board's `BOB_GCE_MIN_GAP_SHIFT` |
@@ -258,6 +258,16 @@ Status: **same** = byte-identical to `bob/`, **moved** = same content at a new p
 | module ports | `project.modules()`, `project.ports()` | yosys (already the synthesis tool): `read_verilog -sv; proc; write_json` for the module list, and `read_verilog -defer; hierarchy -top M -chparam ...` for one parameter set. No Verilog parser was written |
 | block design | `software/bob/bd.py` | **new**; modelled on Vivado IP integrator (blocks, nets, "Create HDL wrapper") and its `xlslice` / `xlconcat` utility IP, without interfaces or the address editor (the fabric has neither). The wrapper takes the examples' `clk sw btn led` convention, so `vpr_run.board_pins` and the model check apply to it unchanged; a pad writes a `.pcf` that `vpr_run.read_pcf` re-reads before it is used |
 | IP cores | `software/bob/ip/*.v` | **new**, small single-clock cores in the style of the examples (initial values, synchronous clear, no async reset). Each is checked cycle by cycle against a Python model in `tests/test_bd.py` |
-| studio | `software/host/studio.py`, `docs/studio/p10_project.js`, `p11_bd.js` | extended; the canvas is plain SVG like `p5_device.js`. `docs/studio/build.py` now orders parts by number (p10 after p9) |
+| studio | `software/host/studio.py`, `software/studio/p10_project.js`, `p11_bd.js` | extended; the canvas is plain SVG like `p5_device.js`. `software/studio/build.py` now orders parts by number (p10 after p9) |
 | board check | `software/host/hwtest.py` `_build`, `MILESTONE["M18"]` | the M10/M11 checks (`_bob_check`, `_live_check`) unchanged except that a design can now be a project (`PROJECTS`) |
+
+## M19: the studio app and the waveform viewer (2026-09-22)
+
+| what | where | reused / new |
+|---|---|---|
+| desktop window | `software/host/studio.py` `serve_app`, `AppBridge` | pywebview (BSD, optional): the existing backend and page in a native window, plus the system file dialogs. Falls back to the browser without it |
+| pad logic analyser | `software/host/padwave.py` | **new**, over the boundary scan the board checks already use: SAMPLE (M11 live checks) and INTEST + USER1 autostep (M10 checks), same scan ordering as `hwtest._bob_check`. Modelled on Vivado's ILA (trigger condition, trigger position) without extra logic in the design; VCD per IEEE 1364 §18 |
+| zoom and pan | `software/studio/p3_api.js` `zoomer()` | **new**, viewBox arithmetic only; shared by the block design and the Device view |
+| board pin names | `software/bob/bd.py` `PIN_ALIAS` | the names `vpr_run.BOARD_PIN_NAMES` already uses in `.pcf` files |
+| failing board | `software/host/fakeboard.py` `lose_clocks` | one more fault switch beside `corrupt_capture` / `corrupt_sample` |
 

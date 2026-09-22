@@ -601,7 +601,7 @@ engine from the CLI costs nothing and makes all three possible. The two are kept
 `.bit`** for every example.
 
 The backend is stdlib `http.server` plus Server-Sent Events, and the page is one
-self-contained file with no external libraries, assembled from `docs/studio/` exactly as
+self-contained file with no external libraries, assembled from `software/studio/` exactly as
 `arch.html` is assembled from `docs/arch/`. So the project gained no dependency, and the
 page opens offline.
 
@@ -618,7 +618,7 @@ software/host/studio.py --probe usb      # the Pico on PMODA
 ./bob build --json rec.json work/examples/fir/fir.v
 ./bob build --project bob.proj    # sources, top, pins and settings in one file
 ./bob load design.bit --probe fake
-python3 docs/studio/build.py      # rebuild studio.html from docs/studio/p*.{html,js}
+python3 software/studio/build.py      # rebuild studio.html from software/studio/p*.{html,js}
 ```
 
 **Pin files, exactly.** A `.pcf` names one bit per line and every port bit is `port[i]`,
@@ -629,7 +629,7 @@ names from the yosys port bits with no special case for width 1, so a bare name 
 bit and refuses an un-indexed name.
 
 **How to tweak it.** A new stage is a method on `Flow` plus its name in `STAGES`; it returns a
-`Stage` and the page picks it up with no change. A new view is a part file in `docs/studio/`
+`Stage` and the page picks it up with no change. A new view is a part file in `software/studio/`
 (they are concatenated in name order) and a route in `software/host/studio.py`. The one thing to keep
 is that every route drives `flow.py` or `software/host/cfgplane.py` and reports what they return —
 the studio must never become a second implementation of the flow.

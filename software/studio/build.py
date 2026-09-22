@@ -2,7 +2,7 @@
 """
 build.py - assemble studio.html from its parts, the way docs/arch/build.py does.
 
-  python3 docs/studio/build.py          -> bob_full_v1/studio.html
+  python3 software/studio/build.py      -> software/studio/studio.html
 
 p1_head.html is the style (tokens copied from docs/arch/p1_head.html so studio looks
 like the rest of the project), p2_body.html the DOM, p3..p11 the behaviour in load
@@ -16,7 +16,7 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
-OUT = os.path.join(ROOT, "studio.html")
+OUT = os.path.join(HERE, "studio.html")
 
 ORDER = ["p1_head.html", "p2_body.html"]
 

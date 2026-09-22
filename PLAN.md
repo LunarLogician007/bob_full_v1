@@ -51,6 +51,8 @@ The 8×8 profile (48 CLBs, 9400 bits, `0x9BEEF093`) is frozen in `release/M7_8x8
 | M16 | 10 × 10 CLB grid (12 × 10 core, 100 CLBs, 145 frames = 18 560 bits) | **passed on hardware 2026-09-18**. The first Vivado attempt did not close (3 h 25 min, WNS −465.7 ns on fabric flop → flop paths, `[Route 35-447]` congestion): the 12 × 10 fabric's static path through the unconfigured routing muxes is ~2500 ns and the 256-cycle gap only bought 2048 ns. Raising the gce gap and the XDC multicycle to 512 cycles closed it and halved the free-running guest clock (488 → 244 kHz). `route_design` then died in "Phase 2.3 Update Timing" until `general.maxThreads 1` (`drc_waiver.tcl`, hooked as TCL.PRE): the timer cuts every combinational loop in the routing mesh — one SCC of 2146 wires and 11 270 cycles, against M15's 1018 / 4130 — and two threads doing that concurrently faults. As built: 20 498 LUTs (38.5%), 21 511 FFs (20.2%), WNS +0.667 ns, WHS +0.112 ns, DRC clean. Checklist `docs/hwtest/M16.md` |
 | M18 | bob studio projects and block designs: New/Open Project (a `.bobproj` folder anywhere on disk), sources + top + pin files, a block-design canvas (project modules, 14 IP cores, the board's pins) that generates an HDL wrapper and `.pcf`, and project builds into `<project>/build/` | **software done; hardware test pending** (`make hwtest M=M18`, no Vivado rebuild: the PL keeps M16). Example `work/examples/bd_demo`. Checklist `docs/hwtest/M18.md` |
 
+| M19 | bob studio as a desktop app (`./bob studio`, pywebview), all software under `software/` (the studio page moved to `software/studio/`), zoom and pan on the block design, Device view and waveform, board pins (SW0..BTN3, LD0..LD2) as block-design ports, the **waveform viewer**: a logic analyser on the pads through boundary scan (`software/host/padwave.py`; step = INTEST autostep, one sample per user clock; live = SAMPLE), with triggers and VCD export | **software done; hardware test pending** (`make hwtest M=M19`, no Vivado rebuild). Checklist `docs/hwtest/M19.md` |
+
 Hardware results are in `docs/hwtest/results.log`; Vivado reports are in `docs/reports/Mx/`; per-design guest reports in `docs/reports/M11/designs.md`.
 
 ### After M16: the timing contract is checked, and there is a GUI
@@ -68,7 +70,7 @@ the placement and routing, a Pin Planner, program / readback / CAPTURE / partial
 reconfiguration. Its engine is `software/bob/flow.py`, which runs `./bob build`'s flow as
 separate timed stages; `tests/test_flow.py` requires it and `cli.build()` to write a
 byte-identical `.bit`. It drives `software/host/fakeboard.py` when no board is attached. The page is
-built from `docs/studio/` exactly as `arch.html` is built from `docs/arch/`, and the backend
+built from `software/studio/` exactly as `arch.html` is built from `docs/arch/`, and the backend
 is stdlib only, so the project gained no dependency.
 
 ### M18: projects and block designs

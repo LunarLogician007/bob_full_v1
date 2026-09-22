@@ -95,10 +95,31 @@ Every run is appended to `docs/hwtest/results.log`. To test an older bitstream, 
 ## bob studio
 
 ```sh
-software/host/studio.py --probe fake        # no board needed
-software/host/studio.py --probe usb         # the Pico on PMODA
-python3 docs/studio/build.py         # rebuild studio.html from docs/studio/p*.{html,js}
+./bob studio --probe fake            # the desktop app, no board needed (M19)
+./bob studio --probe usb             # the desktop app on the Pico
+./bob studio --browser               # the same studio in a browser tab
+python3 software/studio/build.py     # rebuild software/studio/studio.html from software/studio/p*.{html,js}
 ```
+
+The app is the same backend (`software/host/studio.py`) in a native window through
+[pywebview](https://pywebview.flowrl.com) (`pip3 install pywebview`); without it, `./bob studio`
+opens the browser instead. All the software is under `software/`:
+
+```
+software/bob/       the flow: synthesis, place and route, FASM, bitgen, projects (project.py),
+                    block designs (bd.py) and their IP cores (ip/)
+software/host/      the board: JTAG, configuration, the hardware tests, the studio backend,
+                    the pad logic analyser (padwave.py)
+software/studio/    the studio's page, built into software/studio/studio.html
+```
+
+**Waveform (pad ILA)**, under Program and Debug, is a logic analyser on the pads. It uses the
+boundary-scan register, so the design needs no extra logic. **step** mode takes one sample per
+user clock through INTEST autostep (cycle-exact, with the inputs you choose). **live** mode
+uses SAMPLE while the design runs on its own clock. You can trigger on a signal rising,
+falling, 1, 0 or changing, with a pre-trigger window. Signals are named after the programmed
+design's ports, and a capture exports as `.vcd`. The block-design canvas, the Device view
+and the waveform all zoom (− / + / fit, Ctrl/⌘ + wheel or pinch) and pan (drag, wheel).
 
 | Vivado / Quartus | bob studio | what actually runs |
 |---|---|---|
@@ -162,7 +183,7 @@ The stages come from [`software/bob/flow.py`](software/bob/flow.py), which runs 
 `./bob build` does but as separate timed steps, each returning what it measured.
 `./bob build --json FILE` writes that record; `tests/test_flow.py` requires `flow.py` and
 `cli.build()` to produce a byte-identical `.bit`. The page is one self-contained file with
-no external libraries, assembled from `docs/studio/` the way `arch.html` is.
+no external libraries, assembled from `software/studio/` the way `arch.html` is.
 
 ## The guest flow (M8–M10, today)
 

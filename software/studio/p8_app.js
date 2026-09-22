@@ -3,7 +3,7 @@
 const TABS = [
   ["project", "Project"], ["bd", "Block Design"],
   ["editor", "Source"], ["device", "Device"], ["bitstream", "Bitstream"],
-  ["pins", "Pins"], ["board", "Board"], ["sources", "Sources"], ["settings", "Settings"],
+  ["pins", "Pins"], ["board", "Board"], ["wave", "Waveform"], ["sources", "Sources"], ["settings", "Settings"],
 ];
 
 const tabs = {
@@ -31,6 +31,7 @@ const tabs = {
     if (k === "settings") settings.render();
     if (k === "project") project.render();
     if (k === "bd") bd.render();
+    if (k === "wave") wavev.load();
   },
 };
 
@@ -197,6 +198,7 @@ function topbar() {
 
 async function boot() {
   editor.wire();
+  wavev.wire();
   tabs.render();
   dock.render();
 

@@ -521,7 +521,7 @@ Vivado is:
 
 Two properties were design constraints rather than features. It **adds no dependency**:
 the backend is stdlib `http.server` plus Server-Sent Events, and the page is one
-self-contained file with no external libraries, assembled from `docs/studio/` exactly as
+self-contained file with no external libraries, assembled from `software/studio/` exactly as
 `arch.html` is assembled from `docs/arch/`. And it **runs with no board attached** —
 `--probe fake` uses `software/host/fakeboard.py`, the software stand-in that answers JTAG out of
 `software/bob/model.py`. That class was written for `tests/test_hwtest_fake.py`; it moved to

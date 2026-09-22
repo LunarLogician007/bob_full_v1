@@ -9,6 +9,7 @@ bob - build a Verilog design for the bob FPGA and load it (M10).
   ./bob load  counter.bit [--watch] [--probe usb|fake]
   ./bob info  counter.bit
   ./bob fasm  counter.bit                     the chain as FASM
+  ./bob studio [--probe fake|usb] [--browser] bob studio, as a desktop app (M19)
 
 build runs software/bob/flow.py: every step checked before the next, each one timed and
 reported. `--json` writes that record instead of prose.
@@ -191,7 +192,20 @@ def main():
                     help="M14: reconfigure the RUNNING design, only the changed frames, user clock held")
     sub.add_parser("info").add_argument("bit")
     sub.add_parser("fasm").add_argument("bit")
+    st = sub.add_parser("studio", help="bob studio: the desktop app (or --browser for a tab)")
+    st.add_argument("--probe", choices=("usb", "fake"), help="open a target at start (fake: no board)")
+    st.add_argument("--browser", action="store_true", help="a browser tab instead of the app window")
+    st.add_argument("--port", type=int)
     args = ap.parse_args()
+
+    if args.cmd == "studio":
+        sys.path.insert(0, os.path.join(ROOT, "software", "host"))
+        import studio
+        if args.browser:
+            studio.serve(args.port or 8765, args.probe, True)
+        else:
+            studio.serve_app(args.port or 0, args.probe)
+        return 0
 
     try:
         if args.cmd == "build":

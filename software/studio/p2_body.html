@@ -51,6 +51,7 @@
       <div class="item" id="partial"><span class="st"> </span>Partial reconfigure</div>
       <div class="item" id="readback"><span class="st"> </span>Readback and Verify</div>
       <div class="item" id="capture"><span class="st"> </span>Capture registers</div>
+      <div class="item" data-go="wave"><span class="st"> </span>Waveform (pad ILA)</div>
       <div class="item" data-go="board"><span class="st"> </span>Board</div>
     </div>
   </div>
@@ -76,6 +77,7 @@
           <label class="sw"><input type="checkbox" id="shownets" checked> routed nets</label>
           <label class="sw"><input type="checkbox" id="showids"> names</label>
           <span class="pill" id="devpill">nothing placed yet</span>
+          <span id="devzoom" style="display:flex;gap:4px;align-items:center;margin-left:auto"></span>
         </div>
         <svg id="floor" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet"></svg>
         <div class="lg" id="devlegend"></div>
@@ -111,6 +113,19 @@
           <div class="wires" id="bdwires"></div>
         </div>
         <div class="bdside" id="bdside"></div>
+      </div>
+    </div>
+
+    <div class="pane" id="pane-wave">
+      <div class="dev">
+        <div class="top" id="wavetop"></div>
+        <div style="display:flex;flex:1;min-height:0;gap:0;border-top:1px solid var(--rule-2)">
+          <div id="wavelist" class="bdpal" style="width:210px"></div>
+          <div style="flex:1;min-width:0;overflow:auto;display:flex;flex-direction:column">
+            <svg id="wavesvg" style="width:100%;flex:none;user-select:none" viewBox="0 0 900 120"></svg>
+            <div id="waveread" style="font-family:var(--mono);font-size:11px;color:var(--ink-2);padding:6px 10px;white-space:pre;overflow:auto"></div>
+          </div>
+        </div>
       </div>
     </div>
 

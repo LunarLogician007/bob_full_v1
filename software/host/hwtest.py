@@ -1767,6 +1767,69 @@ MILESTONE["M18"] = (
      ("live-bd_demo", _live_check("bd_demo"))] +
     [MILESTONE["M16"][-1]])
 
+# --- M19: the waveform viewer (software/host/padwave.py) on the board ---------------------
+
+WAVE_CYCLES = 120
+
+
+def check_wave_step(p, ctx):
+    """The pad logic analyser, stepped: counter.v driven through INTEST with its own source
+    trace's inputs; the captured LEDs equal the source Verilog's on every clock, and the VCD
+    holds every change."""
+    import padwave
+    path, word, contents, tr, work, _result = _build("counter")
+    import cli
+    ok, msg = cli.load(p, path, log=lambda *_: None)
+    if not ok:
+        return False, msg
+    trace = tr["trace"][:WAVE_CYCLES]
+    cap = padwave.capture(p, "step", len(trace), sel=["LD0", "LD1", "LD2"],
+                          stimulus={"kind": "sequence", "vectors": [t[0] for t in trace]})
+    got = [r[0] | r[1] << 1 | r[2] << 2 for r in cap["samples"]]
+    bad = [f"clock {k}: LEDs {g:03b} vs source {t[2]:03b}" for k, (g, t) in enumerate(zip(got, trace)) if g != t[2]]
+    moves = len(set(got))
+    text = padwave.vcd(cap)
+    if bad:
+        return False, f"{len(bad)} of {len(trace)} clocks wrong, first {bad[:3]}"
+    if moves < 3:
+        return False, f"the LEDs took only {moves} values: the stimulus did not exercise the counter"
+    return True, (f"{len(trace)} clocks captured == source Verilog ({moves} LED values, "
+                  f"{cap['rate']} samples/s), VCD {text.count(chr(10) + '#')} time steps")
+
+
+def check_wave_live(p, ctx):
+    """The pad logic analyser, live: switches.v on the free-running clock, SAMPLE for a few
+    seconds while you flip SW0 and SW1 (interactive); LD0 must be SW0 xor SW1 in every sample."""
+    import time
+    import cli
+    import padwave
+    path, *_rest = _build("switches", bit_suffix="_wave", clock="run", div=LIVE_DIV)
+    ok, msg = cli.load(p, path, log=lambda *_: None)
+    if not ok:
+        return False, msg
+    seconds = 8.0 if _interactive() else 1.0
+    if _interactive():
+        input("           wave-live: press Enter, then flip SW0 and SW1 a few times (8 s) ")
+    t0, rows = time.time(), []
+    while time.time() - t0 < seconds:
+        cap = padwave.capture(p, "live", 200, sel=["SW0", "SW1", "LD0"])
+        rows += cap["samples"]
+    bad = [r for r in rows if r[2] != r[0] ^ r[1]]
+    states = {(r[0], r[1]) for r in rows}
+    if bad:
+        return False, f"{len(bad)} of {len(rows)} samples have LD0 != SW0 xor SW1, first {bad[:3]}"
+    if _interactive() and len(states) < 3:
+        return False, f"only {len(states)} switch settings seen in {seconds:.0f} s: flip SW0 and SW1"
+    return True, f"{len(rows)} live samples, LD0 == SW0 xor SW1 in all, {len(states)} switch settings"
+
+
+# M19: bob studio as a desktop app, board pins in block designs, the waveform viewer.
+# Software only again: the M18 list plus the two waveform checks.
+MILESTONE["M19"] = (
+    MILESTONE["M18"][:-1] +
+    [("wave-step", check_wave_step), ("wave-live", check_wave_live)] +
+    [MILESTONE["M18"][-1]])
+
 # --- runner ------------------------------------------------------------------
 
 def manual_steps(milestone):

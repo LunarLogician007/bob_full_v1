@@ -237,6 +237,22 @@ def test_each_rule_fails_where_it_should(change, where, text):
     _one(_errs([CNT, MUX], change(list(GOOD_WIRES))), where, text)
 
 
+def test_board_pin_names_are_the_bus_bits_they_name():
+    """board.LD1 is board.led[1]: the same wrapper, and clashes are found across the two spellings."""
+    named = [{"src": "board.SW1", "dst": "cnt.en"}, {"src": "board.BTN0", "dst": "cnt.clr"},
+             {"src": "cnt.q", "dst": "mux.a"}, {"src": "board.btn[3:1]", "dst": "mux.b"},
+             {"src": "board.SW0", "dst": "mux.sel"}, {"src": "mux.y[0]", "dst": "board.LD0"},
+             {"src": "mux.y[2:1]", "dst": "board.led[2:1]"}]
+    res = BD.check(_bd([CNT, MUX], named))
+    assert res["errors"] == [] and res["warnings"] == []
+    text = BD.wrapper_text(_bd([CNT, MUX], named), res, "x.bd")
+    assert "assign cnt__en = sw[1];" in text and "assign led[0] = mux__y[0];" in text
+    _one(_errs([CNT, MUX], named + [{"src": "cnt.q[0]", "dst": "board.led[0]"}]), "board.led[0]", "driven twice")
+    _one(_errs([CNT, MUX], named + [{"src": "cnt.q[0]", "dst": "board.SW0"}]), "board.SW0", "board input")
+    _one(_errs([CNT, MUX], named + [{"src": "board.LD3", "dst": "cnt.en"}]), "cnt.en", "not LD3")
+    _one(_errs([CNT, MUX], named + [{"src": "board.SW0[1]", "dst": "cnt.en"}]), "cnt.en", "one pin")
+
+
 def test_a_pad_is_one_direction_only():
     w = GOOD_WIRES + [{"src": "board.pad1", "dst": "cnt.en"}]
     w = [x for x in w if x["dst"] != "cnt.en" or x["src"] == "board.pad1"]

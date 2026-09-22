@@ -256,3 +256,26 @@ def test_m18_goals_are_not_met_by_idle_inputs():
         h = {}
         met = sum(bool(fn(i, leds, h)) for _l, fn in goals for leds in range(8))
         assert met < len(goals) * 8
+
+
+# --- M19: the waveform viewer on the board ------------------------------------------
+
+
+def test_m19_wave_step_passes_on_a_good_board():
+    ok, msg = hwtest.check_wave_step(FakeBob(), {})
+    assert ok and "== source Verilog" in msg, msg
+
+
+def test_m19_wave_step_fails_when_the_board_loses_clocks():
+    ok, msg = hwtest.check_wave_step(FakeBob(lose_clocks=7), {})
+    assert not ok and "wrong" in msg, msg
+
+
+def test_m19_wave_live_passes_on_a_good_board():
+    ok, msg = hwtest.check_wave_live(FakeBob(switches=lambda t: int(t / 0.05) % 4), {})
+    assert ok, msg
+
+
+def test_m19_wave_live_fails_when_the_leds_are_wrong():
+    ok, msg = hwtest.check_wave_live(FakeBob(switches=lambda t: int(t / 0.05) % 4, corrupt_sample=True), {})
+    assert not ok and "xor" in msg, msg

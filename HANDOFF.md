@@ -13,12 +13,34 @@ This file is the live state: what is finished, what is in flight, and exactly wh
 | Bitstream in the PL | **M16** (`0xFBEEF093`): 100 CLBs (12 × 10 core), 145 frames = 18 560 bits, 2 BRAM, 2 DSP, 44 pads. 20 498 LUTs (38.5%), 21 511 FFs (20.2%), WNS +0.667 ns, WHS +0.112 ns, DRC clean |
 | Guest tooling | `./bob build｜load｜info｜fasm`, and **bob studio** (`software/host/studio.py`), which since M18 has **projects** (`.bobproj`) and **block designs** |
 | Whole-project report | `docs/project/REPORT.md` + `project.html`; the learning guide is `docs/project/GUIDE.md` + `guide.html` (**done**, committed in `807f2b9`) |
-| In flight | **M18: software done, `make hwtest M=M18` pending** (no Vivado rebuild; checklist `docs/hwtest/M18.md`). Tag `m18` only after it passes |
+| In flight | **M18 and M19: software done, board tests pending.** `make hwtest M=M19` runs M18's list plus the waveform checks (no Vivado rebuild; checklists `docs/hwtest/M18.md`, `M19.md`). Tag `m18`/`m19` only after they pass |
 
 The device table in `README.md` is generated from `software/bob/device.json` by
 `software/bob/devtable.py`; `make check` fails if it drifts.
 
 ---
+
+## 1b. M19 — the studio app and the waveform viewer
+
+- `./bob studio [--probe fake|usb] [--browser]`: `studio.serve_app()` runs the backend in
+  this process and shows it in a pywebview window. `AppBridge` gives the page the system's
+  folder, open and save dialogs (`native()` in `p3_api.js`); the page falls back to its own
+  folder browser in a tab. pywebview is optional (installed in the mamba Python beside pyusb).
+- The studio page lives in `software/studio/` now (was `docs/studio/`), built into
+  `software/studio/studio.html`.
+- `zoomer()` in `p3_api.js` is the shared zoom and pan (block design, Device view). The
+  waveform zooms time only (`p12_wave.js`).
+- Block designs accept the board's pin names: `board.LD1` is `board.led[1]`
+  (`bd.PIN_ALIAS`). The canvas's **+ input pin / + output pin** dialog lists them before
+  the pads.
+- `software/host/padwave.py`: capture over boundary scan. Step mode (INTEST autostep) pairs
+  the vector applied for clock k with the outputs captured on the next scan, exactly as
+  `_bob_check` does. `tests/test_padwave.py` requires a stepped capture of `counter.v` driven
+  by its trace to equal the source. Studio routes `/api/wave/*`; board checks `wave-step`
+  and `wave-live`; `FakeBob(lose_clocks=N)` is the failing board.
+- The UI was driven in the real WebKit engine through pywebview's `evaluate_js`: every tab,
+  a project and block design, board-pin wiring, validation marks, zoom, a triggered capture.
+  Zero script errors.
 
 ## 1a. M18 — projects and block designs in bob studio
 
@@ -29,7 +51,7 @@ The device table in `README.md` is generated from `software/bob/device.json` by
 - `software/bob/bd.py` + `software/bob/ip/` (14 cores): block designs. `check()` returns an
   error at each endpoint; `generate()` writes `bd/<name>_wrapper.v` (ports `clk sw btn led`
   plus pads) and `constrs/<name>.pcf` when a pad is used, copies the IP into `ip/`.
-- Studio: Project Manager and Block Design tabs (`docs/studio/p10_project.js`, `p11_bd.js`),
+- Studio: Project Manager and Block Design tabs (`software/studio/p10_project.js`, `p11_bd.js`),
   routes under `/api/project/*`, `/api/bd*`, `/api/fs`, `/api/ports`. The path guard
   allows the repo **or** the open project.
 - `work/examples/bd_demo/` (committed VPR route `software/bob/vpr/bd_demo_bd_wrapper/`),
@@ -37,9 +59,7 @@ The device table in `README.md` is generated from `software/bob/device.json` by
 - Worth knowing: the first spare pad is taken by `clk` (`vpr_run.write_eblif`); the Pin
   Planner does not know that, `bd.py` does. A new project defaults to `pnr vpr`, which needs
   Docker until its route is committed; `python` needs nothing.
-- Not yet exercised by hand in a browser (the page's logic was run headless in
-  JavaScriptCore, and every route is covered by `tests/test_studio.py`). The manual steps in
-  `docs/hwtest/M18.md` are the first click-through.
+- Exercised in WebKit at M19 (see 1b); the manual steps in `docs/hwtest/M18.md` are the human click-through.
 
 ## 2. M16 — the 10 × 10 CLB grid, as built
 
@@ -93,7 +113,7 @@ and verify, CAPTURE, partial reconfiguration.
 - **`software/host/fakeboard.py`** is `FakeBob`, moved out of `tests/test_hwtest_fake.py` (which now
   imports it) so tools that are not pytest can use it. It answers from `software/bob/model.py`.
   It cannot find hardware problems — it is for running the flow with no board attached.
-- **`docs/studio/`** builds `studio.html` the way `docs/arch/` builds `arch.html`: one
+- **`software/studio/`** builds `studio.html` the way `docs/arch/` builds `arch.html`: one
   self-contained page, vanilla JS and hand-drawn SVG, no external libraries. The backend is
   stdlib `http.server` + Server-Sent Events, so the project gained **no new dependency**.
 - New flags: `./bob build --json FILE` (the stage record), `--project bob.proj`,
@@ -121,7 +141,7 @@ software/bob/devtable.py --write        # regenerate the device table in the doc
 software/bob/synth_estimate.sh $PWD $PWD/build/est      # whole-design yosys estimate before a Vivado hand-off
 python3 docs/project/collect.py && python3 docs/project/build.py   # report data + project.html
 python3 docs/arch/build.py --data                    # arch.html (--data after make device)
-python3 docs/studio/build.py                         # studio.html
+python3 software/studio/build.py                         # studio.html
 ```
 
 Docker for VPR: `colima start`, then `DOCKER_HOST=unix://$HOME/.colima/default/docker.sock`.

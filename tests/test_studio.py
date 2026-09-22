@@ -586,3 +586,31 @@ def test_the_pin_planner_writes_into_the_project(srv, proj_dir):
     assert r["pcf"] == str(proj_dir / "demo" / "constrs" / "demo_pins.pcf")
     p = get(srv, "/api/project")["project"]
     assert p["active_pcf"] == "constrs/demo_pins.pcf" and p["constraints"] == ["constrs/demo_pins.pcf"]
+
+
+# --- the waveform viewer (M19) ------------------------------------------------------
+
+
+def test_the_waveform_viewer_captures_what_the_design_does(srv):
+    post(srv, "/api/target", {"kind": "fake"})
+    ev = build(srv, {"files": ["work/examples/counter/counter.v"]})
+    post(srv, "/api/program", {"bit": ev["stages"][-1]["stats"]["path"]})
+    sig = get(srv, "/api/wave/signals")
+    assert sig["design"] == "counter" and sig["clock"] == "jtag"
+    assert {"name": "LD0", "port": "led[0]"}.items() <= next(s for s in sig["signals"] if s["name"] == "LD0").items()
+    cap = post(srv, "/api/wave/capture", {"mode": "step", "depth": 80, "sel": ["BTN0", "LD0", "LD1"],
+                                          "stimulus": {"kind": "hold", "vector": 4},
+                                          "trigger": {"signal": "LD1", "cond": "rise"}, "pre": 0.1})
+    # LD1 = q[4] first rises 15 clocks in; a tenth of 80 fits before it
+    assert cap["depth"] == 80 and cap["trigger"] == 8 and cap["design"] == "counter"
+    ld1 = [row[2] for row in cap["samples"]]
+    assert ld1[8] == 1 and ld1[7] == 0
+    with urllib.request.urlopen(srv + "/api/wave/vcd", timeout=30) as r:
+        assert "attachment" in r.headers["Content-Disposition"]
+        assert "$var wire 1 # led_1 $end" in r.read().decode()
+
+
+def test_a_bad_capture_is_refused(srv):
+    post(srv, "/api/target", {"kind": "fake"})
+    assert "mode" in _refused(lambda: post(srv, "/api/wave/capture", {"mode": "fast"}))
+    assert "no signal" in _refused(lambda: post(srv, "/api/wave/capture", {"sel": ["nope"]}))

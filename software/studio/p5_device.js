@@ -33,7 +33,8 @@ const device = {
     const svg = $("floor");
     svg.innerHTML = "";
     const W = PAD * 2 + d.grid.w * CELL, H = PAD * 2 + d.grid.h * CELL;
-    svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+    if (!this.z) this.z = zoomer(svg, $("devzoom"));
+    this.z.setBase(0, 0, W, H);
 
     const placed = {}, byType = {};
     for (const b of (S.placement ? S.placement.blocks : [])) {

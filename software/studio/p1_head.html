@@ -148,7 +148,7 @@
 
   /* The pin planner and the bitstream browser scroll their own content: the pad ring
      must not grow until the assignment rows fall off the bottom. */
-  #pinview, #bitview, #srcview, #setview, #boardview { overflow: auto; min-height: 0; flex: 1 }
+  #pinview, #bitview, #srcview, #setview, #boardview, #wavelist { overflow: auto; min-height: 0; flex: 1 }
   #pinview svg { flex: none; max-height: 340px; align-self: flex-start }
   .lg i { width: 9px; height: 9px; border-radius: 2px; display: inline-block; margin-right: 4px; vertical-align: -1px }
 
@@ -240,6 +240,8 @@
 
   /* ── block design canvas ─────────────────────────────────── */
   #pane-bd .dev { flex-direction: row; gap: 0; padding: 0 }
+  #pane-wave .dev { padding: 0; gap: 0 }
+  #pane-wave .dev > .top { padding: 8px 12px }
   .bdpal { width: 190px; flex: none; border-right: 1px solid var(--rule); overflow: auto; padding: 8px 0; font-size: 12px }
   .bdpal h4 { margin: 10px 12px 4px; font-size: 10px; letter-spacing: .07em; text-transform: uppercase; color: var(--mute) }
   .bdpal .pi { padding: 4px 12px; cursor: pointer; display: flex; justify-content: space-between; gap: 6px }

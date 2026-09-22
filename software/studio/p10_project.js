@@ -40,7 +40,31 @@ function fsBrowser(box, { mode, exts, multi, start, onChange }) {
   const st = { path: start || "", picked: [] };
   const where = el("input"); where.type = "text";
   const list = el("div", "fsl");
-  box.appendChild(where); box.appendChild(list);
+  if (native()) {                                  // the app window: the system's own dialog too
+    const row = el("div");
+    row.style.cssText = "display:flex;gap:6px;align-items:center";
+    const b = el("button", "go sec", mode === "folder" ? "Choose folder…" : "Choose files…");
+    b.style.cssText = "margin:0;width:auto;padding:4px 10px;flex:none";
+    b.onclick = async () => {
+      if (mode === "folder") {
+        const f = await native().pick_folder(st.path);
+        if (f) go(f);
+      } else {
+        const kind = exts.includes(".pcf") ? "pcf" : exts.includes(".bobproj") ? "project" : "hdl";
+        const fs = await native().pick_files(kind, st.path);
+        if (fs && fs.length) {
+          st.picked = multi ? [...new Set(st.picked.concat(fs))] : [fs[0]];
+          onChange && onChange(st);
+          go(fs[0].replace(/\/[^/]*$/, ""));
+        }
+      }
+    };
+    row.appendChild(where); row.appendChild(b);
+    box.appendChild(row);
+  } else {
+    box.appendChild(where);
+  }
+  box.appendChild(list);
   const go = async (p) => {
     const r = await api("/api/fs?path=" + encodeURIComponent(p || ""));
     st.path = r.path; where.value = r.path; list.innerHTML = "";

@@ -9,7 +9,7 @@ reimplements a stage; every route drives software/bob/flow.py (synthesis and its
 equivalence check, place and route, FASM, bitgen, the model check) or
 software/host/cfgplane.py (program, readback), and reports what they return.
 
-  GET  /                        the page (studio.html, built by docs/studio/build.py)
+  GET  /                        the page (studio.html, built by software/studio/build.py)
   GET  /api/device              the device: grid, blocks, columns, capacity, frames
   GET  /api/examples            the example designs, as starting projects
   GET  /api/source?path=        one source file, for the editor
@@ -52,6 +52,11 @@ Projects and block designs (M18; software/bob/project.py, software/bob/bd.py):
   GET  /api/bd/palette          IP cores, the project's modules, the board's ports
   GET  /api/ports?kind=&type=&params=   a block's ports at these parameters
 
+The waveform viewer (M19; software/host/padwave.py), a logic analyser on the pads over JTAG:
+  GET  /api/wave/signals        every pad as a signal, named after the programmed design's ports
+  POST /api/wave/capture        {mode: step|live, depth, sel, trigger, pre, stimulus, timeout}
+  GET  /api/wave/vcd            the last capture as a .vcd file
+
 Stdlib only: http.server and SSE, so the project gains no dependency. Builds write
 where the CLI writes them, under build/, and nothing here ever regenerates the
 device or touches hw/.
@@ -85,8 +90,9 @@ import fasm_from_vpr as FV  # noqa: E402
 import flow  # noqa: E402
 import project as P  # noqa: E402
 import vpr_run  # noqa: E402
+import padwave as wave  # noqa: E402
 
-PAGE = os.path.join(ROOT, "studio.html")
+PAGE = os.path.join(ROOT, "software", "studio", "studio.html")
 EXAMPLES = os.path.join(ROOT, "work", "examples")
 
 
@@ -624,6 +630,8 @@ class Target:
     def __init__(self, kind=None):
         self.kind = None
         self.probe = None
+        self.bit = None                 # the last .bit programmed: its pins name the waveform's signals
+        self.last_wave = None
         self.lock = threading.Lock()
         if kind:
             self.open(kind)
@@ -674,7 +682,45 @@ class Target:
                 ok, msg = cli.load_partial(self.probe, bit)
             else:
                 ok, msg = cli.load(self.probe, bit, mode=mode)
+            if ok:
+                self.bit = bit
         return {"ok": ok, "message": msg, "mode": "partial" if partial else mode}
+
+    def pins(self):
+        """{port bit: pad} of the programmed design: its .pcf, or None (the convention)."""
+        import bitgen
+        if not self.bit or not os.path.exists(self.bit):
+            return None, None
+        meta = bitgen.read_bit(self.bit)["meta"]
+        pcf = meta.get("pcf")
+        if not pcf:
+            return None, meta
+        path = pcf if os.path.isabs(pcf) else os.path.join(ROOT, pcf)
+        try:
+            return vpr_run.read_pcf(path), meta
+        except (OSError, vpr_run.VprError):
+            return None, meta
+
+    def wave_signals(self):
+        pins, meta = self.pins()
+        return {"signals": wave.signals(pins), "design": (meta or {}).get("design"),
+                "clock": (meta or {}).get("clock"), "bit": self.bit,
+                "conditions": list(wave.CONDITIONS), "max_depth": wave.MAX_DEPTH}
+
+    def wave(self, b):
+        """One capture. The probe is held for its length, so the timeout is kept short."""
+        if not self.probe:
+            raise RuntimeError("no target open: POST /api/target first")
+        pins, meta = self.pins()
+        with self.lock:
+            cap = wave.capture(self.probe, b.get("mode", "step"), int(b.get("depth", 256)),
+                               sel=b.get("sel") or None, trigger=b.get("trigger") or None,
+                               pre=float(b.get("pre", 0.25)), stimulus=b.get("stimulus") or None,
+                               timeout=min(30.0, float(b.get("timeout", 10.0))), pins=pins)
+        cap["design"] = (meta or {}).get("design")
+        cap["clock"] = (meta or {}).get("clock")
+        self.last_wave = cap
+        return cap
 
 
     def readback(self, bit):
@@ -824,6 +870,14 @@ class Handler(BaseHTTPRequestHandler):
                 return self._project_call(lambda: bd_get(q.get("rel", [""])[0]))
             if p == "/api/bd/palette":
                 return self._project_call(lambda: BD.palette(PROJECT.get()))
+            if p == "/api/wave/signals":
+                return self._json(TARGET.wave_signals())
+            if p == "/api/wave/vcd":
+                if not TARGET.last_wave:
+                    return self._fail(404, "no capture yet")
+                name = (TARGET.last_wave.get("design") or "pads") + ".vcd"
+                return self._send(200, wave.vcd(TARGET.last_wave), "text/plain; charset=utf-8",
+                                  [("Content-Disposition", f'attachment; filename="{name}"')])
             if p == "/api/ports":
                 return self._project_call(lambda: {"ports": block_ports(
                     q.get("kind", ["ip"])[0], q.get("type", [""])[0],
@@ -877,6 +931,11 @@ class Handler(BaseHTTPRequestHandler):
                                   else TARGET.partial(bit))
             if p == "/api/capture":
                 return self._json(TARGET.capture())
+            if p == "/api/wave/capture":
+                try:
+                    return self._json(TARGET.wave(self._body()))
+                except (wave.WaveError, ValueError, RuntimeError) as e:
+                    return self._fail(400, str(e))
             if p.startswith("/api/project/"):
                 b = self._body()
                 return self._project_call(lambda: project_post(p.rsplit("/", 1)[1], b))
@@ -919,12 +978,12 @@ class Handler(BaseHTTPRequestHandler):
     def _page(self):
         if not os.path.exists(PAGE):
             return self._send(503, "studio.html is not built yet:\n"
-                                   "  python3 docs/studio/build.py\n", "text/plain")
+                                   "  python3 software/studio/build.py\n", "text/plain")
         body = open(PAGE, "rb").read()
         self._send(200, body, "text/html; charset=utf-8")
 
     def _static(self, rel):
-        ap = _inside(os.path.join("docs", "studio", rel))
+        ap = _inside(os.path.join("software", "studio", rel))
         if not ap or not os.path.isfile(ap):
             return self._fail(404, "no such file")
         ctype = mimetypes.guess_type(ap)[0] or "application/octet-stream"
@@ -1028,7 +1087,7 @@ def serve(port=8765, probe=None, open_browser=True):
           f"{B.DEVICE['frames']['count']} frames")
     print(f"  studio  {url}", flush=True)
     if not os.path.exists(PAGE):
-        print("  studio  studio.html is not built: python3 docs/studio/build.py")
+        print("  studio  studio.html is not built: python3 software/studio/build.py")
     if open_browser:
         threading.Timer(0.4, lambda: webbrowser.open(url)).start()
     try:
@@ -1039,15 +1098,82 @@ def serve(port=8765, probe=None, open_browser=True):
         srv.server_close()
 
 
+class AppBridge:
+    """What the page may ask the native window for (window.pywebview.api.*): the file
+    dialogs a browser tab cannot open. Only paths come back; reading and writing stay
+    with the routes above and their guards."""
+
+    window = None
+
+    def pick_folder(self, start=""):
+        import webview
+        r = self.window.create_file_dialog(webview.FileDialog.FOLDER, directory=start or os.path.expanduser("~"))
+        return r[0] if r else None
+
+    def pick_files(self, kind="hdl", start=""):
+        import webview
+        types = {"hdl": ("Verilog (*.v;*.sv;*.vh)",), "pcf": ("Pin files (*.pcf)",),
+                 "project": ("bob projects (*.bobproj)",)}.get(kind, ("All files (*.*)",))
+        r = self.window.create_file_dialog(webview.FileDialog.OPEN, directory=start or os.path.expanduser("~"),
+                                           allow_multiple=kind != "project", file_types=types)
+        return list(r) if r else []
+
+    def save_text(self, name, text):
+        """Save a download (the .vcd) where the user says. -> the path, or None if cancelled."""
+        import webview
+        r = self.window.create_file_dialog(webview.FileDialog.SAVE, directory=os.path.expanduser("~"),
+                                           save_filename=os.path.basename(str(name)))
+        if not r:
+            return None
+        path = r if isinstance(r, str) else r[0]
+        with open(path, "w") as fh:
+            fh.write(text)
+        return path
+
+
+def serve_app(port=0, probe=None):
+    """bob studio as a desktop app: the same backend, in this process, shown in a native
+    window (pywebview: WebKit on macOS, WebView2 on Windows, GTK/Qt on Linux) instead of a
+    browser tab. Without pywebview it says so and falls back to the browser."""
+    try:
+        import webview
+    except ImportError:
+        print("  studio  the app window needs pywebview (pip3 install pywebview); opening the browser instead")
+        return serve(port or 8765, probe, True)
+    if probe:
+        t = TARGET.open(probe)
+        print(f"  target  {t['kind']}: IDCODE {t['idcode']}"
+              + ("" if t["match"] else f"  MISMATCH, expected {t['expected']}"), flush=True)
+    srv = ThreadingHTTPServer(("127.0.0.1", port), Handler)      # port 0: any free one
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    url = f"http://127.0.0.1:{srv.server_address[1]}/"
+    print(f"  studio  app window on {url}", flush=True)
+    if not os.path.exists(PAGE):
+        print("  studio  studio.html is not built: python3 software/studio/build.py")
+    bridge = AppBridge()
+    bridge.window = webview.create_window("bob studio", url, js_api=bridge, width=1480, height=940,
+                                          min_size=(1000, 640), text_select=True)
+    try:
+        webview.start()
+    finally:
+        srv.shutdown()
+        srv.server_close()
+        print("  studio  closed")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--port", type=int, default=8765)
+    ap.add_argument("--port", type=int, default=None, help="default 8765 (browser) or any free port (--app)")
     ap.add_argument("--probe", choices=("usb", "fake"),
                     help="open a target at startup (fake needs no hardware)")
+    ap.add_argument("--app", action="store_true", help="a desktop window instead of a browser tab (pywebview)")
     ap.add_argument("--no-browser", action="store_true")
     a = ap.parse_args()
-    serve(a.port, a.probe, not a.no_browser)
+    if a.app:
+        serve_app(a.port or 0, a.probe)
+    else:
+        serve(a.port or 8765, a.probe, not a.no_browser)
 
 
 if __name__ == "__main__":

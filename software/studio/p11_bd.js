@@ -48,15 +48,23 @@ const bd = {
   },
 
   // ── the board's two pseudo-blocks: its inputs on the left, its outputs on the right ──
+  // The board's extra pins: board-named ones (SW0 ... LD2) and scan-only pads, kept in the
+  // .bd as {in_pins: ["SW0", "pad5"], out_pins: ["LD1"]}. Older files list pads as numbers.
+  extraPins(dir) {
+    const bb = this.doc.board;
+    const k = dir === "input" ? "in" : "out";
+    return (bb[k + "_pins"] || []).concat((bb[k + "_pads"] || []).map((n) => "pad" + n));
+  },
+
   boardBlocks() {
     const bb = this.doc.board;
     const ins = [{ name: "sw", dir: "output", width: 2 }, { name: "btn", dir: "output", width: 4 }]
-      .concat((bb.in_pads || []).map((p) => ({ name: "pad" + p, dir: "output", width: 1 })));
+      .concat(this.extraPins("input").map((n) => ({ name: n, dir: "output", width: 1 })));
     const outs = [{ name: "led", dir: "input", width: 3 }]
-      .concat((bb.out_pads || []).map((p) => ({ name: "pad" + p, dir: "input", width: 1 })));
+      .concat(this.extraPins("output").map((n) => ({ name: n, dir: "input", width: 1 })));
     return [
-      { id: "board", key: "board_in", label: "board inputs", ty: "SW1..0 BTN3..0 pads", x: bb.ix ?? 20, y: bb.iy ?? 40, ports: ins, cls: "board" },
-      { id: "board", key: "board_out", label: "board outputs", ty: "LD2..0 pads", x: bb.ox ?? 980, y: bb.oy ?? 40, ports: outs, cls: "board" },
+      { id: "board", key: "board_in", label: "board inputs", ty: "switches, buttons, pads", x: bb.ix ?? 20, y: bb.iy ?? 40, ports: ins, cls: "board" },
+      { id: "board", key: "board_out", label: "board outputs", ty: "LEDs, pads", x: bb.ox ?? 980, y: bb.oy ?? 40, ports: outs, cls: "board" },
     ];
   },
 
@@ -122,7 +130,8 @@ const bd = {
     const shapes = this.shapes();
     let maxX = 1200, maxY = 700;
     for (const s of shapes) { maxX = Math.max(maxX, s.x + BD_W + 40); maxY = Math.max(maxY, s.y + s.h + 40); }
-    svg.setAttribute("viewBox", `0 0 ${maxX} ${maxY}`);
+    if (!this.z) this.z = zoomer(svg, null);
+    this.z.setBase(0, 0, maxX, maxY);
 
     // wires under blocks
     this.doc.wires.forEach((w, i) => {
@@ -166,11 +175,7 @@ const bd = {
     svg.onclick = () => { if (this.sel) { this.sel = null; this.render(); } };
   },
 
-  svgPoint(e) {
-    const svg = $("bdsvg"), pt = svg.createSVGPoint();
-    pt.x = e.clientX; pt.y = e.clientY;
-    return pt.matrixTransform(svg.getScreenCTM().inverse());
-  },
+  svgPoint(e) { return this.z.point(e); },
 
   startMove(e, s) {
     const p0 = this.svgPoint(e);
@@ -254,17 +259,44 @@ const bd = {
     this.render();
   },
 
-  addPad(dir) {
-    const pads = this.palette ? this.palette.board.pads : [];
-    const used = new Set([...(this.doc.board.in_pads || []), ...(this.doc.board.out_pads || [])]);
-    const free = pads.filter((p) => !used.has(p));
-    const v = window.prompt(`Pad number for a board ${dir} (reachable by boundary scan only). Free: ${free.slice(0, 16).join(" ")}…`, free[0]);
-    if (v == null) return;
-    const n = parseInt(v, 10);
-    if (!free.includes(n)) { logLine("error", `pad${v} is not a free pad`); dock.show("log"); return; }
-    const k = dir === "input" ? "in_pads" : "out_pads";
-    this.doc.board[k] = (this.doc.board[k] || []).concat([n]);
-    this.dirty = true;
+  // A board pin as its own port: the board's named pins (SW0/SW1/BTN0..3 in, LD0..2 out) or a
+  // pad with no switch or LED, reachable by boundary scan only.
+  addPin(dir) {
+    const b = this.palette ? this.palette.board : { pins: { input: [], output: [] }, pads: [] };
+    const used = new Set([...this.extraPins("input"), ...this.extraPins("output")]);
+    let picked = null;
+    dialog(dir === "input" ? "Add a board input" : "Add a board output", (box) => {
+      const group = (title, names) => {
+        box.appendChild(el("label", "f", title));
+        const g = el("div");
+        g.style.cssText = "display:flex;flex-wrap:wrap;gap:6px";
+        for (const n of names) {
+          const c = el("button", "go sec", n);
+          c.style.cssText = "margin:0;width:auto;padding:3px 10px;font-family:var(--mono);font-size:11.5px";
+          c.disabled = used.has(n);
+          c.title = used.has(n) ? "already on the board block" : "";
+          c.onclick = () => { picked = n; for (const o of box.querySelectorAll("button")) o.classList.toggle("sec", o !== c); };
+          g.appendChild(c);
+        }
+        box.appendChild(g);
+      };
+      group(dir === "input" ? "Board pins (switches and buttons)" : "Board pins (LEDs)", b.pins[dir] || []);
+      group(`Scan-only pads (no switch or LED; pad${b.clk_pad ?? 0} carries the clock)`, b.pads.map((n) => "pad" + n));
+    }, [["Cancel", null, true], ["Add", async () => {
+      if (!picked) throw new Error("pick a pin");
+      const k = dir === "input" ? "in_pins" : "out_pins";
+      this.doc.board[k] = (this.doc.board[k] || []).concat([picked]);
+      this.dirty = true;
+      this.render();
+    }]]);
+  },
+
+  removePin(name) {
+    const bb = this.doc.board;
+    for (const k of ["in_pins", "out_pins"]) bb[k] = (bb[k] || []).filter((n) => n !== name);
+    for (const k of ["in_pads", "out_pads"]) bb[k] = (bb[k] || []).filter((n) => "pad" + n !== name);
+    this.doc.wires = this.doc.wires.filter((w) => w.src !== "board." + name && w.dst !== "board." + name);
+    this.dirty = true; this.check = null;
     this.render();
   },
 
@@ -343,6 +375,12 @@ const bd = {
     };
     btn("Save", () => this.save(), true);
     btn("Validate", () => this.validate(), true);
+    if (this.z) {
+      const zs = el("span");
+      zs.style.cssText = "display:flex;gap:4px;align-items:center;margin-left:6px";
+      this.z.controls(zs);
+      t.appendChild(zs);
+    }
     btn("Generate wrapper", () => this.generate());
     const l = el("label", "sw");
     const c = el("input"); c.type = "checkbox"; c.checked = this.topAfter; c.onchange = () => { this.topAfter = c.checked; };
@@ -365,8 +403,8 @@ const bd = {
       v.appendChild(d);
     };
     v.appendChild(el("h4", null, "Board"));
-    item("+ input pad", "scan", () => this.addPad("input"), "a pad with no switch: driven by boundary scan");
-    item("+ output pad", "scan", () => this.addPad("output"), "a pad with no LED: read by boundary scan");
+    item("+ input pin", "SW BTN pad", () => this.addPin("input"), "a switch, a button or a scan-only pad as its own port");
+    item("+ output pin", "LD pad", () => this.addPin("output"), "an LED or a scan-only pad as its own port");
     v.appendChild(el("h4", null, "IP catalog"));
     for (const ip of this.palette.ip) {
       const defs = {};
@@ -421,6 +459,28 @@ const bd = {
       const del = el("button", "go sec", "Delete block");
       del.onclick = () => this.removeSelected();
       v.appendChild(del);
+      return;
+    }
+    if (this.sel === "board_in" || this.sel === "board_out") {
+      const dir = this.sel === "board_in" ? "input" : "output";
+      v.appendChild(el("h4", null, this.sel === "board_in" ? "Board inputs" : "Board outputs"));
+      const note = el("div", "empty", "The buses (sw, btn, led) are always here. Pins added "
+        + "as their own ports are listed below; removing one removes its wires.");
+      note.style.padding = "2px 0 6px";
+      v.appendChild(note);
+      for (const n of this.extraPins(dir)) {
+        const r = el("div");
+        r.style.cssText = "display:flex;justify-content:space-between;font-family:var(--mono);font-size:11.5px;padding:2px 0";
+        r.appendChild(el("span", null, n));
+        const x = el("a", null, "remove");
+        x.style.cssText = "color:var(--err);cursor:pointer;font-size:10.5px";
+        x.onclick = () => this.removePin(n);
+        r.appendChild(x);
+        v.appendChild(r);
+      }
+      const add = el("button", "go sec", dir === "input" ? "+ input pin" : "+ output pin");
+      add.onclick = () => this.addPin(dir);
+      v.appendChild(add);
       return;
     }
     if (this.sel && typeof this.sel === "object") {

@@ -43,7 +43,7 @@ IR = {v: k for k, v in cfgplane.IR.items()}
 
 class FakeBob:
     def __init__(self, corrupt_capture=False, corrupt_sample=False, rate_scale=1.0, switches=lambda t: 0,
-                 ignore_freeze=False, wipe_on_partial=False):
+                 ignore_freeze=False, wipe_on_partial=False, lose_clocks=0):
         self.ir = "IDCODE"
         self.chain = 0
         self.expected = 0
@@ -63,6 +63,8 @@ class FakeBob:
         self.rdata = 0
         self.ignore_freeze = ignore_freeze          # broken board: the user clock runs on while frozen
         self.wipe_on_partial = wipe_on_partial      # broken board: a partial reload loses the state
+        self.lose_clocks = lose_clocks              # broken board: every Nth autostep edge never arrives
+        self.steps = 0
         self.t_last = time.time()
 
     def _pins(self):
@@ -203,7 +205,9 @@ class FakeBob:
             raw = sum(((leds >> k) & 1) << pad for k, pad in enumerate(B.BOARD_OUT))
             self.bsr_in = sum(((din >> (B.NPAD + pad)) & 1) << k for k, pad in enumerate(B.BOARD_IN))
             if self.user1 & 0x10 and not self._held():
-                self.fab.clock(pad_i=self.bsr_in, cin=(self.user1 >> 2) & 1)
+                self.steps += 1
+                if not (self.lose_clocks and self.steps % self.lose_clocks == 0):
+                    self.fab.clock(pad_i=self.bsr_in, cin=(self.user1 >> 2) & 1)
             return raw
         if ir == "SAMPLE":
             pins = self._pins()
