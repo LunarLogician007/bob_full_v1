@@ -52,7 +52,7 @@ The 8×8 profile (48 CLBs, 9400 bits, `0x9BEEF093`) is frozen in `release/M7_8x8
 | M18 | bob studio projects and block designs: New/Open Project (a `.bobproj` folder anywhere on disk), sources + top + pin files, a block-design canvas (project modules, 14 IP cores, the board's pins) that generates an HDL wrapper and `.pcf`, and project builds into `<project>/build/` | **software done; hardware test pending** (`make hwtest M=M18`, no Vivado rebuild: the PL keeps M16). Example `work/examples/bd_demo`. Checklist `docs/hwtest/M18.md` |
 
 | M19 | bob studio as a desktop app (`./bob studio`, pywebview), all software under `software/` (the studio page moved to `software/studio/`), zoom and pan on the block design, Device view and waveform, board pins (SW0..BTN3, LD0..LD2) as block-design ports, the **waveform viewer**: a logic analyser on the pads through boundary scan (`software/host/padwave.py`; step = INTEST autostep, one sample per user clock; live = SAMPLE), with triggers and VCD export | **software done; hardware test pending** (`make hwtest M=M19`, no Vivado rebuild). Checklist `docs/hwtest/M19.md` |
-| M20 | a per-design user clock: `clock_ctrl.v` `clk_period` (any integer rate, `clk_div` prescales) and `clk_gap` (the design's own gce spacing, floor 2 cycles = 62.5 MHz, 0 = the safe 512); `software/bob/timing.py` (static timing of the configured bits), `software/bob/delays.py` + `hw/scripts/extract_delays.tcl` (per-element delays measured on the build), `./bob build --hz auto`; new IDCODE scheme `0x0B020093`. (A tree readback mux was measured and left out: +310 LUTs in the whole design) | **software done; Vivado build and hardware test pending** (`make hwtest M=M20`: clock-rate, clock-fmax, clock-fmax-py, clock-margin). Checklist `docs/hwtest/M20.md` |
+| M20 | a per-design user clock: `clock_ctrl.v` `clk_period` (any integer rate, `clk_div` prescales) and `clk_gap` (the design's own gce spacing, floor 2 cycles = 62.5 MHz, 0 = the safe 512); `software/bob/timing.py` (static timing of the configured bits), `software/bob/delays.py` + `hw/scripts/extract_delays.tcl` (per-element delays measured on the build), clock constraints as in Vivado: a `.sdc` `create_clock` (project `constrs/`, `--sdc`), slack reported, **negative slack fails the build (no `.bit`)**; `--hz auto` for the fastest safe clock; new IDCODE scheme `0x0B020093`. (A tree readback mux was measured and left out: +310 LUTs in the whole design) | **software done; Vivado build and hardware test pending** (`make hwtest M=M20`: clock-rate, clock-fmax, clock-fmax-py, clock-margin). Checklist `docs/hwtest/M20.md` |
 
 Hardware results are in `docs/hwtest/results.log`; Vivado reports are in `docs/reports/Mx/`; per-design guest reports in `docs/reports/M11/designs.md`.
 
@@ -96,7 +96,11 @@ The sign-off moves to the design, as FPGA overlays do it (ZUMA, FCCM 2012; ARC 2
 - M16's one reported path gives 702 channel hops (worst 3.61, median 1.68 ns) and 12 input
   hops, the provisional delays, used with a 2× guard band. `hw/scripts/extract_delays.tcl`
   measures 624 samples of every class on the M20 build.
-- `./bob build --hz auto` sets the fastest safe rate; `--hz N` is refused if too fast.
+- The clock is a constraint, as in Vivado and OpenFPGA: a `.sdc` `create_clock -period <ns>
+  [get_ports clk]` (project `constrs/`, or `--sdc`). The timing stage reports the slack
+  against it, and a negative slack fails the build, so no `.bit` is written (Vivado only
+  warns). The clock runs at the nearest period at or slower than the constraint. `--hz N` is
+  the same check without a file; `--hz auto` picks the fastest safe clock.
 
 **The readback mux, measured.** HANDOFF §5 claimed a hierarchical decode would remove about
 95% of `cfg_store`. It cannot: any mux over the 18,560 configuration bits needs about one LUT6

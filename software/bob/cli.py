@@ -6,6 +6,8 @@ bob - build a Verilog design for the bob FPGA and load it (M10).
               [--clock jtag|run] [--div N] [--seed N] [--pnr vpr|python] [--json FILE]
   ./bob build --project bob.proj             (the same settings, in one file)
   ./bob build --project demo/demo.bobproj    (a bob studio project, M18: .bit into demo/build/)
+  ./bob build design.v --sdc clocks.sdc      (M20: create_clock -period 50 [get_ports clk];
+                                              the build fails if the design misses it)
   ./bob load  counter.bit [--watch] [--probe usb|fake]
   ./bob info  counter.bit
   ./bob fasm  counter.bit                     the chain as FASM
@@ -55,7 +57,7 @@ class BuildError(Exception):
     pass
 
 
-PROJECT_KEYS = ("files", "top", "pcf", "name", "clock", "div", "seed", "pnr", "hz")
+PROJECT_KEYS = ("files", "top", "pcf", "name", "clock", "div", "seed", "pnr", "hz", "sdc")
 
 
 def read_project(path):
@@ -81,8 +83,9 @@ def read_project(path):
         raise BuildError(f"{path}: no 'files'")
     base = os.path.dirname(os.path.abspath(path))
     d["files"] = [os.path.normpath(os.path.join(base, f)) for f in d["files"]]
-    if d.get("pcf"):
-        d["pcf"] = os.path.normpath(os.path.join(base, d["pcf"]))
+    for k in ("pcf", "sdc"):
+        if d.get(k):
+            d[k] = os.path.normpath(os.path.join(base, d[k]))
     return d
 
 
@@ -96,8 +99,8 @@ def result_dir(name, pnr="vpr"):
     return os.path.join(ROOT, "build", "vpr", name)
 
 
-def build(files, top=None, pcf=None, out=None, clock="jtag", div=0, seed=1, name=None,
-          log=print, pnr="vpr", hz=None):
+def build(files, top=None, pcf=None, out=None, clock=None, div=0, seed=1, name=None,
+          log=print, pnr="vpr", hz=None, sdc=None):
     """-> (bit path, word, bram contents, board trace or None, result directory)
 
     The stages live in software/bob/flow.py, which times each one and hands back what it
@@ -105,7 +108,7 @@ def build(files, top=None, pcf=None, out=None, clock="jtag", div=0, seed=1, name
     import flow
     try:
         f = flow.Flow(files, top=top, pcf=pcf, out=out, clock=clock, div=div,
-                      seed=seed, name=name, pnr=pnr, hz=hz)
+                      seed=seed, name=name, pnr=pnr, hz=hz, sdc=sdc)
     except flow.FlowError as e:
         raise BuildError(str(e))
     res = f.run(on_stage=lambda st: log(f"  {st.name:8s} {st.detail}"))
@@ -172,8 +175,11 @@ def main():
     b.add_argument("--top")
     b.add_argument("--pcf")
     b.add_argument("-o", "--output")
-    b.add_argument("--clock", default="jtag")
+    b.add_argument("--clock", choices=("jtag", "run"),
+                   help="jtag: stepped (default); run: free-running (the default with --sdc or --hz)")
     b.add_argument("--div", type=int, default=0)
+    b.add_argument("--sdc", help="M20: a clock constraint, create_clock -period <ns> [get_ports clk]; "
+                                 "the build fails if the design does not meet it")
     b.add_argument("--hz", help="M20, with --clock run: 'auto' = the fastest rate this design's timing "
                                 "allows, or a rate in Hz (refused if faster than that)")
     b.add_argument("--seed", type=int, default=1)
@@ -213,7 +219,8 @@ def main():
         if args.cmd == "build":
             import flow
             kw = dict(files=args.files, top=args.top, pcf=args.pcf, name=args.name,
-                      clock=args.clock, div=args.div, seed=args.seed, pnr=args.pnr, hz=args.hz)
+                      clock=args.clock, div=args.div, seed=args.seed, pnr=args.pnr, hz=args.hz,
+                      sdc=args.sdc)
             if args.project:
                 # the file supplies the defaults; anything given on the command line wins
                 given = {k: v for k, v in kw.items()

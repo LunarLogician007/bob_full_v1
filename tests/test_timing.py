@@ -119,7 +119,13 @@ def test_clock_for_refuses_a_rate_the_design_cannot_make():
     period, _gap, div = T.clock_for(t, 10.0)
     assert div > 0 and period <= T.PERIOD_MAX
     assert B.guest_hz("run", div, period, _gap) == pytest.approx(10.0, rel=1e-3)
-    with pytest.raises(T.TimingError, match="faster than this design allows"):
+    # a rate the fabric could make but this design cannot: the constraint report
+    slow_design = T.analyse(_chain(3), UNIT, margin=4.0)
+    too_fast = 1e9 / (slow_design["cpd_ns"] * 4.0 - 1.0)
+    with pytest.raises(T.TimingViolation, match="timing not met"):
+        T.clock_for(slow_design, too_fast)
+    # and one no design can make: faster than the fabric's 2-cycle floor
+    with pytest.raises(T.SdcError, match="fastest clock is 16 ns"):
         T.clock_for(t, B.SYSCLK_HZ / 1.5)
 
 
@@ -158,12 +164,97 @@ def test_hz_auto_writes_the_clock_and_the_board_runs_at_it(tmp_path):
 def test_a_rate_faster_than_the_design_is_refused(tmp_path):
     src = [os.path.join(ROOT, "work", "examples", "big", "big.v")]
     res = flow.Flow(src, out=str(tmp_path / "b.bit"), clock="run", hz=B.SYSCLK_HZ / 2).run()
-    assert not res.ok and "faster than this design allows" in res.error
+    assert not res.ok and "timing not met" in res.error and "slack -" in res.error
     assert [s.name for s in res.stages][-1] == "timing"
 
 
 def test_hz_needs_the_free_running_clock():
     with pytest.raises(flow.FlowError, match="clock run"):
-        flow.Flow(["x.v"], hz="auto")
+        flow.Flow(["x.v"], clock="jtag", hz="auto")
+    assert flow.Flow(["x.v"], hz="auto").clock == "run"          # unset: the clock hz implies
     with pytest.raises(flow.FlowError, match="hz is auto"):
         flow.Flow(["x.v"], clock="run", hz="fast")
+
+
+# --- the clock constraint (SDC) --------------------------------------------------------
+
+
+def _sdc(tmp_path, text, name="c.sdc"):
+    p = tmp_path / name
+    p.write_text(text)
+    return str(p)
+
+
+@pytest.mark.parametrize("text,period,name", [
+    ("create_clock -period 50 [get_ports clk]\n", 50.0, "clk"),
+    ("# 20 MHz\ncreate_clock -period 50.000 -name sys [get_ports {clk}]  # the fabric clock\n", 50.0, "sys"),
+    ("create_clock -name clk -period 12.5 -waveform {0 6.25} [get_ports clk]\n", 12.5, "clk"),
+    ("create_clock -period 40 \\\n    -name clk [get_ports clk]\n", 40.0, "clk"),
+])
+def test_read_sdc_takes_vivado_s_create_clock(tmp_path, text, period, name):
+    c = T.read_sdc(_sdc(tmp_path, text))
+    assert c["period_ns"] == period and c["name"] == name
+
+
+@pytest.mark.parametrize("text,why", [
+    ("set_input_delay 2 [get_ports sw]\n", "not supported"),
+    ("create_clock -period 50 [get_ports clk]\ncreate_clock -period 20 [get_ports clk]\n", "second create_clock"),
+    ("create_clock [get_ports clk]\n", "needs -period"),
+    ("create_clock -period fast [get_ports clk]\n", "nanoseconds"),
+    ("create_clock -period 50 [get_ports sysclk]\n", "clk port"),
+    ("# nothing\n", "no create_clock"),
+])
+def test_read_sdc_refuses_what_the_fabric_cannot_mean(tmp_path, text, why):
+    with pytest.raises(T.SdcError, match=why):
+        T.read_sdc(_sdc(tmp_path, text))
+
+
+def test_constrain_reports_slack_and_never_clocks_faster_than_asked():
+    t = T.analyse(_chain(3), UNIT, margin=1.25)
+    need = t["cpd_ns"] * 1.25
+    ok = T.constrain(t, need + 10.0)
+    assert ok["met"] and ok["slack_ns"] == pytest.approx(10.0, abs=1e-3)
+    assert ok["achieved_ns"] >= ok["period_ns"] and ok["achieved_ns"] - ok["period_ns"] < T.SYSCLK_NS
+    with pytest.raises(T.TimingViolation) as e:
+        T.constrain(t, need - 1.0, origin="c.sdc:1")
+    msg = str(e.value)
+    assert "timing not met" in msg and "slack -1.000 ns" in msg and "c.sdc:1" in msg
+    assert "the fastest this design can run" in msg
+    with pytest.raises(T.SdcError, match="fastest clock is 16 ns"):
+        T.constrain(t, 10.0)
+
+
+@needs_tools
+def test_a_met_constraint_sets_the_clock_and_records_the_slack(tmp_path):
+    src = [os.path.join(ROOT, "work", "examples", "counter", "counter.v")]
+    sdc = _sdc(tmp_path, "create_clock -period 200 -name clk [get_ports clk]\n")
+    res = flow.Flow(src, out=str(tmp_path / "c.bit"), sdc=sdc).run()
+    assert res.ok, res.error
+    meta = bitgen.read_bit(res.bit)["meta"]
+    assert meta["clock"] == "run" and meta["period"] == 25 and meta["period_ns"] == 200.0
+    assert meta["slack_ns"] > 0 and meta["slack_ns"] == pytest.approx(200 - meta["cpd_ns"] * 2.0, abs=0.01) \
+        or meta["slack_ns"] == pytest.approx(200 - meta["cpd_ns"] * 1.25, abs=0.01)
+    st = [s for s in res.stages if s.name == "timing"][0]
+    assert "met" in st.detail and st.stats["slack_ns"] == meta["slack_ns"]
+
+
+@needs_tools
+def test_a_missed_constraint_fails_the_build_and_writes_no_bit(tmp_path):
+    src = [os.path.join(ROOT, "work", "examples", "big", "big.v")]
+    sdc = _sdc(tmp_path, "create_clock -period 20 [get_ports clk]\n")
+    out = tmp_path / "b.bit"
+    res = flow.Flow(src, out=str(out), sdc=sdc).run()
+    assert not res.ok and "timing not met" in res.error and "slack -" in res.error
+    assert not out.exists()
+    st = res.stages[-1]
+    assert st.name == "timing" and st.ok is False and st.stats["slack_ns"] < 0
+
+
+def test_a_constraint_does_not_mix_with_a_stepped_clock_or_hz(tmp_path):
+    sdc = _sdc(tmp_path, "create_clock -period 100 [get_ports clk]\n")
+    with pytest.raises(flow.FlowError, match="drop --clock jtag"):
+        flow.Flow(["x.v"], clock="jtag", sdc=sdc)
+    with pytest.raises(flow.FlowError, match="not both"):
+        flow.Flow(["x.v"], sdc=sdc, hz="auto")
+    with pytest.raises(flow.FlowError, match="not supported"):
+        flow.Flow(["x.v"], sdc=_sdc(tmp_path, "set_false_path -from x\n", "bad.sdc"))

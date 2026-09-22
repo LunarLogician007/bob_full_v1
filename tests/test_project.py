@@ -282,3 +282,31 @@ def test_the_hz_setting_reaches_the_flow_only_with_the_free_running_clock(tmp_pa
     for bad in ("fast", "-3", "0"):
         with pytest.raises(P.ProjectError, match="hz is"):
             p.set_settings(hz=bad)
+
+
+
+def test_a_clock_constraint_is_a_constraint_file_and_sets_the_clock(tmp_path):
+    """M20: Create clock constraint writes constrs/<name>.sdc; a project with one builds on
+    the free-running clock against it. One per project, and never an 'active pin file'."""
+    p = P.Project.create(tmp_path, "demo")
+    p.add_source(COUNTER)
+    p.data["top"] = "counter"
+    rel = p.set_clock(mhz=5)
+    assert rel == "constrs/demo.sdc" and rel in p.data["constraints"]
+    assert "create_clock -period 200.000 -name clk [get_ports clk]" in open(p.abs(rel)).read()
+    assert p.data["active_pcf"] is None                         # a .sdc is not a pin file
+    kw = p.flow_kwargs()
+    assert kw["sdc"] == p.abs(rel) and kw["clock"] == "run" and kw["hz"] is None
+    assert p.set_clock(period_ns=80) == rel                     # changing the clock rewrites it
+    assert "-period 80.000" in open(p.abs(rel)).read()
+    assert p.to_json(with_modules=False)["clock_constraint"]["period_ns"] == 80.0
+    with pytest.raises(P.ProjectError, match="not a pin file"):
+        p.set_active_pcf(rel)
+    other = tmp_path / "other.sdc"
+    other.write_text("create_clock -period 50 [get_ports clk]\n")
+    p.add_constraint(str(other))
+    with pytest.raises(P.ProjectError, match="two clock constraints"):
+        p.flow_kwargs()
+    p.remove("constrs/other.sdc")
+    p.remove(rel)
+    assert p.flow_kwargs()["sdc"] is None and p.flow_kwargs()["clock"] == "jtag"

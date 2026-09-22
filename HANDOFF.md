@@ -27,8 +27,10 @@ The device table in `README.md` is generated from `software/bob/device.json` by
   `tb_clock_gap` has 17 checks (period, gap,
   prescale, floor, safe default, steps at a gap), and `sim/mutate_frames.sh` has 4 new mutants.
 - **Timing:** `software/bob/timing.py` (the design's critical path from its bits) and a new flow
-  stage **timing** between bits and model. `./bob build --hz auto|N`; the studio's `hz` setting;
-  projects store `hz` (`div` = before).
+  stage **timing** between bits and model. **Clock constraints:** `.sdc` `create_clock` (`timing.read_sdc`,
+  project `constrs/`, `--sdc`, studio **Create clock constraint…**). The slack is reported;
+  negative slack fails the build (no `.bit`). `--hz N` is the same check; `--hz auto` is the
+  fastest safe clock. Projects store `hz` (`div` = before).
 - **Delays:** `software/bob/delays.json` is provisional: routing measured on M16's report,
   LUT/FF/BRAM/DSP estimated, 2× guard band. `build.tcl` sources `hw/scripts/extract_delays.tcl`
   after implementation; it times `hw/scripts/delay_samples.txt` (`delays.py plan`) into

@@ -22,6 +22,18 @@ A bob studio project can live anywhere on disk: **New Project** makes
 block-design example `work/examples/bd_demo/` is one. See the README's *Projects and
 block designs*. From the command line: `./bob build --project path/to/x.bobproj`.
 
+## Clock constraints (M20)
+
+A `.sdc` beside your pins sets the fabric clock the design must meet:
+
+```
+create_clock -period 50.000 -name clk [get_ports clk]
+```
+
+`./bob build mything.v --sdc mything.sdc`, or in a project the studio's **Create clock
+constraint…**. The build reports the slack; if it is negative the build fails, no `.bit` is
+written, and the error names the failing path and the fastest clock the design can make.
+
 ## Pin files
 
 A `.pcf` names **one bit per line**, and every port bit is `port[i]` — including a port

@@ -35,6 +35,7 @@ from M16's timing report, which the result says it used.
 """
 
 import json
+import math
 import os
 import sys
 
@@ -209,25 +210,133 @@ def analyse(word, delays=None, margin=None):
             "path": path, "levels": sum(1 for p in path if p["kind"] in ("CHANX", "CHANY", "IPIN"))}
 
 
-def clock_for(t, hz=None):
-    """(period, gap, div) for a timing result: the fastest safe rate, or the rate asked for
-    if the design allows it. The enable spacing is period x 2**div sysclk cycles (div only
-    prescales a rate too slow for clk_period alone)."""
-    gap = t["gap_cycles"]
-    if hz in (None, "auto", 0):
-        return gap, gap, 0
-    cycles = max(1, round(B.DEVICE["clock"]["sysclk_hz"] / float(hz)))
+# --- the clock constraint (SDC) ---------------------------------------------------
+#
+# As in Vivado (XDC) and OpenFPGA, the designer states the clock and the tools check the
+# design against it: create_clock -period <ns> [-name <n>] [-waveform {...}] [get_ports clk].
+# The fabric has one clock, reaching the design's clk port, so one create_clock and nothing
+# else; the pads are asynchronous to it (false-pathed in the XDC), so there are no I/O delays.
+
+class SdcError(TimingError):
+    pass
+
+
+class TimingViolation(TimingError):
+    """The design does not meet its clock constraint. The message is the report."""
+
+
+PIN_NAME = {node: name for name, node in B.PIN.items()}
+
+
+def read_sdc(path):
+    """-> {"period_ns", "name", "file", "line"} from a .sdc holding one create_clock."""
+    try:
+        text = open(path).read()
+    except OSError as e:
+        raise SdcError(f"{path}: {e}")
+    rel = os.path.relpath(os.path.abspath(path), ROOT) if os.path.abspath(path).startswith(ROOT) else path
+    clocks = []
+    lines = text.replace("\\\n", " ").splitlines()
+    for n, raw in enumerate(lines, 1):
+        line = raw.split("#", 1)[0].strip()
+        if not line:
+            continue
+        toks = line.replace("[", " [ ").replace("]", " ] ").replace("{", " { ").replace("}", " } ").split()
+        if toks[0] != "create_clock":
+            raise SdcError(f"{rel}:{n}: {toks[0]} is not supported - bob's fabric has one clock and "
+                           "asynchronous pads, so a .sdc holds one create_clock and nothing else")
+        period, name, port = None, "clk", None
+        i = 1
+        while i < len(toks):
+            t = toks[i]
+            if t == "-period" and i + 1 < len(toks):
+                try:
+                    period = float(toks[i + 1])
+                except ValueError:
+                    raise SdcError(f"{rel}:{n}: -period takes nanoseconds, not {toks[i + 1]!r}")
+                i += 2
+            elif t == "-name" and i + 1 < len(toks):
+                name = toks[i + 1]
+                i += 2
+            elif t == "-waveform":                       # accepted and ignored: one 50% clock
+                j = toks.index("}", i) if "}" in toks[i:] else i + 1
+                i = j + 1
+            elif t == "[" and toks[i + 1:i + 2] == ["get_ports"]:
+                j = toks.index("]", i)
+                ports = [x for x in toks[i + 2:j] if x not in ("{", "}")]
+                port = ports[0] if ports else None
+                if ports != ["clk"]:
+                    raise SdcError(f"{rel}:{n}: the fabric's clock reaches the design's clk port; "
+                                   f"get_ports {' '.join(ports) or '(nothing)'} is not it")
+                i = j + 1
+            else:
+                raise SdcError(f"{rel}:{n}: create_clock: unexpected {t!r} "
+                               "(create_clock -period <ns> [-name <n>] [get_ports clk])")
+        if period is None or period <= 0:
+            raise SdcError(f"{rel}:{n}: create_clock needs -period <ns> > 0")
+        clocks.append({"period_ns": period, "name": name, "file": rel, "line": n, "port": port or "clk"})
+    if not clocks:
+        raise SdcError(f"{rel}: no create_clock")
+    if len(clocks) > 1:
+        raise SdcError(f"{rel}:{clocks[1]['line']}: a second create_clock - bob's fabric has one clock")
+    return clocks[0]
+
+
+def _cycles(period_ns):
+    """A period in ns -> (clk_period, clk_div): the nearest the 125 MHz base allows at or
+    SLOWER than the period asked for, so the clock never runs faster than the constraint."""
+    cycles = max(1, math.ceil(period_ns / SYSCLK_NS - 1e-9))
     div = 0
     while (cycles >> div) > PERIOD_MAX:
         div += 1
     if div > 16:
-        raise TimingError(f"{hz} Hz is slower than clk_period x 2**clk_div can hold")
-    period = max(1, round(cycles / (1 << div)))
-    if (period << div) < gap:
-        raise TimingError(f"{float(hz):.4g} Hz is faster than this design allows: its critical path "
-                          f"{t['cpd_ns']} ns x {t['margin']} needs {gap} sysclk cycles "
-                          f"({t['fmax_hz'] / 1e6:.3g} MHz at most)")
-    return period, gap, div
+        raise SdcError(f"{period_ns} ns is slower than clk_period x 2**clk_div can hold")
+    return max(1, math.ceil(cycles / (1 << div) - 1e-9)), div
+
+
+def _where(node):
+    if isinstance(node, str):
+        return node.replace(".comb", " (LUT -> flip-flop D)")
+    return PIN_NAME.get(node, f"{KIND.get(node, 'node')} {node}")
+
+
+def constrain(t, period_ns, name="clk", origin=None):
+    """Check a timing result against a clock period. -> {"met", "slack_ns", "required_ns",
+    "period_ns", "period", "div", "achieved_ns", "achieved_hz"}; raises TimingViolation
+    (the report) when the slack is negative, SdcError when the fabric cannot clock it."""
+    floor_ns = GAP_FLOOR * SYSCLK_NS
+    if period_ns < floor_ns - 1e-9:
+        raise SdcError(f"create_clock -period {period_ns:g}: the fabric's fastest clock is "
+                       f"{floor_ns:g} ns ({1e3 / floor_ns:g} MHz): {GAP_FLOOR} cycles of the 125 MHz base")
+    period, div = _cycles(period_ns)
+    achieved = (period << div) * SYSCLK_NS
+    required = t["cpd_ns"] * t["margin"]
+    slack = round(period_ns - required, 3)
+    r = {"met": slack >= 0, "slack_ns": slack, "required_ns": round(required, 3),
+         "period_ns": period_ns, "name": name, "period": period, "div": div,
+         "achieved_ns": achieved, "achieved_hz": 1e9 / achieved, "origin": origin}
+    if slack < 0:
+        where = (f"  from {_where(t['path'][0]['node'])} to {_where(t['path'][-1]['node'])}, "
+                 f"{t['levels']} routing hops\n" if t["path"] else "")
+        best = t["gap_cycles"] * SYSCLK_NS
+        raise TimingViolation(
+            f"timing not met: clock {name} period {period_ns:.3f} ns ({1e3 / period_ns:.3f} MHz"
+            + (f", {origin}" if origin else "") + ")\n"
+            f"  critical path {t['cpd_ns']:.3f} ns x {t['margin']} guard band = {required:.3f} ns"
+            f"  ->  slack {slack:+.3f} ns\n" + where +
+            f"  the fastest this design can run: {best:.3f} ns ({1e3 / best:.3f} MHz). Relax "
+            f"create_clock -period to at least {best:g}, or shorten the path")
+    return r
+
+
+def clock_for(t, hz=None):
+    """(period, gap, div) for a timing result: the fastest safe rate ("auto"), or the rate
+    asked for, checked as a constraint (TimingViolation if the design cannot make it)."""
+    gap = t["gap_cycles"]
+    if hz in (None, "auto", 0):
+        return gap, gap, 0
+    r = constrain(t, 1e9 / float(hz), origin=f"--hz {hz}")
+    return r["period"], gap, r["div"]
 
 
 def main():

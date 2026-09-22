@@ -623,3 +623,25 @@ def test_a_build_can_ask_for_the_fastest_safe_clock(srv):
     t = [s for s in ev["stages"] if s["name"] == "timing"][0]["stats"]
     assert t["cpd_ns"] > 0 and t["hz"] == pytest.approx(B.SYSCLK_HZ / t["period"])
     assert t["period"] == t["clk_gap"] == t["gap"]
+
+
+
+def test_the_clock_constraint_decides_the_build(srv, proj_dir):
+    """M20: Create clock constraint, then Generate Bitstream: a clock the design meets
+    builds and reports its slack; one it misses fails the build with the timing report."""
+    post(srv, "/api/project/new", {"location": str(proj_dir), "name": "demo"})
+    post(srv, "/api/project/add", {"path": os.path.join(ROOT, "work", "examples", "counter", "counter.v")})
+    post(srv, "/api/project/top", {"module": "counter"})
+    post(srv, "/api/project/settings", {"pnr": "python"})
+    r = post(srv, "/api/project/clock", {"mhz": 2})
+    assert r["project"]["clock_constraint"]["period_ns"] == 500.0
+    ev = build(srv, {"project": True})
+    assert ev["event"] == "done" and ev["ok"], ev.get("error")
+    t = [s for s in ev["stages"] if s["name"] == "timing"][0]["stats"]
+    assert t["slack_ns"] > 0 and t["period_ns"] == 500.0
+    post(srv, "/api/project/clock", {"mhz": 60})
+    ev = build(srv, {"project": True})
+    assert not ev.get("ok") and "timing not met" in (ev.get("error") or "")
+    t = [s for s in ev["stages"] if s["name"] == "timing"][0]
+    assert t["ok"] is False and t["stats"]["slack_ns"] < 0
+    assert "fastest clock" not in ev["error"]                    # 60 MHz is a clock the fabric can make

@@ -233,12 +233,18 @@ const props = {
       box.appendChild(r);
     };
     sel("pnr", ["vpr", "python"]);
-    sel("clock", ["jtag", "run"]);
-    // M20: "auto" runs the design as fast as its own timing allows (the Timing stage says how fast)
-    if (p.clock === "run") sel("hz", ["div", "auto"]);
-    if (!(p.clock === "run" && p.hz === "auto")) num("div", 0, 31);
+    const cc = S.proj && S.proj.clock_constraint;
+    if (cc && cc.period_ns) {
+      // M20: the project's .sdc sets the free-running clock; the build checks the design against it
+      this.row(box, "clock", `${cc.mhz.toFixed(3)} MHz (.sdc)`);
+    } else {
+      sel("clock", ["jtag", "run"]);
+      // M20: "auto" runs the design as fast as its own timing allows (the Timing stage says how fast)
+      if (p.clock === "run") sel("hz", ["div", "auto"]);
+      if (!(p.clock === "run" && p.hz === "auto")) num("div", 0, 31);
+    }
     num("seed", 1, 9999);
-    if (p.clock === "run" && d) {
+    if (p.clock === "run" && d && !(cc && cc.period_ns)) {
       if (p.hz === "auto") {
         const t = S.stages.timing && S.stages.timing.stats;
         this.row(box, "guest clock", t && t.hz ? (t.hz / 1e6).toFixed(3) + " MHz" : "from timing");
@@ -262,6 +268,9 @@ const props = {
       this.row(u, "critical path", `${t.cpd_ns} ns`);
       this.row(u, "Fmax", `${(t.fmax_hz / 1e6).toFixed(2)} MHz${t.provisional ? " (prov.)" : ""}`);
       if (t.hz) this.row(u, "user clock", `${(t.hz / 1e6).toFixed(3)} MHz`);
+      if (t.slack_ns != null) {                             // a constrained clock: Vivado's WNS
+        this.row(u, "slack", `${t.slack_ns >= 0 ? "+" : ""}${t.slack_ns.toFixed(3)} ns ${t.slack_ns >= 0 ? "(met)" : "(FAILED)"}`);
+      }
     }
     if (bitPath()) this.row(u, "bitstream", bitPath().split("/").pop());
 

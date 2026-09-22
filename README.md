@@ -198,6 +198,7 @@ software/bob/fasm_from_vpr.py --check        # committed VPR results -> FASM -> 
 ./bob load build/bit/counter.bit --mode chain   # the same memory through the scan chain (CHAIN_IN)
 software/bob/packets.py dump build/bit/counter.bit # the UG470-style packet stream
 ./bob build work/examples/switches/switches.v --clock run --div 15   # free-running user clock (7.45 Hz); then ./bob load
+./bob build work/examples/counter/counter.v --sdc clocks.sdc      # M20: create_clock; fails (no .bit) if not met
 ./bob build work/examples/counter/counter.v --clock run --hz auto   # M20: as fast as the design's own timing allows
 software/bob/timing.py build/bit/counter.bit   # M20: critical path, the clock it allows
 ./bob info build/bit/counter.bit          # or: ./bob fasm build/bit/counter.bit
@@ -223,8 +224,15 @@ Configurations", ARC 2021), and so does bob now:
 - Those delays are measured on the Vivado implementation: `hw/scripts/extract_delays.tcl`
   during the build, then `software/bob/delays.py fold`. Until the M20 build they are
   provisional (M16's report), with a 2× guard band.
-- `./bob build --clock run --hz auto` writes the fastest safe rate into the `.bit` (ctrl
-  `clk_period` / `clk_gap`); `--hz N` asks for a rate and is refused if the design cannot make it.
+- **The clock is a constraint, as in Vivado.** A `.sdc` file holds
+  `create_clock -period 50 -name clk [get_ports clk]` (in a project it lives in `constrs/`; the
+  studio's **Create clock constraint…** writes it). The build reports the **slack**, and a
+  negative slack **fails the build: no `.bit` is written**. The error names the failing path
+  and the fastest clock the design can make. `./bob build design.v --sdc clocks.sdc` does the
+  same from the command line, and `--hz N` is the same check without a file.
+- The clock runs at the nearest period the 125 MHz base allows *at or slower than* the
+  constraint (ctrl `clk_period` / `clk_gap`), never faster than 62.5 MHz (2 cycles).
+  `--hz auto` picks the fastest safe clock instead, a convenience a commercial flow doesn't have.
 - A `.bit` without a timed clock runs exactly as before (`clk_gap` = 0 means the safe 512). The hand-written designs in `software/host/designs.py` load with `software/host/fpga.py --load showcase`.
 
 ## Folder map

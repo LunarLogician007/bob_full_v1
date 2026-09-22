@@ -23,8 +23,9 @@ Stages:
           device.json, with the clock fields applied.
   bits    features -> the configuration word, checked to round-trip back to FASM.
   timing  (M20) software/bob/timing.py on those bits: the longest register-to-register
-          path in ns, and the user clock it allows. With hz ("auto" or a rate) the
-          free-running clock is set from it (ctrl clk_period / clk_gap).
+          path in ns. A .sdc create_clock (or hz N) is checked as a constraint - slack
+          reported, a negative slack fails the build - and sets the free-running clock
+          (ctrl clk_period / clk_gap); hz "auto" sets the fastest safe one.
   model   software/bob/model.py on those bits == the source trace, when the ports
           follow the sw/btn/led convention.
   write   the .bit container: chain + BRAM contents + META.
@@ -242,12 +243,20 @@ class Result:
 
 
 class Flow:
-    def __init__(self, files, top=None, pcf=None, out=None, clock="jtag", div=0,
-                 seed=1, name=None, pnr="vpr", hz=None):
+    def __init__(self, files, top=None, pcf=None, out=None, clock=None, div=0,
+                 seed=1, name=None, pnr="vpr", hz=None, sdc=None):
         self.files = list(files)
         self.top = top or os.path.splitext(os.path.basename(self.files[0]))[0]
         self.pcf = pcf
         self.out = out
+        # clock: "jtag" (stepped) or "run" (free-running). Unset, it is "run" when a clock is
+        # constrained (a .sdc, or hz) and "jtag" otherwise; a constraint on a stepped clock
+        # contradicts itself and is refused below.
+        self.sdc = sdc
+        self._sdc = None
+        self._check = None                        # the constraint's result, once timed
+        if clock is None:
+            clock = "run" if (sdc or hz is not None) else "jtag"
         self.clock = clock
         self.div = div
         self.hz = hz                  # M20: None = the divider (div); "auto" or a rate = timed
@@ -271,6 +280,17 @@ class Flow:
             raise FlowError("pnr is vpr or python")
         if hz is not None and clock != "run":
             raise FlowError("hz sets the free-running clock: use it with clock run")
+        if sdc:
+            import timing as T
+            if clock != "run":
+                raise FlowError("a .sdc clock constraint is the free-running clock: drop --clock jtag "
+                                "or the .sdc")
+            if hz is not None:
+                raise FlowError("give the clock once: a .sdc or hz, not both")
+            try:
+                self._sdc = T.read_sdc(sdc)
+            except T.TimingError as e:
+                raise FlowError(str(e))
         if hz not in (None, "auto"):
             try:
                 if float(hz) <= 0:
@@ -403,8 +423,10 @@ class Flow:
         return st, word
 
     def timing(self, word):
-        """M20: the design's own critical path (timing.py) and the clock it allows. With
-        hz the free-running clock is written into the word; otherwise it is reported."""
+        """M20: the design's own critical path (timing.py) against its clock. A .sdc
+        create_clock (or hz N) is a constraint: the slack is reported and a negative slack
+        fails the build, so no .bit is written. hz "auto" picks the fastest safe clock.
+        Without either the critical path and Fmax are only reported."""
         import timing as T
         st = Stage("timing").start(self)
         try:
@@ -416,12 +438,31 @@ class Flow:
         kind = "provisional" if t["provisional"] else "measured"
         detail = (f"critical path {t['cpd_ns']} ns ({t['levels']} routing hops, {kind} delays "
                   f"x {t['margin']}): Fmax {t['fmax_hz'] / 1e6:.3g} MHz")
-        if self.clock == "run" and self.hz is not None:
+        self._check = None
+        if self._sdc is not None:
+            # the constraint: slack against the period asked for; a negative slack stops the
+            # build here, before a .bit exists (Vivado only warns; bob refuses)
+            c = self._sdc
+            try:
+                self._check = T.constrain(t, c["period_ns"], c["name"], f"{c['file']}:{c['line']}")
+            except T.TimingError as e:
+                st.finish(False, str(e), cpd_ns=t["cpd_ns"], fmax_hz=t["fmax_hz"],
+                          period_ns=c["period_ns"], sdc=c["file"],
+                          slack_ns=round(c["period_ns"] - t["cpd_ns"] * t["margin"], 3),
+                          path=t["path"])
+                raise FlowError(str(e))
+            self._period, self._gap, self._pdiv = self._check["period"], t["gap_cycles"], self._check["div"]
+            detail += (f"; clock {c['name']} {c['period_ns']:.3f} ns ({c['file']}): "
+                       f"slack {self._check['slack_ns']:+.3f} ns, met")
+        elif self.clock == "run" and self.hz is not None:
             try:
                 self._period, self._gap, self._pdiv = T.clock_for(t, self.hz)
             except T.TimingError as e:
                 st.finish(False, str(e), cpd_ns=t["cpd_ns"], fmax_hz=t["fmax_hz"])
                 raise FlowError(str(e))
+            if self.hz != "auto":
+                self._check = T.constrain(t, 1e9 / float(self.hz), origin=f"--hz {self.hz}")
+        if self.clock == "run" and self._period:
             bs = B.Bitstream(word)
             bs.set_ctrl(B.CLOCK_MODES["run"], self._pdiv, self._period, self._gap)
             word = bs.to_int()
@@ -429,11 +470,16 @@ class Flow:
             every = self._period << self._pdiv
             detail += (f"; free-running every {every} sysclk cycles = {hz / 1e6:.4g} MHz "
                        f"(gap {self._gap})")
+            if self._check and self._sdc is None:
+                detail += f"; slack {self._check['slack_ns']:+.3f} ns"
         return st.finish(True, detail, cpd_ns=t["cpd_ns"], fmax_hz=t["fmax_hz"],
                          gap=t["gap_cycles"], margin=t["margin"], provisional=t["provisional"],
                          period=self._period, clk_gap=self._gap,
                          hz=B.guest_hz("run", self._pdiv, self._period, self._gap) if self._period else None,
                          clk_div=self._pdiv,
+                         period_ns=self._check["period_ns"] if self._check else None,
+                         slack_ns=self._check["slack_ns"] if self._check else None,
+                         sdc=self._sdc["file"] if self._sdc else None,
                          path=t["path"]), word
 
     def model(self, bs, contents, work):
@@ -467,7 +513,10 @@ class Flow:
                 "pnr_seed": self._pnr_stats["seed"] if self._pnr_stats else None,
                 "clock": self.clock, "div": self.div,
                 "period": self._period, "gap": self._gap, "pdiv": self._pdiv,
-                "cpd_ns": self._timing["cpd_ns"] if self._timing else None}
+                "cpd_ns": self._timing["cpd_ns"] if self._timing else None,
+                "sdc": self._sdc["file"] if self._sdc else None,
+                "period_ns": self._check["period_ns"] if self._check else None,
+                "slack_ns": self._check["slack_ns"] if self._check else None}
         bitgen.write_bit(out, word, contents, meta)
         rel = _rel(out)
         used = sorted(b for b, w in contents.items() if any(w))

@@ -42,7 +42,8 @@ Projects and block designs (M18; software/bob/project.py, software/bob/bd.py):
   POST /api/project/remove      {rel}: take a file out of the project (it stays on disk)
   POST /api/project/top         {module}
   POST /api/project/pcf         {rel|null}: the active pin file
-  POST /api/project/settings    {clock, div, seed, pnr}
+  POST /api/project/settings    {clock, div, seed, pnr, hz}
+  POST /api/project/clock       {mhz | period_ns}: constrs/<name>.sdc with create_clock (M20)
   GET  /api/recent              recently opened projects
   GET  /api/fs?path=            one folder's subfolders, projects and sources (New/Open dialogs)
   GET  /api/bd?rel=             a block design;  POST /api/bd {rel, bd} saves it
@@ -214,7 +215,7 @@ def placement(name, work):
 
 SAFE_NAME = re.compile(r"[^A-Za-z0-9._-]")
 DESIGNS = os.path.join(ROOT, "work")
-EDITABLE = (".v", ".sv", ".vh", ".pcf", ".proj", ".bobproj", ".bd")
+EDITABLE = (".v", ".sv", ".vh", ".pcf", ".sdc", ".proj", ".bobproj", ".bd")
 
 TEMPLATE = """// {name}.v - a bob design.
 //
@@ -480,7 +481,7 @@ class OpenProject:
 
 
 PROJECT = OpenProject()
-FS_SHOW = (".bobproj", ".v", ".sv", ".vh", ".pcf", ".bd")
+FS_SHOW = (".bobproj", ".v", ".sv", ".vh", ".pcf", ".sdc", ".bd")
 
 
 def fs_list(path):
@@ -534,10 +535,12 @@ def project_post(action, b):
             proj = PROJECT.need()
             if action == "add":
                 path = str(b.get("path", ""))
-                if path.endswith(".pcf"):
+                if path.endswith((".pcf", ".sdc")):
                     proj.add_constraint(path, copy=b.get("copy", True))
                 else:
                     proj.add_source(path, copy=b.get("copy", True))
+            elif action == "clock":                  # M20: constrs/<name>.sdc, create_clock
+                proj.set_clock(period_ns=b.get("period_ns"), mhz=b.get("mhz"))
             elif action == "create":
                 name = str(b.get("name", "")).strip()
                 proj.new_source(name, TEMPLATE.format(name=name))

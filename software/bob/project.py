@@ -172,9 +172,10 @@ class Project:
         return self.add_source(dst)
 
     def add_constraint(self, path, copy=True):
+        """A .pcf (pins; one is active) or a .sdc (the clock constraint, M20; at most one)."""
         ap = os.path.abspath(os.path.expanduser(path))
-        if not ap.endswith(".pcf"):
-            raise ProjectError(f"a constraint file is a .pcf: {path}")
+        if not ap.endswith((".pcf", ".sdc")):
+            raise ProjectError(f"a constraint file is a .pcf (pins) or a .sdc (clock): {path}")
         if not os.path.isfile(ap):
             raise ProjectError(f"{path} does not exist")
         if copy and not self.contains(ap):
@@ -186,13 +187,47 @@ class Project:
         rel = self.rel(ap)
         if rel not in self.data["constraints"]:
             self.data["constraints"].append(rel)
-        if self.data.get("active_pcf") is None:
+        if rel.endswith(".pcf") and self.data.get("active_pcf") is None:
             self.data["active_pcf"] = rel
         return rel
+
+    def set_clock(self, period_ns=None, mhz=None):
+        """constrs/<name>.sdc = create_clock at this period (the studio's "Create clock
+        constraint"). An existing constrs/<name>.sdc is rewritten: it is the clock."""
+        if mhz is not None:
+            mhz = float(mhz)
+            if mhz <= 0:
+                raise ProjectError("a clock is a positive number of MHz")
+            period_ns = 1e3 / mhz
+        period_ns = float(period_ns)
+        if period_ns <= 0:
+            raise ProjectError("a clock period is a positive number of ns")
+        others = [r for r in self.sdc_files() if r != f"constrs/{self.name}.sdc"]
+        if others:
+            raise ProjectError(f"the project already has a clock constraint: {others[0]}")
+        path = os.path.join(self.dir, "constrs", f"{self.name}.sdc")
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w") as fh:
+            fh.write(f"# {self.name}.sdc - the fabric clock this design must meet (M20)\n"
+                     f"# {1e3 / period_ns:.6g} MHz. The build fails if the design's timing misses it.\n"
+                     f"create_clock -period {period_ns:.3f} -name clk [get_ports clk]\n")
+        return self.add_constraint(path)
+
+    def sdc_files(self):
+        return [r for r in self.data["constraints"] if r.endswith(".sdc")]
+
+    def sdc(self):
+        """The project's clock constraint file (absolute), or None. The fabric has one clock."""
+        files = self.sdc_files()
+        if len(files) > 1:
+            raise ProjectError(f"two clock constraints ({', '.join(files)}): the fabric has one clock")
+        return self.abs(files[0]) if files else None
 
     def set_active_pcf(self, rel):
         if rel is not None and rel not in self.data["constraints"]:
             raise ProjectError(f"{rel} is not one of the project's constraint files")
+        if rel is not None and not rel.endswith(".pcf"):
+            raise ProjectError(f"{rel} is not a pin file; a .sdc applies whenever it is in the project")
         self.data["active_pcf"] = rel
 
     def add_bd(self, rel):
@@ -210,7 +245,8 @@ class Project:
         if not hit:
             raise ProjectError(f"{rel} is not in the project")
         if self.data.get("active_pcf") == rel:
-            self.data["active_pcf"] = self.data["constraints"][0] if self.data["constraints"] else None
+            pcfs = [r for r in self.data["constraints"] if r.endswith(".pcf")]
+            self.data["active_pcf"] = pcfs[0] if pcfs else None
 
     def set_top(self, module):
         names = {m["name"] for m in self.modules()}
@@ -279,11 +315,18 @@ class Project:
         pcf = self.data.get("active_pcf")
         s = self.data["settings"]
         hz = s.get("hz", "div")
+        sdc = self.sdc()
+        if sdc:                         # M20: a clock constraint sets the free-running clock
+            return {"files": files, "top": self.data["top"],
+                    "pcf": self.abs(pcf) if pcf else None,
+                    "out": self.bit_path(), "name": self.result_name(),
+                    "clock": "run", "div": 0, "seed": int(s["seed"]), "pnr": s["pnr"],
+                    "hz": None, "sdc": sdc}
         return {"files": files, "top": self.data["top"],
                 "pcf": self.abs(pcf) if pcf else None,
                 "out": self.bit_path(), "name": self.result_name(),
                 "clock": s["clock"], "div": int(s["div"]), "seed": int(s["seed"]), "pnr": s["pnr"],
-                "hz": hz if s["clock"] == "run" and hz != "div" else None}
+                "hz": hz if s["clock"] == "run" and hz != "div" else None, "sdc": None}
 
     def to_json(self, with_modules=True):
         d = dict(self.data)
@@ -294,6 +337,16 @@ class Project:
                       for k in ("sources", "constraints", "block_designs")}
         bit = self.bit_path()
         d["bit"] = bit if os.path.exists(bit) else None
+        d["clock_constraint"] = None                 # M20: what the .sdc asks for, for the page
+        try:
+            sdc = self.sdc()
+            if sdc:
+                import timing
+                c = timing.read_sdc(sdc)
+                d["clock_constraint"] = {"file": self.rel(sdc), "period_ns": c["period_ns"],
+                                         "mhz": 1e3 / c["period_ns"], "name": c["name"]}
+        except Exception as e:                       # a broken .sdc is shown, not raised
+            d["clock_constraint"] = {"error": str(e)}
         if with_modules:
             try:
                 d["modules"] = self.modules()

@@ -251,7 +251,7 @@ const project = {
     let picked = [];
     let copy = true;
     dialog(pcf ? "Add constraints" : "Add sources", (box) => {
-      fsBrowser(box, { mode: "files", exts: pcf ? [".pcf"] : [".v", ".sv", ".vh"], multi: true,
+      fsBrowser(box, { mode: "files", exts: pcf ? [".pcf", ".sdc"] : [".v", ".sv", ".vh"], multi: true,
         start: S.proj ? S.proj.dir : "", onChange: (s) => { picked = s.picked; } });
       const l = el("label", "sw");
       const c = el("input"); c.type = "checkbox"; c.checked = true; c.onchange = () => { copy = c.checked; };
@@ -276,6 +276,33 @@ const project = {
       await this.post("create", { name });
       const f = S.proj.files.sources.find((x) => x.rel === `src/${name}.v`);
       if (f) await this.edit(f.path);
+    }]]);
+  },
+
+  // M20: the clock constraint, as Vivado's timing wizard writes create_clock into the XDC.
+  clockDialog() {
+    const cur = S.proj && S.proj.clock_constraint && S.proj.clock_constraint.mhz;
+    let mhz = cur ? +cur.toFixed(3) : 10;
+    dialog("Clock constraint", (box) => {
+      box.appendChild(el("label", "f", "The fabric clock this design must meet, in MHz"));
+      const n = el("input"); n.type = "text"; n.value = String(mhz);
+      const note = el("div", "empty");
+      note.style.padding = "8px 0 0";
+      const show = () => {
+        mhz = parseFloat(n.value);
+        note.textContent = mhz > 0
+          ? `create_clock -period ${(1000 / mhz).toFixed(3)} -name clk [get_ports clk]  →  constrs/${S.proj.name}.sdc. `
+            + "The build reports the slack and FAILS (no .bit) if the design's timing misses it. "
+            + "The fabric's fastest clock is 62.5 MHz (2 cycles of the 125 MHz base); the clock runs at "
+            + "the nearest period the base allows, never faster than this."
+          : "a positive number of MHz";
+      };
+      n.oninput = show; show();
+      box.appendChild(n); box.appendChild(note);
+    }, [["Cancel", null, true], ["Save", async () => {
+      if (!(mhz > 0)) throw new Error("a positive number of MHz");
+      await this.post("clock", { mhz });
+      logLine("info", `clock constraint: ${mhz} MHz (constrs/${S.proj.name}.sdc)`);
     }]]);
   },
 
@@ -333,6 +360,7 @@ const project = {
       btn("Add sources…", () => this.addDialog("src"), true);
       btn("Create file…", () => this.createDialog(), true);
       btn("Add constraints…", () => this.addDialog("pcf"), true);
+      btn("Create clock constraint…", () => this.clockDialog(), true);
       btn("Create Block Design…", () => this.newBdDialog(), true);
       btn("Close project", () => this.post("close").then(() => { flow.reset(); }), true);
     }
@@ -412,6 +440,16 @@ const project = {
     t.appendChild(el("h4", null, `Constraints (${p.files.constraints.length})`
       + (p.active_pcf ? ` — active: ${p.active_pcf}` : " — none active: sw/btn/led convention")));
     for (const f of p.files.constraints) {
+      if (f.rel.endsWith(".sdc")) {                 // M20: the clock, always applied
+        const c = p.clock_constraint || {};
+        item(f, { top: true, sub: c.error ? `error: ${c.error}` : c.period_ns
+          ? `clock ${c.name} ${c.period_ns.toFixed(3)} ns = ${c.mhz.toFixed(3)} MHz` : "" },
+          [["open", () => this.edit(f.path)],
+           ["change", () => this.clockDialog()],
+           ["Remove from project", () => this.post("remove", { rel: f.rel })]],
+          () => this.edit(f.path));
+        continue;
+      }
       const act = p.active_pcf === f.rel;
       item(f, { top: act, sub: act ? "active" : "" },
         [["open", () => this.edit(f.path)],
