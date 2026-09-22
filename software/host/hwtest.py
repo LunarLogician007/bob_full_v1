@@ -785,6 +785,33 @@ def _synth_check(top, vpr=False):
 
 # --- M10: bob build / bob load, golden LEDs and CAPTURE ------------------------------------
 
+# M18: designs that are bob studio projects rather than one .v file - built from their
+# .bobproj exactly as the studio's Generate Bitstream (and `./bob build --project`) builds them.
+PROJECTS = {"bd_demo": os.path.join(ROOT, "work", "examples", "bd_demo", "bd_demo.bobproj")}
+
+
+def _build(name, pnr="vpr", bit_suffix="", **kw):
+    """`bob build` for an example, a committed pin variant or a project.
+    -> (bit, word, contents, trace, work, result name)"""
+    import cli
+    import vpr_run
+    suffix = ("_py" if pnr == "python" else "") + bit_suffix
+    out = os.path.join(ROOT, "build", "bit", f"{name}{suffix}.bit")
+    if name in PROJECTS:
+        import project
+        pk = project.Project.open(PROJECTS[name]).flow_kwargs()
+        files = pk.pop("files")
+        pk.pop("out")
+        pk.update(pnr=pnr, **kw)
+        result = pk["name"]
+        path, word, contents, tr, work = cli.build(files, out=out, log=lambda *_: None, **pk)
+        return path, word, contents, tr, work, result
+    top, pcf = vpr_run.VARIANTS.get(name, (name, None))
+    path, word, contents, tr, work = cli.build([os.path.join(ROOT, "work", "examples", top, f"{top}.v")], top, pcf,
+                                               out, name=name, log=lambda *_: None, pnr=pnr, **kw)
+    return path, word, contents, tr, work, name
+
+
 def _bob_check(name, pnr="vpr"):
     def check(p, ctx):
         """`bob build` -> .bit -> `bob load`; every user clock the LEDs equal the source's
@@ -796,13 +823,8 @@ def _bob_check(name, pnr="vpr"):
         import cli
         import fasm_from_vpr
         import fpga
-        import vpr_run
         from bitstream import FABRIC_CFG_W, NCLB
-        top, pcf = vpr_run.VARIANTS.get(name, (name, None))
-        suffix = "_py" if pnr == "python" else ""
-        path, word, contents, tr, work = cli.build([os.path.join(ROOT, "work", "examples", top, f"{top}.v")], top, pcf,
-                                                   os.path.join(ROOT, "build", "bit", f"{name}{suffix}.bit"),
-                                                   name=name, log=lambda *_: None, pnr=pnr)
+        path, word, contents, tr, work, result = _build(name, pnr)
         ok, msg = cli.load(p, path, start=False, log=lambda *_: None)
         if not ok:
             return False, msg
@@ -810,7 +832,7 @@ def _bob_check(name, pnr="vpr"):
         if back != bitgen.features_from_word(bitgen.read_bit(path)["word"]):
             return False, "CFG_OUT readback decodes to different FASM than the .bit"
         cfgplane.jstart(p)
-        cmap = fasm_from_vpr.capture_map(name, work)
+        cmap = fasm_from_vpr.capture_map(result, work)
         pos = {b: i for i, b in enumerate(tr["nets"])}
         cfgplane.user1(p, 0x10)                  # autostep: one user clock per INTEST scan
         cfgplane.ir(p, "INTEST")
@@ -848,14 +870,9 @@ LIVE_SECONDS = 8.0
 
 
 def _live_build(name, pnr="vpr"):
-    import cli
-    import vpr_run
-    top, pcf = vpr_run.VARIANTS.get(name, (name, None))
-    suffix = "_py" if pnr == "python" else ""
-    path, word, contents, tr, work = cli.build([os.path.join(ROOT, "work", "examples", top, f"{top}.v")], top, pcf,
-                                               os.path.join(ROOT, "build", "bit", f"{name}{suffix}_run.bit"),
-                                               clock="run", div=LIVE_DIV, name=name, log=lambda *_: None, pnr=pnr)
-    return path, word, work
+    """-> (bit, word, work, result name), built for the free-running clock"""
+    path, word, _contents, _tr, work, result = _build(name, pnr, "_run", clock="run", div=LIVE_DIV)
+    return path, word, work, result
 
 
 def _live_state(p, cmap_idx):
@@ -902,6 +919,14 @@ def _ld2_toggles_off():
     return ("BTN3 again turns LD2 back off", goal)
 
 
+def _counts_with_sw1():
+    def goal(i, leds, h):
+        if (i & 3) == 2:                         # SW1 up, SW0 down: LD1..0 show the counter
+            h.setdefault("cnt", set()).add(leds & 3)
+        return len(h.get("cnt", ())) >= 3
+    return ("LD1..0 count with SW1 up, SW0 down (3 values seen)", goal)
+
+
 # What each live design asks of the person at the board. "try" rows are inputs to hold;
 # the LEDs they should give are computed from model.py (inputs held for a few clocks).
 LIVE_GUIDE = {
@@ -928,6 +953,22 @@ LIVE_GUIDE = {
                  "LD2..0 = p[7:5]. The LEDs light only for large products: hold several buttons.",
         "try": [0b000011, 0b111111, 0b101111, 0b011011],
         "goals": [_sw(0), _sw(1), _sw(2), _sw(3), _btn(0), _btn(1), _btn(2), _btn(3), _led_values(3)],
+    },
+    # M18: the block-design example (work/examples/bd_demo), four IP cores wired in bob studio
+    "bd_demo": {
+        "about": "LD1..0 = a 2-bit counter that counts while SW1 is up (BTN0 clears it), or BTN2..1 "
+                 "while SW0 is up. LD2 toggles once per BTN3 press.",
+        "try": [0b000010, 0b000011, 0b001001, 0b010001, 0b000110],
+        "goals": [_counts_with_sw1(),
+                  ("BTN0 clears the count (SW0 down, LD1..0 off)",
+                   lambda i, leds, h: not i & 1 and (i >> 2) & 1 and not leds & 3),
+                  ("SW0 up, BTN1 lights LD0",
+                   lambda i, leds, h: i & 1 and (i >> 3) & 1 and not (i >> 4) & 1 and leds & 1),
+                  ("SW0 up, BTN2 lights LD1",
+                   lambda i, leds, h: i & 1 and (i >> 4) & 1 and not (i >> 3) & 1 and leds & 2),
+                  ("BTN3 press turns LD2 on", lambda i, leds, h: leds & 4),
+                  _ld2_toggles_off()],
+        "note": "The counter moves at the guest clock (about 7.5 Hz); LD2 is a toggle register.",
     },
     "blinky": {
         "about": "a free-running 8-bit counter, LD2..0 = q[7:5]; nothing to press.",
@@ -976,11 +1017,11 @@ def _live_check(name, pnr="vpr"):
         import model
         from bitstream import BLOCKS, CLBS, FABRIC_CFG_W, Bitstream
         guide = LIVE_GUIDE[name]
-        path, word, work = _live_build(name, pnr)
+        path, word, work, result = _live_build(name, pnr)
         ok, msg = cli.load(p, path, log=lambda *_: None)
         if not ok:
             return False, msg
-        idx = [i for i, _bit in fasm_from_vpr.capture_map(name, work)]
+        idx = [i for i, _bit in fasm_from_vpr.capture_map(result, work)]
         interactive = _interactive() and not guide.get("auto")
         _live_guide(name, word)
         if interactive:
@@ -1054,7 +1095,7 @@ def check_blinky_rate(p, ctx):
     import fasm_from_vpr
     import fpga
     from bitstream import DIV_MIN_SHIFT, NCLB
-    path, _word, _work = _live_build("blinky")
+    path, _word, _work, _result = _live_build("blinky")
     ok, msg = cli.load(p, path, log=lambda *_: None)
     if not ok:
         return False, msg
@@ -1715,6 +1756,16 @@ MILESTONE["M16"] = (
     [("bob-big", _bob_check("big")),
      ("pnr-big", _bob_check("big", pnr="python"))] +
     [MILESTONE["M15"][-1]])
+
+# M18: bob studio projects and block designs. Software only - the board keeps the M16
+# bitstream - so the regression is M16's, plus the block-design example built from its
+# project file through both PnR flows, stepped against the source and live on the switches.
+MILESTONE["M18"] = (
+    MILESTONE["M16"][:-1] +
+    [("bob-bd_demo", _bob_check("bd_demo")),
+     ("pnr-bd_demo", _bob_check("bd_demo", pnr="python")),
+     ("live-bd_demo", _live_check("bd_demo"))] +
+    [MILESTONE["M16"][-1]])
 
 # --- runner ------------------------------------------------------------------
 

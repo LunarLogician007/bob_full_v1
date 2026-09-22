@@ -8,7 +8,7 @@ bob is a complete FPGA written in Verilog and running in the PL of a Zynq XC7Z02
 
 A Raspberry Pi Pico running DirtyJTAG on PMODA configures it from a Mac.
 
-**Try it:** `./host/studio.py --probe fake` opens **bob studio** at `http://127.0.0.1:8765` —
+**Try it:** `software/host/studio.py --probe fake` opens **bob studio** at `http://127.0.0.1:8765` —
 an EDA tool for this FPGA, laid out the way Vivado is. Write Verilog, run Synthesis,
 Implementation and Generate Bitstream, watch each stage report what it measured, see the
 design land on the real floorplan, then program a board and watch the LEDs. `--probe fake`
@@ -95,8 +95,8 @@ Every run is appended to `docs/hwtest/results.log`. To test an older bitstream, 
 ## bob studio
 
 ```sh
-./host/studio.py --probe fake        # no board needed
-./host/studio.py --probe usb         # the Pico on PMODA
+software/host/studio.py --probe fake        # no board needed
+software/host/studio.py --probe usb         # the Pico on PMODA
 python3 docs/studio/build.py         # rebuild studio.html from docs/studio/p*.{html,js}
 ```
 
@@ -110,6 +110,42 @@ python3 docs/studio/build.py         # rebuild studio.html from docs/studio/p*.{
 | I/O Planning | Pin Planner | the 44 pads → writes a `.pcf` |
 | Open Target / Program | Program and Debug | `software/host/cfgplane.py`, readback, CAPTURE, partial reconfiguration |
 | Messages | Messages | yosys / iverilog / VPR diagnostics, clickable to the source line |
+
+### Projects and block designs (M18)
+
+**New Project** (Flow Navigator → Project) makes a folder anywhere on disk:
+
+```
+<location>/<name>/
+  <name>.bobproj      the project file; Open Project reopens it
+  src/                your .v files (copied in, or referenced where they are)
+  bd/                 block designs (.bd) and their generated <bd>_wrapper.v
+  ip/                 the IP cores a block design uses, copied from software/bob/ip/
+  constrs/            .pcf pin files (one is active)
+  build/              <name>.bit and the last build's stage record
+```
+
+In the **Project Manager** you add sources, create files, set the top (right-click →
+Set as top) and pick the active pin file. **Create Block Design** opens a canvas. From the
+palette you place IP cores (`counter clkdiv debounce edge_detect toggle register mux2 const
+slice concat and or xor not`), your own modules and the board's pins (sw, btn, led and
+scan-only pads). You drag from port to port to wire them, and edit bit selects in the wire
+table (`cnt.q[2:1] → board.led[1:0]`). **Validate** marks every problem on its port.
+**Generate wrapper** writes the HDL wrapper (and a `.pcf` if you used a pad) and makes it
+the top. **Generate Bitstream** then builds the project. The same thing from the terminal:
+
+```sh
+software/bob/project.py new ~/fpga demo --add mine.v --top mine
+software/bob/bd.py check    ~/fpga/demo/demo.bobproj bd/demo_bd.bd
+software/bob/bd.py generate ~/fpga/demo/demo.bobproj bd/demo_bd.bd --top
+./bob build --project ~/fpga/demo/demo.bobproj          # -> ~/fpga/demo/build/demo.bit
+```
+
+`work/examples/bd_demo/` is a project made this way (four IP cores on the switches and
+LEDs). A new design has no committed VPR route, so either set **pnr** to `python` in the
+properties panel or start Docker (`colima start`).
+
+Without a project open, the studio works on loose files as before.
 
 Your own work lives in `work/`. **Sources → New design** scaffolds
 `work/<name>/<name>.v` from a template and opens it; edit and save with ⌘S / Ctrl-S;

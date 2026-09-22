@@ -1,0 +1,86 @@
+{
+ "bd": 1,
+ "name": "bd_demo_bd",
+ "blocks": [
+  {
+   "id": "cnt",
+   "kind": "ip",
+   "type": "counter",
+   "params": {
+    "W": 2
+   },
+   "x": 310,
+   "y": 10
+  },
+  {
+   "id": "mux",
+   "kind": "ip",
+   "type": "mux2",
+   "params": {
+    "W": 2
+   },
+   "x": 550,
+   "y": 150
+  },
+  {
+   "id": "press",
+   "kind": "ip",
+   "type": "edge_detect",
+   "params": {},
+   "x": 250,
+   "y": 360
+  },
+  {
+   "id": "tog",
+   "kind": "ip",
+   "type": "toggle",
+   "params": {},
+   "x": 560,
+   "y": 360
+  }
+ ],
+ "wires": [
+  {
+   "src": "board.sw[1]",
+   "dst": "cnt.en"
+  },
+  {
+   "src": "board.btn[0]",
+   "dst": "cnt.clr"
+  },
+  {
+   "src": "cnt.q",
+   "dst": "mux.a"
+  },
+  {
+   "src": "board.btn[2:1]",
+   "dst": "mux.b"
+  },
+  {
+   "src": "board.sw[0]",
+   "dst": "mux.sel"
+  },
+  {
+   "src": "mux.y",
+   "dst": "board.led[1:0]"
+  },
+  {
+   "src": "board.btn[3]",
+   "dst": "press.d"
+  },
+  {
+   "src": "press.rise",
+   "dst": "tog.t"
+  },
+  {
+   "src": "tog.q",
+   "dst": "board.led[2]"
+  }
+ ],
+ "board": {
+  "ix": 20,
+  "iy": 60,
+  "ox": 800,
+  "oy": 100
+ }
+}

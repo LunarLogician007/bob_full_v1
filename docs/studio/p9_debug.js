@@ -152,9 +152,9 @@ const pinplan = {
         dock.show("log");
         return;
       }
-      const r = await api("/api/pcf", { name, assign });
-      S.project.pcf = r.pcf;
-      S.project.name = name;
+      const r = await api("/api/pcf", { name, assign, project: !!S.proj });
+      if (S.proj) await project.load();              // constrs/<name>.pcf, now the active one
+      else { S.project.pcf = r.pcf; S.project.name = name; }
       logLine("info", `wrote ${r.pcf}; the next build uses it`);
       this.render(); props.render();
     } catch (e) {

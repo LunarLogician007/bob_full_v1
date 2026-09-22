@@ -1,0 +1,119 @@
+{
+"top": "bd_demo_bd_wrapper",
+"lut": {
+"led[0]": {
+"n": 3,
+"tt": 172
+},
+"n15": {
+"n": 2,
+"tt": 4
+},
+"led[1]": {
+"n": 3,
+"tt": 202
+},
+"n17": {
+"n": 1,
+"tt": 1
+},
+"ffd4": {
+"n": 1,
+"tt": 2
+},
+"ffd5": {
+"n": 1,
+"tt": 2
+}
+},
+"add": {
+"bob_gen1": {
+"inv": 0
+},
+"$auto$alumacc.cc:548:replace_alu$39.slice[0].add": {
+"inv": 0
+},
+"$auto$alumacc.cc:548:replace_alu$39.slice[1].add": {
+"inv": 0
+}
+},
+"ff": {
+"$auto$ff.cc:337:slice$117": {
+"rstval": 0,
+"ce": true,
+"sr": false
+},
+"$auto$ff.cc:337:slice$118": {
+"rstval": 0,
+"ce": true,
+"sr": true
+},
+"$auto$ff.cc:337:slice$119": {
+"rstval": 0,
+"ce": true,
+"sr": true
+},
+"$auto$ff.cc:337:slice$122": {
+"rstval": 0,
+"ce": false,
+"sr": false
+},
+"$auto$ff.cc:337:slice$123": {
+"rstval": 0,
+"ce": false,
+"sr": false
+}
+},
+"bram": {},
+"dsp": {},
+"consts": {
+"bob_gen1": {
+"a": 0,
+"b": 0
+},
+"$auto$alumacc.cc:548:replace_alu$39.slice[0].add": {
+"a": 1
+},
+"$auto$alumacc.cc:548:replace_alu$39.slice[1].add": {
+"a": 0
+}
+},
+"out_consts": {},
+"has_clk": true,
+"out_pads": {},
+"net_bits": {
+"btn[0]": 5,
+"btn[1]": 6,
+"btn[2]": 7,
+"btn[3]": 8,
+"clk": 2,
+"ffd4": 8,
+"ffd5": 14,
+"led[0]": 9,
+"led[1]": 10,
+"led[2]": 11,
+"n12": 12,
+"n13": 13,
+"n14": 14,
+"n15": 15,
+"n16": 16,
+"n17": 17,
+"n19": 19,
+"n21": 21,
+"sw[0]": 3,
+"sw[1]": 4
+},
+"pins": {
+"clk": 0,
+"sw[0]": 12,
+"sw[1]": 14,
+"btn[0]": 16,
+"btn[1]": 18,
+"btn[2]": 20,
+"btn[3]": 22,
+"out:led[0]": 13,
+"out:led[1]": 15,
+"out:led[2]": 17
+},
+"pcf": null
+}

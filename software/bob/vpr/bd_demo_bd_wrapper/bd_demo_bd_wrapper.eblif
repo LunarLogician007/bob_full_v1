@@ -1,0 +1,39 @@
+# GENERATED from the yosys netlist of bd_demo_bd_wrapper - do not edit
+.model bd_demo_bd_wrapper
+.inputs clk sw[0] sw[1] btn[0] btn[1] btn[2] btn[3]
+.outputs led[0] led[1] led[2]
+.subckt bob_add cout=cy2
+.cname bob_gen1
+.subckt bob_add b=n12 cin=cy2 cout=cy3 sumout=n19
+.cname $auto$alumacc.cc:548:replace_alu$39.slice[0].add
+.subckt bob_add b=n16 cin=cy3 sumout=n21
+.cname $auto$alumacc.cc:548:replace_alu$39.slice[1].add
+.names btn[1] n12 sw[0] led[0]
+010 1
+110 1
+101 1
+111 1
+.names n13 n14 n15
+01 1
+.names n16 btn[2] sw[0] led[1]
+100 1
+110 1
+011 1
+111 1
+.names led[2] n17
+0 1
+.subckt bob_ff D=n17 C=clk Q=led[2] CE=n15
+.cname $auto$ff.cc:337:slice$117
+.subckt bob_ff D=n19 C=clk Q=n12 CE=sw[1] SR=btn[0]
+.cname $auto$ff.cc:337:slice$118
+.subckt bob_ff D=n21 C=clk Q=n16 CE=sw[1] SR=btn[0]
+.cname $auto$ff.cc:337:slice$119
+.subckt bob_ff D=ffd4 C=clk Q=n14
+.cname $auto$ff.cc:337:slice$122
+.subckt bob_ff D=ffd5 C=clk Q=n13
+.cname $auto$ff.cc:337:slice$123
+.names btn[3] ffd4
+1 1
+.names n14 ffd5
+1 1
+.end

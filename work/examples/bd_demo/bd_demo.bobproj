@@ -1,0 +1,23 @@
+{
+  "bobproj": 1,
+  "name": "bd_demo",
+  "top": "bd_demo_bd_wrapper",
+  "sources": [
+    "ip/ip_counter.v",
+    "ip/ip_mux2.v",
+    "ip/ip_edge_detect.v",
+    "ip/ip_toggle.v",
+    "bd/bd_demo_bd_wrapper.v"
+  ],
+  "constraints": [],
+  "active_pcf": null,
+  "block_designs": [
+    "bd/bd_demo_bd.bd"
+  ],
+  "settings": {
+    "clock": "jtag",
+    "div": 0,
+    "seed": 1,
+    "pnr": "vpr"
+  }
+}

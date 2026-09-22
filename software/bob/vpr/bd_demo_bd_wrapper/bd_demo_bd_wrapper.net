@@ -1,0 +1,577 @@
+<?xml version="1.0"?>
+<block name="bd_demo_bd_wrapper.net" instance="FPGA_packed_netlist[0]" architecture_id="" atom_netlist_id="">
+	<inputs>clk sw[0] sw[1] btn[0] btn[1] btn[2] btn[3]</inputs>
+	<outputs>out:led[0] out:led[1] out:led[2]</outputs>
+	<clocks>clk</clocks>
+	<block name="n17" instance="clb[0]" mode="logic">
+		<inputs>
+			<port name="I">led[2] open open open open open</port>
+			<port name="ce">n15</port>
+			<port name="sr">open</port>
+			<port name="cin">open</port>
+		</inputs>
+		<outputs>
+			<port name="O">ff[0].Q[0]-&gt;o</port>
+			<port name="O5">open</port>
+			<port name="cout">open</port>
+		</outputs>
+		<clocks>
+			<port name="clk">clk</port>
+		</clocks>
+		<block name="n17" instance="lut[0]" mode="lut">
+			<inputs>
+				<port name="in">clb.I[0]-&gt;lut_in open open open open open</port>
+			</inputs>
+			<outputs>
+				<port name="out">lut_child[0].out[0]-&gt;direct:lut</port>
+			</outputs>
+			<clocks />
+			<block name="n17" instance="lut_child[0]">
+				<attributes />
+				<parameters />
+				<inputs>
+					<port name="in">lut.in[0]-&gt;direct:lut open open open open open</port>
+					<port_rotation_map name="in">0 open open open open open</port_rotation_map>
+				</inputs>
+				<outputs>
+					<port name="out">n17</port>
+				</outputs>
+				<clocks />
+			</block>
+		</block>
+		<block name="$auto$ff.cc:337:slice$117" instance="ff[0]">
+			<attributes />
+			<parameters />
+			<inputs>
+				<port name="D">lut[0].out[0]-&gt;ff_d</port>
+				<port name="CE">clb.ce[0]-&gt;ff_ce</port>
+				<port name="SR">open</port>
+			</inputs>
+			<outputs>
+				<port name="Q">led[2]</port>
+			</outputs>
+			<clocks>
+				<port name="C">clb.clk[0]-&gt;ff_c</port>
+			</clocks>
+		</block>
+	</block>
+	<block name="ffd5" instance="clb[1]" mode="logic">
+		<inputs>
+			<port name="I">n14 open open open open open</port>
+			<port name="ce">open</port>
+			<port name="sr">open</port>
+			<port name="cin">open</port>
+		</inputs>
+		<outputs>
+			<port name="O">ff[0].Q[0]-&gt;o</port>
+			<port name="O5">open</port>
+			<port name="cout">open</port>
+		</outputs>
+		<clocks>
+			<port name="clk">clk</port>
+		</clocks>
+		<block name="ffd5" instance="lut[0]" mode="lut">
+			<inputs>
+				<port name="in">clb.I[0]-&gt;lut_in open open open open open</port>
+			</inputs>
+			<outputs>
+				<port name="out">lut_child[0].out[0]-&gt;direct:lut</port>
+			</outputs>
+			<clocks />
+			<block name="ffd5" instance="lut_child[0]">
+				<attributes />
+				<parameters />
+				<inputs>
+					<port name="in">lut.in[0]-&gt;direct:lut open open open open open</port>
+					<port_rotation_map name="in">0 open open open open open</port_rotation_map>
+				</inputs>
+				<outputs>
+					<port name="out">ffd5</port>
+				</outputs>
+				<clocks />
+			</block>
+		</block>
+		<block name="$auto$ff.cc:337:slice$123" instance="ff[0]">
+			<attributes />
+			<parameters />
+			<inputs>
+				<port name="D">lut[0].out[0]-&gt;ff_d</port>
+				<port name="CE">open</port>
+				<port name="SR">open</port>
+			</inputs>
+			<outputs>
+				<port name="Q">n13</port>
+			</outputs>
+			<clocks>
+				<port name="C">clb.clk[0]-&gt;ff_c</port>
+			</clocks>
+		</block>
+	</block>
+	<block name="$auto$alumacc.cc:548:replace_alu$39.slice[0].add" instance="clb[2]" mode="arithmetic">
+		<inputs>
+			<port name="I">open n12 open open open open</port>
+			<port name="ce">sw[1]</port>
+			<port name="sr">btn[0]</port>
+			<port name="cin">cy2</port>
+		</inputs>
+		<outputs>
+			<port name="O">ff[0].Q[0]-&gt;o</port>
+			<port name="O5">open</port>
+			<port name="cout">add[0].cout[0]-&gt;cout</port>
+		</outputs>
+		<clocks>
+			<port name="clk">clk</port>
+		</clocks>
+		<block name="$auto$alumacc.cc:548:replace_alu$39.slice[0].add" instance="add[0]">
+			<attributes />
+			<parameters />
+			<inputs>
+				<port name="a">open</port>
+				<port name="b">clb.I[1]-&gt;b</port>
+				<port name="cin">clb.cin[0]-&gt;cin</port>
+			</inputs>
+			<outputs>
+				<port name="cout">cy3</port>
+				<port name="sumout">n19</port>
+			</outputs>
+			<clocks />
+		</block>
+		<block name="$auto$ff.cc:337:slice$118" instance="ff[0]">
+			<attributes />
+			<parameters />
+			<inputs>
+				<port name="D">add[0].sumout[0]-&gt;ff_d</port>
+				<port name="CE">clb.ce[0]-&gt;ff_ce</port>
+				<port name="SR">clb.sr[0]-&gt;ff_sr</port>
+			</inputs>
+			<outputs>
+				<port name="Q">n12</port>
+			</outputs>
+			<clocks>
+				<port name="C">clb.clk[0]-&gt;ff_c</port>
+			</clocks>
+		</block>
+	</block>
+	<block name="$auto$alumacc.cc:548:replace_alu$39.slice[1].add" instance="clb[3]" mode="arithmetic">
+		<inputs>
+			<port name="I">open n16 open open open open</port>
+			<port name="ce">sw[1]</port>
+			<port name="sr">btn[0]</port>
+			<port name="cin">cy3</port>
+		</inputs>
+		<outputs>
+			<port name="O">ff[0].Q[0]-&gt;o</port>
+			<port name="O5">open</port>
+			<port name="cout">open</port>
+		</outputs>
+		<clocks>
+			<port name="clk">clk</port>
+		</clocks>
+		<block name="$auto$alumacc.cc:548:replace_alu$39.slice[1].add" instance="add[0]">
+			<attributes />
+			<parameters />
+			<inputs>
+				<port name="a">open</port>
+				<port name="b">clb.I[1]-&gt;b</port>
+				<port name="cin">clb.cin[0]-&gt;cin</port>
+			</inputs>
+			<outputs>
+				<port name="cout">open</port>
+				<port name="sumout">n21</port>
+			</outputs>
+			<clocks />
+		</block>
+		<block name="$auto$ff.cc:337:slice$119" instance="ff[0]">
+			<attributes />
+			<parameters />
+			<inputs>
+				<port name="D">add[0].sumout[0]-&gt;ff_d</port>
+				<port name="CE">clb.ce[0]-&gt;ff_ce</port>
+				<port name="SR">clb.sr[0]-&gt;ff_sr</port>
+			</inputs>
+			<outputs>
+				<port name="Q">n16</port>
+			</outputs>
+			<clocks>
+				<port name="C">clb.clk[0]-&gt;ff_c</port>
+			</clocks>
+		</block>
+	</block>
+	<block name="ffd4" instance="clb[4]" mode="logic">
+		<inputs>
+			<port name="I">btn[3] open open open open open</port>
+			<port name="ce">open</port>
+			<port name="sr">open</port>
+			<port name="cin">open</port>
+		</inputs>
+		<outputs>
+			<port name="O">ff[0].Q[0]-&gt;o</port>
+			<port name="O5">open</port>
+			<port name="cout">open</port>
+		</outputs>
+		<clocks>
+			<port name="clk">clk</port>
+		</clocks>
+		<block name="ffd4" instance="lut[0]" mode="lut">
+			<inputs>
+				<port name="in">clb.I[0]-&gt;lut_in open open open open open</port>
+			</inputs>
+			<outputs>
+				<port name="out">lut_child[0].out[0]-&gt;direct:lut</port>
+			</outputs>
+			<clocks />
+			<block name="ffd4" instance="lut_child[0]">
+				<attributes />
+				<parameters />
+				<inputs>
+					<port name="in">lut.in[0]-&gt;direct:lut open open open open open</port>
+					<port_rotation_map name="in">0 open open open open open</port_rotation_map>
+				</inputs>
+				<outputs>
+					<port name="out">ffd4</port>
+				</outputs>
+				<clocks />
+			</block>
+		</block>
+		<block name="$auto$ff.cc:337:slice$122" instance="ff[0]">
+			<attributes />
+			<parameters />
+			<inputs>
+				<port name="D">lut[0].out[0]-&gt;ff_d</port>
+				<port name="CE">open</port>
+				<port name="SR">open</port>
+			</inputs>
+			<outputs>
+				<port name="Q">n14</port>
+			</outputs>
+			<clocks>
+				<port name="C">clb.clk[0]-&gt;ff_c</port>
+			</clocks>
+		</block>
+	</block>
+	<block name="led[0]" instance="clb[5]" mode="logic">
+		<inputs>
+			<port name="I">n12 sw[0] btn[1] open open open</port>
+			<port name="ce">open</port>
+			<port name="sr">open</port>
+			<port name="cin">open</port>
+		</inputs>
+		<outputs>
+			<port name="O">lut[0].out[0]-&gt;o</port>
+			<port name="O5">open</port>
+			<port name="cout">open</port>
+		</outputs>
+		<clocks>
+			<port name="clk">open</port>
+		</clocks>
+		<block name="led[0]" instance="lut[0]" mode="lut">
+			<inputs>
+				<port name="in">clb.I[0]-&gt;lut_in clb.I[1]-&gt;lut_in clb.I[2]-&gt;lut_in open open open</port>
+			</inputs>
+			<outputs>
+				<port name="out">lut_child[0].out[0]-&gt;direct:lut</port>
+			</outputs>
+			<clocks />
+			<block name="led[0]" instance="lut_child[0]">
+				<attributes />
+				<parameters />
+				<inputs>
+					<port name="in">lut.in[0]-&gt;direct:lut lut.in[1]-&gt;direct:lut lut.in[2]-&gt;direct:lut open open open</port>
+					<port_rotation_map name="in">1 2 0 open open open</port_rotation_map>
+				</inputs>
+				<outputs>
+					<port name="out">led[0]</port>
+				</outputs>
+				<clocks />
+			</block>
+		</block>
+		<block name="open" instance="ff[0]" />
+	</block>
+	<block name="led[1]" instance="clb[6]" mode="logic">
+		<inputs>
+			<port name="I">btn[2] sw[0] n16 open open open</port>
+			<port name="ce">open</port>
+			<port name="sr">open</port>
+			<port name="cin">open</port>
+		</inputs>
+		<outputs>
+			<port name="O">lut[0].out[0]-&gt;o</port>
+			<port name="O5">open</port>
+			<port name="cout">open</port>
+		</outputs>
+		<clocks>
+			<port name="clk">open</port>
+		</clocks>
+		<block name="led[1]" instance="lut[0]" mode="lut">
+			<inputs>
+				<port name="in">clb.I[0]-&gt;lut_in clb.I[1]-&gt;lut_in clb.I[2]-&gt;lut_in open open open</port>
+			</inputs>
+			<outputs>
+				<port name="out">lut_child[0].out[0]-&gt;direct:lut</port>
+			</outputs>
+			<clocks />
+			<block name="led[1]" instance="lut_child[0]">
+				<attributes />
+				<parameters />
+				<inputs>
+					<port name="in">lut.in[0]-&gt;direct:lut lut.in[1]-&gt;direct:lut lut.in[2]-&gt;direct:lut open open open</port>
+					<port_rotation_map name="in">1 2 0 open open open</port_rotation_map>
+				</inputs>
+				<outputs>
+					<port name="out">led[1]</port>
+				</outputs>
+				<clocks />
+			</block>
+		</block>
+		<block name="open" instance="ff[0]" />
+	</block>
+	<block name="n15" instance="clb[7]" mode="logic">
+		<inputs>
+			<port name="I">n14 n13 open open open open</port>
+			<port name="ce">open</port>
+			<port name="sr">open</port>
+			<port name="cin">open</port>
+		</inputs>
+		<outputs>
+			<port name="O">lut[0].out[0]-&gt;o</port>
+			<port name="O5">open</port>
+			<port name="cout">open</port>
+		</outputs>
+		<clocks>
+			<port name="clk">open</port>
+		</clocks>
+		<block name="n15" instance="lut[0]" mode="lut">
+			<inputs>
+				<port name="in">clb.I[0]-&gt;lut_in clb.I[1]-&gt;lut_in open open open open</port>
+			</inputs>
+			<outputs>
+				<port name="out">lut_child[0].out[0]-&gt;direct:lut</port>
+			</outputs>
+			<clocks />
+			<block name="n15" instance="lut_child[0]">
+				<attributes />
+				<parameters />
+				<inputs>
+					<port name="in">lut.in[0]-&gt;direct:lut lut.in[1]-&gt;direct:lut open open open open</port>
+					<port_rotation_map name="in">1 0 open open open open</port_rotation_map>
+				</inputs>
+				<outputs>
+					<port name="out">n15</port>
+				</outputs>
+				<clocks />
+			</block>
+		</block>
+		<block name="open" instance="ff[0]" />
+	</block>
+	<block name="out:led[0]" instance="io[8]" mode="outpad">
+		<inputs>
+			<port name="outpad">led[0]</port>
+		</inputs>
+		<outputs>
+			<port name="inpad">open</port>
+		</outputs>
+		<clocks />
+		<block name="out:led[0]" instance="outpad[0]">
+			<attributes />
+			<parameters />
+			<inputs>
+				<port name="outpad">io.outpad[0]-&gt;outpad</port>
+			</inputs>
+			<outputs />
+			<clocks />
+		</block>
+	</block>
+	<block name="out:led[1]" instance="io[9]" mode="outpad">
+		<inputs>
+			<port name="outpad">led[1]</port>
+		</inputs>
+		<outputs>
+			<port name="inpad">open</port>
+		</outputs>
+		<clocks />
+		<block name="out:led[1]" instance="outpad[0]">
+			<attributes />
+			<parameters />
+			<inputs>
+				<port name="outpad">io.outpad[0]-&gt;outpad</port>
+			</inputs>
+			<outputs />
+			<clocks />
+		</block>
+	</block>
+	<block name="out:led[2]" instance="io[10]" mode="outpad">
+		<inputs>
+			<port name="outpad">led[2]</port>
+		</inputs>
+		<outputs>
+			<port name="inpad">open</port>
+		</outputs>
+		<clocks />
+		<block name="out:led[2]" instance="outpad[0]">
+			<attributes />
+			<parameters />
+			<inputs>
+				<port name="outpad">io.outpad[0]-&gt;outpad</port>
+			</inputs>
+			<outputs />
+			<clocks />
+		</block>
+	</block>
+	<block name="bob_gen1" instance="clb[11]" mode="arithmetic">
+		<inputs>
+			<port name="I">open open open open open open</port>
+			<port name="ce">open</port>
+			<port name="sr">open</port>
+			<port name="cin">open</port>
+		</inputs>
+		<outputs>
+			<port name="O">open</port>
+			<port name="O5">open</port>
+			<port name="cout">add[0].cout[0]-&gt;cout</port>
+		</outputs>
+		<clocks>
+			<port name="clk">open</port>
+		</clocks>
+		<block name="bob_gen1" instance="add[0]">
+			<attributes />
+			<parameters />
+			<inputs>
+				<port name="a">open</port>
+				<port name="b">open</port>
+				<port name="cin">open</port>
+			</inputs>
+			<outputs>
+				<port name="cout">cy2</port>
+				<port name="sumout">open</port>
+			</outputs>
+			<clocks />
+		</block>
+		<block name="open" instance="ff[0]" />
+	</block>
+	<block name="clk" instance="io[12]" mode="inpad">
+		<inputs>
+			<port name="outpad">open</port>
+		</inputs>
+		<outputs>
+			<port name="inpad">inpad[0].inpad[0]-&gt;inpad</port>
+		</outputs>
+		<clocks />
+		<block name="clk" instance="inpad[0]">
+			<attributes />
+			<parameters />
+			<inputs />
+			<outputs>
+				<port name="inpad">clk</port>
+			</outputs>
+			<clocks />
+		</block>
+	</block>
+	<block name="sw[0]" instance="io[13]" mode="inpad">
+		<inputs>
+			<port name="outpad">open</port>
+		</inputs>
+		<outputs>
+			<port name="inpad">inpad[0].inpad[0]-&gt;inpad</port>
+		</outputs>
+		<clocks />
+		<block name="sw[0]" instance="inpad[0]">
+			<attributes />
+			<parameters />
+			<inputs />
+			<outputs>
+				<port name="inpad">sw[0]</port>
+			</outputs>
+			<clocks />
+		</block>
+	</block>
+	<block name="sw[1]" instance="io[14]" mode="inpad">
+		<inputs>
+			<port name="outpad">open</port>
+		</inputs>
+		<outputs>
+			<port name="inpad">inpad[0].inpad[0]-&gt;inpad</port>
+		</outputs>
+		<clocks />
+		<block name="sw[1]" instance="inpad[0]">
+			<attributes />
+			<parameters />
+			<inputs />
+			<outputs>
+				<port name="inpad">sw[1]</port>
+			</outputs>
+			<clocks />
+		</block>
+	</block>
+	<block name="btn[0]" instance="io[15]" mode="inpad">
+		<inputs>
+			<port name="outpad">open</port>
+		</inputs>
+		<outputs>
+			<port name="inpad">inpad[0].inpad[0]-&gt;inpad</port>
+		</outputs>
+		<clocks />
+		<block name="btn[0]" instance="inpad[0]">
+			<attributes />
+			<parameters />
+			<inputs />
+			<outputs>
+				<port name="inpad">btn[0]</port>
+			</outputs>
+			<clocks />
+		</block>
+	</block>
+	<block name="btn[1]" instance="io[16]" mode="inpad">
+		<inputs>
+			<port name="outpad">open</port>
+		</inputs>
+		<outputs>
+			<port name="inpad">inpad[0].inpad[0]-&gt;inpad</port>
+		</outputs>
+		<clocks />
+		<block name="btn[1]" instance="inpad[0]">
+			<attributes />
+			<parameters />
+			<inputs />
+			<outputs>
+				<port name="inpad">btn[1]</port>
+			</outputs>
+			<clocks />
+		</block>
+	</block>
+	<block name="btn[2]" instance="io[17]" mode="inpad">
+		<inputs>
+			<port name="outpad">open</port>
+		</inputs>
+		<outputs>
+			<port name="inpad">inpad[0].inpad[0]-&gt;inpad</port>
+		</outputs>
+		<clocks />
+		<block name="btn[2]" instance="inpad[0]">
+			<attributes />
+			<parameters />
+			<inputs />
+			<outputs>
+				<port name="inpad">btn[2]</port>
+			</outputs>
+			<clocks />
+		</block>
+	</block>
+	<block name="btn[3]" instance="io[18]" mode="inpad">
+		<inputs>
+			<port name="outpad">open</port>
+		</inputs>
+		<outputs>
+			<port name="inpad">inpad[0].inpad[0]-&gt;inpad</port>
+		</outputs>
+		<clocks />
+		<block name="btn[3]" instance="inpad[0]">
+			<attributes />
+			<parameters />
+			<inputs />
+			<outputs>
+				<port name="inpad">btn[3]</port>
+			</outputs>
+			<clocks />
+		</block>
+	</block>
+</block>

@@ -216,3 +216,43 @@ def test_m15_bram_live_refused_fails_if_frames_write_while_running():
             return super().shift_dr(n, din)
     ok, msg = hwtest.check_frames_bram_live_refused(Leaky(rate_scale=1e-4), {})
     assert not ok, msg
+
+
+# --- M18: the block-design project ------------------------------------------------
+
+
+@pytest.mark.parametrize("pnr", ["vpr", "python"])
+def test_m18_project_check_passes_on_a_good_board(pnr):
+    ok, msg = hwtest._bob_check("bd_demo", pnr=pnr)(FakeBob(), {})
+    assert ok, msg
+    assert "CAPTUREs" in msg
+
+
+def test_m18_project_check_fails_when_capture_is_wrong():
+    ok, msg = hwtest._bob_check("bd_demo")(FakeBob(corrupt_capture=True), {})
+    assert not ok and "CAPTURE" in msg
+
+
+def test_m18_live_goals_reached_by_a_person(at_the_board):
+    ok, msg = hwtest._live_check("bd_demo")(FakeBob(switches=_fast_person, rate_scale=4), {})
+    assert ok and "all goals reached" in msg, msg
+
+
+def test_m18_live_fails_when_nobody_touches_the_switches(at_the_board, monkeypatch):
+    monkeypatch.setattr(hwtest, "LIVE_TIMEOUT", 2.0)
+    ok, msg = hwtest._live_check("bd_demo")(FakeBob(switches=lambda t: 0), {})
+    assert not ok and "goals not reached" in msg
+
+
+def test_m18_live_fails_when_leds_are_wrong(quick):
+    ok, msg = hwtest._live_check("bd_demo")(FakeBob(switches=_wiggle, corrupt_sample=True), {})
+    assert not ok and "model" in msg
+
+
+def test_m18_goals_are_not_met_by_idle_inputs():
+    """The stimulus must exercise the design: no single held input vector ticks every goal."""
+    goals = hwtest.LIVE_GUIDE["bd_demo"]["goals"]
+    for i in range(64):
+        h = {}
+        met = sum(bool(fn(i, leds, h)) for _l, fn in goals for leds in range(8))
+        assert met < len(goals) * 8

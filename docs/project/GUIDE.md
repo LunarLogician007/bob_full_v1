@@ -613,8 +613,8 @@ so the checks that prove the stand-in can *fail* go on guarding the one the tool
 **How to use it.**
 
 ```sh
-./host/studio.py --probe fake     # no hardware; http://127.0.0.1:8765
-./host/studio.py --probe usb      # the Pico on PMODA
+software/host/studio.py --probe fake     # no hardware; http://127.0.0.1:8765
+software/host/studio.py --probe usb      # the Pico on PMODA
 ./bob build --json rec.json work/examples/fir/fir.v
 ./bob build --project bob.proj    # sources, top, pins and settings in one file
 ./bob load design.bit --probe fake

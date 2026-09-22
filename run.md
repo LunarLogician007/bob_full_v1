@@ -196,7 +196,7 @@ cd software/host && ./hwtest.py --milestone M16 --list   # list checks; touches 
 ## The same flow in a GUI
 
 ```sh
-./host/studio.py --probe fake       # then open http://127.0.0.1:8765
+software/host/studio.py --probe fake       # then open http://127.0.0.1:8765
 ```
 
 Synthesis → Implementation → Generate Bitstream → Program, with a Device view showing

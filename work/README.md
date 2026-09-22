@@ -15,6 +15,13 @@ A design keeps to one clock, no asynchronous resets and no latches: the fabric h
 user clock and every flip-flop is enabled by it. Without a `.pcf` the ports must be
 `clk`, `sw[1:0]`, `btn[3:0]`, `led[2:0]`; with one, any ports you like.
 
+## Projects (M18)
+
+A bob studio project can live anywhere on disk: **New Project** makes
+`<location>/<name>/<name>.bobproj` with `src/ bd/ ip/ constrs/ build/`. The
+block-design example `work/examples/bd_demo/` is one. See the README's *Projects and
+block designs*. From the command line: `./bob build --project path/to/x.bobproj`.
+
 ## Pin files
 
 A `.pcf` names **one bit per line**, and every port bit is `port[i]` — including a port

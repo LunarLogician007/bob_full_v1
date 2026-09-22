@@ -2,7 +2,7 @@
 """
 studio.py - the bob studio backend: an EDA tool for the bob FPGA, over HTTP.
 
-  ./host/studio.py [--port 8765] [--probe usb|fake] [--no-browser]
+  software/host/studio.py [--port 8765] [--probe usb|fake] [--no-browser]
 
 Vivado's shape, mapped onto the flow this project already has. Nothing here
 reimplements a stage; every route drives software/bob/flow.py (synthesis and its
@@ -32,6 +32,26 @@ software/host/cfgplane.py (program, readback), and reports what they return.
   POST /api/partial             reconfigure the running design, changed frames only
   GET  /api/fasm                a .bit as FASM, with its frame map
 
+Projects and block designs (M18; software/bob/project.py, software/bob/bd.py):
+  GET  /api/project             the open project (files, top, settings, its modules) or null
+  POST /api/project/new         {location, name}: make <location>/<name>/<name>.bobproj, open it
+  POST /api/project/open        {path}: a .bobproj, or the folder holding one
+  POST /api/project/close
+  POST /api/project/add         {path, copy}: a .v/.sv/.vh or .pcf into the project
+  POST /api/project/create      {name}: a new src/<name>.v from the template
+  POST /api/project/remove      {rel}: take a file out of the project (it stays on disk)
+  POST /api/project/top         {module}
+  POST /api/project/pcf         {rel|null}: the active pin file
+  POST /api/project/settings    {clock, div, seed, pnr}
+  GET  /api/recent              recently opened projects
+  GET  /api/fs?path=            one folder's subfolders, projects and sources (New/Open dialogs)
+  GET  /api/bd?rel=             a block design;  POST /api/bd {rel, bd} saves it
+  POST /api/bd/new              {name}: an empty bd/<name>.bd
+  POST /api/bd/check            {bd}: errors and warnings, each at an endpoint
+  POST /api/bd/generate         {rel, top}: write the HDL wrapper (+ .pcf), add it to the project
+  GET  /api/bd/palette          IP cores, the project's modules, the board's ports
+  GET  /api/ports?kind=&type=&params=   a block's ports at these parameters
+
 Stdlib only: http.server and SSE, so the project gains no dependency. Builds write
 where the CLI writes them, under build/, and nothing here ever regenerates the
 device or touches hw/.
@@ -58,10 +78,12 @@ ROOT = os.path.dirname(os.path.dirname(HERE))
 sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(ROOT, "software", "bob"))
 
+import bd as BD  # noqa: E402
 import bitstream as B  # noqa: E402
 import fakeboard  # noqa: E402
 import fasm_from_vpr as FV  # noqa: E402
 import flow  # noqa: E402
+import project as P  # noqa: E402
 import vpr_run  # noqa: E402
 
 PAGE = os.path.join(ROOT, "studio.html")
@@ -89,10 +111,15 @@ class Job:
 
     def _run(self):
         try:
-            f = flow.Flow(**self.spec)
+            spec = dict(self.spec)
+            record = spec.pop("record", None)
+            f = flow.Flow(**spec)
             self._emit("start", design=f.name, top=f.top, stages=list(flow.STAGES))
             res = f.run(on_stage=lambda st: self._emit("stage", **st.to_json()))
             self.result = res.to_json()
+            if record:                                # a project keeps its last build record
+                with open(record, "w") as fh:
+                    json.dump(self.result, fh, indent=2)
             self.result["placement"] = placement(f.name, res.work) if res.ok else None
             self._emit("done", **self.result)
         except Exception as e:                        # a bug here must reach the page
@@ -181,7 +208,7 @@ def placement(name, work):
 
 SAFE_NAME = re.compile(r"[^A-Za-z0-9._-]")
 DESIGNS = os.path.join(ROOT, "work")
-EDITABLE = (".v", ".sv", ".vh", ".pcf", ".proj")
+EDITABLE = (".v", ".sv", ".vh", ".pcf", ".proj", ".bobproj", ".bd")
 
 TEMPLATE = """// {name}.v - a bob design.
 //
@@ -239,13 +266,29 @@ def save_source(rel, text):
     the studio is a tool for this project, not a general file manager."""
     ap = _inside(rel)
     if ap is None:
-        raise ValueError("path is outside the repo")
+        raise ValueError("path is outside the repo and the open project")
     if not ap.endswith(EDITABLE):
         raise ValueError(f"only {', '.join(EDITABLE)} files can be saved")
+    proj = PROJECT.get()
+    is_proj = proj is not None and ap == os.path.realpath(proj.path)
+    if is_proj:
+        try:                                   # the open project must stay readable
+            json.loads(text)
+        except ValueError as e:
+            raise ValueError(f"not saved: the project file must be JSON ({e})")
     os.makedirs(os.path.dirname(ap), exist_ok=True)
     with open(ap, "w") as fh:
         fh.write(text)
-    return os.path.relpath(ap, ROOT)
+    if is_proj:
+        with PROJECT.lock:
+            PROJECT.set(P.Project.open(ap))
+    return _show(ap)
+
+
+def _show(ap):
+    """A path as the page shows it: repo-relative inside the repo, absolute elsewhere."""
+    real = os.path.realpath(ap)
+    return os.path.relpath(real, REAL_ROOT) if _under(real, REAL_ROOT) else ap
 
 
 def new_design(name):
@@ -272,8 +315,12 @@ def bitstreams():
     from the command line is just as loadable as one built in this tab."""
     import bitgen
     out = []
-    for f in sorted(glob.glob(os.path.join(ROOT, "build", "bit", "*.bit"))):
-        rel = os.path.relpath(f, ROOT)
+    found = glob.glob(os.path.join(ROOT, "build", "bit", "*.bit"))
+    proj = PROJECT.get()
+    if proj:
+        found += glob.glob(os.path.join(proj.dir, "build", "*.bit"))
+    for f in sorted(found):
+        rel = os.path.relpath(f, ROOT) if f.startswith(ROOT + os.sep) else f
         rec = {"path": rel, "name": os.path.basename(f)[:-4], "mtime": os.path.getmtime(f)}
         try:
             c = bitgen.read_bit(f)
@@ -321,8 +368,9 @@ def pins():
             "convention": "sw[1:0] -> SW1..0, btn[3:0] -> BTN3..0, led[2:0] -> LD2..0"}
 
 
-def write_pcf(name, assign):
-    """{port bit: pin name} -> build/pcf/<name>.pcf, checked against the pad map.
+def write_pcf(name, assign, into_project=False):
+    """{port bit: pin name} -> build/pcf/<name>.pcf, checked against the pad map. With a
+    project open and into_project, constrs/<name>.pcf instead, made the active pin file.
 
     `name` comes from the page, so it never reaches a path as given: it names a file in
     build/pcf/ and nothing else. Without this, "../../../x" walked out of the repo."""
@@ -340,8 +388,10 @@ def write_pcf(name, assign):
     bare = sorted(k for k in assign if not re.fullmatch(r"[^\[\]]+\[\d+\]", str(k)))
     if bare:
         raise ValueError(f"name each bit as port[i], one-bit ports included: {bare}")
-    out = os.path.join(ROOT, "build", "pcf", f"{name}.pcf")
-    if _inside(os.path.relpath(out, ROOT)) is None:
+    proj = PROJECT.get() if into_project else None
+    out = (os.path.join(proj.dir, "constrs", f"{name}.pcf") if proj
+           else os.path.join(ROOT, "build", "pcf", f"{name}.pcf"))
+    if _inside(out) is None:
         raise ValueError(f"refusing to write outside the repo: {name}")
     os.makedirs(os.path.dirname(out), exist_ok=True)
     with open(out, "w") as fh:
@@ -349,7 +399,12 @@ def write_pcf(name, assign):
         for port, pin in sorted(assign.items()):
             fh.write(f"set_io {port} {pin}\n")
     vpr_run.read_pcf(out)                      # it must parse the way a build will read it
-    return os.path.relpath(out, ROOT)
+    if proj:
+        with PROJECT.lock:
+            rel = proj.add_constraint(out)
+            proj.set_active_pcf(rel)
+            proj.save()
+    return _show(out)
 
 
 def fasm_of(bit):
@@ -374,13 +429,151 @@ def fasm_of(bit):
 REAL_ROOT = os.path.realpath(ROOT)
 
 
+def _under(ap, base):
+    return ap == base or ap.startswith(base + os.sep)
+
+
 def _inside(path):
-    """Only ever touch paths inside the repo, and never follow a link out of it.
-    Both sides are resolved, so a symlink anywhere in ROOT cannot make them differ."""
+    """Only ever touch paths inside the repo or inside the open project, and never follow
+    a link out of them. A relative path is relative to the repo; a project's files come as
+    absolute paths. Both sides are resolved, so a symlink cannot make them differ."""
     if not path:
         return None
-    ap = os.path.realpath(os.path.join(ROOT, path))
-    return ap if ap == REAL_ROOT or ap.startswith(REAL_ROOT + os.sep) else None
+    ap = os.path.realpath(os.path.join(ROOT, os.path.expanduser(str(path))))
+    if _under(ap, REAL_ROOT):
+        return ap
+    proj = PROJECT.get()
+    if proj and _under(ap, os.path.realpath(proj.dir)):
+        return ap
+    return None
+
+
+# --- projects and block designs (M18) -----------------------------------------
+
+
+class OpenProject:
+    """The one project the studio has open. Routes run on server threads, so every
+    change to it happens under the lock and is saved before the lock is let go."""
+
+    def __init__(self):
+        self.lock = threading.RLock()
+        self.p = None
+
+    def get(self):
+        return self.p
+
+    def set(self, p):
+        with self.lock:
+            self.p = p
+        return p
+
+    def need(self):
+        if self.p is None:
+            raise P.ProjectError("no project open: File > New Project or Open Project")
+        return self.p
+
+
+PROJECT = OpenProject()
+FS_SHOW = (".bobproj", ".v", ".sv", ".vh", ".pcf", ".bd")
+
+
+def fs_list(path):
+    """One folder for the New/Open dialogs: subfolders and the files a project uses.
+    Read-only, and only names - never contents."""
+    path = os.path.abspath(os.path.expanduser(path or "~"))
+    if not os.path.isdir(path):
+        raise ValueError(f"{path} is not a folder")
+    dirs, files = [], []
+    try:
+        names = sorted(os.listdir(path), key=str.lower)
+    except OSError as e:
+        raise ValueError(str(e))
+    for n in names:
+        if n.startswith("."):
+            continue
+        full = os.path.join(path, n)
+        if os.path.isdir(full):
+            dirs.append({"name": n, "path": full,
+                         "project": any(x.endswith(".bobproj") for x in _safe_listdir(full))})
+        elif n.endswith(FS_SHOW):
+            files.append({"name": n, "path": full, "type": os.path.splitext(n)[1].lstrip(".")})
+    parent = os.path.dirname(path)
+    return {"path": path, "parent": parent if parent != path else None, "dirs": dirs,
+            "files": files, "home": os.path.expanduser("~"), "repo": ROOT}
+
+
+def _safe_listdir(path):
+    try:
+        return os.listdir(path)
+    except OSError:
+        return []
+
+
+def project_json():
+    proj = PROJECT.get()
+    return {"project": proj.to_json() if proj else None, "recent": P.recent()}
+
+
+def project_post(action, b):
+    """Every POST /api/project/<action>. -> the project as the page draws it."""
+    with PROJECT.lock:
+        if action == "new":
+            PROJECT.set(P.Project.create(b.get("location") or "~", b.get("name", "")))
+        elif action == "open":
+            PROJECT.set(P.Project.open(b.get("path", "")))
+            P.remember(PROJECT.p.path)         # onto the recent list; opening changes nothing
+        elif action == "close":
+            PROJECT.set(None)
+        else:
+            proj = PROJECT.need()
+            if action == "add":
+                path = str(b.get("path", ""))
+                if path.endswith(".pcf"):
+                    proj.add_constraint(path, copy=b.get("copy", True))
+                else:
+                    proj.add_source(path, copy=b.get("copy", True))
+            elif action == "create":
+                name = str(b.get("name", "")).strip()
+                proj.new_source(name, TEMPLATE.format(name=name))
+            elif action == "remove":
+                proj.remove(b.get("rel", ""))
+            elif action == "top":
+                proj.set_top(b.get("module", ""))
+            elif action == "pcf":
+                proj.set_active_pcf(b.get("rel"))
+            elif action == "settings":
+                proj.set_settings(**{k: v for k, v in b.items() if k in P.SETTINGS})
+            else:
+                raise P.ProjectError(f"no project action {action}")
+            proj.save()
+    return project_json()
+
+
+def bd_get(rel):
+    proj = PROJECT.need()
+    if rel not in proj.data["block_designs"]:
+        raise P.ProjectError(f"{rel} is not one of the project's block designs")
+    return {"rel": rel, "bd": BD.load(proj.abs(rel))}
+
+
+def bd_save(rel, bd):
+    proj = PROJECT.need()
+    if rel not in proj.data["block_designs"]:
+        raise P.ProjectError(f"{rel} is not one of the project's block designs")
+    BD.save(proj.abs(rel), bd)
+    return {"rel": rel, "saved": True}
+
+
+def block_ports(kind, typ, params):
+    proj = PROJECT.get()
+    if kind == "ip":
+        rec = {r["ip"]: r for r in P.ip_catalog()}.get(typ)
+        if rec is None:
+            raise P.ProjectError(f"no IP called {typ}")
+        return P.ports([rec["file"]], rec["module"], params)
+    if proj is None:
+        raise P.ProjectError("no project open")
+    return P.ports(BD.user_files(proj), typ, params)
 
 
 # --- the board ---------------------------------------------------------------
@@ -531,6 +724,12 @@ class Target:
         return {"ok": ok, "message": msg}
 
 
+def _checked(res):
+    """check()'s result without the resolved internals the page has no use for."""
+    return {"errors": res["errors"], "warnings": res["warnings"],
+            "ports": {bid: list(b["ports"].values()) for bid, b in res["blocks"].items()}}
+
+
 def _expected():
     import fpga
     return fpga.IDCODE_FABRIC
@@ -608,10 +807,27 @@ class Handler(BaseHTTPRequestHandler):
             if p == "/api/fasm":
                 bit = _inside(q.get("bit", [""])[0])
                 if not bit or not os.path.exists(bit):
-                    return self._fail(400, "no such .bit inside the repo")
+                    return self._fail(400, "no such .bit inside the repo or the project")
                 return self._json(fasm_of(bit))
             if p.startswith("/static/"):
                 return self._static(p[len("/static/"):])
+            if p == "/api/project":
+                return self._json(project_json())
+            if p == "/api/recent":
+                return self._json({"recent": P.recent()})
+            if p == "/api/fs":
+                try:
+                    return self._json(fs_list(q.get("path", [""])[0]))
+                except ValueError as e:
+                    return self._fail(400, str(e))
+            if p == "/api/bd":
+                return self._project_call(lambda: bd_get(q.get("rel", [""])[0]))
+            if p == "/api/bd/palette":
+                return self._project_call(lambda: BD.palette(PROJECT.get()))
+            if p == "/api/ports":
+                return self._project_call(lambda: {"ports": block_ports(
+                    q.get("kind", ["ip"])[0], q.get("type", [""])[0],
+                    json.loads(q.get("params", ["{}"])[0] or "{}"))})
             return self._fail(404, f"no route {p}")
         except BrokenPipeError:
             pass
@@ -630,7 +846,7 @@ class Handler(BaseHTTPRequestHandler):
                 b = self._body()
                 bit = _inside(b.get("bit", ""))
                 if not bit or not os.path.exists(bit):
-                    return self._fail(400, "no such .bit inside the repo")
+                    return self._fail(400, "no such .bit inside the repo or the project")
                 return self._json(TARGET.program(bit, b.get("mode", "frames"),
                                                  bool(b.get("partial"))))
             if p == "/api/save":
@@ -648,22 +864,55 @@ class Handler(BaseHTTPRequestHandler):
                 b = self._body()
                 try:
                     return self._json({"pcf": write_pcf(b.get("name") or "design",
-                                                        b.get("assign") or {})})
+                                                        b.get("assign") or {},
+                                                        bool(b.get("project")))})
                 except ValueError as e:
                     return self._fail(400, str(e))
             if p in ("/api/readback", "/api/partial"):
                 b = self._body()
                 bit = _inside(b.get("bit", ""))
                 if not bit or not os.path.exists(bit):
-                    return self._fail(400, "no such .bit inside the repo")
+                    return self._fail(400, "no such .bit inside the repo or the project")
                 return self._json(TARGET.readback(bit) if p.endswith("readback")
                                   else TARGET.partial(bit))
             if p == "/api/capture":
                 return self._json(TARGET.capture())
+            if p.startswith("/api/project/"):
+                b = self._body()
+                return self._project_call(lambda: project_post(p.rsplit("/", 1)[1], b))
+            if p == "/api/bd":
+                b = self._body()
+                return self._project_call(lambda: bd_save(b.get("rel", ""), b.get("bd") or {}))
+            if p == "/api/bd/new":
+                b = self._body()
+                return self._project_call(lambda: {"rel": BD.new_bd(PROJECT.need(), b.get("name", "")),
+                                                   **project_json()})
+            if p == "/api/bd/check":
+                b = self._body()
+                return self._project_call(lambda: _checked(BD.check(b.get("bd") or {}, PROJECT.get())))
+            if p == "/api/bd/generate":
+                b = self._body()
+
+                def gen():
+                    with PROJECT.lock:
+                        proj = PROJECT.need()
+                        if b.get("bd") is not None:
+                            bd_save(b.get("rel", ""), b["bd"])
+                        out = BD.generate(proj, b.get("rel", ""), set_top=bool(b.get("top")))
+                    return {"generated": out, **project_json()}
+                return self._project_call(gen)
             return self._fail(404, f"no route {p}")
         except Exception as e:
             traceback.print_exc()
             self._fail(500, f"{type(e).__name__}: {e}")
+
+    def _project_call(self, fn):
+        """A project or block-design action: its refusals are the user's to read (400),
+        anything else is a bug (500, from the caller)."""
+        try:
+            return self._json(fn())
+        except (P.ProjectError, BD.BdError, vpr_run.VprError, ValueError, OSError) as e:
+            return self._fail(400, str(e))
 
     # -- implementations --------------------------------------------------
 
@@ -684,11 +933,23 @@ class Handler(BaseHTTPRequestHandler):
     def _source(self, rel):
         ap = _inside(unquote(rel))
         if not ap or not os.path.isfile(ap):
-            return self._fail(404, "no such file inside the repo")
+            return self._fail(404, "no such file inside the repo or the project")
         return self._json({"path": rel, "text": open(ap, errors="replace").read()})
 
     def _build(self):
         spec = self._body()
+        if spec.get("project"):
+            try:
+                proj = PROJECT.need()
+                kw = proj.flow_kwargs()
+                kw["record"] = os.path.join(proj.dir, "build", f"{proj.name}.json")
+                flow.Flow(**{k: v for k, v in kw.items() if k != "record"})
+            except (P.ProjectError, flow.FlowError) as e:
+                return self._fail(400, str(e))
+            job = Job(kw)
+            _remember(job)
+            job.start()
+            return self._json({"job": job.id})
         files = [f for f in spec.get("files", []) if _inside(f)]
         if not files:
             return self._fail(400, "no source files inside the repo")

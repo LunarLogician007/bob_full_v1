@@ -4427,6 +4427,11 @@
     "critical_ns": null
    },
    {
+    "name": "bd_demo_bd_wrapper",
+    "wirelength": 245,
+    "critical_ns": null
+   },
+   {
     "name": "big",
     "wirelength": 1560,
     "critical_ns": null
@@ -4606,10 +4611,10 @@
  },
  "code": {
   "lines": {
-   "other": 13088,
-   "Markdown": 5441,
-   "Python": 28664,
-   "JavaScript": 2905,
+   "other": 13091,
+   "Markdown": 5752,
+   "Python": 29150,
+   "JavaScript": 2931,
    "Tcl": 919,
    "SystemVerilog": 385,
    "XDC": 131,
@@ -4617,7 +4622,7 @@
    "shell": 634
   },
   "generated_fabric_lines": 4416,
-  "commits": 29,
+  "commits": 31,
   "tags": [
    "m10",
    "m11",

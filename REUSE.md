@@ -249,3 +249,15 @@ Status: **same** = byte-identical to `bob/`, **moved** = same content at a new p
 | device table | `software/bob/devtable.py` | **new**; the table was hand-copied into six documents and drifted (README described the 36-CLB M12b profile after M16 put 100 CLBs on the board). Generated from `device.json` between markers, checked by `tests/test_device_table.py` and `make check` |
 | timing-contract guards | `tests/test_layout.py` | **new** checks over existing files: the XDC's sysclk multicycle must equal `2**GCE_MIN_GAP_SHIFT`, hold must be setup − 1, and the RTL must take the gap from that macro. Each one was mutation-tested |
 | the gap in simulation | `hw/tb/tb_clock_gap.v`, `sim/run_frames_sim.sh` | the existing testbench, parameterised: it ran only at GAP = 4, and now also runs at the board's `BOB_GCE_MIN_GAP_SHIFT` |
+
+## M18: projects and block designs (2026-09-22)
+
+| what | where | reused / new |
+|---|---|---|
+| project model | `software/bob/project.py` | **new**; the shape is Vivado's project (sources, constraints, block designs, top, runs into one folder). Its build arguments are exactly `flow.Flow`'s; `cli.read_project()` hands a `.bobproj` to it and keeps the older `.proj` keys |
+| module ports | `project.modules()`, `project.ports()` | yosys (already the synthesis tool): `read_verilog -sv; proc; write_json` for the module list, and `read_verilog -defer; hierarchy -top M -chparam ...` for one parameter set. No Verilog parser was written |
+| block design | `software/bob/bd.py` | **new**; modelled on Vivado IP integrator (blocks, nets, "Create HDL wrapper") and its `xlslice` / `xlconcat` utility IP, without interfaces or the address editor (the fabric has neither). The wrapper takes the examples' `clk sw btn led` convention, so `vpr_run.board_pins` and the model check apply to it unchanged; a pad writes a `.pcf` that `vpr_run.read_pcf` re-reads before it is used |
+| IP cores | `software/bob/ip/*.v` | **new**, small single-clock cores in the style of the examples (initial values, synchronous clear, no async reset). Each is checked cycle by cycle against a Python model in `tests/test_bd.py` |
+| studio | `software/host/studio.py`, `docs/studio/p10_project.js`, `p11_bd.js` | extended; the canvas is plain SVG like `p5_device.js`. `docs/studio/build.py` now orders parts by number (p10 after p9) |
+| board check | `software/host/hwtest.py` `_build`, `MILESTONE["M18"]` | the M10/M11 checks (`_bob_check`, `_live_check`) unchanged except that a design can now be a project (`PROJECTS`) |
+

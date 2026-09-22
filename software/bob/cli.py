@@ -5,6 +5,7 @@ bob - build a Verilog design for the bob FPGA and load it (M10).
   ./bob build work/examples/counter/counter.v [--top counter] [--pcf pins.pcf] [-o counter.bit]
               [--clock jtag|run] [--div N] [--seed N] [--pnr vpr|python] [--json FILE]
   ./bob build --project bob.proj             (the same settings, in one file)
+  ./bob build --project demo/demo.bobproj    (a bob studio project, M18: .bit into demo/build/)
   ./bob load  counter.bit [--watch] [--probe usb|fake]
   ./bob info  counter.bit
   ./bob fasm  counter.bit                     the chain as FASM
@@ -58,7 +59,16 @@ PROJECT_KEYS = ("files", "top", "pcf", "name", "clock", "div", "seed", "pnr")
 
 def read_project(path):
     """bob.proj -> the keyword arguments build() takes. Paths are relative to the
-    project file, so a project can be moved or shared with its sources."""
+    project file, so a project can be moved or shared with its sources.
+
+    A .bobproj (M18, bob studio's New Project) is read by software/bob/project.py and also
+    names where the .bit goes: <project>/build/<name>.bit."""
+    if path.endswith(".bobproj"):
+        import project
+        try:
+            return project.Project.open(path).flow_kwargs()
+        except project.ProjectError as e:
+            raise BuildError(str(e))
     try:
         d = json.load(open(path))
     except (OSError, ValueError) as e:
@@ -166,7 +176,7 @@ def main():
     b.add_argument("--seed", type=int, default=1)
     b.add_argument("--name", help="result name (default top, or top_<pcf>)")
     b.add_argument("--pnr", default="vpr", choices=("vpr", "python"), help="place and route with VPR or bob's own (M12)")
-    b.add_argument("--project", help="read files, top, pins and settings from a .proj file")
+    b.add_argument("--project", help="read files, top, pins and settings from a .proj or .bobproj file")
     b.add_argument("--json", metavar="FILE", help="write the build record (stages, timings, "
                                                   "diagnostics) as JSON; - for stdout")
     ld = sub.add_parser("load")
@@ -196,7 +206,7 @@ def main():
                 kw.update({k: v for k, v in given.items() if k != "files" and v is not None})
             if not kw.get("files"):
                 raise BuildError("no sources: give files, or --project")
-            kw["out"] = args.output
+            kw["out"] = args.output or kw.get("out")
             print(f"bob build {' '.join(kw['files'])}")
             try:
                 f = flow.Flow(**kw)

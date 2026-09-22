@@ -1,6 +1,7 @@
 // ── tabs, sources, settings, and boot ─────────────────────────────────────
 
 const TABS = [
+  ["project", "Project"], ["bd", "Block Design"],
   ["editor", "Source"], ["device", "Device"], ["bitstream", "Bitstream"],
   ["pins", "Pins"], ["board", "Board"], ["sources", "Sources"], ["settings", "Settings"],
 ];
@@ -28,6 +29,8 @@ const tabs = {
     if (k === "pins") pinplan.load();
     if (k === "bitstream") bitstream.load();
     if (k === "settings") settings.render();
+    if (k === "project") project.render();
+    if (k === "bd") bd.render();
   },
 };
 
@@ -201,6 +204,8 @@ async function boot() {
   $("runimpl").onclick = () => flow.run("device");
   $("runbit").onclick = () => flow.run(null);
   $("opentgt").onclick = () => tabs.show("board");
+  $("newproj").onclick = () => project.newWizard();
+  $("openproj").onclick = () => project.openDialog();
   $("program").onclick = () => board.program();
   $("partial").onclick = () => board.partial();
   $("readback").onclick = () => board.verify();
@@ -217,7 +222,8 @@ async function boot() {
   document.addEventListener("keydown", (e) => {
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") {
       e.preventDefault();
-      sources.save();
+      if (tabs.which === "bd") bd.save().catch((x) => logLine("error", x.message));
+      else sources.save();
     }
   });
   $("btheme").onclick = () => {
@@ -237,9 +243,11 @@ async function boot() {
     S.device = await api("/api/device");
     S.examples = await api("/api/examples");
     await sources.load();
+    await project.load();
     topbar(); props.render(); device.render(); settings.render();
     logLine("info", `${S.device.name}: ${S.device.capacity.clb} CLBs, ${S.device.frames} frames`);
-    await sources.pick("fir");
+    if (S.proj) tabs.show("project");      // the backend kept a project open across a reload
+    else await sources.pick("fir");
     await board.loadBits();
     await board.refresh();
   } catch (e) {

@@ -1,0 +1,11 @@
+top bd_demo_bd_wrapper
+pcf -
+arch_sha256 6654df9882b17c7ca3e1a71fbae9be385c450ba0c84e8644626a03d6b635a3f6
+eblif_sha256 890e39e4ec72665c35606ba37b44b880732acee81e164e9c3300f47849c71e05
+seed 1
+image ghcr.io/lnis-uofu/openfpga-master@sha256:2467ffa99296516cc1bcbb07542633c90723ae17ca3f67a175f61cb9f131abbb
+command vpr arch.xml bd_demo_bd_wrapper.eblif --device bob12x10 --route_chan_width 24 --read_rr_graph rr.xml --fix_clusters bd_demo_bd_wrapper.pins --seed 1 --absorb_buffer_luts off --const_gen_inference none --sweep_dangling_primary_ios off --sweep_dangling_nets off --sweep_dangling_blocks off --sweep_constant_primary_outputs off --pack --place --route --analysis
+wirelength 245
+cpd_ns 1.91071
+fmax_mhz 785.644
+result_sha ce87bd2c85b8eefd

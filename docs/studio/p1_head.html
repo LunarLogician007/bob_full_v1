@@ -203,6 +203,79 @@
   .go.sec:hover { background: var(--accent-bg) }
   .go.sec:disabled { border-color: var(--rule); color: var(--faint); background: transparent }
 
+  /* ── projects and dialogs (M18) ──────────────────────────── */
+  .modal { position: fixed; inset: 0; background: rgba(10,10,12,.42); display: flex;
+    align-items: center; justify-content: center; z-index: 50 }
+  .dlg { background: var(--paper); color: var(--ink); border: 1px solid var(--rule); border-radius: 10px;
+    width: min(640px, calc(100vw - 32px)); max-height: calc(100vh - 60px); display: flex; flex-direction: column;
+    box-shadow: 0 18px 50px rgba(0,0,0,.28) }
+  .dlg h2 { margin: 0; padding: 14px 18px 10px; font-size: 14px; font-weight: 620; border-bottom: 1px solid var(--rule-2) }
+  .dlg .bd { padding: 12px 18px; overflow: auto; min-height: 0; flex: 1; font-size: 12.5px }
+  .dlg .ft { display: flex; gap: 8px; justify-content: flex-end; padding: 10px 18px 14px; border-top: 1px solid var(--rule-2) }
+  .dlg .ft .go { margin: 0; width: auto; padding: 6px 16px }
+  .dlg label.f { display: block; font-size: 11px; color: var(--mute); margin: 10px 0 4px; font-weight: 560 }
+  .dlg input[type=text], .bdside input, .bdside select, .wires input {
+    font: inherit; font-family: var(--mono); font-size: 12px; width: 100%; box-sizing: border-box; padding: 5px 7px;
+    background: var(--paper); color: var(--ink); border: 1px solid var(--rule); border-radius: 5px }
+  .fsl { border: 1px solid var(--rule); border-radius: 6px; max-height: 260px; overflow: auto; margin-top: 6px }
+  .fsl div { padding: 4px 10px; font-family: var(--mono); font-size: 11.5px; cursor: pointer; display: flex; gap: 8px }
+  .fsl div:hover { background: var(--rule-2) }
+  .fsl div.sel { background: var(--accent-bg); color: var(--accent) }
+  .fsl .ic { width: 14px; color: var(--faint); flex: none }
+  .steps { display: flex; gap: 6px; margin-bottom: 8px; font-size: 11px; color: var(--faint) }
+  .steps b { color: var(--accent) }
+  .tree { font-size: 12.5px; max-width: 900px }
+  .tree h4 { margin: 14px 0 4px; font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase; color: var(--mute) }
+  .tree .ti { display: flex; gap: 8px; align-items: baseline; padding: 3px 8px; border-radius: 4px; cursor: pointer }
+  .tree .ti:hover { background: var(--rule-2) }
+  .tree .ti .nm { font-family: var(--mono); font-size: 12px }
+  .tree .ti .sub { font-family: var(--mono); font-size: 10px; color: var(--faint) }
+  .tree .ti .acts { margin-left: auto; display: flex; gap: 6px }
+  .tree .ti .acts a { font-size: 10.5px; color: var(--run); cursor: pointer }
+  .tree .ti.top .nm { font-weight: 700; color: var(--accent) }
+  .tree .ti.miss .nm { color: var(--err); text-decoration: line-through }
+  .ctx { position: fixed; background: var(--paper); border: 1px solid var(--rule); border-radius: 6px; z-index: 60;
+    box-shadow: 0 8px 24px rgba(0,0,0,.2); padding: 4px 0; min-width: 170px; font-size: 12px }
+  .ctx div { padding: 5px 14px; cursor: pointer } .ctx div:hover { background: var(--rule-2) }
+
+  /* ── block design canvas ─────────────────────────────────── */
+  #pane-bd .dev { flex-direction: row; gap: 0; padding: 0 }
+  .bdpal { width: 190px; flex: none; border-right: 1px solid var(--rule); overflow: auto; padding: 8px 0; font-size: 12px }
+  .bdpal h4 { margin: 10px 12px 4px; font-size: 10px; letter-spacing: .07em; text-transform: uppercase; color: var(--mute) }
+  .bdpal .pi { padding: 4px 12px; cursor: pointer; display: flex; justify-content: space-between; gap: 6px }
+  .bdpal .pi:hover { background: var(--rule-2) }
+  .bdpal .pi span:last-child { font-family: var(--mono); font-size: 10px; color: var(--faint) }
+  .bdmid { flex: 1; min-width: 0; display: flex; flex-direction: column }
+  .bdmid .top { display: flex; gap: 8px; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--rule-2); flex-wrap: wrap }
+  .bdmid .top .go { margin: 0; width: auto; padding: 4px 12px }
+  #bdsvg { flex: 1; min-height: 0; width: 100%; background:
+    radial-gradient(circle, var(--rule) 1px, transparent 1px) 0 0 / 20px 20px; cursor: default; user-select: none }
+  .wires { max-height: 150px; overflow: auto; border-top: 1px solid var(--rule-2); padding: 4px 12px; font-size: 11px }
+  .wires .wr { display: grid; grid-template-columns: 1fr 18px 1fr 22px; gap: 6px; align-items: center; margin: 2px 0 }
+  .wires .wr input { padding: 2px 5px; font-size: 11px }
+  .wires .wr.bad input { border-color: var(--err) }
+  .bdside { width: 230px; flex: none; border-left: 1px solid var(--rule); overflow: auto; padding: 10px 12px; font-size: 12px }
+  .bdside h4 { margin: 4px 0 6px; font-size: 10px; letter-spacing: .07em; text-transform: uppercase; color: var(--mute) }
+  .bdside label { display: block; font-size: 11px; color: var(--mute); margin: 8px 0 3px }
+  .bdside .go { margin: 10px 0 0; width: 100% }
+  .bdside .er { color: var(--err); font-size: 11px; margin: 4px 0; font-family: var(--mono) }
+  .bdside .wa { color: var(--warn); font-size: 11px; margin: 4px 0; font-family: var(--mono) }
+  .blk rect.body { fill: var(--paper); stroke: var(--ink-2); stroke-width: 1.2 }
+  .blk.sel rect.body { stroke: var(--accent); stroke-width: 2 }
+  .blk.board rect.body { fill: var(--rule-2); stroke-dasharray: 4 3 }
+  .blk.ip rect.head { fill: var(--run-bg) } .blk.module rect.head { fill: var(--accent-bg) } .blk.board rect.head { fill: var(--rule) }
+  .blk text { font-family: var(--mono); font-size: 11px; fill: var(--ink) }
+  .blk text.ty { font-size: 9.5px; fill: var(--mute) }
+  .blk .port circle { fill: var(--paper); stroke: var(--ink-2); stroke-width: 1.2; cursor: crosshair }
+  .blk .port:hover circle { fill: var(--accent); stroke: var(--accent) }
+  .blk .port.bad circle { fill: var(--err); stroke: var(--err) }
+  .blk .port.bad text { fill: var(--err) }
+  path.wire { fill: none; stroke: var(--run); stroke-width: 1.6 }
+  path.wire.bus { stroke-width: 3 }
+  path.wire.bad { stroke: var(--err) }
+  path.wire:hover { stroke: var(--accent); cursor: pointer }
+  path.ghost { fill: none; stroke: var(--accent); stroke-width: 1.4; stroke-dasharray: 5 4 }
+
   @media (max-width: 1100px) {
     .app { grid-template-columns: 200px minmax(0,1fr); grid-template-rows: minmax(0,1fr) var(--dock) }
     .props { display: none }

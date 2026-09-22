@@ -12,6 +12,10 @@
   <div class="nav">
     <div class="grp">
       <h3>Project</h3>
+      <div class="item act" id="newproj"><span class="st"> </span>New Project…</div>
+      <div class="item" id="openproj"><span class="st"> </span>Open Project…</div>
+      <div class="item" data-go="project"><span class="st"> </span>Project Manager<span class="k" id="projname"></span></div>
+      <div class="item" data-go="bd"><span class="st"> </span>Block Design<span class="k" id="bdname"></span></div>
       <div class="item" data-go="sources"><span class="st"> </span>Sources<span class="k" id="nsrc"></span></div>
       <div class="item" data-go="pins"><span class="st"> </span>Pin Planner</div>
       <div class="item" data-go="settings"><span class="st"> </span>Settings</div>
@@ -92,6 +96,22 @@
 
     <div class="pane" id="pane-sources">
       <div class="dev"><strong style="font-size:13px">Sources</strong><div id="srcview"></div></div>
+    </div>
+
+    <div class="pane" id="pane-project">
+      <div class="dev"><div class="top"><strong style="font-size:13px" id="projtitle">Project Manager</strong></div><div id="projview" style="overflow:auto;min-height:0;flex:1"></div></div>
+    </div>
+
+    <div class="pane" id="pane-bd">
+      <div class="dev">
+        <div class="bdpal" id="bdpal"></div>
+        <div class="bdmid">
+          <div class="top" id="bdtop"></div>
+          <svg id="bdsvg" viewBox="0 0 1200 700" preserveAspectRatio="xMinYMin meet"></svg>
+          <div class="wires" id="bdwires"></div>
+        </div>
+        <div class="bdside" id="bdside"></div>
+      </div>
     </div>
 
     <div class="pane" id="pane-pins">

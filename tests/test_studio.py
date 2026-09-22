@@ -464,3 +464,125 @@ def test_an_unknown_route_is_not_found(srv):
     with pytest.raises(urllib.error.HTTPError) as e:
         get(srv, "/api/nope")
     assert e.value.code == 404
+
+
+# --- projects and block designs (M18) ---------------------------------------------
+#
+# The whole New Project -> block design -> wrapper -> build -> program path, over HTTP, in
+# a folder outside the repo. The studio holds one open project, so each test closes it.
+
+
+@pytest.fixture
+def proj_dir(tmp_path, monkeypatch):
+    import project as P
+    monkeypatch.setattr(P, "RECENT", str(tmp_path / "recent.json"))
+    yield tmp_path
+    studio.PROJECT.set(None)
+
+
+def _refused(fn, code=400):
+    with pytest.raises(urllib.error.HTTPError) as e:
+        fn()
+    body = e.value.read()
+    assert e.value.code == code, body
+    return json.loads(body or b"{}").get("error", "")
+
+
+def test_new_project_then_open_it_again(srv, proj_dir):
+    r = post(srv, "/api/project/new", {"location": str(proj_dir), "name": "demo"})
+    p = r["project"]
+    assert p["path"] == str(proj_dir / "demo" / "demo.bobproj") and p["top"] is None
+    post(srv, "/api/project/add", {"path": os.path.join(ROOT, "work", "examples", "counter", "counter.v")})
+    r = post(srv, "/api/project/top", {"module": "counter"})
+    assert r["project"]["top"] == "counter"
+    assert [m["name"] for m in r["project"]["modules"]] == ["counter"]
+    post(srv, "/api/project/close", {})
+    assert get(srv, "/api/project")["project"] is None
+    r = post(srv, "/api/project/open", {"path": str(proj_dir / "demo")})
+    assert r["project"]["top"] == "counter" and r["project"]["sources"] == ["src/counter.v"]
+    assert get(srv, "/api/recent")["recent"][0] == r["project"]["path"]
+
+
+def test_project_actions_are_refused_with_reasons(srv, proj_dir):
+    assert "no project open" in _refused(lambda: post(srv, "/api/project/top", {"module": "x"}))
+    assert "starts with a letter" in _refused(lambda: post(srv, "/api/project/new",
+                                                 {"location": str(proj_dir), "name": "../x"}))
+    post(srv, "/api/project/new", {"location": str(proj_dir), "name": "demo"})
+    assert "no module" in _refused(lambda: post(srv, "/api/project/top", {"module": "nosuch"}))
+    assert "source is one of" in _refused(lambda: post(srv, "/api/project/add", {"path": "/etc/hosts"}))
+    assert "clock is" in _refused(lambda: post(srv, "/api/project/settings", {"clock": "warp"}))
+    assert "no design sources" in _refused(lambda: post(srv, "/api/build", {"project": True}))
+    post(srv, "/api/project/add", {"path": os.path.join(ROOT, "work", "examples", "counter", "counter.v")})
+    assert "no top" in _refused(lambda: post(srv, "/api/build", {"project": True}))
+
+
+def test_the_path_guard_follows_the_open_project(srv, proj_dir):
+    outside = str(proj_dir / "demo" / "src" / "x.v")
+    # no project: a path outside the repo is refused
+    _refused(lambda: post(srv, "/api/save", {"path": outside, "text": "module x; endmodule\n"}))
+    post(srv, "/api/project/new", {"location": str(proj_dir), "name": "demo"})
+    assert post(srv, "/api/save", {"path": outside, "text": "module x; endmodule\n"})["path"] == outside
+    assert "module x" in get(srv, "/api/source?path=" + urllib.parse.quote(outside))["text"]
+    # still not anywhere else, nor a file type the flow does not read
+    _refused(lambda: post(srv, "/api/save", {"path": str(proj_dir / "elsewhere.v"), "text": ""}))
+    _refused(lambda: post(srv, "/api/save", {"path": str(proj_dir / "demo" / "run.sh"), "text": ""}))
+    _refused(lambda: get(srv, "/api/source?path=/etc/hosts"), 404)
+    # the project file itself stays JSON, and saving it reloads the project
+    pf = str(proj_dir / "demo" / "demo.bobproj")
+    assert "JSON" in _refused(lambda: post(srv, "/api/save", {"path": pf, "text": "{oops"}))
+    d = json.load(open(pf))
+    d["settings"]["seed"] = 7
+    post(srv, "/api/save", {"path": pf, "text": json.dumps(d)})
+    assert get(srv, "/api/project")["project"]["settings"]["seed"] == 7
+
+
+def test_the_folder_browser_lists_projects_and_sources(srv, proj_dir):
+    post(srv, "/api/project/new", {"location": str(proj_dir), "name": "demo"})
+    r = get(srv, "/api/fs?path=" + urllib.parse.quote(str(proj_dir)))
+    assert [d["name"] for d in r["dirs"]] == ["demo"] and r["dirs"][0]["project"]
+    r = get(srv, "/api/fs?path=" + urllib.parse.quote(str(proj_dir / "demo")))
+    assert "demo.bobproj" in [f["name"] for f in r["files"]]
+    _refused(lambda: get(srv, "/api/fs?path=" + urllib.parse.quote(str(proj_dir / "nope"))))
+
+
+def test_block_design_to_bitstream_to_board(srv, proj_dir):
+    """What a user does in the studio: New Project, Create Block Design, place IP, wire it,
+    Validate, Generate wrapper (as top), Generate Bitstream, Program, Readback."""
+    post(srv, "/api/project/new", {"location": str(proj_dir), "name": "demo"})
+    post(srv, "/api/project/settings", {"pnr": "python"})
+    r = post(srv, "/api/bd/new", {"name": "demo_bd"})
+    rel = r["rel"]
+    pal = get(srv, "/api/bd/palette")
+    assert {"counter", "mux2", "const"} <= {i["ip"] for i in pal["ip"]}
+    assert 0 not in pal["board"]["pads"]                 # the clock's pad is not offered
+    ports = get(srv, "/api/ports?kind=ip&type=counter&params=" + urllib.parse.quote('{"W": 4}'))["ports"]
+    assert [q["width"] for q in ports if q["name"] == "q"] == [4]
+    doc = get(srv, "/api/bd?rel=" + rel)["bd"]
+    doc["blocks"] = [{"id": "cnt", "kind": "ip", "type": "counter", "params": {"W": 3}, "x": 200, "y": 40}]
+    doc["wires"] = [{"src": "board.sw[1]", "dst": "cnt.en"}]
+    c = post(srv, "/api/bd/check", {"bd": doc})
+    assert any(e["where"] == "cnt.clr" for e in c["errors"]) and "cnt" in c["ports"]
+    assert "not driven" in _refused(lambda: post(srv, "/api/bd/generate", {"rel": rel, "bd": doc}))
+    doc["wires"] += [{"src": "board.btn[0]", "dst": "cnt.clr"}, {"src": "cnt.q", "dst": "board.led"}]
+    post(srv, "/api/bd", {"rel": rel, "bd": doc})
+    assert post(srv, "/api/bd/check", {"bd": doc})["errors"] == []
+    g = post(srv, "/api/bd/generate", {"rel": rel, "top": True})
+    assert g["generated"]["top"] == "demo_bd_wrapper" and g["project"]["top"] == "demo_bd_wrapper"
+    ev = build(srv, {"project": True})
+    assert ev["event"] == "done" and ev["ok"], ev.get("error")
+    bit = str(proj_dir / "demo" / "build" / "demo.bit")
+    assert ev["stages"][-1]["stats"]["path"] == bit and os.path.exists(bit)
+    assert os.path.exists(proj_dir / "demo" / "build" / "demo.json")      # the build record
+    assert get(srv, "/api/project")["project"]["bit"] == bit
+    assert bit in [b["path"] for b in get(srv, "/api/bits")]
+    post(srv, "/api/target", {"kind": "fake"})
+    assert post(srv, "/api/program", {"bit": bit})["ok"]
+    assert post(srv, "/api/readback", {"bit": bit})["ok"]
+
+
+def test_the_pin_planner_writes_into_the_project(srv, proj_dir):
+    post(srv, "/api/project/new", {"location": str(proj_dir), "name": "demo"})
+    r = post(srv, "/api/pcf", {"name": "demo_pins", "assign": {"a[0]": "SW0", "y[0]": "LD0"}, "project": True})
+    assert r["pcf"] == str(proj_dir / "demo" / "constrs" / "demo_pins.pcf")
+    p = get(srv, "/api/project")["project"]
+    assert p["active_pcf"] == "constrs/demo_pins.pcf" and p["constraints"] == ["constrs/demo_pins.pcf"]

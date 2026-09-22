@@ -24,6 +24,7 @@ const flow = {
   },
 
   spec() {
+    if (S.proj) return { project: true };           // the backend builds the open project
     const p = S.project;
     return {
       files: p.files, top: p.top || null, pcf: p.pcf || null, name: p.name || null,
@@ -33,7 +34,8 @@ const flow = {
 
   async run(goTo) {
     if (S.busy) return;
-    if (!S.project.files.length) { logLine("error", "no sources: pick an example first"); dock.show("log"); return; }
+    if (S.proj && !S.proj.top) { logLine("error", "the project has no top module: set one in the Project Manager"); dock.show("log"); tabs.show("project"); return; }
+    if (!S.proj && !S.project.files.length) { logLine("error", "no sources: pick an example first"); dock.show("log"); return; }
     S.busy = true;
     this.reset();
     buttons();
@@ -63,6 +65,7 @@ const flow = {
             S.placement = ev.placement;
             logLine("info", `build ok in ${((performance.now() - t0) / 1000).toFixed(2)} s -> ${bitPath()}`);
             device.render();
+            if (S.proj) project.load();                 // its Outputs now list the .bit
             if (goTo) tabs.show(goTo);
             dock.show("stages");
           }
@@ -191,10 +194,23 @@ const props = {
   },
 
   render() {
-    const p = S.project, d = S.device, box = $("props");
+    const d = S.device, box = $("props");
+    // With a project open the settings are the project's, and changing one saves it.
+    const p = S.proj ? { ...S.proj.settings, top: S.proj.top, name: S.proj.name } : S.project;
     box.innerHTML = "";
-    this.row(box, "design", p.name || p.top || "—");
-    this.row(box, "sources", p.files.length ? p.files.map((f) => f.split("/").pop()).join(", ") : "—");
+    if (S.proj) {
+      this.row(box, "project", S.proj.name);
+      this.row(box, "top", S.proj.top || "(none)");
+      this.row(box, "sources", String(S.proj.sources.length));
+      this.row(box, "pins", S.proj.active_pcf ? S.proj.active_pcf.split("/").pop() : "convention");
+    } else {
+      this.row(box, "design", p.name || p.top || "—");
+      this.row(box, "sources", p.files.length ? p.files.map((f) => f.split("/").pop()).join(", ") : "—");
+    }
+    const put = (key, val) => {
+      if (S.proj) project.post("settings", { [key]: val }).catch((e) => { logLine("error", e.message); dock.show("log"); });
+      else { p[key] = val; this.render(); }
+    };
 
     const sel = (key, opts) => {
       const r = el("div", "row");
@@ -202,7 +218,7 @@ const props = {
       const s = document.createElement("select");
       for (const o of opts) { const op = document.createElement("option"); op.value = o; op.textContent = o; s.appendChild(op); }
       s.value = p[key];
-      s.onchange = () => { p[key] = s.value; this.render(); };
+      s.onchange = () => put(key, s.value);
       const w = el("span", null); w.appendChild(s); r.appendChild(w);
       box.appendChild(r);
     };
@@ -211,7 +227,7 @@ const props = {
       r.appendChild(el("span", null, key));
       const i = document.createElement("input");
       i.type = "number"; i.min = min; i.max = max; i.value = p[key];
-      i.onchange = () => { p[key] = Math.max(min, Math.min(max, parseInt(i.value || "0", 10))); i.value = p[key]; };
+      i.onchange = () => { const v = Math.max(min, Math.min(max, parseInt(i.value || "0", 10))); i.value = v; put(key, v); };
       const w = el("span", null); w.appendChild(i); r.appendChild(w);
       box.appendChild(r);
     };

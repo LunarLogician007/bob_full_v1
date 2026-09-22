@@ -1,4 +1,4 @@
-# Handoff — bob_full_v1, 2026-09-18
+# Handoff — bob_full_v1, 2026-09-22
 
 **Read `CLAUDE.md` first (the rules), then `PLAN.md` §2 (status) and §3 (how the user wants this done).**
 This file is the live state: what is finished, what is in flight, and exactly what to do next.
@@ -11,14 +11,35 @@ This file is the live state: what is finished, what is in flight, and exactly wh
 |---|---|
 | Milestones M0–M16 | **all passed on the PYNQ-Z2** |
 | Bitstream in the PL | **M16** (`0xFBEEF093`): 100 CLBs (12 × 10 core), 145 frames = 18 560 bits, 2 BRAM, 2 DSP, 44 pads. 20 498 LUTs (38.5%), 21 511 FFs (20.2%), WNS +0.667 ns, WHS +0.112 ns, DRC clean |
-| Guest tooling | `./bob build｜load｜info｜fasm`, and **bob studio** (`./host/studio.py`) |
+| Guest tooling | `./bob build｜load｜info｜fasm`, and **bob studio** (`software/host/studio.py`), which since M18 has **projects** (`.bobproj`) and **block designs** |
 | Whole-project report | `docs/project/REPORT.md` + `project.html`; the learning guide is `docs/project/GUIDE.md` + `guide.html` (**done**, committed in `807f2b9`) |
-| In flight | nothing. Tag `m16` when you are ready, and rerun `docs/project/collect.py` + `build.py` so the report and `project.html` include M16 |
+| In flight | **M18: software done, `make hwtest M=M18` pending** (no Vivado rebuild; checklist `docs/hwtest/M18.md`). Tag `m18` only after it passes |
 
 The device table in `README.md` is generated from `software/bob/device.json` by
 `software/bob/devtable.py`; `make check` fails if it drifts.
 
 ---
+
+## 1a. M18 — projects and block designs in bob studio
+
+- `software/bob/project.py`: New/Open Project, a folder anywhere on disk (`<name>.bobproj`,
+  `src/ bd/ ip/ constrs/ build/`), sources, top, the active `.pcf`, settings, recent list
+  (`~/.bob/recent.json`). `project.flow_kwargs()` is what `flow.Flow` takes;
+  `./bob build --project x.bobproj` reads it too.
+- `software/bob/bd.py` + `software/bob/ip/` (14 cores): block designs. `check()` returns an
+  error at each endpoint; `generate()` writes `bd/<name>_wrapper.v` (ports `clk sw btn led`
+  plus pads) and `constrs/<name>.pcf` when a pad is used, copies the IP into `ip/`.
+- Studio: Project Manager and Block Design tabs (`docs/studio/p10_project.js`, `p11_bd.js`),
+  routes under `/api/project/*`, `/api/bd*`, `/api/fs`, `/api/ports`. The path guard
+  allows the repo **or** the open project.
+- `work/examples/bd_demo/` (committed VPR route `software/bob/vpr/bd_demo_bd_wrapper/`),
+  board checks `bob-bd_demo`, `pnr-bd_demo`, `live-bd_demo` in `MILESTONE["M18"]`.
+- Worth knowing: the first spare pad is taken by `clk` (`vpr_run.write_eblif`); the Pin
+  Planner does not know that, `bd.py` does. A new project defaults to `pnr vpr`, which needs
+  Docker until its route is committed; `python` needs nothing.
+- Not yet exercised by hand in a browser (the page's logic was run headless in
+  JavaScriptCore, and every route is covered by `tests/test_studio.py`). The manual steps in
+  `docs/hwtest/M18.md` are the first click-through.
 
 ## 2. M16 — the 10 × 10 CLB grid, as built
 
@@ -59,7 +80,7 @@ Each of those four was mutation-tested: break the number and the suite fails.
 
 ## 3. bob studio
 
-`./host/studio.py --probe fake` (no board) or `--probe usb` (the Pico), then
+`software/host/studio.py --probe fake` (no board) or `--probe usb` (the Pico), then
 `http://127.0.0.1:8765`. An EDA tool for this FPGA, laid out the way Vivado is: sources and
 an editor, Flow Navigator, Synthesis / Implementation / Generate Bitstream with per-stage
 timings and diagnostics, a Device view showing where the design landed and which channels it
@@ -95,7 +116,7 @@ make pnr              # bob's PnR vs VPR report
 make mutate           # the three mutation suites
 make hwtest M=M16     # board test (interactive); ONLY=<check> reruns one
 make clean-logs       # build/ grows to gigabytes of yosys estimate logs
-./host/studio.py --probe fake        # bob studio, no hardware
+software/host/studio.py --probe fake        # bob studio, no hardware
 software/bob/devtable.py --write        # regenerate the device table in the documents
 software/bob/synth_estimate.sh $PWD $PWD/build/est      # whole-design yosys estimate before a Vivado hand-off
 python3 docs/project/collect.py && python3 docs/project/build.py   # report data + project.html
