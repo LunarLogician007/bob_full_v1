@@ -271,3 +271,14 @@ Status: **same** = byte-identical to `bob/`, **moved** = same content at a new p
 | board pin names | `software/bob/bd.py` `PIN_ALIAS` | the names `vpr_run.BOARD_PIN_NAMES` already uses in `.pcf` files |
 | failing board | `software/host/fakeboard.py` `lose_clocks` | one more fault switch beside `corrupt_capture` / `corrupt_sample` |
 
+## M20: the user clock from the design's own timing (2026-09-23)
+
+| what | where | reused / new |
+|---|---|---|
+| clock controller | `hw/src/core/clock_ctrl.v` | extended: `clk_period` / `clk_gap` beside the existing divider and gap guard; the old path is untouched when they are 0. `tb_clock_gap.v` extended, 4 new mutants in `sim/mutate_frames.sh` |
+| per-design timing | `software/bob/timing.py` | **new**; the overlay sign-off of ZUMA (Brant & Lemieux, FCCM 2012) and "Timing Optimization for Virtual FPGA Configurations" (ARC 2021): per-element delays from the host implementation summed along the configured design. The graph is built from the same `bitstream.MUX` / `DIRECT` / CLB field tables `model.py` evaluates |
+| delay measurement | `software/bob/delays.py`, `hw/scripts/extract_delays.tcl` | **new**; parses Vivado `report_timing` text for consecutive `r<node>` nets (the rr-wire names `fabric_gen.py` gives survive flattening) |
+| readback mux | `hw/src/core/cfg_store.v` | **unchanged**: a balanced tree was built, verified and measured (+310 LUTs in the whole design), then left out |
+| at-speed example | `work/examples/atspeed/atspeed.v` | **new**, the classic self-checking counter (a == last a + 1, sticky error) |
+| board checks | `software/host/hwtest.py` `check_clock_*` | reuse `_build`, `cli.load`, CAPTURE and SAMPLE; `check_clock_rate` is `check_blinky_rate` with an integer period |
+

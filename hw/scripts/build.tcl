@@ -455,6 +455,11 @@ report_drc            -file $out_dir/drc.rpt
 set fh [open $out_dir/sysclk_1cycle.txt w]
 foreach c [lsort [get_cells -quiet -hier -filter {IS_SEQUENTIAL && (NAME =~ *u_bram_jtag/* || NAME =~ *u_clk/*)}]] { puts $fh $c }
 close $fh
+# M20: the fabric's per-element delays on this implementation, for per-design clocks.
+# `delays = 0` in build.cfg skips it (it reads timing only; it never changes the design).
+if {![dict exists $cfg delays] || [dict get $cfg delays] ne "0"} {
+    source [file join $script_dir extract_delays.tcl]
+}
 foreach run {synth_1 impl_1} {
     set log [get_property DIRECTORY [get_runs $run]]/runme.log
     if {[file exists $log]} { file copy -force $log $out_dir/$run.log }

@@ -4,7 +4,7 @@
 const S = {
   device: null,          // /api/device
   examples: [],
-  project: { files: [], top: null, pcf: null, clock: "jtag", div: 0, seed: 1, pnr: "vpr", name: null },
+  project: { files: [], top: null, pcf: null, clock: "jtag", div: 0, seed: 1, pnr: "vpr", hz: "div", name: null },
   open: null,            // path of the file in the editor
   text: {},              // path -> source
   result: null,          // the last finished build

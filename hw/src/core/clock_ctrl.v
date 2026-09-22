@@ -36,7 +36,9 @@
 module clock_ctrl #(
     parameter integer DIV_W     = 5,
     parameter integer MIN_SHIFT = 9,
-    parameter integer GAP_SHIFT = 9
+    parameter integer GAP_SHIFT = 9,
+    parameter integer PERIOD_W  = 16,     // M20: clk_period / clk_gap width
+    parameter integer GAP_FLOOR = 2       // M20: gce never closer than this, whatever clk_gap says
 )(
     input  wire             sysclk,
 
@@ -44,6 +46,8 @@ module clock_ctrl #(
     input  wire             tck,
     input  wire             clk_mode,
     input  wire [DIV_W-1:0] clk_div,
+    input  wire [PERIOD_W-1:0] clk_period,  // M20: free-running every clk_period x 2**clk_div cycles (0: 2**(clk_div+MIN_SHIFT))
+    input  wire [PERIOD_W-1:0] clk_gap,     // M20: this design's gce spacing (0: 2**GAP_SHIFT)
     input  wire             ce,
     input  wire             step,
     input  wire             cin,
@@ -69,6 +73,12 @@ module clock_ctrl #(
     (* ASYNC_REG = "TRUE" *) reg [1:0]       frz_m  = 2'b00;
     (* ASYNC_REG = "TRUE" *) reg [DIV_W-1:0] div_m0 = {DIV_W{1'b0}};
     (* ASYNC_REG = "TRUE" *) reg [DIV_W-1:0] div_m1 = {DIV_W{1'b0}};
+    // clk_period / clk_gap change only while GWE = 0 (configuration), like clk_div, so a
+    // two-flop synchroniser per bit is enough: the fabric is not running when they move.
+    (* ASYNC_REG = "TRUE" *) reg [PERIOD_W-1:0] per_m0 = {PERIOD_W{1'b0}};
+    (* ASYNC_REG = "TRUE" *) reg [PERIOD_W-1:0] per_m1 = {PERIOD_W{1'b0}};
+    (* ASYNC_REG = "TRUE" *) reg [PERIOD_W-1:0] gp_m0  = {PERIOD_W{1'b0}};
+    (* ASYNC_REG = "TRUE" *) reg [PERIOD_W-1:0] gp_m1  = {PERIOD_W{1'b0}};
 
     reg        tck_d  = 1'b0;
     reg        step_d = 1'b0;
@@ -87,6 +97,10 @@ module clock_ctrl #(
         frz_m  <= {frz_m[0],  freeze};
         div_m0 <= clk_div;
         div_m1 <= div_m0;
+        per_m0 <= clk_period;
+        per_m1 <= per_m0;
+        gp_m0  <= clk_gap;
+        gp_m1  <= gp_m0;
         tck_d  <= tck_m[1];
         step_d <= step_m[1];
     end
@@ -94,12 +108,24 @@ module clock_ctrl #(
     wire tck_rise  = tck_m[1]  & ~tck_d;
     wire step_rise = step_m[1] & ~step_d;
 
-    // period = 2**shift cycles, shift clamped to 31
+    // period: clk_period x 2**clk_div cycles if clk_period is set (M20: any integer rate,
+    // clk_div a power-of-two prescaler, shift clamped so it fits 32 bits), else the old
+    // 2**(clk_div + MIN_SHIFT) cycles, shift clamped to 31
     wire [6:0]  shift_w  = {2'b00, div_m1} + MIN_SHIFT[6:0];
     wire [4:0]  shift    = (shift_w > 7'd31) ? 5'd31 : shift_w[4:0];
-    wire [31:0] last     = (32'h1 << shift) - 32'h1;
+    localparam [31:0] PSH_MAX = 32 - PERIOD_W;          // a period shifted further would overflow
+    wire [31:0] div32    = {{(32-DIV_W){1'b0}}, div_m1};
+    wire [4:0]  psh      = (div32 > PSH_MAX) ? PSH_MAX[4:0] : div32[4:0];
+    wire [31:0] per32    = {{(32-PERIOD_W){1'b0}}, per_m1} << psh;
+    wire [31:0] last     = (per_m1 != {PERIOD_W{1'b0}}) ? per32 - 32'h1
+                                                         : (32'h1 << shift) - 32'h1;
 
-    wire [31:0] min_gap  = (32'h1 << GAP_SHIFT) - 32'h1;
+    // gap: the design's own spacing if set (M20: chosen from its critical path by the
+    // flow), never below GAP_FLOOR; unset it is the safe 2**GAP_SHIFT the XDC is written
+    // against, so an unconfigured fabric or an older bitstream runs exactly as before.
+    wire [31:0] gp32     = {{(32-PERIOD_W){1'b0}}, gp_m1};
+    wire [31:0] want_gap = (gp_m1 != {PERIOD_W{1'b0}}) ? gp32 : (32'h1 << GAP_SHIFT);
+    wire [31:0] min_gap  = ((want_gap < GAP_FLOOR) ? GAP_FLOOR : want_gap) - 32'h1;
 
     initial begin
         gce    = 1'b0;

@@ -42,8 +42,11 @@ IR = {v: k for k, v in cfgplane.IR.items()}
 
 
 class FakeBob:
+    BUDGET = None                                   # seconds of simulation per scan; None: no bound
+
     def __init__(self, corrupt_capture=False, corrupt_sample=False, rate_scale=1.0, switches=lambda t: 0,
-                 ignore_freeze=False, wipe_on_partial=False, lose_clocks=0):
+                 ignore_freeze=False, wipe_on_partial=False, lose_clocks=0, max_hz=None,
+                 budget=None):
         self.ir = "IDCODE"
         self.chain = 0
         self.expected = 0
@@ -64,6 +67,17 @@ class FakeBob:
         self.ignore_freeze = ignore_freeze          # broken board: the user clock runs on while frozen
         self.wipe_on_partial = wipe_on_partial      # broken board: a partial reload loses the state
         self.lose_clocks = lose_clocks              # broken board: every Nth autostep edge never arrives
+        # One simulated edge is a model.settle() - a Python fixed point over every mux,
+        # about a millisecond at 100 CLBs - so a fast free-running clock asks for more
+        # edges than this can run and the backlog grows without end. With a budget (in
+        # seconds of simulation per scan) it skips ahead instead and counts what it
+        # skipped, as the studio's board has done since M17. The real board never does.
+        self.budget = budget if budget is not None else self.BUDGET
+        self.skipped = 0
+        self._per_edge = 0.008                      # seconds per guest clock, measured as it goes
+        self.max_hz = max_hz                        # slow fabric: above this user clock (the real
+                                                    # rate, before rate_scale) a third of the registers
+                                                    # miss each edge, as a setup violation would
         self.steps = 0
         self.t_last = time.time()
 
@@ -90,13 +104,31 @@ class FakeBob:
         if self._held():                             # M14: frozen time does not count
             self.t_start += now - last
             return
-        off, w = B.CTRL_FIELD["clk_div"]
-        hz = 125e6 / 2 ** (((self.chain >> off) & ((1 << w) - 1)) + B.DIV_MIN_SHIFT) * self.rate_scale
+        f = lambda n: (self.chain >> B.CTRL_FIELD[n][0]) & ((1 << B.CTRL_FIELD[n][1]) - 1)   # noqa: E731
+        real = B.guest_hz("run", f("clk_div"), f("clk_period"), f("clk_gap"))
+        hz = real * self.rate_scale
+        too_fast = self.max_hz is not None and real > self.max_hz
         due = int((time.time() - self.t_start) * hz)
+        if self.budget is not None and hz > 0:
+            cap = max(1, int(self.budget / max(self._per_edge, 1e-6)))
+            over = due - self.clocks - cap
+            if over > 0:
+                self.t_start += over / hz                # the guest simply ran slower
+                self.skipped += over
+                due -= over
+        t0, before = time.time(), self.clocks
         pins = self.bsr_in if self.ir == "INTEST" else self._pins()     # INTEST: the boundary drives the fabric
         while self.clocks < due:
+            held = dict(self.fab.q) if too_fast else None
             self.fab.clock(pad_i=pins, cin=(self.user1 >> 2) & 1)
+            if too_fast:                                # the slow paths' registers keep their value
+                for k, xy in enumerate(sorted(held)):
+                    if k % 3 == self.clocks % 3:
+                        self.fab.q[xy] = held[xy]
             self.clocks += 1
+        ran, dt = self.clocks - before, time.time() - t0
+        if ran > 0:
+            self._per_edge += 0.25 * (dt / ran - self._per_edge)        # settles quickly
 
     # --- probe API used by cfgplane / fpga / hwtest ---
     def shift_ir(self, code, width=6):

@@ -588,40 +588,15 @@ def block_ports(kind, typ, params):
 class DemoBoard(fakeboard.FakeBob):
     """FakeBob with its simulated free-running clock kept tractable.
 
-    FakeBob catches up on every guest clock edge that fell since JSTART, and one edge
-    costs a model.settle() - a Python fixed point over 3391 muxes, about a millisecond
-    at 100 CLBs. A design built with --clock run and a small --div asks for 61 kHz, so
-    a few seconds away from the page would queue tens of thousands of edges and the
-    board would stop answering. Bound the backlog instead: skip ahead, count what was
-    skipped, and let the page say the simulated clock is behind. The real board has no
-    such problem, and nothing here changes how a scan is answered."""
+    One simulated guest clock edge costs a model.settle() - a Python fixed point over
+    3391 muxes, about a millisecond at 100 CLBs - so a design built with --clock run asks
+    for more edges than the model can run, and a few seconds away from the page would
+    queue tens of thousands. FakeBob bounds the backlog when it is given a budget: it
+    skips ahead, counts what it skipped, and the page says the simulated clock is behind.
+    The real board has no such problem."""
 
     BUDGET = 0.05                    # seconds of simulation allowed per scan (every
                                      # scan calls _run, so a request spends several)
-
-    def __init__(self, **kw):
-        super().__init__(**kw)
-        self.skipped = 0
-        self._per_edge = 0.008       # seconds per guest clock; measured as we go
-
-    def _run(self):
-        cap = max(1, int(self.BUDGET / max(self._per_edge, 1e-6)))
-        if self.done and self.fab is not None and hasattr(self, "clocks") and not self._held():
-            off, w = B.CTRL_FIELD["clk_div"]
-            hz = (125e6 / 2 ** (((self.chain >> off) & ((1 << w) - 1)) + B.DIV_MIN_SHIFT)
-                  * self.rate_scale)
-            if hz > 0:
-                over = int((time.time() - self.t_start) * hz) - self.clocks - cap
-                if over > 0:
-                    self.t_start += over / hz            # the guest simply ran slower
-                    self.skipped += over
-        # `clocks` only exists once JSTART has run, so read it defensively.
-        before, t0 = getattr(self, "clocks", 0), time.time()
-        out = super()._run()
-        ran, dt = getattr(self, "clocks", 0) - before, time.time() - t0
-        if ran > 0:
-            self._per_edge += 0.25 * (dt / ran - self._per_edge)      # settles quickly
-        return out
 
 
 class Target:
@@ -1013,7 +988,7 @@ class Handler(BaseHTTPRequestHandler):
         if not files:
             return self._fail(400, "no source files inside the repo")
         kw = {"files": [_inside(f) for f in files]}
-        for k in ("top", "pcf", "name", "pnr", "clock"):
+        for k in ("top", "pcf", "name", "pnr", "clock", "hz"):     # hz: M20, "auto" or a rate
             if spec.get(k):
                 kw[k] = spec[k]
         for k in ("div", "seed"):

@@ -22,6 +22,9 @@ Stages:
   fasm    the place-and-route result -> FASM features, legality-checked against
           device.json, with the clock fields applied.
   bits    features -> the configuration word, checked to round-trip back to FASM.
+  timing  (M20) software/bob/timing.py on those bits: the longest register-to-register
+          path in ns, and the user clock it allows. With hz ("auto" or a rate) the
+          free-running clock is set from it (ctrl clk_period / clk_gap).
   model   software/bob/model.py on those bits == the source trace, when the ports
           follow the sw/btn/led convention.
   write   the .bit container: chain + BRAM contents + META.
@@ -47,7 +50,7 @@ import fasm_from_vpr as FV  # noqa: E402
 import vpr_run  # noqa: E402
 
 CONVENTION = {"clk", "sw", "btn", "led"}
-STAGES = ("synth", "pnr", "fasm", "bits", "model", "write")
+STAGES = ("synth", "pnr", "fasm", "bits", "timing", "model", "write")
 
 
 class FlowError(Exception):
@@ -240,13 +243,16 @@ class Result:
 
 class Flow:
     def __init__(self, files, top=None, pcf=None, out=None, clock="jtag", div=0,
-                 seed=1, name=None, pnr="vpr"):
+                 seed=1, name=None, pnr="vpr", hz=None):
         self.files = list(files)
         self.top = top or os.path.splitext(os.path.basename(self.files[0]))[0]
         self.pcf = pcf
         self.out = out
         self.clock = clock
         self.div = div
+        self.hz = hz                  # M20: None = the divider (div); "auto" or a rate = timed
+        self._timing = None
+        self._period = self._gap = self._pdiv = 0
         self.seed = seed
         self.pnr = pnr
         # A .pcf makes a separate result name, exactly as cli.build() derives it, so
@@ -263,6 +269,14 @@ class Flow:
             raise FlowError(f"clock is one of {sorted(B.CLOCK_MODES)}")
         if pnr not in ("vpr", "python"):
             raise FlowError("pnr is vpr or python")
+        if hz is not None and clock != "run":
+            raise FlowError("hz sets the free-running clock: use it with clock run")
+        if hz not in (None, "auto"):
+            try:
+                if float(hz) <= 0:
+                    raise ValueError
+            except (TypeError, ValueError):
+                raise FlowError(f"hz is auto or a rate in Hz, not {hz!r}")
         self._mod = None
         self._pnr_stats = None
         self._features = None
@@ -375,18 +389,52 @@ class Flow:
         word = bitgen.word_from_features(self._features)
         trip = bitgen.word_from_features(bitgen.features_from_word(word)) == word
         detail = f"{B.CHAIN_W}-bit chain; bits -> FASM -> bits identical: {trip}"
-        if self.clock == "run":
-            hz = 125e6 / 2 ** (self.div + B.DIV_MIN_SHIFT)
+        if self.clock == "run" and self.hz is None:
+            hz = B.guest_hz("run", self.div)
             detail += (f"; free-running 125 MHz / 2^{self.div + B.DIV_MIN_SHIFT} = {hz:.4g} Hz "
                        f"(one user clock every {1 / hz:.3g} s)")
         # finish with the real verdict before raising, or a failed build would show
         # this stage green in the record the page reads.
         st.finish(trip, detail, chain_w=B.CHAIN_W, roundtrip=trip,
                   clock=self.clock, div=self.div,
-                  hz=(125e6 / 2 ** (self.div + B.DIV_MIN_SHIFT)) if self.clock == "run" else None)
+                  hz=B.guest_hz("run", self.div) if self.clock == "run" and self.hz is None else None)
         if not trip:
             raise FlowError("the configuration word does not survive a FASM round trip")
         return st, word
+
+    def timing(self, word):
+        """M20: the design's own critical path (timing.py) and the clock it allows. With
+        hz the free-running clock is written into the word; otherwise it is reported."""
+        import timing as T
+        st = Stage("timing").start(self)
+        try:
+            t = T.analyse(word)
+        except T.TimingError as e:
+            st.finish(False, str(e))
+            raise FlowError(str(e))
+        self._timing = t
+        kind = "provisional" if t["provisional"] else "measured"
+        detail = (f"critical path {t['cpd_ns']} ns ({t['levels']} routing hops, {kind} delays "
+                  f"x {t['margin']}): Fmax {t['fmax_hz'] / 1e6:.3g} MHz")
+        if self.clock == "run" and self.hz is not None:
+            try:
+                self._period, self._gap, self._pdiv = T.clock_for(t, self.hz)
+            except T.TimingError as e:
+                st.finish(False, str(e), cpd_ns=t["cpd_ns"], fmax_hz=t["fmax_hz"])
+                raise FlowError(str(e))
+            bs = B.Bitstream(word)
+            bs.set_ctrl(B.CLOCK_MODES["run"], self._pdiv, self._period, self._gap)
+            word = bs.to_int()
+            hz = B.guest_hz("run", self._pdiv, self._period, self._gap)
+            every = self._period << self._pdiv
+            detail += (f"; free-running every {every} sysclk cycles = {hz / 1e6:.4g} MHz "
+                       f"(gap {self._gap})")
+        return st.finish(True, detail, cpd_ns=t["cpd_ns"], fmax_hz=t["fmax_hz"],
+                         gap=t["gap_cycles"], margin=t["margin"], provisional=t["provisional"],
+                         period=self._period, clk_gap=self._gap,
+                         hz=B.guest_hz("run", self._pdiv, self._period, self._gap) if self._period else None,
+                         clk_div=self._pdiv,
+                         path=t["path"]), word
 
     def model(self, bs, contents, work):
         """model.py on these bits == the source trace (board-convention designs only)."""
@@ -417,7 +465,9 @@ class Flow:
                 "vpr_result": (None if self.pnr == "python" else
                                stampd.get("result_sha") or vpr_run.summary(work, self.name)["result_sha"]),
                 "pnr_seed": self._pnr_stats["seed"] if self._pnr_stats else None,
-                "clock": self.clock, "div": self.div}
+                "clock": self.clock, "div": self.div,
+                "period": self._period, "gap": self._gap, "pdiv": self._pdiv,
+                "cpd_ns": self._timing["cpd_ns"] if self._timing else None}
         bitgen.write_bit(out, word, contents, meta)
         rel = _rel(out)
         used = sorted(b for b, w in contents.items() if any(w))
@@ -445,6 +495,8 @@ class Flow:
             st, bs, contents = self.fasm(work)
             done(st)
             st, word = self.bits()
+            done(st)
+            st, word = self.timing(word)
             done(st)
             st, tr = self.model(bs, contents, work)
             done(st)

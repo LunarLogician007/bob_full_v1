@@ -1,0 +1,47 @@
+{
+ "provisional": true,
+ "source": "provisional: hops on the paths of docs/reports/M16/timing.rpt",
+ "device": "bob12x10",
+ "ns": {
+  "mux_chan": 3.61,
+  "mux_ipin": 2.058,
+  "lut": 3.4,
+  "carry": 1.0,
+  "wire": 0.0,
+  "direct": 0.0,
+  "ff_clk_q": 0.5,
+  "ff_setup": 1.0,
+  "bram_clk_q": 2.5,
+  "bram_setup": 1.0,
+  "dsp_clk_q": 1.0,
+  "dsp_comb": 8.0,
+  "dsp_setup": 1.0
+ },
+ "measured": {
+  "mux_chan": {
+   "n": 702,
+   "max": 3.61,
+   "median": 1.678,
+   "p95": 2.62
+  },
+  "mux_ipin": {
+   "n": 12,
+   "max": 2.058,
+   "median": 1.1065,
+   "p95": 2.058
+  }
+ },
+ "kept_from_previous": {
+  "lut": 3.4,
+  "carry": 1.0,
+  "wire": 0.0,
+  "direct": 0.0,
+  "ff_clk_q": 0.5,
+  "ff_setup": 1.0,
+  "bram_clk_q": 2.5,
+  "bram_setup": 1.0,
+  "dsp_clk_q": 1.0,
+  "dsp_comb": 8.0,
+  "dsp_setup": 1.0
+ }
+}

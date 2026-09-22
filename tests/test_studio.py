@@ -614,3 +614,12 @@ def test_a_bad_capture_is_refused(srv):
     post(srv, "/api/target", {"kind": "fake"})
     assert "mode" in _refused(lambda: post(srv, "/api/wave/capture", {"mode": "fast"}))
     assert "no signal" in _refused(lambda: post(srv, "/api/wave/capture", {"sel": ["nope"]}))
+
+
+def test_a_build_can_ask_for_the_fastest_safe_clock(srv):
+    """M20: hz auto from the page puts the design's own clock into the .bit."""
+    ev = build(srv, {"files": ["work/examples/counter/counter.v"], "clock": "run", "hz": "auto"})
+    assert ev["event"] == "done" and ev["ok"], ev.get("error")
+    t = [s for s in ev["stages"] if s["name"] == "timing"][0]["stats"]
+    assert t["cpd_ns"] > 0 and t["hz"] == pytest.approx(B.SYSCLK_HZ / t["period"])
+    assert t["period"] == t["clk_gap"] == t["gap"]

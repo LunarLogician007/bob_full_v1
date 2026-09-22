@@ -52,6 +52,7 @@ The 8×8 profile (48 CLBs, 9400 bits, `0x9BEEF093`) is frozen in `release/M7_8x8
 | M18 | bob studio projects and block designs: New/Open Project (a `.bobproj` folder anywhere on disk), sources + top + pin files, a block-design canvas (project modules, 14 IP cores, the board's pins) that generates an HDL wrapper and `.pcf`, and project builds into `<project>/build/` | **software done; hardware test pending** (`make hwtest M=M18`, no Vivado rebuild: the PL keeps M16). Example `work/examples/bd_demo`. Checklist `docs/hwtest/M18.md` |
 
 | M19 | bob studio as a desktop app (`./bob studio`, pywebview), all software under `software/` (the studio page moved to `software/studio/`), zoom and pan on the block design, Device view and waveform, board pins (SW0..BTN3, LD0..LD2) as block-design ports, the **waveform viewer**: a logic analyser on the pads through boundary scan (`software/host/padwave.py`; step = INTEST autostep, one sample per user clock; live = SAMPLE), with triggers and VCD export | **software done; hardware test pending** (`make hwtest M=M19`, no Vivado rebuild). Checklist `docs/hwtest/M19.md` |
+| M20 | a per-design user clock: `clock_ctrl.v` `clk_period` (any integer rate, `clk_div` prescales) and `clk_gap` (the design's own gce spacing, floor 2 cycles = 62.5 MHz, 0 = the safe 512); `software/bob/timing.py` (static timing of the configured bits), `software/bob/delays.py` + `hw/scripts/extract_delays.tcl` (per-element delays measured on the build), `./bob build --hz auto`; new IDCODE scheme `0x0B020093`. (A tree readback mux was measured and left out: +310 LUTs in the whole design) | **software done; Vivado build and hardware test pending** (`make hwtest M=M20`: clock-rate, clock-fmax, clock-fmax-py, clock-margin). Checklist `docs/hwtest/M20.md` |
 
 Hardware results are in `docs/hwtest/results.log`; Vivado reports are in `docs/reports/Mx/`; per-design guest reports in `docs/reports/M11/designs.md`.
 
@@ -72,6 +73,39 @@ separate timed stages; `tests/test_flow.py` requires it and `cli.build()` to wri
 byte-identical `.bit`. It drives `software/host/fakeboard.py` when no board is attached. The page is
 built from `software/studio/` exactly as `arch.html` is built from `docs/arch/`, and the backend
 is stdlib only, so the project gained no dependency.
+
+### M20: the user clock from the design's own timing
+
+The guest clock was a clock enable held at least 2**9 = 512 sysclk cycles apart (244 kHz),
+because Vivado times only the unconfigured fabric: about 2500 ns through its open routing
+loops at 12 × 10, and the gap had to grow with every grid step (HANDOFF §2). M20 keeps that
+constraint exactly (the XDC is unchanged) and stops the *hardware* from being bound by it.
+`clock_ctrl.v` takes `clk_period` (an integer period, `clk_div` prescaling it) and `clk_gap`
+(this design's minimum spacing, never below 2 cycles) from the ctrl tile. `clk_gap` = 0 is
+the old 512, so an unconfigured fabric or an old `.bit` behaves as before.
+
+The sign-off moves to the design, as FPGA overlays do it (ZUMA, FCCM 2012; ARC 2021):
+- `software/bob/timing.py` finds the longest register-to-register path of the configured bits:
+  selected mux inputs only, LUT inputs the INIT depends on, carry, flip-flops, BRAM/DSP ports.
+  It reports a combinational loop by name instead of cutting it.
+- The delays are measured, not assumed. Vivado keeps the fabric's rr-wire names through
+  flattening (`u_core/u_fabric/r<node>`), so two consecutive rr nets on a reported path are
+  one hop. `software/bob/delays.py` finds those hops. A "hop" that passes through a hard
+  block or the configuration store is rejected: M16's report has `r6013 -> DSP48 -> r6003`,
+  which would have made a 14.8 ns routing mux.
+- M16's one reported path gives 702 channel hops (worst 3.61, median 1.68 ns) and 12 input
+  hops, the provisional delays, used with a 2× guard band. `hw/scripts/extract_delays.tcl`
+  measures 624 samples of every class on the M20 build.
+- `./bob build --hz auto` sets the fastest safe rate; `--hz N` is refused if too fast.
+
+**The readback mux, measured.** HANDOFF §5 claimed a hierarchical decode would remove about
+95% of `cfg_store`. It cannot: any mux over the 18,560 configuration bits needs about one LUT6
+per 4 bits (about 4,600). A balanced binary tree beat the flat array on `cfg_store` alone
+(about 9,200 / 5,600 with MUXF against 12,400 LUTs in yosys), but in the whole design it was
+**310 LUTs worse** (33,148 against 32,838). Flattening lets yosys fold the flat array into
+FDRO's word select, and the tree stops that. `cfg_store.v` keeps M16's code. Room for M21 has
+to come from a different memory (a BRAM shadow for readback, or ZUMA-style LUTRAM), not a
+different mux.
 
 ### M18: projects and block designs
 
@@ -223,7 +257,7 @@ What `build.tcl` guarantees (tested on the Mac with the stub): the project lives
 - **New top** → `parameter [31:0] IDCODE_VALUE` and the board ports `tck tms tdi tdo sw[1:0] btn[3:0] led[3:0]`; add it to `sim/lint.sh`.
 - **Per milestone with RTL changes:** bump `hw/build.cfg` `tag`, `idcode` version nibble and `usercode`; add `docs/hwtest/Mx.md`; register checks in `software/host/hwtest.py` `MILESTONE["Mx"]`; update `REUSE.md`, this file's status table and `README.md`.
 - **Per milestone without RTL changes:** same, except `build.cfg` stays tagged with the bitstream in the PL (hwtest prints a note).
-- **IDCODE map:** `0x1BEEF093` bare TAP, `0x2BEEF093` single CLB, `0x3BEEF093` 4×4 fabric (M0–M1), `0x4BEEF093` M2 cfg test top, `0x5BEEF093` M3, `0x6BEEF093` M4, `0x7BEEF093` M5, `0x8BEEF093` M6, `0x9BEEF093` M7 8×8 profile (`release/M7_8x8`), `0xABEEF093` M7 16-CLB board profile (M7–M12), `0xBBEEF093` M13 (frames), `0xEBEEF093` M15 (one build for M12b + M14 + M15; nibbles C and D were never built alone); next free nibble `0xF`.
+- **IDCODE map:** `0x1BEEF093` bare TAP, `0x2BEEF093` single CLB, `0x3BEEF093` 4×4 fabric (M0–M1), `0x4BEEF093` M2 cfg test top, `0x5BEEF093` M3, `0x6BEEF093` M4, `0x7BEEF093` M5, `0x8BEEF093` M6, `0x9BEEF093` M7 8×8 profile (`release/M7_8x8`), `0xABEEF093` M7 16-CLB board profile (M7–M12), `0xBBEEF093` M13 (frames), `0xEBEEF093` M15 (one build for M12b + M14 + M15; nibbles C and D were never built alone), `0xFBEEF093` M16, the last nibble. **From M20:** version 0 and the 16-bit part field names the milestone in readable digits, `0x0B0<MM>093`: `0x0B020093` is M20, `0x0B021093` M21.
 - **Architecture numbers live only in `software/bob/device.py`.** Consumers read `device.json` or `bob_params.vh`. After editing it: `make device`, or `make rrgraph` if the VPR architecture changed (sha256 stamps make stale graphs fail). Then `make vpr` if the arch sha changed (committed VPR results are stamped too).
 - **Guest designs** (`work/examples/*.v`): ports `clk`, `sw[1:0]`, `btn[3:0]`, `led[2:0]`, or any ports with a `.pcf`. A new example goes into `vpr_run.EXAMPLES` (or `VARIANTS` for a pin file), then `make vpr`.
 - **Committed generated data** (rr graphs, VPR results) carries a stamp of what it was built from; tools refuse stale data with the command that rebuilds it. Docker is needed only to rebuild.

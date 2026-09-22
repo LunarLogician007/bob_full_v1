@@ -83,7 +83,7 @@ def test_open_by_file_or_folder_and_the_round_trip(tmp_path):
         assert q.data["sources"] == ["src/counter.v"]
         assert q.data["constraints"] == ["constrs/gates_swapped.pcf"]
         assert q.data["active_pcf"] == "constrs/gates_swapped.pcf"
-        assert q.data["settings"] == {"clock": "run", "div": 7, "seed": 1, "pnr": "python"}
+        assert q.data["settings"] == {"clock": "run", "div": 7, "seed": 1, "pnr": "python", "hz": "div"}
 
 
 def test_open_refuses_what_is_not_a_project(tmp_path):
@@ -262,3 +262,23 @@ def test_a_project_build_and_bob_build_write_the_same_bit(tmp_path):
     third = str(tmp_path / "plain.bit")
     cli.build(kw["files"], top="counter", out=third, name=kw["name"], pnr="python", log=lambda *_: None)
     assert _sha(third) == _sha(res.bit)
+
+
+def test_the_hz_setting_reaches_the_flow_only_with_the_free_running_clock(tmp_path):
+    """M20: hz "auto" (or a rate) times the design's own clock; with clock jtag, or hz "div",
+    the flow is asked for nothing new, so older projects build exactly as before."""
+    p = P.Project.create(tmp_path, "demo")
+    p.add_source(COUNTER)
+    p.data["top"] = "counter"
+    assert p.flow_kwargs()["hz"] is None                      # the default: div
+    p.set_settings(hz="auto")
+    assert p.flow_kwargs()["hz"] is None                      # still clock jtag
+    p.set_settings(clock="run")
+    assert p.flow_kwargs()["hz"] == "auto"
+    p.set_settings(hz="2.5e6")
+    assert p.flow_kwargs()["hz"] == "2.5e6"
+    p.set_settings(hz="div")
+    assert p.flow_kwargs()["hz"] is None
+    for bad in ("fast", "-3", "0"):
+        with pytest.raises(P.ProjectError, match="hz is"):
+            p.set_settings(hz=bad)

@@ -18,6 +18,8 @@
 //   [3] free-running with the shortest divider: spacing exactly 2**MIN_SHIFT
 //   [4] M14 freeze: while frozen no gce at all (free-running and steps), frozen rises
 //       with gce held; after release pulses resume at the divider rate
+//   [5] M20: clk_period / clk_gap - an integer period, the gap winning over a faster
+//       period, the 2-cycle floor, the safe default when the gap is unset, steps at a gap
 //
 // GAP is a parameter of the check, not a constant of it: every window below is a
 // multiple of G = 2**GAP, so the same four checks run at any gap. sim/run_frames_sim.sh
@@ -39,6 +41,7 @@ module tb_clock_gap;
     wire frozen;
     integer bad_frozen = 0;
     reg [4:0] div = 5'd0;
+    reg [15:0] per = 16'd0, gp = 16'd0;           // M20: 0 = the old behaviour
     wire gce, gsr_s, gwe_s, cin_s;
     integer errors = 0, checks = 0, last = -1000, mingap = 1000000, pulses = 0, cyc = 0;
 
@@ -53,7 +56,7 @@ module tb_clock_gap;
     end
 
     clock_ctrl #(.DIV_W(5), .MIN_SHIFT(GAP), .GAP_SHIFT(GAP)) dut (
-        .sysclk(sysclk), .tck(tck), .clk_mode(mode), .clk_div(div), .ce(ce), .step(step),
+        .sysclk(sysclk), .tck(tck), .clk_mode(mode), .clk_div(div), .clk_period(per), .clk_gap(gp), .ce(ce), .step(step),
         .cin(1'b0), .gsr(1'b0), .gwe(1'b1), .freeze(freeze), .gce(gce), .frozen(frozen),
         .gsr_s(gsr_s), .gwe_s(gwe_s), .cin_s(cin_s));
 
@@ -122,6 +125,51 @@ module tb_clock_gap;
         mode = 1'b0;
         check("[4] after release: pulses resume", pulses, 9, 11);
         check("[4] after release: spacing", mingap, G, G);
+
+        // [5] M20: a design's own period and gap. Unset (0) is the safe default above;
+        //     set, the spacing is exactly what the flow chose - an integer, not a power of 2.
+        mingap = 1000000; pulses = 0; last = -1000;
+        per = 16'd7; gp = 16'd7; mode = 1'b1;
+        repeat (8) @(posedge sysclk);                            // synchronisers
+        mingap = 1000000; last = -1000;
+        repeat (7 * 40) @(posedge sysclk);
+        check("[5] per 7 gap 7", mingap, 7, 7);
+        // the period asks for more than the gap allows: the gap wins, requests are held
+        per = 16'd3; gp = 16'd5;
+        repeat (8) @(posedge sysclk);
+        mingap = 1000000; last = -1000;
+        repeat (5 * 40) @(posedge sysclk);
+        check("[5] per 3 gap 5: gap wins", mingap, 5, 5);
+        // clk_div prescales a set period: 3 x 2**2 = 12, an integer rate at any scale
+        per = 16'd3; gp = 16'd2; div = 5'd2;
+        repeat (8) @(posedge sysclk);
+        mingap = 1000000; last = -1000;
+        repeat (12 * 30) @(posedge sysclk);
+        check("[5] per 3 div 2 = 12", mingap, 12, 12);
+        div = 5'd0;
+        // a gap below the hardware floor is raised to it
+        per = 16'd1; gp = 16'd1;
+        repeat (8) @(posedge sysclk);
+        mingap = 1000000; last = -1000;
+        repeat (100) @(posedge sysclk);
+        check("[5] gap 1: floor 2", mingap, 2, 2);
+        // gap unset with a fast period: the safe default 2**GAP_SHIFT still holds
+        per = 16'd3; gp = 16'd0;
+        repeat (8) @(posedge sysclk);
+        mingap = 1000000; last = -1000;
+        repeat (G * 10) @(posedge sysclk);
+        check("[5] per 3 gap 0: safe G", mingap, G, G);
+        // stepped requests at a set gap: exactly the gap, as [1] is at the default
+        mode = 1'b0; per = 16'd0; gp = 16'd5;
+        repeat (8) @(posedge sysclk);
+        mingap = 1000000; last = -1000;
+        for (i = 0; i < 40; i = i + 1) begin                    // a request every 4 cycles
+            step = 1'b1; repeat (2) @(posedge sysclk);
+            step = 1'b0; repeat (2) @(posedge sysclk);
+        end
+        repeat (20) @(posedge sysclk);
+        check("[5] steps at gap 5", mingap, 5, 5);
+        gp = 16'd0;
 
         $display("\n    %0d checks", checks);
         if (errors == 0) $display("=== ALL TESTS PASSED ===");

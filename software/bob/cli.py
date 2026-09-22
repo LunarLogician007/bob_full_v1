@@ -23,7 +23,7 @@ reported. `--json` writes that record instead of prose.
                  same netlist, pins and output files, into build/pnr/<name>/
   4. FASM        software/bob/fasm_from_vpr.py, legality-checked against device.json
   5. bits        software/bob/bitgen.py; --clock sets the ctrl tile (jtag: stepped over
-                 JTAG, as the tests do; run: free-running, 125 MHz / 2**(div+8))
+                 JTAG, as the tests do; run: free-running, 125 MHz / 2**(div+9), or --hz auto|N (M20)
   6. model       software/bob/model.py with these bits == the source trace (when the
                  ports follow the examples' sw/btn/led convention)
   7. .bit        chain + BRAM contents + META (docs/bitstream-format.md section 8)
@@ -55,7 +55,7 @@ class BuildError(Exception):
     pass
 
 
-PROJECT_KEYS = ("files", "top", "pcf", "name", "clock", "div", "seed", "pnr")
+PROJECT_KEYS = ("files", "top", "pcf", "name", "clock", "div", "seed", "pnr", "hz")
 
 
 def read_project(path):
@@ -97,7 +97,7 @@ def result_dir(name, pnr="vpr"):
 
 
 def build(files, top=None, pcf=None, out=None, clock="jtag", div=0, seed=1, name=None,
-          log=print, pnr="vpr"):
+          log=print, pnr="vpr", hz=None):
     """-> (bit path, word, bram contents, board trace or None, result directory)
 
     The stages live in software/bob/flow.py, which times each one and hands back what it
@@ -105,7 +105,7 @@ def build(files, top=None, pcf=None, out=None, clock="jtag", div=0, seed=1, name
     import flow
     try:
         f = flow.Flow(files, top=top, pcf=pcf, out=out, clock=clock, div=div,
-                      seed=seed, name=name, pnr=pnr)
+                      seed=seed, name=name, pnr=pnr, hz=hz)
     except flow.FlowError as e:
         raise BuildError(str(e))
     res = f.run(on_stage=lambda st: log(f"  {st.name:8s} {st.detail}"))
@@ -174,6 +174,8 @@ def main():
     b.add_argument("-o", "--output")
     b.add_argument("--clock", default="jtag")
     b.add_argument("--div", type=int, default=0)
+    b.add_argument("--hz", help="M20, with --clock run: 'auto' = the fastest rate this design's timing "
+                                "allows, or a rate in Hz (refused if faster than that)")
     b.add_argument("--seed", type=int, default=1)
     b.add_argument("--name", help="result name (default top, or top_<pcf>)")
     b.add_argument("--pnr", default="vpr", choices=("vpr", "python"), help="place and route with VPR or bob's own (M12)")
@@ -211,7 +213,7 @@ def main():
         if args.cmd == "build":
             import flow
             kw = dict(files=args.files, top=args.top, pcf=args.pcf, name=args.name,
-                      clock=args.clock, div=args.div, seed=args.seed, pnr=args.pnr)
+                      clock=args.clock, div=args.div, seed=args.seed, pnr=args.pnr, hz=args.hz)
             if args.project:
                 # the file supplies the defaults; anything given on the command line wins
                 given = {k: v for k, v in kw.items()

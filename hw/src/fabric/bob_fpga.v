@@ -254,13 +254,18 @@ module bob_fpga #(
     clock_ctrl #(
         .DIV_W     (`BOB_CTRL_CLK_DIV_W),
         .MIN_SHIFT (DIV_MIN_SHIFT),
-        .GAP_SHIFT (GCE_MIN_GAP_SHIFT)        // M13: gce >= 2**BOB_GCE_MIN_GAP_SHIFT sysclk
-                                              // cycles apart on the board (M16: 2**9 = 512)
+        .GAP_SHIFT (GCE_MIN_GAP_SHIFT),       // M13: gce >= 2**BOB_GCE_MIN_GAP_SHIFT sysclk
+                                              // cycles apart on the board (M16: 2**9 = 512);
+                                              // M20: the default, when clk_gap is 0
+        .PERIOD_W  (`BOB_CTRL_PERIOD_W),
+        .GAP_FLOOR (`BOB_GCE_GAP_FLOOR)
     ) u_clk (
         .sysclk   (sysclk),
         .tck      (tck),
         .clk_mode (ctrl_cfg[`BOB_CTRL_CLK_MODE]),
         .clk_div  (ctrl_cfg[`BOB_CTRL_CLK_DIV_LO +: `BOB_CTRL_CLK_DIV_W]),
+        .clk_period(ctrl_cfg[`BOB_CTRL_CLK_PERIOD_LO +: `BOB_CTRL_PERIOD_W]),
+        .clk_gap  (ctrl_cfg[`BOB_CTRL_CLK_GAP_LO +: `BOB_CTRL_PERIOD_W]),
         .ce       (ce),
         .step     (step_pulse),
         .cin      (cin),
@@ -384,8 +389,9 @@ module bob_fpga #(
     assign configured = done;
 
     // USER1 sr is superseded by the routed per-CLB SR (M4).
+    // (the 2 reserved ctrl bits sit between clk_div and clk_period)
     wire _unused = &{1'b0, committed, cfg_commit, ir_value, sr, frames_stat,
-                     ctrl_cfg[CTRL_W-1:`BOB_CTRL_CLK_DIV_LO + `BOB_CTRL_CLK_DIV_W]};
+                     ctrl_cfg[`BOB_CTRL_CLK_PERIOD_LO-1:`BOB_CTRL_CLK_DIV_LO + `BOB_CTRL_CLK_DIV_W]};
 
 endmodule
 

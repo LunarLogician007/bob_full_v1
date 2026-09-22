@@ -70,7 +70,8 @@ def test_sizes(k, chain_w):
     assert (dev.width, dev.height, dev.arch["chan_width"]) == (14, 12, 24)
     assert {t: len(v) for t, v in dev.by_type.items()} == {"io": 44, "clb": 100, "bram": 2, "dsp": 2}
     assert dev.tile_types["clb"].width == (1 << k) + 7
-    assert dev.tile_types["ctrl"].width == 8
+    # M20: clk_mode 1 + clk_div 5 + reserved 2 + clk_period 16 + clk_gap 16
+    assert dev.tile_types["ctrl"].width == 8 + 2 * device.PERIOD_W == 40
     assert dev.tile_types["bram"].width == 8 and dev.tile_types["dsp"].width == 16
     assert dev.chain_width == chain_w
 
@@ -241,11 +242,17 @@ def test_designs_decode_to_the_fields_they_set():
     assert bs.get_field(4, 3, "init") == B.LUT.xor2()
     assert bs.get_mux(B.PIN["clb_x1y1.ce[0]"]) == 1                  # const1
     assert bs.get_mux(B.PIN["clb_x1y1.sr[0]"]) == 0                  # const0
-    assert dev.decode(word)["ctrl"] == {"clk_mode": 0, "clk_div": 0, "reserved": 0}
+    assert dev.decode(word)["ctrl"] == {"clk_mode": 0, "clk_div": 0, "reserved": 0,
+                                        "clk_period": 0, "clk_gap": 0}     # M20: unset = the old behaviour
     for pad in B.BOARD_OUT:
         assert bs.get_mux(B.PIN[f"{B.pad_block(pad)}.outpad[0]"]) >= 2   # routed, not a constant
     run = dev.decode(d_counter("run", 17).build().to_int())
     assert run["ctrl"]["clk_mode"] == 1 and run["ctrl"]["clk_div"] == 17
+    # M20: a design clocked from its own timing carries the period and the gap instead
+    timed = B.Bitstream(word)
+    timed.set_ctrl(1, 0, 47, 12)
+    assert dev.decode(timed.to_int())["ctrl"] == {"clk_mode": 1, "clk_div": 0, "reserved": 0,
+                                                  "clk_period": 47, "clk_gap": 12}
 
 
 def test_bram_rom_design_fields():

@@ -54,9 +54,8 @@ Generated from `software/bob/device.json` by `software/bob/devtable.py`; `tests/
 | I/O | 44 pads; board switches, buttons and LEDs on fixed pads, LD3 = DONE |
 | Routing | L4 unidirectional, W = 24, Wilton Fs = 3 (from OpenFPGA's k6_frac_N10 tileable arch); 3391 muxes |
 | Configuration | 18560 bits = 145 frames of 4 × 32; UG470-style packets on CFG_IN/CFG_OUT (CRC-32C, IDCODE, partial reconfiguration, BRAM content frames) or the streamed chain on CHAIN_IN/CHAIN_OUT; GSR → GTS → GWE → DONE startup |
-| User clock | one sysclk enable at a time, at least 2**9 = 512 cycles apart (the fabric's multicycle); free-running at most 125 MHz / 2**9 = 244 kHz |
-| JTAG | 6-bit AMD 7-series IR, IDCODE `0xFBEEF093` (M16) |
-| Host utilisation (Vivado, M16) | 20 498 LUTs (38.53%), 21 511 FFs (20.22%), 2 RAMB18, 2 DSP48E1, WNS +0.667 ns |
+| User clock | one sysclk enable at a time, spaced by each design's own timing (clk_gap from software/bob/timing.py, never under 2 cycles = 62.5 MHz); unset, at least 2**9 = 512 cycles apart (the XDC's multicycle), at most 244 kHz |
+| JTAG | 6-bit AMD 7-series IR, IDCODE `0x0B020093` (M20) |
 
 <!-- device:end -->
 
@@ -199,6 +198,8 @@ software/bob/fasm_from_vpr.py --check        # committed VPR results -> FASM -> 
 ./bob load build/bit/counter.bit --mode chain   # the same memory through the scan chain (CHAIN_IN)
 software/bob/packets.py dump build/bit/counter.bit # the UG470-style packet stream
 ./bob build work/examples/switches/switches.v --clock run --div 15   # free-running user clock (7.45 Hz); then ./bob load
+./bob build work/examples/counter/counter.v --clock run --hz auto   # M20: as fast as the design's own timing allows
+software/bob/timing.py build/bit/counter.bit   # M20: critical path, the clock it allows
 ./bob info build/bit/counter.bit          # or: ./bob fasm build/bit/counter.bit
 ./bob build work/examples/fir/fir.v --pnr python   # M12: bob's own pack/place/route instead of VPR (no Docker)
 software/bob/pnr/compare.py                  # Python PnR vs VPR -> docs/reports/M12/pnr_vs_vpr.md
@@ -206,7 +207,25 @@ sim/run_cosim_sim.sh                      # golden co-simulation: source live vs
 sim/run_synth_sim.sh                      # the same bitstreams on the complete FPGA RTL
 ```
 
-Examples in `work/examples/`: `gates`, `adder`, `counter`, `blinky`, `ram`, `mult`, `switches`, `fir` (per-design report: `docs/reports/M11/designs.md`). The hand-written designs in `software/host/designs.py` load with `software/host/fpga.py --load showcase`.
+Examples in `work/examples/`: `gates`, `adder`, `counter`, `blinky`, `ram`, `mult`, `switches`, `fir`, `wide`, `big`, `atspeed` (M20's self-checking at-speed counter), and the block-design project `bd_demo` (per-design report: `docs/reports/M11/designs.md`).
+
+### The user clock (M20)
+
+The fabric's user clock is a clock enable on the 125 MHz sysclk. Until M20 the enables were
+always at least 512 cycles apart (at most 244 kHz), because Vivado can only time the
+*unconfigured* fabric, about 2500 ns through its open routing loops. FPGA overlays sign off the
+configured design instead (ZUMA, FCCM 2012; "Timing Optimization for Virtual FPGA
+Configurations", ARC 2021), and so does bob now:
+
+- `software/bob/timing.py` finds the longest register-to-register path of a `.bit`. It follows
+  only the selected mux inputs and the LUT inputs the truth table uses, and sums per-element
+  delays from `software/bob/delays.json`.
+- Those delays are measured on the Vivado implementation: `hw/scripts/extract_delays.tcl`
+  during the build, then `software/bob/delays.py fold`. Until the M20 build they are
+  provisional (M16's report), with a 2× guard band.
+- `./bob build --clock run --hz auto` writes the fastest safe rate into the `.bit` (ctrl
+  `clk_period` / `clk_gap`); `--hz N` asks for a rate and is refused if the design cannot make it.
+- A `.bit` without a timed clock runs exactly as before (`clk_gap` = 0 means the safe 512). The hand-written designs in `software/host/designs.py` load with `software/host/fpga.py --load showcase`.
 
 ## Folder map
 

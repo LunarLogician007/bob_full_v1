@@ -57,6 +57,22 @@ CLB_FF_D_SEL = FIELD["ff_d_sel"][0]
 
 CLOCK_MODES = DEVICE["clock"]["modes"]
 DIV_MIN_SHIFT = DEVICE["clock"]["div_min_shift"]
+SYSCLK_HZ = DEVICE["clock"]["sysclk_hz"]
+GAP_DEFAULT = 1 << DEVICE["clock"]["gce_min_gap_shift"]        # clk_gap = 0 (M20)
+GAP_FLOOR = DEVICE["clock"].get("gce_gap_floor", 2)
+PERIOD_W = DEVICE["clock"].get("period_w", 16)
+
+
+def guest_hz(mode="run", div=0, period=0, gap=0):
+    """The free-running user-clock rate clock_ctrl.v gives, or None when stepped: an enable
+    every clk_period x 2**div cycles (M20; 2**(div+DIV_MIN_SHIFT) when clk_period is 0), but
+    never closer than the gap (clk_gap, M20; the safe 2**GCE_MIN_GAP_SHIFT when 0; never
+    below the floor)."""
+    if mode not in ("run", 1):
+        return None
+    p = (period << min(div, 32 - PERIOD_W)) if period else 1 << (div + DIV_MIN_SHIFT)
+    g = max(gap if gap else GAP_DEFAULT, GAP_FLOOR)
+    return SYSCLK_HZ / max(p, g)
 
 BLOCKS = {b["name"]: b for b in DEVICE["blocks"]}
 CLBS = [b["name"] for b in DEVICE["blocks"] if b["type"] == "clb"]          # CAPTURE order
@@ -241,9 +257,12 @@ class Bitstream:
     def _get(self, lo, width):
         return (self.word >> lo) & ((1 << width) - 1)
 
-    def set_ctrl(self, clk_mode=0, clk_div=0):
+    def set_ctrl(self, clk_mode=0, clk_div=0, clk_period=0, clk_gap=0):
         self._put(*CTRL_FIELD["clk_mode"], clk_mode)
         self._put(*CTRL_FIELD["clk_div"], clk_div)
+        if "clk_period" in CTRL_FIELD:                    # M20
+            self._put(*CTRL_FIELD["clk_period"], clk_period)
+            self._put(*CTRL_FIELD["clk_gap"], clk_gap)
 
     def get_ctrl(self, name):
         return self._get(*CTRL_FIELD[name])

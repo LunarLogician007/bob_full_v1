@@ -279,3 +279,53 @@ def test_m19_wave_live_passes_on_a_good_board():
 def test_m19_wave_live_fails_when_the_leds_are_wrong():
     ok, msg = hwtest.check_wave_live(FakeBob(switches=lambda t: int(t / 0.05) % 4, corrupt_sample=True), {})
     assert not ok and "xor" in msg, msg
+
+
+# --- M20: the per-design user clock --------------------------------------------------
+#
+# The software board simulates every user-clock edge, so the at-speed checks run it with
+# rate_scale well below 1 (tens of edges a second). max_hz is its slow-fabric fault: above
+# that real rate a third of the registers miss each edge, as a setup violation would.
+
+def _atspeed_fmax():
+    import bitgen
+    from bitstream import guest_hz
+    path, *_rest, meta = hwtest._atspeed("vpr", "_fmax")
+    return guest_hz("run", meta.get("pdiv", 0), meta["period"], meta["gap"])
+
+
+@pytest.fixture
+def quick_atspeed(monkeypatch):
+    monkeypatch.setattr(hwtest, "ATSPEED_S", 0.6)
+
+
+def test_m20_clock_rate_passes_on_a_good_board():
+    ok, msg = hwtest.check_clock_rate(FakeBob(), {})
+    assert ok, msg
+    assert f"clk_period {hwtest.RATE_PERIOD} x 2**{hwtest.RATE_DIV}" in msg
+
+
+def test_m20_clock_rate_fails_when_the_clock_is_off():
+    ok, msg = hwtest.check_clock_rate(FakeBob(rate_scale=1.5), {})
+    assert not ok, msg
+
+
+@pytest.mark.parametrize("pnr", ["vpr", "python"])
+def test_m20_clock_fmax_passes_on_a_fast_enough_fabric(pnr, quick_atspeed):
+    ok, msg = hwtest._clock_fmax(pnr)(FakeBob(rate_scale=2e-5, budget=0.05), {})
+    assert ok and "no error" in msg, msg
+
+
+def test_m20_clock_fmax_fails_on_a_fabric_slower_than_computed(quick_atspeed):
+    ok, msg = hwtest._clock_fmax("vpr")(FakeBob(rate_scale=2e-5, budget=0.05, max_hz=_atspeed_fmax() / 2), {})
+    assert not ok and "too fast" in msg, msg
+
+
+def test_m20_clock_margin_finds_the_edge_above_the_computed_clock(quick_atspeed):
+    ok, msg = hwtest.check_clock_margin(FakeBob(rate_scale=2e-5, budget=0.05, max_hz=_atspeed_fmax() * 1.6), {})
+    assert ok and "first failure" in msg and "margin" in msg, msg
+
+
+def test_m20_clock_margin_fails_when_the_computed_clock_is_unsafe(quick_atspeed):
+    ok, msg = hwtest.check_clock_margin(FakeBob(rate_scale=2e-5, budget=0.05, max_hz=_atspeed_fmax() * 0.7), {})
+    assert not ok and "fails at the computed clock" in msg, msg

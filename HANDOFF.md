@@ -13,12 +13,39 @@ This file is the live state: what is finished, what is in flight, and exactly wh
 | Bitstream in the PL | **M16** (`0xFBEEF093`): 100 CLBs (12 × 10 core), 145 frames = 18 560 bits, 2 BRAM, 2 DSP, 44 pads. 20 498 LUTs (38.5%), 21 511 FFs (20.2%), WNS +0.667 ns, WHS +0.112 ns, DRC clean |
 | Guest tooling | `./bob build｜load｜info｜fasm`, and **bob studio** (`software/host/studio.py`), which since M18 has **projects** (`.bobproj`) and **block designs** |
 | Whole-project report | `docs/project/REPORT.md` + `project.html`; the learning guide is `docs/project/GUIDE.md` + `guide.html` (**done**, committed in `807f2b9`) |
-| In flight | **M18 and M19: software done, board tests pending.** `make hwtest M=M19` runs M18's list plus the waveform checks (no Vivado rebuild; checklists `docs/hwtest/M18.md`, `M19.md`). Tag `m18`/`m19` only after they pass |
+| In flight | **M20: software done; the Vivado build (IDCODE `0x0B020093`) and `make hwtest M=M20` are pending.** M20's list runs M18's and M19's checks too, so one board session closes all three. After the build: copy `out/M20/` to `docs/reports/M20/`, run `software/bob/delays.py fold docs/reports/M20/delay_paths.rpt`, `make check`, then the board. Checklists `docs/hwtest/M18.md`, `M19.md`, `M20.md`. Tag `m18`/`m19`/`m20` only after they pass |
 
 The device table in `README.md` is generated from `software/bob/device.json` by
 `software/bob/devtable.py`; `make check` fails if it drifts.
 
 ---
+
+## 1c. M20 — the user clock from the design's own timing
+
+- **Hardware:** `clock_ctrl.v` has `clk_period` and `clk_gap` (ctrl tile 8 → 40 bits; the chain
+  is still 18,560 bits in 145 frames). `clk_gap` = 0 is the safe 512, so the XDC is unchanged.
+  `tb_clock_gap` has 17 checks (period, gap,
+  prescale, floor, safe default, steps at a gap), and `sim/mutate_frames.sh` has 4 new mutants.
+- **Timing:** `software/bob/timing.py` (the design's critical path from its bits) and a new flow
+  stage **timing** between bits and model. `./bob build --hz auto|N`; the studio's `hz` setting;
+  projects store `hz` (`div` = before).
+- **Delays:** `software/bob/delays.json` is provisional: routing measured on M16's report,
+  LUT/FF/BRAM/DSP estimated, 2× guard band. `build.tcl` sources `hw/scripts/extract_delays.tcl`
+  after implementation; it times `hw/scripts/delay_samples.txt` (`delays.py plan`) into
+  `out/M20/delay_paths.rpt`. `delays.py fold` turns it into measured delays (1.25× guard band).
+  `tests/test_build_tcl.py` runs the round trip through the Vivado stub.
+- **Board checks:** `work/examples/atspeed` (a self-checking counter, error latched on LD0,
+  VPR route committed); `clock-rate`, `clock-fmax`, `clock-fmax-py` and `clock-margin` (sweeps
+  to the 2-cycle floor; every rate up to the computed one must pass). FakeBob gained `max_hz`
+  (a fabric too slow above that rate) and a time `budget` (it used to fall behind forever at
+  MHz rates, which hung a test run overnight). The studio's `DemoBoard` now just sets that budget.
+- **IDCODE:** version nibbles ran out at M16. From M20 it is `0x0B0<MM>093` (`build.cfg` notes it).
+- **The readback-mux idea in §5 below does not work.** A tree beat the flat array on
+  `cfg_store` alone, but was +310 LUTs in the whole design (yosys folds the flat array into
+  FDRO's word select). `cfg_store.v` is unchanged. See PLAN's M20 section; room for M21 needs a
+  different memory (BRAM shadow or LUTRAM), not a different mux.
+- **Size:** yosys says 32,838 LUT / 21,549 FF, against 32,697 / 21,485 for M19 on the same
+  tool. The clock logic costs +141 LUTs and +64 FFs, so Vivado should land near M16's 20.5k.
 
 ## 1b. M19 — the studio app and the waveform viewer
 

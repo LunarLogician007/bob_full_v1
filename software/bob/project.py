@@ -43,7 +43,9 @@ VERSION = 1
 SOURCE_EXT = (".v", ".sv", ".vh")
 HDL_EXT = (".v", ".sv")                 # what yosys reads; a .vh is only ever included
 SUBDIRS = ("src", "bd", "ip", "constrs", "build")
-SETTINGS = {"clock": "jtag", "div": 0, "seed": 1, "pnr": "vpr"}
+SETTINGS = {"clock": "jtag", "div": 0, "seed": 1, "pnr": "vpr", "hz": "div"}
+# hz (M20, with clock run): "div" = the power-of-two divider (div); "auto" = the fastest rate
+# the design's own timing allows (software/bob/timing.py); a number = that rate in Hz
 NAME = re.compile(r"[A-Za-z][A-Za-z0-9_]*")
 RECENT = os.path.join(os.path.expanduser("~"), ".bob", "recent.json")
 
@@ -228,6 +230,15 @@ class Project:
         for k in ("div", "seed"):
             if k in kw:
                 kw[k] = int(kw[k])
+        if "hz" in kw:
+            h = str(kw["hz"]).strip() or "div"
+            if h not in ("div", "auto"):
+                try:
+                    if float(h) <= 0:
+                        raise ValueError
+                except ValueError:
+                    raise ProjectError("hz is div, auto or a rate in Hz")
+            kw["hz"] = h
         self.data["settings"].update(kw)
 
     # -- what the flow sees -----------------------------------------------------
@@ -267,10 +278,12 @@ class Project:
             raise ProjectError("no top module: set one (right-click a module, Set as top)")
         pcf = self.data.get("active_pcf")
         s = self.data["settings"]
+        hz = s.get("hz", "div")
         return {"files": files, "top": self.data["top"],
                 "pcf": self.abs(pcf) if pcf else None,
                 "out": self.bit_path(), "name": self.result_name(),
-                "clock": s["clock"], "div": int(s["div"]), "seed": int(s["seed"]), "pnr": s["pnr"]}
+                "clock": s["clock"], "div": int(s["div"]), "seed": int(s["seed"]), "pnr": s["pnr"],
+                "hz": hz if s["clock"] == "run" and hz != "div" else None}
 
     def to_json(self, with_modules=True):
         d = dict(self.data)

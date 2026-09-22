@@ -366,8 +366,8 @@ def _run_rate(div):
     """Free-running user-clock enables per second: 125 MHz / 2**(div + DIV_MIN_SHIFT).
     DIV_MIN_SHIFT comes from device.json (9 from M16, 8 before), so the rate checks
     follow the fabric instead of hard-coding it - the M16 gap change halved every rate."""
-    from bitstream import DIV_MIN_SHIFT
-    return 125e6 / 2 ** (div + DIV_MIN_SHIFT)
+    from bitstream import guest_hz
+    return guest_hz("run", div)
 
 
 def check_ce_sr(p, ctx):
@@ -1823,12 +1823,163 @@ def check_wave_live(p, ctx):
     return True, f"{len(rows)} live samples, LD0 == SW0 xor SW1 in all, {len(states)} switch settings"
 
 
+# --- M20: the per-design user clock (clock_ctrl clk_period / clk_gap, software/bob/timing.py) ----
+
+ATSPEED_S = 1.0                # seconds each at-speed run lasts before err (LD0) is read
+RATE_PERIOD, RATE_DIV = 47, 16   # 125 MHz / (47 x 2**16) = 40.6 Hz: an integer period that is
+                                 # no power of two, slow enough to count by CAPTURE
+
+
+def _err(p):
+    """atspeed's sticky error flag, LD0, by SAMPLE (the design keeps running)."""
+    import cfgplane
+    import fpga
+    cfgplane.ir(p, "SAMPLE")
+    return fpga.sample(p)["leds"] & 1
+
+
+def _atspeed(pnr="vpr", suffix="_fmax", **kw):
+    """atspeed built for the free-running clock at the rate its own timing allows."""
+    import bitgen
+    path, word, contents, tr, work, result = _build("atspeed", pnr, suffix, clock="run", hz="auto", **kw)
+    return path, word, contents, bitgen.read_bit(path)["meta"]
+
+
+def _with_clock(path, word, contents, meta, period, gap, div=0):
+    """The same design with another clk_period / clk_gap: a new .bit beside the first."""
+    import bitgen
+    from bitstream import CLOCK_MODES, Bitstream
+    bs = Bitstream(word)
+    bs.set_ctrl(CLOCK_MODES["run"], div, period, gap)
+    out = path[:-4] + f"_p{period}.bit"
+    bitgen.write_bit(out, bs.to_int(), contents, {**meta, "period": period, "gap": gap, "pdiv": div})
+    return out
+
+
+def _clock_fmax(pnr):
+    def check(p, ctx):
+        """atspeed (a counter checked against its own last value every clock, error latched on
+        LD0) runs at the user clock software/bob/timing.py computes from its critical path:
+        no error, and the registers keep moving (two CAPTUREs differ)."""
+        import time
+        import cfgplane
+        import cli
+        import fpga
+        from bitstream import NCLB, guest_hz
+        path, word, contents, meta = _atspeed(pnr, "_fmax")
+        hz = guest_hz("run", meta.get("pdiv", 0), meta["period"], meta["gap"])
+        ok, msg = cli.load(p, path, log=lambda *_: None)
+        if not ok:
+            return False, msg
+        c1 = cfgplane.capture(p, NCLB)
+        time.sleep(ATSPEED_S)
+        c2 = cfgplane.capture(p, NCLB)
+        err = _err(p)
+        fpga.go_live(p)
+        what = (f"critical path {meta['cpd_ns']} ns -> every {meta['period']} sysclk cycles = "
+                f"{hz / 1e6:.3f} MHz")
+        if err:
+            return False, f"{what}: the error flag latched (a != b + 1) - the computed clock is too fast"
+        if c1 == c2:
+            return False, f"{what}: the registers did not move in {ATSPEED_S} s"
+        return True, f"{what}: {ATSPEED_S:.0f} s with no error, registers moving"
+    check.__name__ = f"check_clock_fmax{'_py' if pnr == 'python' else ''}"
+    return check
+
+
+def check_clock_margin(p, ctx):
+    """Sweep atspeed's clock from the computed rate up to the 2-cycle floor until the error
+    flag latches. Every rate at or below the computed one must pass; the first failure,
+    if any, shows the guard band on silicon."""
+    import cli
+    import fpga
+    from bitstream import GAP_FLOOR, guest_hz
+    path, word, contents, meta = _atspeed("vpr", "_margin")
+    gap = meta["gap"]
+    ok, msg = cli.load(p, path, log=lambda *_: None)
+    if not ok:
+        return False, msg
+    results = []
+    first_fail = None
+    for period in range(gap, GAP_FLOOR - 1, -1):
+        bit = _with_clock(path, word, contents, meta, period, period)
+        ok, msg = cli.load(p, bit, log=lambda *_: None)
+        if not ok:
+            return False, f"period {period}: {msg}"
+        import time
+        time.sleep(ATSPEED_S / 2)
+        err = _err(p)
+        results.append((period, err))
+        if err:
+            first_fail = period
+            break
+    fpga.go_live(p)
+    mhz = lambda n: guest_hz("run", 0, n, n) / 1e6               # noqa: E731
+    unsafe = [n for n, e in results if e and n >= gap]
+    if unsafe:
+        return False, (f"fails at the computed clock: period {unsafe[0]} ({mhz(unsafe[0]):.3f} MHz), "
+                       f"computed {gap} from {meta['cpd_ns']} ns - timing.py's delays are too small")
+    if first_fail is None:
+        return True, (f"computed {gap} cycles ({mhz(gap):.3f} MHz); passes all the way to the "
+                      f"{GAP_FLOOR}-cycle floor ({mhz(GAP_FLOOR):.1f} MHz)")
+    return True, (f"computed {gap} cycles ({mhz(gap):.3f} MHz); first failure at {first_fail} "
+                  f"({mhz(first_fail):.3f} MHz): margin {gap / first_fail:.2f}x on silicon")
+
+
+def check_clock_rate(p, ctx):
+    """An integer clock period that is no power of two: blinky at clk_period 47 x 2**16
+    (40.6 Hz) counts at exactly that rate (CAPTURE of its 8 bits over about 4 s)."""
+    import json
+    import time
+    import cfgplane
+    import cli
+    import fasm_from_vpr
+    import fpga
+    from bitstream import NCLB, guest_hz
+    path, word, contents, _tr, _work, _res = _build("blinky", "vpr", "_rate", clock="run", div=LIVE_DIV)
+    import bitgen
+    meta = bitgen.read_bit(path)["meta"]
+    bit = _with_clock(path, word, contents, meta, RATE_PERIOD, 0, div=RATE_DIV)
+    ok, msg = cli.load(p, bit, log=lambda *_: None)
+    if not ok:
+        return False, msg
+    mod = json.load(open(os.path.join(ROOT, "build", "synth", "blinky", "blinky.json")))["modules"]["blinky"]
+    qbits = mod["netnames"]["q"]["bits"]
+    where = {bit_: i for i, bit_ in fasm_from_vpr.capture_map("blinky")}
+
+    def count():
+        c = cfgplane.capture(p, NCLB)
+        return sum(((c >> where[b]) & 1) << k for k, b in enumerate(qbits))
+
+    t0, last, total = time.time(), count(), 0
+    for _ in range(8):
+        time.sleep(0.5)
+        v = count()
+        total += (v - last) % 256
+        last = v
+    dt = time.time() - t0
+    rate, want = total / dt, guest_hz("run", RATE_DIV, RATE_PERIOD, 0)
+    fpga.go_live(p)
+    return abs(rate - want) <= 0.1 * want, (f"clk_period {RATE_PERIOD} x 2**{RATE_DIV}: {total} counts "
+                                            f"in {dt:.2f} s = {rate:.2f} Hz (expected {want:.2f})")
+
+
 # M19: bob studio as a desktop app, board pins in block designs, the waveform viewer.
 # Software only again: the M18 list plus the two waveform checks.
 MILESTONE["M19"] = (
     MILESTONE["M18"][:-1] +
     [("wave-step", check_wave_step), ("wave-live", check_wave_live)] +
     [MILESTONE["M18"][-1]])
+
+# M20: the per-design user clock. A new bitstream (IDCODE 0x0B020093): clk_period / clk_gap in
+# the ctrl tile, the tree readback mux, delay extraction. The full M19 list, then the clock.
+MILESTONE["M20"] = (
+    MILESTONE["M19"][:-1] +
+    [("clock-rate", check_clock_rate),
+     ("clock-fmax", _clock_fmax("vpr")),
+     ("clock-fmax-py", _clock_fmax("python")),
+     ("clock-margin", check_clock_margin)] +
+    [MILESTONE["M19"][-1]])
 
 # --- runner ------------------------------------------------------------------
 

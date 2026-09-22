@@ -128,7 +128,41 @@ proc get_timing_paths {args} { return "" }
 proc report_timing_summary {args} { close [open [lindex $args end] w] }
 proc report_utilization {args}    { close [open [lindex $args end] w] }
 proc report_drc {args}            { close [open [lindex $args end] w] }
-proc get_cells {args}             { return {} }
+proc get_cells {args} {
+    # the sysclk_1cycle listing asks with -hier -filter: nothing; a named cell: itself
+    if {[lsearch $args -hier] >= 0} { return {} }
+    return [lindex $args end]
+}
+proc get_nets {args} { return [lindex $args end] }
+# M20 extract_delays.tcl: a report in Vivado's text layout, with fixed numbers the test
+# folds back (a hop of 1.500 ns, clock-to-Q 1.200 ns, input -> D 1.050 ns with setup).
+proc report_timing {args} {
+    set thr {}; set from ""; set to ""
+    for {set i 0} {$i < [llength $args]} {incr i} {
+        switch -- [lindex $args $i] {
+            -through { incr i; lappend thr [lindex $args $i] }
+            -from    { incr i; set from [lindex $args $i] }
+            -to      { incr i; set to [lindex $args $i] }
+        }
+    }
+    set r "Slack (MET) :              4000.000ns  (required time - arrival time)\n"
+    if {$from ne ""} {
+        append r "    SLICE_X1Y1           FDRE (Prop_fdre_C_Q)         0.456     5.456 r  $from/Q\n"
+        append r "                         net (fo=1, routed)           0.744     6.200    [lindex $thr 0]\n"
+    } elseif {$to ne ""} {
+        append r "                         net (fo=1, routed)           0.500     3.000    [lindex $thr 0]\n"
+        append r "    SLICE_X1Y1           LUT6 (Prop_lut6_I0_O)        0.124     3.124 r  x/O\n"
+        append r "                         net (fo=1, routed)           0.876     4.000    x_n_0\n"
+        append r "    SLICE_X1Y1           FDRE (Setup_fdre_C_D)       -0.050     8.000    $to\n"
+        append r "                         -------------------------------------------------------------------\n"
+        append r "                                                              4.000   arrival time\n"
+    } else {
+        append r "                         net (fo=1, routed)           0.500    10.000    [lindex $thr 0]\n"
+        append r "    SLICE_X1Y1           LUT4 (Prop_lut4_I0_O)        0.124    10.124 r  u_core/u_fabric/i___1_i_2/O\n"
+        append r "                         net (fo=1, routed)           1.376    11.500    [lindex $thr 1]\n"
+    }
+    return $r
+}
 proc launch_simulation {args} { stub_log "launch_simulation $args" }
 proc run {args} { stub_log "run $args" }
 proc close_sim {} {}

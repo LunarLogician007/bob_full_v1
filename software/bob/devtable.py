@@ -67,6 +67,7 @@ def facts():
         "bram_col": ", ".join(str(x) for x in cols["bram"]), "bram_h": height.get("bram"),
         "dsp_col": ", ".join(str(x) for x in cols["dsp"]), "dsp_h": height.get("dsp"),
         "div_shift": d["clock"]["div_min_shift"], "gap_shift": d["clock"]["gce_min_gap_shift"],
+        "gap_floor": d["clock"].get("gce_gap_floor"),
     }
     f["max_hz"] = d["clock"]["sysclk_hz"] / 2 ** f["div_shift"]
 
@@ -98,9 +99,15 @@ def table():
                           "UG470-style packets on CFG_IN/CFG_OUT (CRC-32C, IDCODE, partial "
                           "reconfiguration, BRAM content frames) or the streamed chain on "
                           "CHAIN_IN/CHAIN_OUT; GSR → GTS → GWE → DONE startup"),
-        ("User clock", f"one sysclk enable at a time, at least 2**{f['gap_shift']} = "
-                       f"{1 << f['gap_shift']} cycles apart (the fabric's multicycle); free-running "
-                       f"at most 125 MHz / 2**{f['div_shift']} = {f['max_hz'] / 1000:.0f} kHz"),
+        ("User clock", (f"one sysclk enable at a time, spaced by each design's own timing "
+                        f"(clk_gap from software/bob/timing.py, never under {f['gap_floor']} cycles = "
+                        f"{125 / f['gap_floor']:.1f} MHz); unset, at least 2**{f['gap_shift']} = "
+                        f"{1 << f['gap_shift']} cycles apart (the XDC's multicycle), "
+                        f"at most {f['max_hz'] / 1000:.0f} kHz")
+                       if f.get("gap_floor") else
+                       (f"one sysclk enable at a time, at least 2**{f['gap_shift']} = "
+                        f"{1 << f['gap_shift']} cycles apart (the fabric's multicycle); free-running "
+                        f"at most 125 MHz / 2**{f['div_shift']} = {f['max_hz'] / 1000:.0f} kHz")),
         ("JTAG", f"6-bit AMD 7-series IR, IDCODE `0x{f['idcode']}` ({f['tag']})"),
     ]
     if f["luts"] and f["ffs"]:

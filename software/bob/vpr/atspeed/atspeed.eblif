@@ -1,0 +1,198 @@
+# GENERATED from the yosys netlist of atspeed - do not edit
+.model atspeed
+.inputs clk btn[1]
+.outputs led[0] led[1] led[2]
+.subckt bob_add cout=cy2
+.cname bob_gen1
+.subckt bob_add b=n39 cin=cy2 cout=cy3 sumout=n35
+.cname $auto$alumacc.cc:548:replace_alu$28.slice[0].add
+.subckt bob_add b=n46 cin=cy3 cout=cy4 sumout=n15
+.cname $auto$alumacc.cc:548:replace_alu$28.slice[1].add
+.subckt bob_add b=n48 cin=cy4 cout=cy5 sumout=n33
+.cname $auto$alumacc.cc:548:replace_alu$28.slice[2].add
+.subckt bob_add b=n50 cin=cy5 cout=cy6 sumout=n31
+.cname $auto$alumacc.cc:548:replace_alu$28.slice[3].add
+.subckt bob_add b=n52 cin=cy6 cout=cy7 sumout=n28
+.cname $auto$alumacc.cc:548:replace_alu$28.slice[4].add
+.subckt bob_add b=n54 cin=cy7 cout=cy8 sumout=n26
+.cname $auto$alumacc.cc:548:replace_alu$28.slice[5].add
+.subckt bob_add b=n56 cin=cy8 cout=cy9 sumout=n24
+.cname $auto$alumacc.cc:548:replace_alu$28.slice[6].add
+.subckt bob_add b=n58 cin=cy9 cout=cy10 sumout=n37
+.cname $auto$alumacc.cc:548:replace_alu$28.slice[7].add
+.subckt bob_add cin=cy10 sumout=cy12
+.cname bob_tap11
+.subckt bob_add a=cy12 b=cy12 cout=cy14
+.cname bob_gen13
+.subckt bob_add b=n60 cin=cy14 cout=cy15 sumout=n20
+.cname $auto$alumacc.cc:548:replace_alu$28.slice[8].add
+.subckt bob_add b=n62 cin=cy15 cout=cy16 sumout=n13
+.cname $auto$alumacc.cc:548:replace_alu$28.slice[9].add
+.subckt bob_add b=n41 cin=cy16 cout=cy17 sumout=n18
+.cname $auto$alumacc.cc:548:replace_alu$28.slice[10].add
+.subckt bob_add b=n44 cin=cy17 sumout=n16
+.cname $auto$alumacc.cc:548:replace_alu$28.slice[11].add
+.subckt bob_add cout=cy19
+.cname bob_gen18
+.subckt bob_add b=n34 cin=cy19 cout=cy20 sumout=n64
+.cname $auto$alumacc.cc:548:replace_alu$31.slice[0].add
+.subckt bob_add b=n14 cin=cy20 cout=cy21 sumout=n71
+.cname $auto$alumacc.cc:548:replace_alu$31.slice[1].add
+.subckt bob_add b=n32 cin=cy21 cout=cy22 sumout=n73
+.cname $auto$alumacc.cc:548:replace_alu$31.slice[2].add
+.subckt bob_add b=n30 cin=cy22 cout=cy23 sumout=n75
+.cname $auto$alumacc.cc:548:replace_alu$31.slice[3].add
+.subckt bob_add b=n27 cin=cy23 cout=cy24 sumout=n77
+.cname $auto$alumacc.cc:548:replace_alu$31.slice[4].add
+.subckt bob_add b=n25 cin=cy24 cout=cy25 sumout=n79
+.cname $auto$alumacc.cc:548:replace_alu$31.slice[5].add
+.subckt bob_add b=n23 cin=cy25 cout=cy26 sumout=n81
+.cname $auto$alumacc.cc:548:replace_alu$31.slice[6].add
+.subckt bob_add b=n38 cin=cy26 cout=cy27 sumout=n83
+.cname $auto$alumacc.cc:548:replace_alu$31.slice[7].add
+.subckt bob_add cin=cy27 sumout=cy29
+.cname bob_tap28
+.subckt bob_add a=cy29 b=cy29 cout=cy31
+.cname bob_gen30
+.subckt bob_add b=n19 cin=cy31 cout=cy32 sumout=n85
+.cname $auto$alumacc.cc:548:replace_alu$31.slice[8].add
+.subckt bob_add b=n12 cin=cy32 cout=cy33 sumout=n86
+.cname $auto$alumacc.cc:548:replace_alu$31.slice[9].add
+.subckt bob_add b=led[1] cin=cy33 cout=cy34 sumout=n67
+.cname $auto$alumacc.cc:548:replace_alu$31.slice[10].add
+.subckt bob_add b=led[2] cin=cy34 sumout=n69
+.cname $auto$alumacc.cc:548:replace_alu$31.slice[11].add
+.names n12 n13 n14 n15 led[2] n16 n17
+000000 1
+110000 1
+001100 1
+111100 1
+000011 1
+110011 1
+001111 1
+111111 1
+.names led[1] n18 n19 n20 n21 n22
+00000 1
+10000 1
+01000 1
+11000 1
+00100 1
+10100 1
+01100 1
+11100 1
+00010 1
+10010 1
+01010 1
+11010 1
+00110 1
+10110 1
+01110 1
+11110 1
+10001 1
+01001 1
+00101 1
+10101 1
+01101 1
+11101 1
+00011 1
+10011 1
+01011 1
+11011 1
+10111 1
+01111 1
+.names n23 n24 n25 n26 n27 n28 n29
+000000 1
+110000 1
+001100 1
+111100 1
+000011 1
+110011 1
+001111 1
+111111 1
+.names n30 n31 n32 n33 n34 n35 n36
+000000 1
+110000 1
+001100 1
+111100 1
+000011 1
+110011 1
+001111 1
+111111 1
+.names led[0] n37 n38 n36 n29 n17 n21
+000111 1
+011111 1
+.subckt bob_ff D=n22 C=clk Q=led[0] SR=btn[1]
+.cname $auto$ff.cc:337:slice$109
+.subckt bob_ff D=ffd35 C=clk Q=n39 SR=btn[1]
+.cname $auto$ff.cc:337:slice$110
+.subckt bob_ff D=ffd36 C=clk Q=n46 SR=btn[1]
+.cname $auto$ff.cc:337:slice$111
+.subckt bob_ff D=ffd37 C=clk Q=n48 SR=btn[1]
+.cname $auto$ff.cc:337:slice$112
+.subckt bob_ff D=ffd38 C=clk Q=n50 SR=btn[1]
+.cname $auto$ff.cc:337:slice$113
+.subckt bob_ff D=ffd39 C=clk Q=n52 SR=btn[1]
+.cname $auto$ff.cc:337:slice$114
+.subckt bob_ff D=ffd40 C=clk Q=n54 SR=btn[1]
+.cname $auto$ff.cc:337:slice$115
+.subckt bob_ff D=ffd41 C=clk Q=n56 SR=btn[1]
+.cname $auto$ff.cc:337:slice$116
+.subckt bob_ff D=ffd42 C=clk Q=n58 SR=btn[1]
+.cname $auto$ff.cc:337:slice$117
+.subckt bob_ff D=ffd43 C=clk Q=n60 SR=btn[1]
+.cname $auto$ff.cc:337:slice$118
+.subckt bob_ff D=ffd44 C=clk Q=n62 SR=btn[1]
+.cname $auto$ff.cc:337:slice$119
+.subckt bob_ff D=ffd45 C=clk Q=n41 SR=btn[1]
+.cname $auto$ff.cc:337:slice$120
+.subckt bob_ff D=ffd46 C=clk Q=n44 SR=btn[1]
+.cname $auto$ff.cc:337:slice$121
+.subckt bob_ff D=n64 C=clk Q=n34 SR=btn[1]
+.cname $auto$ff.cc:337:slice$122
+.subckt bob_ff D=n71 C=clk Q=n14 SR=btn[1]
+.cname $auto$ff.cc:337:slice$123
+.subckt bob_ff D=n73 C=clk Q=n32 SR=btn[1]
+.cname $auto$ff.cc:337:slice$124
+.subckt bob_ff D=n75 C=clk Q=n30 SR=btn[1]
+.cname $auto$ff.cc:337:slice$125
+.subckt bob_ff D=n77 C=clk Q=n27 SR=btn[1]
+.cname $auto$ff.cc:337:slice$126
+.subckt bob_ff D=n79 C=clk Q=n25 SR=btn[1]
+.cname $auto$ff.cc:337:slice$127
+.subckt bob_ff D=n81 C=clk Q=n23 SR=btn[1]
+.cname $auto$ff.cc:337:slice$128
+.subckt bob_ff D=n83 C=clk Q=n38 SR=btn[1]
+.cname $auto$ff.cc:337:slice$129
+.subckt bob_ff D=n85 C=clk Q=n19 SR=btn[1]
+.cname $auto$ff.cc:337:slice$130
+.subckt bob_ff D=n86 C=clk Q=n12 SR=btn[1]
+.cname $auto$ff.cc:337:slice$131
+.subckt bob_ff D=n67 C=clk Q=led[1] SR=btn[1]
+.cname $auto$ff.cc:337:slice$132
+.subckt bob_ff D=n69 C=clk Q=led[2] SR=btn[1]
+.cname $auto$ff.cc:337:slice$133
+.names n34 ffd35
+1 1
+.names n14 ffd36
+1 1
+.names n32 ffd37
+1 1
+.names n30 ffd38
+1 1
+.names n27 ffd39
+1 1
+.names n25 ffd40
+1 1
+.names n23 ffd41
+1 1
+.names n38 ffd42
+1 1
+.names n19 ffd43
+1 1
+.names n12 ffd44
+1 1
+.names led[1] ffd45
+1 1
+.names led[2] ffd46
+1 1
+.end

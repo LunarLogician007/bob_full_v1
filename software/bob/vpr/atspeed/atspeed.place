@@ -1,0 +1,57 @@
+Netlist_File: atspeed.net Netlist_ID: SHA256:ed9d80c117b1aa08b49fe9be867a60a9eba8471c547aa8c22e0971de0ff6e06c
+Array size: 14 x 12 logic blocks
+
+#block name	x	y	subblk	layer	block number
+#----------	--	--	------	-----	------------
+n22		10	7	0	0	#0
+ffd35		5	2	0	0	#1
+ffd36		5	3	0	0	#2
+ffd37		2	4	0	0	#3
+ffd38		5	5	0	0	#4
+ffd39		5	6	0	0	#5
+ffd40		2	7	0	0	#6
+ffd41		5	8	0	0	#7
+ffd42		5	9	0	0	#8
+ffd43		10	8	0	0	#9
+ffd44		7	6	0	0	#10
+ffd45		10	9	0	0	#11
+ffd46		7	10	0	0	#12
+$auto$alumacc.cc:548:replace_alu$31.slice[2].add	4	4	0	0	#13
+$auto$alumacc.cc:548:replace_alu$31.slice[3].add	4	5	0	0	#14
+$auto$alumacc.cc:548:replace_alu$31.slice[4].add	4	6	0	0	#15
+$auto$alumacc.cc:548:replace_alu$31.slice[5].add	4	7	0	0	#16
+$auto$alumacc.cc:548:replace_alu$31.slice[6].add	4	8	0	0	#17
+$auto$alumacc.cc:548:replace_alu$31.slice[7].add	4	9	0	0	#18
+$auto$alumacc.cc:548:replace_alu$31.slice[8].add	11	7	0	0	#19
+$auto$alumacc.cc:548:replace_alu$31.slice[0].add	4	2	0	0	#20
+$auto$alumacc.cc:548:replace_alu$31.slice[1].add	4	3	0	0	#21
+$auto$alumacc.cc:548:replace_alu$31.slice[9].add	11	8	0	0	#22
+$auto$alumacc.cc:548:replace_alu$31.slice[10].add	11	9	0	0	#23
+$auto$alumacc.cc:548:replace_alu$31.slice[11].add	11	10	0	0	#24
+n17		7	8	0	0	#25
+n21		7	7	0	0	#26
+n29		5	7	0	0	#27
+n36		7	4	0	0	#28
+$auto$alumacc.cc:548:replace_alu$28.slice[0].add	6	2	0	0	#29
+$auto$alumacc.cc:548:replace_alu$28.slice[1].add	6	3	0	0	#30
+$auto$alumacc.cc:548:replace_alu$28.slice[2].add	6	4	0	0	#31
+$auto$alumacc.cc:548:replace_alu$28.slice[3].add	6	5	0	0	#32
+$auto$alumacc.cc:548:replace_alu$28.slice[4].add	6	6	0	0	#33
+$auto$alumacc.cc:548:replace_alu$28.slice[5].add	6	7	0	0	#34
+$auto$alumacc.cc:548:replace_alu$28.slice[6].add	6	8	0	0	#35
+$auto$alumacc.cc:548:replace_alu$28.slice[7].add	6	9	0	0	#36
+bob_gen13	9	6	0	0	#37
+$auto$alumacc.cc:548:replace_alu$28.slice[8].add	9	7	0	0	#38
+$auto$alumacc.cc:548:replace_alu$28.slice[9].add	9	8	0	0	#39
+$auto$alumacc.cc:548:replace_alu$28.slice[10].add	9	9	0	0	#40
+$auto$alumacc.cc:548:replace_alu$28.slice[11].add	9	10	0	0	#41
+bob_gen30	11	6	0	0	#42
+bob_tap11	6	10	0	0	#43
+bob_tap28	4	10	0	0	#44
+bob_gen1	6	1	0	0	#45
+bob_gen18	4	1	0	0	#46
+out:led[0]	13	1	0	0	#47
+out:led[1]	13	2	0	0	#48
+out:led[2]	13	3	0	0	#49
+clk		1	0	0	0	#50
+btn[1]		0	4	0	0	#51

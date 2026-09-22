@@ -86,6 +86,12 @@ GCE_MIN_GAP_SHIFT = 9                # M13: user-clock enables >= 2**GCE_MIN_GAP
                                      # unconfigured routing muxes is ~2500 ns. 9 = 512 cycles
                                      # = 4096 ns. Raising it makes timing easier and the
                                      # free-running guest clock slower (488 -> 244 kHz max).
+                                     # M20: this is now the DEFAULT gap (clk_gap = 0): an
+                                     # unconfigured fabric or a design without timing runs at it.
+                                     # A design timed by the flow sets its own clk_gap from its
+                                     # critical path (per-design sign-off), never below:
+GCE_GAP_FLOOR = 2                    # M20: hardware floor of the gce spacing (62.5 MHz)
+PERIOD_W = 16                        # M20: clk_period / clk_gap field width (up to 65535 cycles)
 
 # M13 frames (docs/bitstream-format.md sections 9-10): UG470-style configuration frames
 FRAME_WORDS = 4
@@ -329,8 +335,14 @@ class Device:
              "0: fabric clock enable = one pulse per TCK rising edge while USER1 ce (JTAG-stepped); "
              "1: free-running divider"),
             ("clk_div", 5, "value", "ctrl",
-             f"free-running: enable every 2**(clk_div+{DIV_MIN_SHIFT}) sysclk cycles"),
+             f"free-running: enable every 2**(clk_div+{DIV_MIN_SHIFT}) sysclk cycles (when clk_period is 0)"),
             ("reserved", 2, "reserved", "ctrl", "write 0"),
+            ("clk_period", PERIOD_W, "value", "ctrl",
+             "M20 free-running: enable every clk_period x 2**clk_div sysclk cycles; "
+             "0 = every 2**(clk_div+DIV_MIN_SHIFT)"),
+            ("clk_gap", PERIOD_W, "value", "ctrl",
+             f"M20: this design's minimum gce spacing in sysclk cycles, from its critical path "
+             f"(never below {GCE_GAP_FLOOR}); 0 = the safe 2**{GCE_MIN_GAP_SHIFT}"),
         ], "ctrl")
 
     def _clb_type(self):
@@ -655,6 +667,7 @@ class Device:
                                  for c in a["columns"]]},
             "clock": {"sysclk_hz": SYSCLK_HZ, "div_min_shift": DIV_MIN_SHIFT,
                       "gce_min_gap_shift": GCE_MIN_GAP_SHIFT,
+                      "gce_gap_floor": GCE_GAP_FLOOR, "period_w": PERIOD_W,
                       "modes": {"jtag": 0, "run": 1}},
             "tile_types": {name: {"width": tt.width,
                                   "fields": [{"name": f.name, "offset": f.offset, "width": f.width,
@@ -728,6 +741,9 @@ class Device:
             ("CTRL_CLK_MODE", ct.field("clk_mode").offset),
             ("CTRL_CLK_DIV_LO", ct.field("clk_div").offset),
             ("CTRL_CLK_DIV_W", ct.field("clk_div").width),
+            ("CTRL_CLK_PERIOD_LO", ct.field("clk_period").offset),
+            ("CTRL_CLK_GAP_LO", ct.field("clk_gap").offset),
+            ("CTRL_PERIOD_W", PERIOD_W), ("GCE_GAP_FLOOR", GCE_GAP_FLOOR),
             ("DIV_MIN_SHIFT", DIV_MIN_SHIFT), ("GCE_MIN_GAP_SHIFT", GCE_MIN_GAP_SHIFT),
             ("FRAME_WORDS", FRAME_WORDS), ("FRAME_BITS", FRAME_BITS), ("NFRAMES", self.nframes),
             ("FAR_NCOLS", len(self.frames) and max(c["far_col"] for c in self.frames) + 1),

@@ -168,3 +168,29 @@ def test_top_override_keeps_rtl_idcode(site):
     run_build(str(hw), "force", "top=mini_fpga_top", state=state)
     bit = hw.parent / "bob_vivado" / "out" / TAG / "mini_fpga_top.bit"
     assert "generic=" in bit.read_text() and "IDCODE" not in bit.read_text()
+
+
+def test_the_build_measures_the_fabric_delays(site):
+    """M20: after implementation build.tcl times every sample in delay_samples.txt and
+    delays.py folds the reports back into per-class delays."""
+    import sys
+    sys.path.insert(0, os.path.join(os.path.dirname(HW), "software", "bob"))
+    import delays
+    hw, state = site
+    out = run_build(str(hw), state=state)
+    assert "extract_delays:" in out
+    rpt = hw.parent / "bob_vivado" / "out" / TAG / "delay_paths.rpt"
+    text = rpt.read_text()
+    samples = [ln for ln in open(os.path.join(HW, "scripts", "delay_samples.txt")) if ln.strip() and ln[0] != "#"]
+    assert text.count("\n### ") + text.startswith("### ") == len(samples)
+    d = delays.fold([text], False, "stub")
+    for cls in ("mux_chan", "mux_ipin", "carry"):
+        assert d["measured"][cls]["max"] == 1.5, cls
+    assert d["ns"]["ff_clk_q"] == 1.2
+    assert d["ns"]["ff_setup"] == round(max(0.0, 1.05 - d["ns"]["lut"]), 3)
+
+
+def test_delays_0_skips_the_measurement(site):
+    hw, state = site
+    out = run_build(str(hw), "delays=0", state=state)
+    assert "extract_delays:" not in out

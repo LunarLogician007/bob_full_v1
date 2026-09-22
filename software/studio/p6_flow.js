@@ -5,7 +5,7 @@
 
 const STAGE_LABEL = {
   synth: "Synthesis", pnr: "Place & Route", fasm: "FASM",
-  bits: "Bits", model: "Model check", write: ".bit",
+  bits: "Bits", timing: "Timing", model: "Model check", write: ".bit",
 };
 
 const flow = {
@@ -29,6 +29,7 @@ const flow = {
     return {
       files: p.files, top: p.top || null, pcf: p.pcf || null, name: p.name || null,
       clock: p.clock, div: p.div, seed: p.seed, pnr: p.pnr,
+      hz: p.clock === "run" && p.hz && p.hz !== "div" ? p.hz : null,    // M20
     };
   },
 
@@ -233,11 +234,18 @@ const props = {
     };
     sel("pnr", ["vpr", "python"]);
     sel("clock", ["jtag", "run"]);
-    num("div", 0, 31);
+    // M20: "auto" runs the design as fast as its own timing allows (the Timing stage says how fast)
+    if (p.clock === "run") sel("hz", ["div", "auto"]);
+    if (!(p.clock === "run" && p.hz === "auto")) num("div", 0, 31);
     num("seed", 1, 9999);
     if (p.clock === "run" && d) {
-      const hz = d.clock.sysclk_hz / Math.pow(2, p.div + d.clock.div_min_shift);
-      this.row(box, "guest clock", hz >= 1000 ? (hz / 1000).toFixed(2) + " kHz" : hz.toFixed(2) + " Hz");
+      if (p.hz === "auto") {
+        const t = S.stages.timing && S.stages.timing.stats;
+        this.row(box, "guest clock", t && t.hz ? (t.hz / 1e6).toFixed(3) + " MHz" : "from timing");
+      } else {
+        const hz = d.clock.sysclk_hz / Math.pow(2, p.div + d.clock.div_min_shift);
+        this.row(box, "guest clock", hz >= 1000 ? (hz / 1000).toFixed(2) + " kHz" : hz.toFixed(2) + " Hz");
+      }
     }
 
     const u = $("util");
@@ -249,6 +257,12 @@ const props = {
     if (S.placement) this.row(u, "wirelength", S.placement.wirelength);
     if (S.stages.fasm) this.row(u, "features", S.stages.fasm.stats.features);
     if (S.stages.pnr) this.row(u, "engine", S.stages.pnr.stats.engine + (S.stages.pnr.stats.reused ? " (cached)" : ""));
+    if (S.stages.timing && S.stages.timing.stats) {           // M20: the design's own timing
+      const t = S.stages.timing.stats;
+      this.row(u, "critical path", `${t.cpd_ns} ns`);
+      this.row(u, "Fmax", `${(t.fmax_hz / 1e6).toFixed(2)} MHz${t.provisional ? " (prov.)" : ""}`);
+      if (t.hz) this.row(u, "user clock", `${(t.hz / 1e6).toFixed(3)} MHz`);
+    }
     if (bitPath()) this.row(u, "bitstream", bitPath().split("/").pop());
 
     const dp = $("devprops");

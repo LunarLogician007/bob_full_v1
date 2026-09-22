@@ -579,7 +579,7 @@ def summary(work, top):
     }
 
 
-EXAMPLES = ["gates", "adder", "counter", "blinky", "ram", "mult", "switches", "fir", "wide", "big"]
+EXAMPLES = ["gates", "adder", "counter", "blinky", "ram", "mult", "switches", "fir", "wide", "big", "atspeed"]
 # results routed with a pin file: name -> (top, pcf). gates_swapped proves .pcf pins reach the pads.
 VARIANTS = {"gates_swapped": ("gates", os.path.join(ROOT, "work", "examples", "gates", "gates_swapped.pcf"))}
 
