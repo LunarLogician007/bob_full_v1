@@ -5,6 +5,120 @@ This file is the live state: what is finished, what is in flight, and exactly wh
 
 ---
 
+## 0. Next agent: start here (2026-09-23, end of session)
+
+### Where things are
+- **Two checkouts.**
+  - `/Users/sk/work/bob/bob_full_v1` is the user's folder, on `main` at `8e6ecff` (M20). It must
+    keep the M20 tools while the board runs M20. Never check milestone WIP out there: the M20
+    board session broke on it, every check `KeyError: 'cluster'`.
+  - `/Users/sk/work/bob/bob_full_v1_m21` is a git worktree, branch `m21` (14 commits ahead of
+    main). All M21 work is here.
+- **Uncommitted, user's:** `docs/bob_full_v1_report.tex` (never commit it),
+  `docs/hwtest/results.log` (the M20 board runs), `docs/reports/M20/` (bit and two reports),
+  `runme.log` (the M21 Vivado log the user copied in).
+- **Stale:** the sweep scratch (`build/sweep/`) and the SDD ledger
+  (`.superpowers/sdd/have-a-look-into-agile-emerson/progress.md`) are in the worktree.
+
+### M20 on the board (2026-09-23): 57 of 58 pass. Two defects, both already fixed on `m21`
+1. **`bob-fir` fails at clock 16 (a stepping race).** INTEST autostep raised the step on the
+   same falling TCK edge as the boundary update (`jtag_tap6.v`), so the guest clock came about
+   30 ns after the new pad values. fir's button → DSP → adder → `y` path is longer than that
+   on M20's placement.
+   - Fix on `m21`: the step fires one TCK later.
+   - Test: `tb_bob` measures pad inputs → gce, 112 ns in simulation, and requires at least a
+     TCK.
+   - Mutant: `autostep-same-edge`.
+2. **Vivado WNS −0.919 ns** (`docs/reports/M20/bob_top_timing_summary_routed.rpt`). All 98
+   endpoints are `clock_ctrl.v`, `per_m1 → cnt` (the period arithmetic in one 8 ns cycle).
+   - Harmless on the board: the source is static config, and clock-rate / fmax / margin pass.
+   - Fix on `m21`: `last` and `min_gap` are registered.
+   - Mutants: `period-reg-stale`, `gap-floor-dropped`; both killed.
+
+**Open decision for the user:** tag `m18`/`m19`/`m20` with these two recorded as known issues,
+or rebuild M20. I recommended tagging; the user has not answered.
+
+### M21 as built (branch `m21`)
+- **The user approved N = 4, 7 × 7** (8 × 8 measured at ~86% of the chip):
+  - 49 CLBs × 4 elements = 196 LUTs; I = 16, full crossbar, W = 40
+  - 32,896 bits, 257 frames, 32 pads
+- **The sweep:** `docs/reports/M21/cluster_sweep.md` (`software/bob/sweep.py`). N = 10, the
+  plan's target, costs 421 host LUTs per LUT against N = 4's 289.
+- **Built and verified:** everything in §1d below.
+  - `make check` is green, apart from one test fixed afterwards:
+    `test_build_tcl::...measures_the_fabric_delays` had stale `delay_samples.txt`; it was
+    regenerated, and `tests/test_timing.py::test_delay_samples_name_this_device` now guards it.
+  - The whole-design yosys estimate is 58,535 LUT / 35,995 FF, with the shadow as 2 × RAMB36.
+- **Mutation suites are incomplete.**
+  - `mutate_cfg`: all killed.
+  - `mutate_fabric` / `mutate_frames` were stopped: two mutants (`xbar-sel-off-by-one`,
+    `mux-inputs-shifted`) make combinational loops, and their zero-delay simulations spin
+    forever.
+  - **To do:** give `run_one` in `sim/mutate_*.sh` a per-mutant timeout. There is no
+    `timeout` on this Mac; use a background `kill` watchdog. Count a hang as killed and say
+    so. Then rerun `make mutate`. It is parallel (`MUTATE_JOBS`, default 4).
+
+### THE BLOCKER: M21's Vivado implementation does not close timing
+The user's log: `/Users/sk/work/bob/bob_full_v1/runme.log` (copied from
+`bob_vivado\bob.runs\impl_1\runme.log`).
+
+| gce gap / XDC sysclk multicycle | WNS after placement | TNS |
+|---|---|---|
+| 512 cycles (4096 ns; M16–M20) | −133 ns | −144,700 ns |
+| 1024 cycles (8192 ns; commit `702842b`) | **−290 ns** | −13,400 ns |
+
+- **What fails:** every failing net is fabric: `u_fabric/r<node>` routing wires,
+  `u_clb_x*y*/t_*` LUT trees, element flip-flops `q_i_*`/`q2_i_*`, DSP input registers
+  `c_q`/`d_q`, starting at configuration bits (`u_store/...cfg_reg`). phys_opt_design then
+  grinds for hours, recovering picoseconds per pass.
+- **Diagnosis:** Vivado times the **unconfigured** fabric. With every mux open, the mesh is
+  full of combinational loops, and Vivado cuts them arbitrarily. The longest surviving chain
+  grew from ~4.2 µs to ~8.5 µs when the budget doubled, so it is not a property of the
+  fabric. Raising the gap again will probably not converge, and every doubling halves the
+  default (untimed) guest clock. (At M16 one raise to 512 worked; M21's cluster mesh — W = 40,
+  crossbar feedback in 49 CLBs — is much bigger.)
+- **Commit `702842b`** (gap 10) is on `m21`. It did not fix the build. Keep it or revert it
+  depending on the fix below. `device.py`, the XDC, `test_layout.py`, docs and
+  `test_flow`/`test_hwtest_fake` were all updated with it.
+
+**Proposed fix (not implemented; the user asked for no further edits this session):**
+PLAN §8's "case analysis", flagged in §5 below since M16: stop Vivado from timing paths that
+exist only in an empty fabric. Since M20, the per-design sign-off is `timing.py`, with delays
+measured on the build, proven on the board by `clock-margin` (5.17×). Two ways:
+
+- **(a) Decouple the XDC from the gap.**
+  1. Put a very large multicycle on sysclk → sysclk (for example 16384/16383) and keep the
+     one-cycle cell exceptions for `u_clk` / `u_bram_jtag`. A clock-level `set_false_path`
+     would override those exceptions (UG903 precedence), and cell-name exceptions on the
+     fabric are unreliable because flattening renames its registers (the XDC comments).
+  2. Move the hardware gap back to 512 (M20, board-proven).
+  3. **Enforce** the contract in software: the flow (`flow.py` timing stage) and `cli.load`
+     refuse a word whose critical path × margin exceeds its own gce spacing — `clk_gap`, or
+     the default gap when 0 — in both clock modes. Add a pytest that every `designs.py` hand
+     design passes too (hwtest loads those directly through `cfgplane`).
+  4. `tests/test_layout.py`'s rule "XDC multicycle == 2**GCE_MIN_GAP_SHIFT" becomes "XDC
+     multicycle ≥ the gap", plus the enforcement test.
+- **(b) `set_case_analysis 0` on every configuration-memory flip-flop output**, so Vivado sees
+  a dark, loop-free fabric. This is closest to PLAN §8. It is risky: 32,896 pins, flattening
+  renames (`u_store` cells), and the XDC must stay plain (no Tcl loops).
+
+**Try (a) first.** Before any hand-off, check it on a Vivado-free proxy: yosys
+`synth_estimate.sh` does not time, so the real test is the next Vivado run. Tell the user to
+**stop** a run stuck in phys_opt at a large negative WNS; it will not recover. Disabling
+phys_opt (`build.tcl` sets `STEPS.PHYS_OPT_DESIGN.IS_ENABLED true` on purpose; read its M16
+comment) is not the fix.
+
+### Then
+1. The Vivado build closes timing (IDCODE `0x0B021093`). Copy `out/M21/` to
+   `docs/reports/M21/` in the worktree, run `software/bob/delays.py fold
+   docs/reports/M21/delay_paths.rpt` (it samples the crossbar now), then `make check`.
+2. `make hwtest M=M21` **from the worktree** (checklist `docs/hwtest/M21.md`).
+3. Merge `m21` into `main` and tag `m21`. Tag `m18`–`m20` per the user's decision above.
+4. Refresh the generated pages: `python3 docs/project/collect.py && python3 docs/project/build.py`,
+   and `python3 docs/arch/build.py --data`.
+
+---
+
 ## 1. Where the project stands
 
 | | |
