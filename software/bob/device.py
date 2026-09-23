@@ -77,8 +77,8 @@ JSON_PATH = os.path.join(HERE, JSON_NAME)
 GEN_DIR = os.path.join(ROOT, "hw", "src", "generated")
 
 SYSCLK_HZ = 125_000_000              # PYNQ-Z2 PL clock on H16
-DIV_MIN_SHIFT = 9                    # free-running enable: every 2**(clk_div+9) sysclk cycles
-GCE_MIN_GAP_SHIFT = 9                # M13: user-clock enables >= 2**GCE_MIN_GAP_SHIFT sysclk cycles
+DIV_MIN_SHIFT = 10                   # free-running enable: every 2**(clk_div+10) sysclk cycles (M21: was 9)
+GCE_MIN_GAP_SHIFT = 10               # M13: user-clock enables >= 2**GCE_MIN_GAP_SHIFT sysclk cycles
                                      # apart in both modes; the XDC multicycle must match it.
                                      # M16: 8 (256 cycles, 2048 ns) no longer covers the 12x10
                                      # fabric - implementation reported WNS -465 ns on
@@ -86,6 +86,12 @@ GCE_MIN_GAP_SHIFT = 9                # M13: user-clock enables >= 2**GCE_MIN_GAP
                                      # unconfigured routing muxes is ~2500 ns. 9 = 512 cycles
                                      # = 4096 ns. Raising it makes timing easier and the
                                      # free-running guest clock slower (488 -> 244 kHz max).
+                                     # M21: 10 (1024 cycles, 8192 ns). The first M21
+                                     # implementation placed at WNS -133 ns on fabric paths:
+                                     # the cluster fabric's empty-mesh path is ~4230 ns, past
+                                     # 4096. As at M16, the gap follows the grid. Since M20 it
+                                     # only costs untimed designs (122 kHz max, was 244): a
+                                     # design built with timing sets its own clk_gap.
                                      # M20: this is now the DEFAULT gap (clk_gap = 0): an
                                      # unconfigured fabric or a design without timing runs at it.
                                      # A design timed by the flow sets its own clk_gap from its

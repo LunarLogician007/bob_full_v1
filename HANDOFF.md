@@ -36,6 +36,10 @@ The device table in `README.md` is generated from `software/bob/device.json` by
   design fills > 70% of the CLBs).
 - **Readback:** BRAM shadow in `cfg_store.v` (section 14 of the format doc).
 - **M20 fixes:** `jtag_tap6.v` autostep a TCK late; `clock_ctrl.v` registered `last`/`min_gap`.
+- **gce gap 1024 cycles** (`GCE_MIN_GAP_SHIFT` = `DIV_MIN_SHIFT` = 10, XDC multicycle 1024/1023): the first
+  M21 implementation placed at WNS −133 ns on fabric paths (the empty cluster mesh's path is
+  ~4230 ns > 512 × 8 ns) and phys_opt ground on for over an hour, as at M16. Only untimed designs
+  pay (122 kHz max); a design built with timing sets its own `clk_gap`.
 - **Size:** yosys 58.6k LUT / 35.9k FF whole design (about 36k LUT in Vivado, 68%).
   Implementation will take longer than M16's.
 - **Next:** hand `hw/` to Vivado (`docs/hwtest/M21.md`); after the build fold `delay_paths.rpt`

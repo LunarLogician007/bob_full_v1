@@ -199,7 +199,7 @@ def test_m14_bad_crc_fails_when_the_freeze_does_not_hold():
 @pytest.mark.parametrize("check", ["check_frames_bram_load", "check_frames_bram_live_refused",
                                    "check_ram_readback_frames"])
 def test_m15_bram_frame_checks_pass_on_a_good_board(check):
-    ok, msg = getattr(hwtest, check)(FakeBob(rate_scale=1e-4), {})     # the ROM runs free at div 0
+    ok, msg = getattr(hwtest, check)(FakeBob(rate_scale=2e-4), {})     # the ROM runs free at div 0 (M21: the default rate halved)
     assert ok, msg
 
 

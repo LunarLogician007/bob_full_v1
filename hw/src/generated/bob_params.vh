@@ -42,8 +42,8 @@
 `define BOB_CTRL_CLK_GAP_LO    24
 `define BOB_CTRL_PERIOD_W      16
 `define BOB_GCE_GAP_FLOOR      2
-`define BOB_DIV_MIN_SHIFT      9
-`define BOB_GCE_MIN_GAP_SHIFT  9
+`define BOB_DIV_MIN_SHIFT      10
+`define BOB_GCE_MIN_GAP_SHIFT  10
 `define BOB_FRAME_WORDS        4
 `define BOB_FRAME_BITS         128
 `define BOB_NFRAMES            257
