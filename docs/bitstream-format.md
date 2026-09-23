@@ -469,10 +469,13 @@ frames, the same CRC, the same FASM.
   `bob_params.vh` carries `BOB_LFRAME_MASK`.
 - **The element's LUT** is two CFGLUT5: lo = INIT[2^(K-1)-1:0], hi = the upper half, both
   over i[K-2:0]; O6 = (i[K-1] | frac) ? hi : lo (a MUXF7), O5 = lo - UG474's LUT6_2 fracture.
-- **A crossbar mux** is a CFGLUT5 tree (`lxmux.v`): ceil(S/5) leaves over the sources and a
-  root over the leaves. Select 2+i puts "address bit i%5" in leaf i/5 and "address bit i/5"
-  in the root; select 1 (const1) is an all-ones root; 0 (and values past the sources) all
-  zeros.
+- **Crossbar muxes come in pairs** (M23, `lxpair.v`; M22's `lxmux.v` was a CFGLUT5 tree
+  with a CFGLUT5 root). Muxes 2p and 2p+1 of a CLB (element e input j is mux e*K + j) share
+  ceil(S/4) leaves over the same sources, I4 tied high. Bits 15:0 of leaf g are mux 2p's
+  (O5) and bits 31:16 mux 2p+1's (O6). Select 2+i puts "address bit i%4" in leaf i/4's half;
+  select 1 (const1) is an all-ones half in leaf 0; 0 (and values past the sources) all zeros.
+  Each mux output is the OR of its halves, a fixed LUT6. Pairs never straddle a frame (the
+  head count is even). On the wire nothing changes: still one 5-bit select per mux.
 - **Loading.** Every write - chain or FDRI, full or partial - reaches memory from
   `cfg_store.v`'s frame buffer on a falling TCK edge. On that edge `lut_loader.v` copies the
   buffer and the frame index and shifts for 32 TCK cycles; each CLB compares the index with
@@ -489,8 +492,13 @@ frames, the same CRC, the same FASM.
   changes with the fabric frozen).
 - **Verification:** `tb_clb` loads every configuration through `lut_expand.v` and 32 shift
   clocks per L-frame (4032 checks against `model.py`); `tb_bob` checks CLB (1,1)'s tables
-  and one crossbar tree against contents `sim/gen_vectors.py` computes independently from
+  and one crossbar pair's leaves against contents `sim/gen_vectors.py` computes independently from
   the word, and the JPROGRAM sweep; every chip-level bench loads over JTAG, through the
-  loader. Mutants `expand-bit-order`, `lxmux-root-no-ce`, `lut-halves-swapped`,
-  `loader-31-shifts`, `loader-no-sweep` (`sim/mutate_fabric.sh`). On the board,
-  `lutram-snake` chains all 324 elements (docs/hwtest/M22.md).
+  loader. Mutants `expand-bit-order`, `lut-halves-swapped`, `loader-31-shifts`,
+  `loader-no-sweep`, and from M23 `pair-outputs-swapped`, `pair-i4-low`, `pair-root-and`,
+  `expand-half-select`, `expand-const1-leaf` (`sim/mutate_fabric.sh`). On the board,
+  `lutram-snake` chains every element (docs/hwtest/M22.md) and `xbar-pairs` does it on
+  every pin (docs/hwtest/M23.md).
+- **M23 masks.** `BOB_LFRAME_MASK` became `BOB_LKIND` (a kind per frame) and `BOB_LMASKS`
+  (the distinct per-frame masks): at 12 × 11 the chain is 89,216 bits, past iverilog's
+  widest constant. `cfg_ctrl.v`'s chain count is 24 bits; CFG_CTRL still reports its low 16.

@@ -23,10 +23,10 @@ For the working plan, conventions, gotchas and every milestone, read [`PLAN.md`]
 
 ## Where it stands (2026-09-24)
 
-**M0–M21 passed on the board.** The board runs **M21**: the cluster CLB (49 CLBs × 4 logic
-elements = 196 LUTs), readback from a BRAM shadow, per-design timing, IDCODE `0x0B021093`;
-66/66 checks, WNS +0.570 ns, 35 882 LUTs. **M22** (LUT contents in CFGLUT5, 9 × 9 = 81 CLBs)
-is built and simulated on branch `m22`; its Vivado build and board test are in progress
+**M0–M22 passed on the board.** The board runs **M22**: LUT contents and crossbar in
+CFGLUT5, 9 × 9 = 81 CLBs (324 LUTs), IDCODE `0x0B022093`; WNS +0.172 ns, 38 184 LUTs.
+**M23** (12 × 11 = 132 CLBs = 528 LUTs: crossbar pairs sharing CFGLUT5 leaves, routing muxes
+from LUT6/MUXF7/MUXF8) is built and simulated on branch `m23` and waits for its Vivado build
 (`HANDOFF.md`).
 
 | Milestone | What | Status |
@@ -44,9 +44,10 @@ is built and simulated on branch `m22`; its Vivado build and board test are in p
 | M16 | the 10 × 10 CLB grid: 100 CLBs, 145 frames, new 56-CLB example | **passed on the board 2026-09-18** |
 | M18–M20 | studio projects and block designs, the desktop app and waveform viewer, the per-design user clock | on the board 2026-09-23: 57/58 (`bob-fir`: autostep race, fixed in M21); Vivado WNS −0.919 ns in `clock_ctrl.v` (fixed in M21) |
 | **M21** | **the cluster CLB** (N = 4 elements, full crossbar, measured against N = 6/8/10), **BRAM-shadow readback**, fir16, the timing contract | **passed on the board 2026-09-23** (66/66; WNS +0.570 ns, 35 882 LUTs) |
-| M22 | LUT contents and the crossbar in CFGLUT5 (ZUMA-style), 9 × 9 = 81 CLBs = 324 LUTs | code and simulation done on branch `m22`; Vivado build and board test in progress |
+| M22 | LUT contents and the crossbar in CFGLUT5 (ZUMA-style), 9 × 9 = 81 CLBs = 324 LUTs | **passed on the board 2026-09-24** (65/67; the two fir16 live checks rerun 12/12; WNS +0.172 ns) |
+| M23 | the grid sweep; crossbar pairs sharing dual-output CFGLUT5 leaves (152 → 80 per CLB); routing muxes as LUT6 + MUXF7/MUXF8; **12 × 11 = 132 CLBs = 528 LUTs** | code and simulation on branch `m23`; Vivado build next (`docs/hwtest/M23.md`) |
 
-After M7 the Vivado bitstream stayed the same through M11: those milestones only load new configuration chains over JTAG. M12a (Python PnR) needed no rebuild either. The board now runs M21 (IDCODE `0x0B021093`).
+After M7 the Vivado bitstream stayed the same through M11: those milestones only load new configuration chains over JTAG. M12a (Python PnR) needed no rebuild either. The board now runs M22 (IDCODE `0x0B022093`).
 
 ## The device
 
