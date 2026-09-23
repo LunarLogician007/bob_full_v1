@@ -99,6 +99,21 @@ The user's log: `/Users/sk/work/bob/bob_full_v1/runme.log` (copied from
    stop a run), PLAN M21 section and status row, REUSE, GUIDE, bitstream-format §rules, the arch
    page's timing card (`xdc_mc`), and the README device table (generated).
 
+**Second rebuild (2026-09-23 15:58, the user's `runme.log`): still WNS −228 ns after
+placement, phys_opt grinding.** That cannot be sysclk any more (it would take a 131 µs path).
+The clock was **TCK**: the nets phys_opt worked on are TCK cells (`u_tap/sr_reg` boundary,
+`cfg_reg` configuration bits, `u_dsp_jtag`, `capture_reg`). The path runs from a config or
+update cell through the empty mesh into CAPTURE / boundary / DSP-JTAG capture, about 10.2 µs
+against TCK's 10 µs. M7 missed TCK the same way (−657 ns). So the earlier diagnosis that the
+path "grows with the budget" was probably wrong: −133 / −290 / −228 ns look like this one
+TCK path, moving with placement.
+- **Fix:** TCK → TCK multicycle 16/15 (`XDC_TCK_MULTICYCLE`, `tests/test_layout.py`). Hold
+  stays at the same edge.
+- **`hw/scripts/place_report.tcl`** (place_design TCL.POST): prints `place_report: <clock>
+  WNS ...` for sysclk and tck, with the worst path's endpoints, and writes
+  `impl_1/bob_top_timing_placed.rpt`. The next failure will name its clock after about
+  15 min instead of hours.
+
 **What is still unproven:** only Vivado can show that implementation now closes. Expect
 sysclk WNS ≥ 0 with the fabric far inside 16384 cycles, and the one-cycle `u_clk` /
 `u_bram_jtag` paths as the tight ones. If phys_opt still logs WNS in the hundreds of ns after

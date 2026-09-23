@@ -150,6 +150,11 @@ not have converged, and each doubling halves the default guest clock.
   not a false path, so the one-cycle cell exceptions on `u_clk` / `u_bram_jtag` still win
   (UG903).
 - The gap is back to 512 (M16–M20, board-proven).
+- TCK → TCK gets a 16-period multicycle (160 µs) for the same reason. Configuration bits and
+  the boundary/IR update cells drive the empty mesh, and TCK registers capture it (CAPTURE,
+  boundary, DSP JTAG). The second build, with sysclk already relaxed, still placed at
+  −228 ns on that TCK path (~10.2 µs against 10 µs). `place_report.tcl` now prints each
+  clock's worst path right after placement.
 - `timing.contract()` holds every word to its own gce spacing (`clk_gap`, or the default
   when it is 0), stepped or free-running: the flow's timing stage fails the build and
   `cli.load` / `load_partial` refuse before sending anything. The one exception is the board's `clock-margin` sweep, which over-clocks

@@ -103,6 +103,12 @@ XDC_SYSCLK_MULTICYCLE = 16384        # M21: the XDC's sysclk -> sysclk multicycl
                                      # build through it. A simple path visits each fabric mux at
                                      # most once (~4800 in M21), a few LUT levels each, so tens
                                      # of us at worst. tests/test_layout.py holds the XDC to it.
+XDC_TCK_MULTICYCLE = 16              # M21: the same for TCK -> TCK (16 x 10 us = 160 us).
+                                     # Configuration bits and the boundary / IR update cells
+                                     # drive the fabric and CAPTURE / boundary / DSP JTAG
+                                     # capture it, all on TCK; the empty mesh's loop-cut path
+                                     # passed the 10 us period (second M21 build, WNS -228 ns
+                                     # with sysclk already relaxed).
 GCE_GAP_FLOOR = 2                    # M20: hardware floor of the gce spacing (62.5 MHz)
 PERIOD_W = 16                        # M20: clk_period / clk_gap field width (up to 65535 cycles)
 
@@ -814,6 +820,7 @@ class Device:
             "clock": {"sysclk_hz": SYSCLK_HZ, "div_min_shift": DIV_MIN_SHIFT,
                       "gce_min_gap_shift": GCE_MIN_GAP_SHIFT,
                       "xdc_multicycle": XDC_SYSCLK_MULTICYCLE,
+                      "xdc_tck_multicycle": XDC_TCK_MULTICYCLE,
                       "gce_gap_floor": GCE_GAP_FLOOR, "period_w": PERIOD_W,
                       "modes": {"jtag": 0, "run": 1}},
             "tile_types": {name: {"width": tt.width,

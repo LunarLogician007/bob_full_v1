@@ -107,6 +107,20 @@ def test_the_sysclk_multicycle_is_the_one_device_py_names():
         f"software/bob/device.py is {want}: change them together")
 
 
+def test_the_tck_multicycle_is_the_one_device_py_names():
+    """M21: TCK paths through the empty fabric passed the 10 us period (WNS -228 ns), so
+    TCK -> TCK is relaxed like sysclk, with hold at the same edge."""
+    want = _device()["clock"]["xdc_tck_multicycle"]
+    x = _xdc()
+    setup = re.search(r"^set_multicycle_path\s+-setup\s+(\d+)\s+-from\s+\[get_clocks tck\]"
+                      r"\s+-to\s+\[get_clocks tck\]", x, re.M)
+    hold = re.search(r"^set_multicycle_path\s+-hold\s+(\d+)\s+-from\s+\[get_clocks tck\]"
+                     r"\s+-to\s+\[get_clocks tck\]", x, re.M)
+    assert setup and hold, "no tck -> tck multicycle pair in the XDC"
+    assert int(setup.group(1)) == want, f"XDC tck multicycle {setup.group(1)}, device.py {want}"
+    assert int(hold.group(1)) == want - 1, f"tck setup {want} needs hold {want - 1}"
+
+
 def test_the_sysclk_multicycle_is_no_tighter_than_the_default_gap():
     """The multicycle only has to keep Vivado off the unconfigured fabric, but it must never
     be the tighter promise: every word timing.contract() accepts runs at least the default

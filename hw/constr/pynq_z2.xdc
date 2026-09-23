@@ -92,6 +92,22 @@ set_output_delay -clock tck -min  0.000 -clock_fall [get_ports tdo]
 # ASYNC_REG synchronisers.
 set_clock_groups -asynchronous -group [get_clocks tck] -group [get_clocks sysclk]
 
+# M21: TCK -> TCK through the fabric gets the same treatment as sysclk. Configuration
+# bits (cfg_reg) and the boundary / IR update cells are TCK registers that drive the
+# fabric, and CAPTURE, the boundary capture and the DSP JTAG capture are TCK registers
+# fed by it, so Vivado times TCK paths through the UNCONFIGURED mesh too (M7: 1650 ns,
+# failed a 1 MHz TCK by 657 ns). On the cluster fabric that loop-cut path passed the
+# 10 us period: the second M21 implementation, with sysclk already relaxed, still
+# placed at WNS -228 ns, phys_opt working on u_tap/sr_reg, cfg_reg, u_dsp_jtag and
+# capture_reg nets. A configured design's pad and capture paths are tens of ns
+# (software/bob/timing.py), and a configuration bit never changes while the fabric is
+# captured (GWE = 0). So TCK -> TCK gets 16 periods (160 us, past any path through the
+# ~4800 fabric muxes). Hold stays at the same edge (-hold 15), so the TAP and shift
+# registers' own hold checks are unchanged; their setup paths are a few ns against 10 us
+# either way. XDC_TCK_MULTICYCLE in software/bob/device.py, tests/test_layout.py.
+set_multicycle_path -setup 16 -from [get_clocks tck] -to [get_clocks tck]
+set_multicycle_path -hold  15 -from [get_clocks tck] -to [get_clocks tck]
+
 # Every fabric register (CLB flip-flops, BRAM and DSP state) changes only on a gce
 # pulse, and clock_ctrl.v spaces gce pulses in both clock modes (tb_clock_gap.v).
 #
