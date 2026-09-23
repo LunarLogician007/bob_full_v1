@@ -282,3 +282,19 @@ Status: **same** = byte-identical to `bob/`, **moved** = same content at a new p
 | at-speed example | `work/examples/atspeed/atspeed.v` | **new**, the classic self-checking counter (a == last a + 1, sticky error) |
 | board checks | `software/host/hwtest.py` `check_clock_*` | reuse `_build`, `cli.load`, CAPTURE and SAMPLE; `check_clock_rate` is `check_blinky_rate` with an integer period |
 
+
+## M21: the cluster CLB and the BRAM-shadow readback (2026-09-23)
+
+| what | where | reused / new |
+|---|---|---|
+| logic element | `hw/src/clb/ble.sv` | from `clb.sv` (M4–M20): the same LUT, carry and flip-flop; **new**: the `frac` flag (UG474 LUT6_2 with A6 high) and a second flip-flop on O5. `clb.sv` stays for the M0 fabric |
+| cluster | `bob_clb` in `hw/src/generated/bob_fabric.v` (`software/bob/fabric_gen.py`) | **new**, OpenFPGA/VTR k6_frac_N10's clb: elements behind a complete crossbar with feedback, the adder chain through the elements; crossbar muxes are `bob_mux` |
+| VPR architecture | `software/bob/vpr_arch.py` | the reference's fle modes (n1_lut6 / n2_lut5 / arithmetic) and crossbar, bob's cells |
+| crossbar in the host tools | `software/bob/device.py` (EIN / ECY nodes) | **new**: the crossbar is more routing muxes, so `model.py`, `bitstream.Design`'s router and `timing.py` reuse their mux code unchanged |
+| cluster packer | `software/bob/pnr/pack.py` | **new**, after VPR's AAPack (seed + attraction, legality by pins and CE/SR), with LUT pairing for fractured elements |
+| crossbar from VPR | `software/bob/fasm_from_vpr.py` | **new**: reads the `.net` packing and the route's IPINs (the router may use any equivalent CLB pin) |
+| BRAM shadow | `hw/src/core/cfg_store.v` | the write path unchanged; the 256:1 readback mux replaced by an inferred block RAM and per-frame valid bits |
+| sizing | `software/bob/sweep.py` | **new**: VPR (binary-search W), exact bits from the rr graph, yosys host LUTs, per configuration |
+| autostep | `hw/src/core/jtag_tap6.v` | one register more: the step fires a TCK after the pad update (M20 `bob-fir`) |
+| clock controller | `hw/src/core/clock_ctrl.v` | `last` / `min_gap` registered (M20 WNS) |
+| example | `work/examples/fir16/fir16.v` | **new** |

@@ -1,4 +1,4 @@
-# Handoff — bob_full_v1, 2026-09-22
+# Handoff — bob_full_v1, 2026-09-23
 
 **Read `CLAUDE.md` first (the rules), then `PLAN.md` §2 (status) and §3 (how the user wants this done).**
 This file is the live state: what is finished, what is in flight, and exactly what to do next.
@@ -13,12 +13,33 @@ This file is the live state: what is finished, what is in flight, and exactly wh
 | Bitstream in the PL | **M16** (`0xFBEEF093`): 100 CLBs (12 × 10 core), 145 frames = 18 560 bits, 2 BRAM, 2 DSP, 44 pads. 20 498 LUTs (38.5%), 21 511 FFs (20.2%), WNS +0.667 ns, WHS +0.112 ns, DRC clean |
 | Guest tooling | `./bob build｜load｜info｜fasm`, and **bob studio** (`software/host/studio.py`), which since M18 has **projects** (`.bobproj`) and **block designs** |
 | Whole-project report | `docs/project/REPORT.md` + `project.html`; the learning guide is `docs/project/GUIDE.md` + `guide.html` (**done**, committed in `807f2b9`) |
-| In flight | **M20: software done; the Vivado build (IDCODE `0x0B020093`) and `make hwtest M=M20` are pending.** M20's list runs M18's and M19's checks too, so one board session closes all three. After the build: copy `out/M20/` to `docs/reports/M20/`, run `software/bob/delays.py fold docs/reports/M20/delay_paths.rpt`, `make check`, then the board. Checklists `docs/hwtest/M18.md`, `M19.md`, `M20.md`. Tag `m18`/`m19`/`m20` only after they pass |
+| In flight | **M21: software done and simulated, in the worktree `../bob_full_v1_m21` (branch `m21`); the Vivado build (IDCODE `0x0B021093`) and `make hwtest M=M21` are pending.** `main` (this project's folder) keeps the M20 tools for the M20 bitstream on the board. M18–M20 on the board 2026-09-23: 57/58, `bob-fir` failed (the autostep race) and the build had WNS −0.919 ns; both are fixed in M21's RTL (§1d). Whether to tag `m18`–`m20` with that known issue or rebuild M20 is the user's decision |
 
 The device table in `README.md` is generated from `software/bob/device.json` by
 `software/bob/devtable.py`; `make check` fails if it drifts.
 
 ---
+
+## 1d. M21 — the cluster CLB and the BRAM shadow
+
+- **Where:** worktree `/Users/sk/work/bob/bob_full_v1_m21`, branch `m21` (never check a milestone's WIP
+  out in the main folder while the board runs the previous one: the M20 board session broke on it).
+- **Architecture** (`device.py` `ARCH_M21`): 9 × 7 core, 49 CLBs of N = 4 elements, I = 16, full
+  crossbar, W = 40, 32 pads, 32 896 bits in 257 frames (FIDX_W 9: FAR table 32 bits/column).
+  Chosen from `software/bob/sweep.py` (`docs/reports/M21/cluster_sweep.md`); the user approved N = 4, 7 × 7.
+- **Elements:** `hw/src/clb/ble.sv`; the cluster `bob_clb` is generated into `bob_fabric.v`. In
+  the host tools a CLB's crossbar is ordinary muxes over synthetic nodes (EIN element inputs,
+  ECY carry links), so model/router/timing reuse their code. Fields are per element:
+  `clb_x1y1.e3.init`, crossbar selects `clb_x1y1.e3.x2`. CAPTURE is 2 bits per element.
+- **PnR:** VPR packs the cluster itself; `fasm_from_vpr.py` sets the crossbar from the `.net` and
+  the route (any equivalent CLB pin). bob's packer is `pnr/pack.py` (AAPack-style; dense when the
+  design fills > 70% of the CLBs).
+- **Readback:** BRAM shadow in `cfg_store.v` (section 14 of the format doc).
+- **M20 fixes:** `jtag_tap6.v` autostep a TCK late; `clock_ctrl.v` registered `last`/`min_gap`.
+- **Size:** yosys 58.6k LUT / 35.9k FF whole design (about 36k LUT in Vivado, 68%).
+  Implementation will take longer than M16's.
+- **Next:** hand `hw/` to Vivado (`docs/hwtest/M21.md`); after the build fold `delay_paths.rpt`
+  (it now samples the crossbar), `make check`, `make hwtest M=M21`, tag `m21`.
 
 ## 1c. M20 — the user clock from the design's own timing
 

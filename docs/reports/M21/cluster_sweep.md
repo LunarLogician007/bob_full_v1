@@ -55,6 +55,7 @@ with 4-bit samples: 213 LUTs).
 | r2_n8_i27 | 8 | 27 | full | 7x5 core | 200 | 46 | 142 | 32256 | 72,763 | 364 | 175 / 42 | 217 / 79 | 117 / 42 | 1784 / 123 |
 | r2_n10 | 10 | 40 | full | 6x5 core | 200 | 50 | 143 | 32512 | 84,219 | 421 | 169 / 44 | 162 / 73 | 141 / 44 | 1374 / 129 |
 | r2_n10_i33 | 10 | 33 | full | 6x5 core | 200 | 50 | 141 | 32000 | 79,878 | 399 | 147 / 46 | 175 / 76 | 121 / 44 | 1593 / 129 |
+| r2_n4_8x8 | 4 | 16 | full | 10x8 core | 256 | 40 | 148 | 41856 | 71,667 | 280 | 332 / 50 | 289 / 84 | 180 / 40 | 2586 / 147 |
 
 <!-- /tables -->
 
@@ -106,9 +107,12 @@ configured bits is the flow's own number and is quoted in the findings.
    cluster fabric (round 1) is 103k–147k: it does not fit at any N. fir16 needs 153
    elements, packed into 45 CLBs at N=4 and 15 at N=10.
 
-## Recommendation (for the user's approval)
+## Decision
 
-See the hand-off note in `HANDOFF.md` §1: the decision is N (with it the crossbar and I)
-and the grid. The code has N, I, the crossbar and the grid as knobs of `device.py`; a
-change is `make rrgraph`, `make device`, `make vpr` and the pinned sizes in
-`tests/test_device.py`.
+Recommended N = 4 (the fewest host LUTs per LUT, most of the clock gain), full crossbar,
+I = 16; **approved by the user on 2026-09-23: N = 4 on 7 × 7 CLBs (196 LUTs)**, 8 × 8 if it
+fits. It does not: 8 × 8 is 71.7k yosys LUTs for the fabric alone (r2_n4_8x8), about 73.6k whole and 86% of
+the XC7Z020 in Vivado, against 7 × 7's 58.6k for the whole design (about 68%).
+
+The code keeps N, I, the crossbar and the grid as knobs of `device.py`; a change is
+`make rrgraph`, `make device`, `make vpr` and the pinned sizes in `tests/test_device.py`.

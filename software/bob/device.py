@@ -165,7 +165,7 @@ CLUSTER_N4 = {"n": 4, "i": 16, "xbar": "full", "frac": True}          # M21 as b
 # M21: 9x7 core = 7 CLB columns x 7 rows = 49 CLBs of 4 elements = 196 LUTs, BRAM x=3 and
 # DSP x=6 (height 3: two of each), 32 pads. W = 40: 1.3x the widest channel VPR needed on
 # any example (fir16, 30; software/bob/sweep.py r2_n4). Whole design in yosys 58.6k LUT /
-# 35.9k FF (about 36k LUT in Vivado, 68% of the XC7Z020); 8x8 CLBs would be ~88%.
+# 35.9k FF (about 36k LUT in Vivado, 68% of the XC7Z020); 8x8 CLBs would be ~86%.
 ARCH_M21 = {
     "nx": 9, "ny": 7,
     "chan_width": 40,

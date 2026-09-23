@@ -60,7 +60,8 @@ def facts():
         "clb": n.get("clb", 0), "bram": n.get("bram", 0), "dsp": n.get("dsp", 0),
         "pads": d["pads"]["count"], "chan_w": a["chan_width"],
         "seg": a["segment_length"], "sb": a["switch_block"],
-        "muxes": len(d["rr"]["muxes"]), "lut_k": d["lut_k"],
+        "muxes": sum(1 for m in d["rr"]["muxes"] if m[0] not in {n[0] for n in d["rr"]["nodes"] if n[1] == "EIN"}),
+        "lut_k": d["lut_k"],
         "chain_w": d["chain"]["width"], "frames": d["frames"]["count"],
         "fwords": d["frames"]["words"],
         "clb_cols": ", ".join(str(x) for x in cols["clb"]),
@@ -68,6 +69,8 @@ def facts():
         "dsp_col": ", ".join(str(x) for x in cols["dsp"]), "dsp_h": height.get("dsp"),
         "div_shift": d["clock"]["div_min_shift"], "gap_shift": d["clock"]["gce_min_gap_shift"],
         "gap_floor": d["clock"].get("gce_gap_floor"),
+        "n": d.get("cluster", {}).get("n", 1), "ci": d.get("cluster", {}).get("i"),
+        "xbar": d.get("cluster", {}).get("xbar"),
     }
     f["max_hz"] = d["clock"]["sysclk_hz"] / 2 ** f["div_shift"]
 
@@ -86,8 +89,9 @@ def table():
     rows = [
         ("VPR grid", f"{f['grid_w']} × {f['grid_h']} "
                      f"({f['core_w']} × {f['core_h']} core inside an I/O ring, corners empty)"),
-        ("CLBs", f"{f['clb']} (columns x = {f['clb_cols']}; one BLE each: "
-                 f"LUT{f['lut_k']} O6/O5, MUXCY/XORCY carry, FDRE/FDSE)"),
+        ("CLBs", f"{f['clb']} × {f['n']} logic elements = {f['clb'] * f['n']} LUTs (columns x = {f['clb_cols']}); "
+                 f"each element LUT{f['lut_k']} (or two LUT{f['lut_k'] - 1}), MUXCY/XORCY carry, two FDRE/FDSE; "
+                 f"{f['ci']} inputs and a {f['xbar']} crossbar per CLB"),
         ("BRAM", f"{f['bram']} × 1024×18 true dual port (column x = {f['bram_col']}, "
                  f"{f['bram_h']} rows tall); contents as frames (FAR type 001) or over USER4"),
         ("DSP", f"{f['dsp']} × DSP48E1-style slices (column x = {f['dsp_col']}, "

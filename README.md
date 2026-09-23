@@ -19,9 +19,12 @@ so it works with no hardware attached.
 
 For the working plan, conventions, gotchas and every milestone, read [`PLAN.md`](PLAN.md); the live state and next steps are in [`HANDOFF.md`](HANDOFF.md); the short agent rules are in [`CLAUDE.md`](CLAUDE.md).
 
-## Where it stands (2026-09-18)
+## Where it stands (2026-09-23)
 
-M0–M15 passed on the board. **M16 (10 × 10 CLBs = 100 CLBs, 18 560 configuration bits) is built and simulated** — RTL, routing graph, VPR and Python PnR results, and every simulation are green; the Vivado build and `make hwtest M=M16` are pending (`docs/hwtest/M16.md`, `HANDOFF.md`).
+M0–M16 passed on the board; M18–M20 ran on the board on 2026-09-23, 57 of 58 checks green
+(`bob-fir` failed on a stepping race, fixed in M21 below). **M21 (the cluster CLB: 49 CLBs of
+4 logic elements = 196 LUTs, readback from a BRAM shadow) is built and simulated**; the
+Vivado build and `make hwtest M=M21` are pending (`docs/hwtest/M21.md`, `HANDOFF.md`).
 
 | Milestone | What | Status |
 |---|---|---|
@@ -35,7 +38,9 @@ M0–M15 passed on the board. **M16 (10 × 10 CLBs = 100 CLBs, 18 560 configurat
 | M13 | frame-based configuration (UG470 packets on CFG_IN/CFG_OUT) next to the kept chain (CHAIN_IN/CHAIN_OUT), M7 timing fixed | **passed on the board 2026-09-17** (39/39, timing closes: WNS +0.877 ns) |
 | M14 | partial reconfiguration of a running design (`bob load --partial`) | **passed on the board 2026-09-17** (in the M15 build) |
 | M15 | BRAM contents as frames: one CRC-covered stream for the whole design | **passed on the board 2026-09-17** (48/48, WNS +0.585 ns, 10 411 LUTs) |
-| M16 | the 10 × 10 CLB grid: 100 CLBs, 145 frames, new 56-CLB example | built and simulated 2026-09-18; **Vivado build + board test pending** |
+| M16 | the 10 × 10 CLB grid: 100 CLBs, 145 frames, new 56-CLB example | **passed on the board 2026-09-18** |
+| M18–M20 | studio projects and block designs, the desktop app and waveform viewer, the per-design user clock | on the board 2026-09-23: 57/58 (`bob-fir`: autostep race, fixed in M21); Vivado WNS −0.919 ns in `clock_ctrl.v` (fixed in M21) |
+| **M21** | **the cluster CLB** (N = 4 elements, full crossbar, measured against N = 6/8/10), **BRAM-shadow readback**, fir16 | built and simulated 2026-09-23; **Vivado build + board test pending** |
 
 After M7 the Vivado bitstream stayed the same through M11: those milestones only load new configuration chains over JTAG. M12a (Python PnR) needed no rebuild either. M15 (IDCODE `0xEBEEF093`), carrying M12b, M14 and M15, is on the board.
 
@@ -48,11 +53,11 @@ Generated from `software/bob/device.json` by `software/bob/devtable.py`; `tests/
 | | |
 |---|---|
 | VPR grid | 11 × 9 (9 × 7 core inside an I/O ring, corners empty) |
-| CLBs | 49 (columns x = 1, 2, 4, 5, 7, 8, 9; one BLE each: LUT6 O6/O5, MUXCY/XORCY carry, FDRE/FDSE) |
+| CLBs | 49 × 4 logic elements = 196 LUTs (columns x = 1, 2, 4, 5, 7, 8, 9); each element LUT6 (or two LUT5), MUXCY/XORCY carry, two FDRE/FDSE; 16 inputs and a full crossbar per CLB |
 | BRAM | 2 × 1024×18 true dual port (column x = 3, 3 rows tall); contents as frames (FAR type 001) or over USER4 |
 | DSP | 2 × DSP48E1-style slices (column x = 6, 3 rows tall), PCOUT→PCIN cascade |
 | I/O | 32 pads; board switches, buttons and LEDs on fixed pads, LD3 = DONE |
-| Routing | L4 unidirectional, W = 40, Wilton Fs = 3 (from OpenFPGA's k6_frac_N10 tileable arch); 4572 muxes |
+| Routing | L4 unidirectional, W = 40, Wilton Fs = 3 (from OpenFPGA's k6_frac_N10 tileable arch); 3396 muxes |
 | Configuration | 32896 bits = 257 frames of 4 × 32; UG470-style packets on CFG_IN/CFG_OUT (CRC-32C, IDCODE, partial reconfiguration, BRAM content frames) or the streamed chain on CHAIN_IN/CHAIN_OUT; GSR → GTS → GWE → DONE startup |
 | User clock | one sysclk enable at a time, spaced by each design's own timing (clk_gap from software/bob/timing.py, never under 2 cycles = 62.5 MHz); unset, at least 2**9 = 512 cycles apart (the XDC's multicycle), at most 244 kHz |
 | JTAG | 6-bit AMD 7-series IR, IDCODE `0x0B021093` (M21) |
@@ -208,7 +213,7 @@ sim/run_cosim_sim.sh                      # golden co-simulation: source live vs
 sim/run_synth_sim.sh                      # the same bitstreams on the complete FPGA RTL
 ```
 
-Examples in `work/examples/`: `gates`, `adder`, `counter`, `blinky`, `ram`, `mult`, `switches`, `fir`, `wide`, `big`, `atspeed` (M20's self-checking at-speed counter), and the block-design project `bd_demo` (per-design report: `docs/reports/M11/designs.md`).
+Examples in `work/examples/`: `gates`, `adder`, `counter`, `blinky`, `ram`, `mult`, `switches`, `fir`, `wide`, `big`, `atspeed` (M20's self-checking at-speed counter), `fir16` (M21: a 16-tap FIR in logic, 147 LUTs), and the block-design project `bd_demo` (per-design report: `docs/reports/M11/designs.md`).
 
 ### The user clock (M20)
 
