@@ -9,7 +9,7 @@ trap 'rm -rf "$WORK"' EXIT
 sim/gen_frame_vectors.py >/dev/null
 
 survivors=0
-run() {                      # run <name> <file under hw/> <perl expression> [tb]
+run_one() {                      # run <name> <file under hw/> <perl expression> [tb]
     local name=$1 file=$2 expr=$3 tb=${4:-tb_frames}
     local src="hw/$file" mut="$WORK/$name-$(basename "$file")"
     perl -pe "$expr" "$src" > "$mut"
@@ -31,6 +31,14 @@ run() {                      # run <name> <file under hw/> <perl expression> [tb
     fi
 }
 
+# M21: tb_bob takes minutes per run at 56k configuration bits, so mutants run in
+# parallel (MUTATE_JOBS, default 4); each writes its verdict to $WORK/<name>.out
+JOBS=${MUTATE_JOBS:-4}
+run() {
+    while [[ $(jobs -rp | wc -l) -ge $JOBS ]]; do sleep 2; done
+    ( survivors=0; run_one "$@"; echo "$survivors" > "$WORK/$1.n" ) > "$WORK/$1.out" 2>&1 &
+}
+
 F=src/core/cfg_frames.v
 run crc-never-fails     $F 's/if \(w == crc\) crc_ok <= 1.b1;/if (1) crc_ok <= 1'"'"'b1;/'
 run crc-data-only       $F 's/v = \{r, d\};/v = {5'"'"'d0, d};/'
@@ -49,6 +57,12 @@ run frame-write-dropped src/core/cfg_store.v 's/ \|\| \(frame_we && frame_idx ==
 run frame-load-dropped  src/core/cfg_store.v 's/end else if \(load\)/end else if (1'"'"'b0)/'
 run chain-write-dropped src/core/cfg_store.v 's/wire we = \(cwe && cidx == f\[FIDX_W-1:0\]\) \|\| /wire we = /'
 run chain-out-no-reload src/core/cfg_store.v 's/if \(chain_out && wrap && more\)/if (1'"'"'b0)/' tb_bob
+# M21: the BRAM shadow readback
+S=src/core/cfg_store.v
+run shadow-no-rewrite   $S 's/if \(swe && wok && !clear\)/if (swe \&\& wok \&\& !clear \&\& !valid[waddr])/'   # a partial rewrite not mirrored
+run shadow-wrong-frame  $S 's/rd_q <= shadow\[ridx\];/rd_q <= shadow[ridx ^ 1];/'
+run shadow-not-cleared  $S 's/valid <= \{NFRAMES\{1.b0\}\};/valid <= valid;/'
+run shadow-frames-only  $S 's/wire              swe   = cwe \|\| frame_we;/wire              swe   = frame_we;/' tb_bob
 # M14 partial reconfiguration
 run freeze-ignored      src/core/clock_ctrl.v 's/if \(frz_m\[1\]\) begin/if (1'"'"'b0) begin/'
 run lfrm-ignores-crc    $F 's/if \(crc_ok && !any_error\) freeze <= 1.b0;/if (1'"'"'b1) freeze <= 1'"'"'b0;/'
@@ -70,4 +84,7 @@ run gap-field-ignored   src/core/clock_ctrl.v 's/wire \[31:0\] want_gap = \(gp_m
 run gap-floor-dropped   src/core/clock_ctrl.v 's/wire \[31:0\] min_gap  = \(\(want_gap < GAP_FLOOR\) \? GAP_FLOOR : want_gap\) - 32.h1;/wire [31:0] min_gap  = want_gap - 32'"'"'h1;/' tb_clock_gap
 run period-no-prescale  src/core/clock_ctrl.v 's/wire \[31:0\] per32    = \{\{\(32-PERIOD_W\)\{1.b0\}\}, per_m1\} << psh;/wire [31:0] per32    = {{(32-PERIOD_W){1'"'"'b0}}, per_m1};/' tb_clock_gap
 
+wait
+cat "$WORK"/*.out
+survivors=$(cat "$WORK"/*.n | awk '{s += $1} END {print s + 0}')
 if [[ $survivors -eq 0 ]]; then echo "all mutants killed"; else echo "$survivors mutant(s) not killed"; exit 1; fi

@@ -870,9 +870,13 @@ LIVE_DIV = 15                  # 125 MHz / 2**(15 + DIV_MIN_SHIFT) = 7.45 Hz fro
 LIVE_SECONDS = 8.0
 
 
-def _live_build(name, pnr="vpr"):
-    """-> (bit, word, work, result name), built for the free-running clock"""
-    path, word, _contents, _tr, work, result = _build(name, pnr, "_run", clock="run", div=LIVE_DIV)
+def _live_build(name, pnr="vpr", fast=False):
+    """-> (bit, word, work, result name), built for the free-running clock: the slow live
+    rate, or (M21, fast) the fastest rate the design's own timing allows"""
+    if fast:
+        path, word, _contents, _tr, work, result = _build(name, pnr, "_fast", clock="run", hz="auto")
+    else:
+        path, word, _contents, _tr, work, result = _build(name, pnr, "_run", clock="run", div=LIVE_DIV)
     return path, word, work, result
 
 
@@ -1004,7 +1008,7 @@ def _live_guide(name, word):
             print(f"             [ ] {label}")
 
 
-def _live_check(name, pnr="vpr"):
+def _live_check(name, pnr="vpr", fast=False):
     def check(p, ctx):
         """Live on the real switches (free-running clock): whenever the registers are stable
         across CAPTURE-SAMPLE-CAPTURE, model.py given those registers and the sampled pins
@@ -1018,7 +1022,7 @@ def _live_check(name, pnr="vpr"):
         import model
         from bitstream import CAP_STATE, FABRIC_CFG_W, Bitstream
         guide = LIVE_GUIDE[name]
-        path, word, work, result = _live_build(name, pnr)
+        path, word, work, result = _live_build(name, pnr, fast)
         ok, msg = cli.load(p, path, log=lambda *_: None)
         if not ok:
             return False, msg
@@ -1981,6 +1985,122 @@ MILESTONE["M20"] = (
      ("clock-fmax-py", _clock_fmax("python")),
      ("clock-margin", check_clock_margin)] +
     [MILESTONE["M19"][-1]])
+
+# --- M21: the cluster CLB (N logic elements behind a crossbar) and the BRAM shadow ---------
+
+def check_shadow_readback(p, ctx):
+    """M21 reads configuration back from a BRAM shadow of the frames written, not from the
+    configuration flip-flops (docs/bitstream-format.md section 14). A frame load of
+    showcase reads back equal over FDRO (load_frames checks it); after JPROGRAM - which
+    zeroes the flip-flops but cannot zero a block RAM - FDRO and CHAIN_OUT both read all
+    zeros (the shadow's valid bits); a chain load of the counter reads back equal over
+    CHAIN_OUT and over FDRO (the chain writes the shadow too)."""
+    import cfgplane
+    import fpga
+    import packets
+    from bitstream import CHAIN_W
+    from designs import d_counter, d_showcase
+    show = d_showcase().build().to_int()
+    ok, msg = cfgplane.load_frames(p, show, start=False)
+    if not ok:
+        return False, "frame load: " + msg
+    cfgplane.jprogram(p)
+    z_fdro = cfgplane.frames_readback(p)
+    z_chain = cfgplane.cfg_out(p, packets.NFRAMES * packets.FB)
+    cnt = d_counter("jtag").build().to_int()
+    ok, msg = cfgplane.load(p, cnt, CHAIN_W, start=False)
+    back_chain = cfgplane.cfg_out(p, packets.NFRAMES * packets.FB)
+    cfgplane.jprogram(p)
+    cfgplane.load(p, cnt, CHAIN_W, start=False)
+    back_fdro = cfgplane.frames_readback(p)
+    fpga.go_live(p)
+    bad = []
+    if z_fdro:
+        bad.append(f"FDRO after JPROGRAM has {bin(z_fdro).count('1')} bits set")
+    if z_chain:
+        bad.append(f"CHAIN_OUT after JPROGRAM has {bin(z_chain).count('1')} bits set")
+    if not ok:
+        bad.append("chain load: " + msg)
+    if back_chain != cnt:
+        bad.append(f"CHAIN_OUT after a chain load differs in {bin(back_chain ^ cnt).count('1')} bits")
+    if back_fdro != cnt:
+        bad.append(f"FDRO after a chain load differs in {bin(back_fdro ^ cnt).count('1')} bits")
+    if bad:
+        return False, "; ".join(bad)
+    return True, (f"frames: FDRO == showcase; JPROGRAM: FDRO and CHAIN_OUT all zeros; chain load: "
+                  f"CHAIN_OUT == FDRO == the counter ({packets.NFRAMES} frames)")
+
+
+def check_partial_cluster(p, ctx):
+    """M21: partial reconfiguration of ONE element of a CLB while the counter in four other
+    elements of the same CLB is stopped mid-count: the counter reads 5 before and after, LD1
+    goes from AND to OR, 3 more clocks give 8, and FDRO reads back design B (the BRAM shadow
+    mirrored the partial write)."""
+    import cfgplane
+    import fpga
+    import packets
+    from designs import d_partial_cluster
+    a, b = d_partial_cluster("and").build(), d_partial_cluster("or").build()
+    ok, msg = cfgplane.load_frames(p, a.to_int())
+    if not ok:
+        return False, "load A: " + msg
+    _autostep(p, 5)
+    q5 = _partial_q(p)
+    ga, wa = _gate_sweep(p, "and")
+    ok, msg, n = cfgplane.load_partial(p, b.to_int())
+    if not ok:
+        fpga.go_live(p)
+        return False, "partial: " + msg
+    q_after = _partial_q(p)
+    gb, wb = _gate_sweep(p, "or")
+    _autostep(p, 3)
+    q8 = _partial_q(p)
+    back = cfgplane.frames_readback(p)
+    done = cfgplane.status(p)["done"]
+    fpga.go_live(p)
+    good = (q5 == 5 and q_after == 5 and q8 == 8 and ga == wa and gb == wb and done and n >= 1
+            and back == b.to_int())
+    return good, (f"{n} of {packets.NFRAMES} frames rewritten inside clb(1,1); counter 5 -> {q_after} -> {q8}; "
+                  f"LD1 AND {ga} (model {wa}), OR {gb} (model {wb}); FDRO == B: {back == b.to_int()}; DONE={done}")
+
+
+def check_fmax_cluster(p, ctx):
+    """M21's clock effect: logic inside a CLB reaches its neighbours through the crossbar,
+    not the routing, so paths are shorter. atspeed (self-checking, the error latched on LD0)
+    runs at the rate timing.py computes on the cluster fabric; the result names the critical
+    path and the rate, against M20's for the same design (docs/reports/M21)."""
+    return _clock_fmax("vpr")(p, ctx)
+
+
+LIVE_GUIDE["fir16"] = {
+    "about": "x = {BTN2, SW1, SW0} shifts into a 16-tap delay line on every clock while BTN0 is held; "
+             "BTN1 clears it. y = sum h[i] x[n-i] (a low-pass, taps sum 100); LD0 = parity of y, "
+             "LD1 = y[9], LD2 = y[5]. Hold BTN0 with the switches up and watch the LEDs settle.",
+    "try": [0b000111, 0b000101, 0b010111, 0b001000],
+    "goals": [_sw(1), _sw(3), _btn(0, " with SW0 up (samples shift in)", lambda i, leds: i & 1),
+              _btn(1, " (clears y)", lambda i, leds: not leds),
+              _btn(2, " with BTN0 (x = 4..7)"), _led_values(3)],
+}
+
+
+def _live_fir16_fast(p, ctx):
+    """fir16 free-running at the fastest clock its own timing allows (timing.py, --hz auto),
+    live on the switches against model.py. It proves the design works at that rate; that
+    no register misses its setup there is atspeed's proof (fmax-cluster): a missed edge in
+    fir16 would leave a state that still looks consistent."""
+    return _live_check("fir16", fast=True)(p, ctx)
+
+
+MILESTONE["M21"] = (
+    MILESTONE["M20"][:-1] +
+    [("shadow-readback", check_shadow_readback),
+     ("partial-cluster", check_partial_cluster),
+     ("bob-fir16", _bob_check("fir16")),
+     ("pnr-fir16", _bob_check("fir16", pnr="python")),
+     ("live-fir16", _live_check("fir16")),
+     ("fast-fir16", _live_fir16_fast),
+     ("fmax-cluster", check_fmax_cluster)] +
+    [MILESTONE["M20"][-1]])
 
 # --- runner ------------------------------------------------------------------
 

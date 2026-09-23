@@ -46,7 +46,7 @@ class FakeBob:
 
     def __init__(self, corrupt_capture=False, corrupt_sample=False, rate_scale=1.0, switches=lambda t: 0,
                  ignore_freeze=False, wipe_on_partial=False, lose_clocks=0, max_hz=None,
-                 budget=None):
+                 budget=None, stale_shadow=False):
         self.ir = "IDCODE"
         self.chain = 0
         self.expected = 0
@@ -67,6 +67,10 @@ class FakeBob:
         self.ignore_freeze = ignore_freeze          # broken board: the user clock runs on while frozen
         self.wipe_on_partial = wipe_on_partial      # broken board: a partial reload loses the state
         self.lose_clocks = lose_clocks              # broken board: every Nth autostep edge never arrives
+        # M21: readback (CHAIN_OUT, FDRO) comes from a BRAM shadow of the written frames;
+        # broken board: JPROGRAM clears the memory but not the shadow
+        self.shadow = 0
+        self.stale_shadow = stale_shadow
         # One simulated edge is a model.settle() - a Python fixed point over every mux,
         # about a millisecond at 100 CLBs - so a fast free-running clock asks for more
         # edges than this can run and the backlog grows without end. With a budget (in
@@ -140,6 +144,9 @@ class FakeBob:
         if self.ir == "JPROGRAM":
             self.done = self.committed = 0
             self.frames.jprogram()
+            self.chain = 0                           # cfg_store.v: clear zeroes the memory
+            if not self.stale_shadow:
+                self.shadow = 0                      # (the valid bits)
         return cap
 
     def pulse(self, tms=0, tdi=0):
@@ -183,13 +190,17 @@ class FakeBob:
                     self.fab.q, self.fab.brams, self.fab.dsp = old.q, old.brams, old.dsp
                     self.fab.bram_drive, self.fab.dsp_drive = old.bram_drive, old.dsp_drive
                     self.fab.bram = self.fab.brams[0] if self.fab.brams else None
+            if self.frames.mem != self.chain:
+                self.shadow = self.frames.mem        # the frames written are mirrored
             self.chain = self.frames.mem
             return 0
         if ir == "CFG_OUT":
             self._sync_brams_to_frames()
+            mem, self.frames.mem = self.frames.mem, self.shadow      # FDRO reads the shadow
             words = [self.frames.read_word(gsr=int(not self.done), gts=int(not self.done),
                                            gwe=int(self.done), done=int(self.done))
                      for _ in range((n + 31) // 32)]
+            self.frames.mem = mem
             return packets.to_jtag(words)[1] & ((1 << n) - 1)
         if ir == "CFG_CTRL":
             out = (self.expected | (self.count << 32) | (int(chainbits.crc32c_bits(self.chain, B.CHAIN_W)
@@ -206,6 +217,7 @@ class FakeBob:
                 for f in range(min(n // fb, B.CHAIN_W // fb)):
                     mask = ((1 << fb) - 1) << (f * fb)
                     self.chain = (self.chain & ~mask) | (din & mask)
+                    self.shadow = (self.shadow & ~mask) | (din & mask)
                 if good:
                     self.committed = 1
             self.brams = {}
@@ -213,7 +225,7 @@ class FakeBob:
         if ir == "CHAIN_OUT":                        # memory, then TDI delayed by one frame
             fb = B.DEVICE["frames"]["bits"]
             low = (1 << B.CHAIN_W) - 1
-            return (self.chain & low) | ((din << fb) & ~low & ((1 << n) - 1))
+            return (self.shadow & low) | ((din << fb) & ~low & ((1 << n) - 1))
         if ir == "USER1":
             self.user1 = din
             return 0

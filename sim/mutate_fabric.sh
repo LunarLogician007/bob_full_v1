@@ -12,10 +12,11 @@ trap 'rm -rf "$WORK"' EXIT
 sim/gen_vectors.py >/dev/null
 sim/gen_bram_vectors.py >/dev/null
 sim/gen_dsp_vectors.py >/dev/null
+sim/gen_clb_vectors.py >/dev/null
 
 survivors=0
 # run <name> <file relative to hw/> <sed -E expression>
-run() {
+run_one() {
     local name=$1 file=$2 expr=$3
     local src="hw/$file" mut="$WORK/$name-$(basename "$file")"
     sed -E "$expr" "$src" > "$mut"
@@ -45,17 +46,41 @@ run() {
             echo "  killed  $name ($unit)"; return
         fi
     fi
+    # M21: the element and the crossbar have the cluster unit bench (tb_clb, every mode,
+    # every crossbar select, both flip-flops), which reaches what tb_bob's designs do not
+    if [[ "$file" == src/clb/ble.sv || "$file" == src/generated/bob_fabric.v ]]; then
+        if iverilog -g2012 -DSIMULATION -Ihw/src/generated -Ihw/tb -s tb_clb -o "$WORK/$name-clb.vvp" \
+                "${SRC[@]}" hw/tb/tb_clb.sv 2>/dev/null \
+           && ! (cd "$WORK" && vvp "$name-clb.vvp" 2>&1 | grep -q 'ALL TESTS PASSED'); then
+            echo "  killed  $name (tb_clb)"; return
+        fi
+    fi
     echo "  SURVIVED $name"; survivors=$((survivors+1))
 }
 
-# M3 startup signals
-run no-gsr          src/clb/clb.sv        's/if \(gsr\)                  q <= ff_rstval;/if (1'"'"'b0)                 q <= ff_rstval;/'
-run no-gwe-freeze   src/clb/clb.sv        's/else if \(gwe && gce\) begin/else if (gce) begin/'
+# M21: tb_bob takes minutes per run at 56k configuration bits, so mutants run in
+# parallel (MUTATE_JOBS, default 4); each writes its verdict to $WORK/<name>.out
+JOBS=${MUTATE_JOBS:-4}
+run() {
+    while [[ $(jobs -rp | wc -l) -ge $JOBS ]]; do sleep 2; done
+    ( survivors=0; run_one "$@"; echo "$survivors" > "$WORK/$1.n" ) > "$WORK/$1.out" 2>&1 &
+}
+
+# M3 startup signals (M21: the element, ble.sv, holds the flip-flops clb.sv held)
+run no-gsr          src/clb/ble.sv        's/if \(gsr\)                          q <= ff_rstval;/if (1'"'"'b0)                         q <= ff_rstval;/'
+run no-gwe-freeze   src/clb/ble.sv        's/else if \(gwe && gce\) begin/else if (gce) begin/'
 run no-gts          src/fabric/bob_fpga.v 's/gts \? \{NPAD\{1'"'"'b0\}\} : fab_pad_out/fab_pad_out/'
 run done-is-commit  src/fabric/bob_fpga.v 's/assign configured = done;/assign configured = committed;/'
 # M4 user clock and routed CE
-run no-gce          src/clb/clb.sv        's/else if \(gwe && gce\) begin/else if (gwe) begin/'
-run ce-not-routed   src/clb/clb.sv        's/wire ce_eff = ff_ce_en \? ce : 1'"'"'b1;/wire ce_eff = 1'"'"'b1;/'
+run no-gce          src/clb/ble.sv        's/else if \(gwe && gce\) begin/else if (gwe) begin/'
+run ce-not-routed   src/clb/ble.sv        's/else if \(!ff_ce_en \|\| ce\)       q <= comb;/else if (1'"'"'b1)       q <= comb;/'
+# M21 the cluster: crossbar, fracturable LUT, carry through the elements, second flip-flop
+run xbar-sel-off-by-one src/generated/bob_fabric.v 's/m0_0 \(\.sel\(cfg\[([0-9]+) \+: ([0-9]+)\]\)/m0_0 (.sel(cfg[\1 +: \2] + 1'"'"'b1)/'
+run lut5-halves-swapped src/clb/ble.sv    's/wire \[K-1:0\] li = \{i\[K-1\] \| frac, i\[K-2:0\]\};/wire [K-1:0] li = {i[K-1] \& ~frac, i[K-2:0]};/'
+run carry-broken-e1     src/generated/bob_fabric.v 's/u_e1 (.*)\.cin\(cy\[1\]\)/u_e1 \1.cin(1'"'"'b0)/'
+run ff2-ce-ignored      src/clb/ble.sv    's/else if \(!ff2_ce_en \|\| ce\)      q2 <= comb2;/else if (1'"'"'b1)      q2 <= comb2;/'
+run ff2-is-ff1          src/clb/ble.sv    's/assign o2 = ff2_en \? q2 : comb2;/assign o2 = ff2_en ? q : comb2;/'
+run xbar-no-feedback    src/generated/bob_fabric.v 's/m0_0 \(\.sel\(cfg\[([0-9]+) \+: ([0-9]+)\]\), \.in\(\{o\[19\]/m0_0 (.sel(cfg[\1 +: \2]), .in({1'"'"'b0/'
 run step-ignores-ce src/core/clock_ctrl.v 's/else           req = \(tck_rise & ce_m\[1\]\) \| step_rise;/else           req = tck_rise | step_rise;/'
 run divider-off-by-1 src/core/clock_ctrl.v 's/cnt >= last/cnt > last/g'
 # M5 BRAM
@@ -74,9 +99,12 @@ run dsp-no-cascade      src/tiles/dsp_block.v 's/\.pcin   \(pcin\),/.pcin   (48'
 # M7 generated fabric
 run mux-no-const1       src/fabric/bob_mux.v  's/in, 1'"'"'b1, 1'"'"'b0\}/in, 1'"'"'b0, 1'"'"'b0}/'
 run mux-inputs-shifted  src/fabric/bob_mux.v  's/N - 1\)\{1'"'"'b0\}\}, in, 1'"'"'b0\}/N - 1){1'"'"'b0}}, 1'"'"'b0, in}/'
-run carry-direct-cut    src/generated/bob_fabric.v 's/= r[0-9]+;   \/\/ clb_x12y3\.cin\[0\]/= 1'"'"'b0;   \/\/ clb_x12y3.cin[0]/'   # the last CLB column (designs.FULL_COL_X)
+run carry-direct-cut    src/generated/bob_fabric.v 's/= r[0-9]+;   \/\/ clb_x8y2\.cin\[0\]/= 1'"'"'b0;   \/\/ clb_x8y2.cin[0]/'   # the counter crossing CLBs (designs.FULL_COL_X)
 run bram-select-ignored src/tiles/bram_jtag.v 's/assign tgt_onehot\[gi\] = \(tgt_q == IDX\);/assign tgt_onehot[gi] = (IDX == 4'"'"'d0);/'
 run bram-port-a-no-jtag src/tiles/bram_block.v 's/cfg\[6\] \? drive\[31:0\]  : pin\[31:0\]/pin[31:0]/'
 run dsp-b-no-jtag       src/tiles/dsp_block.v 's/cfg\[11\] \? drive\[42:25\]   : b/b/'
 
+wait
+cat "$WORK"/*.out
+survivors=$(cat "$WORK"/*.n | awk '{s += $1} END {print s + 0}')
 if [[ $survivors -eq 0 ]]; then echo "all mutants killed"; else echo "$survivors mutant(s) not killed"; exit 1; fi

@@ -154,7 +154,8 @@ USER3 selects a read-only chain. Capture-DR snapshots the top's user-state vecto
 |---|---|---|
 | `cfg_test_top` (M2) | 16 | `[7:0]` counter, `[9:8]` 0, `[11:10]` SW1..SW0, `[15:12]` BTN3..BTN0 |
 | `fpga4x4_top` (M3–M6) | 16 | CLB `o` of tiles 0..15 |
-| `bob_top` (M7) | `device.json` `capture.width` (16 on the board profile, 48 for 8×8) | CLB `o` of every CLB, row-major by (y, x) (`capture.order`); USER1 status returns the first 16. For a CLB with its flip-flop enabled, `o` is the register (M10 compares these with the golden netlist) |
+| `bob_top` (M7–M20) | `device.json` `capture.width` (100 at M16) | CLB `o` of every CLB, row-major by (y, x) (`capture.order`); USER1 status returns the first 16. For a CLB with its flip-flop enabled, `o` is the register (M10 compares these with the golden netlist) |
+| `bob_top` (M21) | 2 × elements (`capture.width`) | every **element's** two outputs, CLBs row-major by (y, x), elements 0..N−1 inside each: bit 2i is element i's `out[0]` (its first flip-flop, or O6 / the carry sum), bit 2i+1 its `out[1]` (the second flip-flop, or O5). `capture.order` names them; USER1 status still returns the first 16 bits |
 
 **Boundary (M7):** 2 BC_1 cells per fabric pad (40 on the board profile, 20 pads; 64 for 8×8). Cell k (bit k, cell 0 nearest TDO) for k < NPAD is pad k's output cell: the fabric's pad output, forced 0 while GTS, to the world. Cell NPAD+k is pad k's input cell: the world to the fabric. Pads are numbered row-major over the I/O ring. Board profile: SW0, SW1, BTN0, BTN1 are pads 6, 8, 10, 12 (West edge), BTN2, BTN3 pads 0, 1 (South edge); LD0..LD2 are pads 7, 9, 11 (East edge); `device.json` `pads` has them. Every other pad reads 0 from the world and is reachable only by boundary scan.
 
@@ -403,3 +404,40 @@ UG470 carries BRAM initial contents in the bitstream as their own block type. Fr
 - **Readback (FDRO):** RCFG and GWE = 0 (after JPROGRAM the contents are as the design left them). The controller prefetches each frame's 4 words through the same port while FAR points at it; with GWE = 1 FDRO of block type 1 reads zeros.
 - **Load:** `load_stream(word, brams)` writes every word of every BRAM the design uses (all 1024: contents survive JPROGRAM, so a skipped word would keep the previous design's value), under the same CRC as the configuration frames.
 - **Verification:** `tb_frames` [18]-[19] (bram0 frames, FAR crossing into bram1, FDRO readback, refusal while running), 5 mutants; board: `frames-bram-load` (both BRAMs, FDRO == contents, USER4 reads the same words, ROM LEDs), `frames-bram-live-refused`, `ram-readback-frames` (a design's own writes read back over FDRO == model.py == USER4), and every `bob-*` design load now sends its BRAMs as frames.
+
+## 14. Readback from a BRAM shadow (M21)
+
+Until M20 both readbacks - CHAIN_OUT (section 4) and FDRO (section 10) - read the
+configuration flip-flops themselves through one frame-wide read multiplexer in
+`cfg_store.v`: a 256:1 × 128-bit mux, about 11 800 of the design's LUTs in yosys and the
+largest single cause of M16's routing congestion. M20 measured that restructuring the mux
+does not help (a tree was +310 LUTs in the whole design); M21 removes it.
+
+- **The shadow.** Every frame written into the memory - by the chain (CHAIN_IN, each
+  128-bit frame as it completes) or by FDRI (CFG_IN) - is written on the same falling TCK
+  edge, from the same frame buffer and under the same write enable, into a block RAM
+  `shadow` (NFRAMES × 128 bits: one or two RAMB36 of the XC7Z020's 140). Partial
+  reconfiguration (section 12) writes frames through the same path, so it is mirrored too.
+- **Reads.** CHAIN_OUT and FDRO read the shadow through one synchronous port on the rising
+  edge. The address must therefore be steady one cycle before the data is used: FDRO's
+  frame changes only when a word is loaded, at least 32 TCK edges before the next;
+  CHAIN_OUT reads frame `idx + 1`, and `idx` rests at all-ones between DR scans (set at
+  Update-DR), so frame 0 is waiting at Capture-DR.
+- **JPROGRAM** zeroes the flip-flops at once; a block RAM cannot be. Each frame has a
+  `valid` bit, cleared with the flip-flops and set by every write; a frame that is not
+  valid reads back as zeros - exactly what the cleared memory holds.
+- **What readback proves now.** Readback returns the frames that were **written**, not
+  what the configuration flip-flops **hold**. A flip-flop that failed to take its bit would
+  no longer show up in a readback. The flip-flops stay covered, functionally, by the
+  golden co-simulation (`tb_cosim`: every example's LEDs and registers against the source
+  and the golden netlist, loaded from its `.bit`), by CAPTURE on the board (every register
+  of every example against `golden.py`), and by the board's live model checks (the LEDs
+  against `model.py` given the captured registers). On silicon, 7-series readback reads
+  the configuration cells themselves; this is a deliberate divergence for area.
+- **Nothing on the wire changes**: the same packets, the same CRC, the same STAT; a host
+  cannot tell the shadow from the flip-flops.
+- **Verification:** `tb_frames` [2] (FDRO == every frame loaded), [13] (after JPROGRAM
+  every frame reads zero; after a partial write FDRO == the new design), `tb_bob`
+  (CHAIN_OUT); mutants `shadow-no-rewrite` (a partial rewrite of a frame not mirrored),
+  `shadow-wrong-frame`, `shadow-not-cleared`, `shadow-frames-only` (chain writes not
+  mirrored) in `sim/mutate_frames.sh`.
