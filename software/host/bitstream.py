@@ -52,13 +52,14 @@ CTRL_FIELD = {f["name"]: (f["offset"], f["width"]) for f in _TT["ctrl"]["fields"
 BRAM_FIELD = {f["name"]: (f["offset"], f["width"]) for f in _TT["bram"]["fields"]}
 DSP_FIELD = {f["name"]: (f["offset"], f["width"]) for f in _TT["dsp"]["fields"]}
 
-# M21: a CLB is a cluster of N logic elements. ELE_FIELD is one element's fields, relative
-# to the element's own chain position (element e of a CLB sits e * ELE_W after the CLB's).
+# M21: a CLB is a cluster of N logic elements. M22: an element's fields are its CLB's
+# e<e>.<field> (the INIT and crossbar selects in the CLB's L-frames, the flags after them),
+# so element fields resolve through FIELD; ELE_W is one element's flag width.
 CLUSTER = DEVICE["cluster"]
 CLB_N = CLUSTER["n"]
 CLB_I = CLUSTER["i"]
 ELE_W = CLUSTER["element_width"]
-ELE_FIELD = {n[3:]: (off, w) for n, (off, w) in FIELD.items() if n.startswith("e0.")}
+ELE_FIELD = {n[3:]: (off, w) for n, (off, w) in FIELD.items() if n.startswith("e0.")}   # element 0's
 XBAR_SOURCES = CLUSTER["xbar_sources"]                            # [e][j] -> ['I[3]', 'O[5]', ...]
 FLAG_NAMES = ("frac", "ff_en", "ff_rstval", "ff_ce_en", "ff_sr_en", "cy_en", "cy_di_sel", "ff_d_sel",
               "ff2_en", "ff2_rstval", "ff2_ce_en", "ff2_sr_en")
@@ -293,8 +294,9 @@ class Bitstream:
 
     def _block_field(self, block, name):
         if block in ELEM:                                   # an element: clb_x1y1.e3
-            off, w = ELE_FIELD[name]
-            return ELEM[block]["chain_lo"] + off, w
+            el = ELEM[block]
+            off, w = FIELD[f"e{el['e']}.{name}"]
+            return BLOCKS[el["clb"]]["chain_lo"] + off, w
         b = BLOCKS[block]
         table = {"clb": FIELD, "bram": BRAM_FIELD, "dsp": DSP_FIELD}[b["type"]]
         off, w = table[name]

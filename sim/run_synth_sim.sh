@@ -6,7 +6,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 ./gen_synth_vectors.py
 
-SRC=(); while read -r l; do SRC+=("$l"); done < <(./hwfiles.sh)
+SRC=(); while read -r l; do SRC+=("$l"); done < <(./hwfiles.sh --sim)
 
 iverilog -g2012 -DSIMULATION -I../hw/src/generated -I../hw/tb -s tb_synth -o tb_synth.vvp \
     "${SRC[@]}" ../hw/tb/tb_synth.v

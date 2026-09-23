@@ -1,11 +1,11 @@
 top adder
 pcf -
-arch_sha256 842ee70653e1c0bb7f910190f562680eb10c283ada4aebbbc6b47c3cf05207fe
+arch_sha256 4afb4386337f382bcccacbc0f6436398fa0daf011e259d43af54d8ad0211c0e5
 eblif_sha256 e74f093421c7c3002a46001bb6cc4de68a8d32bc3fb664c40361f3f86ded68ac
 seed 1
 image ghcr.io/lnis-uofu/openfpga-master@sha256:2467ffa99296516cc1bcbb07542633c90723ae17ca3f67a175f61cb9f131abbb
-command vpr arch.xml adder.eblif --device bob9x7 --route_chan_width 40 --read_rr_graph rr.xml --fix_clusters adder.pins --seed 1 --absorb_buffer_luts off --const_gen_inference none --sweep_dangling_primary_ios off --sweep_dangling_nets off --sweep_dangling_blocks off --sweep_constant_primary_outputs off --pack --place --route --analysis
-wirelength 80
-cpd_ns 1.82157
-fmax_mhz 673.619
-result_sha 77e128a376bb1c19
+command vpr arch.xml adder.eblif --device bob11x9 --route_chan_width 40 --read_rr_graph rr.xml --fix_clusters adder.pins --seed 1 --absorb_buffer_luts off --const_gen_inference none --sweep_dangling_primary_ios off --sweep_dangling_nets off --sweep_dangling_blocks off --sweep_constant_primary_outputs off --pack --place --route --analysis
+wirelength 88
+cpd_ns 2.01903
+fmax_mhz 662.254
+result_sha 42eb42418ddc7112

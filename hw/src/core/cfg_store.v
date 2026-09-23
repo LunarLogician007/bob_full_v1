@@ -38,6 +38,10 @@
 //   next one; CHAIN_OUT reads frame idx+1, where idx rests at all-ones between DR scans
 //   (set at Update-DR), so frame 0 is waiting at Capture-DR.
 //
+// M22: L-frames (LMASK) keep no flip-flops: their bits live in the fabric's CFGLUT5s,
+// which lut_loader.v fills from the same write (wr / wr_idx / wr_data, the falling edge
+// that writes the shadow). Their `cfg` bits read 0 and nothing uses them.
+//
 // History:
 //   M13 v1 wrote cfg[frame_idx*FB +: FB] <= frame_data over the whole memory: a
 //          shifter (~12k LUTs, 1.7 GB in yosys); Vivado ran out of memory.
@@ -56,7 +60,8 @@ module cfg_store #(
     parameter integer FB      = 128,
     parameter integer NFRAMES = 4,
     parameter integer FIDX_W  = 8,
-    parameter integer W       = FB * NFRAMES
+    parameter integer W       = FB * NFRAMES,
+    parameter [NFRAMES-1:0] LMASK = {NFRAMES{1'b0}}     // M22: frames held only in CFGLUT5s
 )(
     input  wire              tck,
     // chain
@@ -77,6 +82,10 @@ module cfg_store #(
     // FDRO read select (cfg_frames); CHAIN_OUT overrides while selected
     input  wire [FIDX_W-1:0] fdro_idx,
     output wire [FB-1:0]     rd_frame,
+    // M22: every frame write, for lut_loader.v (sample on the falling edge)
+    output wire              wr,
+    output wire [FIDX_W-1:0] wr_idx,
+    output wire [FB-1:0]     wr_data,
 
     output reg  [W-1:0]      cfg
 );
@@ -108,6 +117,10 @@ module cfg_store #(
     always @(negedge tck)
         if (swe && wok && !clear)
             shadow[waddr] <= buf_q;
+
+    assign wr      = swe && wok && !clear;
+    assign wr_idx  = waddr;
+    assign wr_data = buf_q;
 
     always @(negedge tck)
         if (clear)
@@ -161,12 +174,14 @@ module cfg_store #(
     genvar f;
     generate
         for (f = 0; f < NFRAMES; f = f + 1) begin : g_frame
-            wire we = (cwe && cidx == f[FIDX_W-1:0]) || (frame_we && frame_idx == f[FIDX_W-1:0]);
-            always @(negedge tck) begin
-                if (clear)
-                    cfg[f*FB +: FB] <= {FB{1'b0}};
-                else if (we)
-                    cfg[f*FB +: FB] <= buf_q;
+            if (!LMASK[f]) begin : g_ff
+                wire we = (cwe && cidx == f[FIDX_W-1:0]) || (frame_we && frame_idx == f[FIDX_W-1:0]);
+                always @(negedge tck) begin
+                    if (clear)
+                        cfg[f*FB +: FB] <= {FB{1'b0}};
+                    else if (we)
+                        cfg[f*FB +: FB] <= buf_q;
+                end
             end
         end
     endgenerate

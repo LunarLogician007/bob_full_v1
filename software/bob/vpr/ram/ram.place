@@ -1,12 +1,12 @@
-Netlist_File: ram.net Netlist_ID: SHA256:ffd4dc7ef7d8e3f108d9f80586d2000b1a25db0437913396a893d008a8f6e557
-Array size: 11 x 9 logic blocks
+Netlist_File: ram.net Netlist_ID: SHA256:4c80ed94da75f2b19ea2de378a8461eaec52428339e5f7c4c0fb20c8e2a38ea1
+Array size: 13 x 11 logic blocks
 
 #block name	x	y	subblk	layer	block number
 #----------	--	--	------	-----	------------
 mem.0.0		3	1	0	0	#0
-out:led[0]	10	1	0	0	#1
-out:led[1]	10	2	0	0	#2
-out:led[2]	10	3	0	0	#3
+out:led[0]	12	1	0	0	#1
+out:led[1]	12	2	0	0	#2
+out:led[2]	12	3	0	0	#3
 clk		1	0	0	0	#4
 sw[0]		0	1	0	0	#5
 sw[1]		0	2	0	0	#6

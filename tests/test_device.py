@@ -58,8 +58,8 @@ def test_chain_fields_chain_round_trip(k):
         assert dev.encode(dev.decode(w)) == w
 
 
-SIZES = {"grid": (11, 9, 40), "blocks": {"io": 32, "clb": 49, "bram": 2, "dsp": 2},
-         "cluster": (4, 16, "full"), "chain": {6: 32896, 4: 21632}}
+SIZES = {"grid": (13, 11, 40), "blocks": {"io": 40, "clb": 81, "bram": 2, "dsp": 2},
+         "cluster": (4, 16, "full"), "chain": {6: 56448, 4: 46080}}
 
 
 @pytest.mark.parametrize("k", [6, 4])
@@ -71,14 +71,18 @@ def test_sizes(k):
     M16: 12x10 core, 100 CLBs, 44 pads: 18560 bits = 145 frames (K=4: 12800 = 100).
     M21: 9x7 core, 49 CLBs of 4 elements behind a full crossbar = 196 LUTs, 257 frames
     (software/bob/sweep.py, docs/reports/M21/cluster_sweep.md).
+    M22: 11x9 core, 81 CLBs (324 LUTs), LUT contents and crossbar in CFGLUT5: 441 frames,
+    243 of them L-frames (no flip-flops); each CLB tile frame aligned.
     The 8x8 profile (48 CLBs, 9400 bits) is frozen in release/M7_8x8."""
     dev = DEVICES[k]
     assert (dev.width, dev.height, dev.arch["chan_width"]) == SIZES["grid"]
     assert {t: len(v) for t, v in dev.by_type.items()} == SIZES["blocks"]
     c = dev.cluster
     assert (c["n"], c["i"], c["xbar"]) == SIZES["cluster"]
-    # an element: INIT + 12 flags + one crossbar select per input
-    assert dev.tile_types["clb"].width == c["n"] * ((1 << k) + 12 + k * dev.xbar_width())
+    # M22: the L-frames (INITs, crossbar selects, each frame padded), then 12 flags per element
+    lay = dev.lutram_layout()
+    assert lay["frames"] * device.FRAME_BITS >= c["n"] * ((1 << k) + k * dev.xbar_width())
+    assert dev.tile_types["clb"].width == lay["frames"] * device.FRAME_BITS + c["n"] * 12
     # M20: clk_mode 1 + clk_div 5 + reserved 2 + clk_period 16 + clk_gap 16
     assert dev.tile_types["ctrl"].width == 8 + 2 * device.PERIOD_W == 40
     assert dev.tile_types["bram"].width == 8 and dev.tile_types["dsp"].width == 16
@@ -116,7 +120,6 @@ def test_crossbar_selects_are_the_clb_fields(k):
         for j in range(k):
             m = dev.muxes[el["pins"][f"I[{j}]"]]
             assert (m.lo, m.width) == dev.block_field(blk, f"e{el['e']}.x{j}")
-            assert el["chain_lo"] + dev.tile_types["clb"].field(f"e0.x{j}").offset == m.lo
     # the carry runs cin -> e0 -> ... -> e<N-1> -> cout inside every CLB
     for blk in dev.by_type["clb"]:
         els = [el for el in dev.elements if el["clb"] == blk.name]
@@ -221,8 +224,9 @@ def test_params_vh_equals_clb_pkg_when_elaborated(k, tmp_path):
                         "--lut-k", str(k), "--out", gen], check=True, capture_output=True)
     dev = DEVICES[k]
     tt = dev.tile_types["clb"]
-    want = {f"ELE_{n.upper()}": tt.field(f"e0.{n}").offset for n, *_r in dev.ELEMENT_FIELDS}
-    want.update(ELE_INIT_LO=0, ELE_XBAR_LO=tt.field("e0.x0").offset, ELE_W=dev.element_width())
+    flag0 = tt.field(f"e0.{dev.ELEMENT_FIELDS[0][0]}").offset
+    want = {f"ELE_{n.upper()}": tt.field(f"e0.{n}").offset - flag0 for n, *_r in dev.ELEMENT_FIELDS}
+    want.update(ELE_W=dev.element_width(), CLB_FLAGS_LO=flag0)      # M22: flags only, after the L-frames
     checks = "\n".join(
         f'    if (`BOB_{n} !== {n}) begin $display("MISMATCH {n} vh=%0d pkg=%0d", '
         f'`BOB_{n}, {n}); bad = bad + 1; end' for n in PKG_NAMES)
@@ -260,7 +264,7 @@ def test_generated_fabric_has_every_mux_and_block():
     assert len(re.findall(r"^\s*bob_mux #.* m\d+ ", text, re.M)) == len(rr)
     # M21: one bob_clb module holds the crossbar (one mux per element input) and N elements
     body = text[text.index("module bob_clb"):]
-    assert len(re.findall(r"^\s*bob_mux #", body, re.M)) == dev.cluster["n"] * dev.lut_k
+    assert len(re.findall(r"^\s*lxmux #", body, re.M)) == dev.cluster["n"] * dev.lut_k    # M22
     assert len(re.findall(r"^\s*ble u_e\d+ ", body, re.M)) == dev.cluster["n"]
     assert len(re.findall(r"^\s*bob_clb u_clb_x\d+y\d+ ", text, re.M)) == len(dev.by_type["clb"])
     assert len(re.findall(r"^\s*bram_block u_bram\d ", text, re.M)) == 2
@@ -384,3 +388,54 @@ def test_frames_tile_the_memory(k):
             assert lo <= t.chain_lo and t.chain_lo + t.width <= hi, t.name
         if t.kind == "tail":
             assert all(f.kind == "reserved" for f in t.fields)
+
+
+# --- M22: the L-frames (LUT contents and crossbar selects in CFGLUT5s) -------------------
+
+
+@pytest.mark.parametrize("k", [6, 4])
+def test_every_clb_starts_its_own_l_frames(k):
+    """A CLB tile is frame aligned; its first LF_N frames are its L-frames, and they hold
+    exactly its INIT and crossbar fields (the expander and the CE compare rely on it)."""
+    from device import FRAME_BITS
+    dev = DEVICES[k]
+    lay = dev.lutram_layout()
+    owner = {lf["frame"]: lf for lf in dev.lframes}
+    assert len(dev.lframes) == lay["frames"] * len(dev.by_type["clb"])
+    for blk in dev.by_type["clb"]:
+        assert blk.chain_lo % FRAME_BITS == 0, blk.name
+        f0 = blk.chain_lo // FRAME_BITS
+        for i in range(lay["frames"]):
+            assert owner[f0 + i]["clb"] == blk.name
+    tt = dev.tile_types["clb"]
+    for f in tt.fields:
+        inside = f.offset < lay["flags_lo"]
+        assert dev.is_lfield(f) == inside, f.name
+        if inside:                                   # never straddles a frame
+            assert f.offset // FRAME_BITS == (f.offset + f.width - 1) // FRAME_BITS, f.name
+
+
+@pytest.mark.parametrize("k", [6, 4])
+def test_l_frame_slots_are_the_same_in_every_clb(k):
+    """INIT e sits in INIT frame e // per at slot e % per; crossbar select s = e*K + j in
+    crossbar frame s // per_x at slot s % per_x - fabric_gen.py and lut_expand.v assume it."""
+    from device import FRAME_BITS
+    dev = DEVICES[k]
+    lay = dev.lutram_layout()
+    tt = dev.tile_types["clb"]
+    xw = dev.xbar_width()
+    for e in range(dev.cluster["n"]):
+        f, slot = divmod(e, lay["init_per_frame"])
+        assert tt.field(f"e{e}.init").offset == f * FRAME_BITS + slot * (1 << k)
+        for j in range(k):
+            fx, t = divmod(e * k + j, lay["xbar_per_frame"])
+            assert tt.field(f"e{e}.x{j}").offset == (lay["init_frames"] + fx) * FRAME_BITS + t * xw
+
+
+def test_the_lframe_mask_names_the_l_frames():
+    vh = open(os.path.join(ROOT, "hw", "src", "generated", "bob_params.vh")).read()
+    m = re.search(r"`define BOB_LFRAME_MASK\s+(\d+)'h([0-9a-f]+)", vh)
+    assert m
+    dev = DEVICES[6]
+    assert int(m.group(1)) == dev.nframes
+    assert int(m.group(2), 16) == sum(1 << lf["frame"] for lf in dev.lframes)

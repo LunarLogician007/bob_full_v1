@@ -1,12 +1,12 @@
-Netlist_File: adder.net Netlist_ID: SHA256:1ae357bf99bc0c7a2ae9d2dcc45a05fcd35c9702bd35d1969f5aa1fa7e14c0d3
-Array size: 11 x 9 logic blocks
+Netlist_File: adder.net Netlist_ID: SHA256:afe5d44d7ef06027415798f48d2872e55c1b228c555f63c7e7b432c324a461f3
+Array size: 13 x 11 logic blocks
 
 #block name	x	y	subblk	layer	block number
 #----------	--	--	------	-----	------------
-bob_gen1	4	2	0	0	#0
-out:led[2]	10	3	0	0	#1
-out:led[1]	10	2	0	0	#2
-out:led[0]	10	1	0	0	#3
+bob_gen1	5	2	0	0	#0
+out:led[2]	12	3	0	0	#1
+out:led[1]	12	2	0	0	#2
+out:led[0]	12	1	0	0	#3
 sw[0]		0	1	0	0	#4
 sw[1]		0	2	0	0	#5
 btn[0]		0	3	0	0	#6

@@ -48,6 +48,12 @@ def fabric_verilog(dev):
     e("    input  wire                                   gwe,")
     e("    input  wire                                   cin,        // carry into every bottom-row CLB")
     e("    input  wire [`BOB_CHAIN_W-1:0]                cfg,")
+    e("    input  wire                                   lck,        // M22: CFGLUT5 shift clock (TCK)")
+    e("    input  wire                                   l_busy,     // M22: lut_loader.v")
+    e("    input  wire                                   l_clr,")
+    e("    input  wire [`BOB_FIDX_W-1:0]                 l_idx,")
+    e("    input  wire [`BOB_FRAME_BITS-1:0]             l_buf,")
+    e("    input  wire [4:0]                             l_cnt,")
     e("    input  wire [`BOB_NPAD-1:0]                   pad_in,")
     e("    output wire [`BOB_NPAD-1:0]                   pad_out,")
     e("    output wire [`BOB_NCAP-1:0]                   clb_o,")
@@ -100,16 +106,32 @@ def fabric_verilog(dev):
           f"assign pad_out[{b.index}] = {P(b.name, 'outpad[0]')};   // {b.name}")
     e("")
 
-    e("    // --- CLBs (row-major); clb_o bit 2i+o = element i's out[o] = CAPTURE order ----")
+    e("    // --- M22: the shared CFGLUT5 expander (hw/src/core/lut_expand.v) ------------")
     c = dev.cluster
+    lay = dev.lutram_layout()
+    ns = len(dev.xbar_sources(0, 0))
+    nl = _xbar_luts(ns)
+    e(f"    wire [{2 * lay['init_per_frame'] - 1}:0] l_cdi_init;")
+    e(f"    wire [{lay['xbar_per_frame'] * nl - 1}:0] l_cdi_x;")
+    e(f"    lut_expand #(.FB(`BOB_FRAME_BITS), .K({k}), .NI({lay['init_per_frame']}), .XW({dev.xbar_width()}), "
+      f".NX({lay['xbar_per_frame']}), .S({ns})) u_lexp (")
+    e("        .lbuf(l_buf), .cnt(l_cnt), .cdi_init(l_cdi_init), .cdi_x(l_cdi_x));")
+    e("")
+    e("    // --- CLBs (row-major); clb_o bit 2i+o = element i's out[o] = CAPTURE order ----")
+    e("    // M22: lce[f] = the loader is shifting the CLB's L-frame f (or sweeping, JPROGRAM)")
+    flags_w = c["n"] * dev.element_width()
     for b in dev.by_type["clb"]:
-        lo, w = b.chain_lo, dev.tile_types["clb"].width
+        lo = b.chain_lo
+        f0 = lo // 128
         ins = _vec([dev.pin_node[(b.name, f"I[{j}]")] for j in range(c["i"])])
         outs = [dev.pin_node[(b.name, f"O[{m}]")] for m in range(2 * c["n"])]
+        lce = "{" + ", ".join(f"l_busy & (l_clr | (l_idx == {f0 + f}))" for f in reversed(range(lay["frames"]))) + "}"
         e(f"    bob_clb u_clb_x{b.x}y{b.y} (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), "
           f".ce({P(b.name, 'ce[0]')}), .sr({P(b.name, 'sr[0]')}), .cin({P(b.name, 'cin[0]')}),")
         e(f"        .i({ins}),")
-        e(f"        .cfg(cfg[{lo} +: {w}]), .o({_vec(outs)}), .cout({P(b.name, 'cout[0]')}));")
+        e(f"        .cfg(cfg[{lo + lay['flags_lo']} +: {flags_w}]),   // frames {f0}..{f0 + lay['frames'] - 1}: L-frames")
+        e(f"        .lck(lck), .lce({lce}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),")
+        e(f"        .o({_vec(outs)}), .cout({P(b.name, 'cout[0]')}));")
         first = dev.elements[[el["clb"] for el in dev.elements].index(b.name)]["index"]
         e(f"    assign clb_o[{2 * first} +: {2 * c['n']}] = {_vec(outs)};")
     e("")
@@ -169,49 +191,69 @@ def fabric_verilog(dev):
     return "\n".join(L) + "\n"
 
 
+def _xbar_luts(ns):
+    """CFGLUT5s in one crossbar mux of ns sources (hw/src/clb/lxmux.v)."""
+    leaves = -(-ns // 5)
+    return leaves + 1 if leaves > 1 else 1
+
+
 def cluster_verilog(dev):
-    """bob_clb: N elements (hw/src/clb/ble.sv) behind the local crossbar, one bob_mux per
-    element input over device.xbar_sources (0 const0, 1 const1, then the sources), and
-    the carry cin -> e0 -> ... -> e<N-1> -> cout. Generated, because the crossbar's
-    population is an architecture parameter (device.py CLUSTER)."""
+    """bob_clb: N elements (hw/src/clb/ble.sv) behind the local crossbar, one lxmux (a
+    CFGLUT5 tree, M22) per element input over device.xbar_sources, and the carry
+    cin -> e0 -> ... -> e<N-1> -> cout. Generated, because the crossbar's population and
+    the L-frame layout are architecture parameters (device.py CLUSTER, lutram_layout)."""
     c, k = dev.cluster, dev.lut_k
     n, ni = c["n"], c["i"]
-    tt = dev.tile_types["clb"]
     ew, xw = dev.element_width(), dev.xbar_width()
+    lay = dev.lutram_layout()
+    ns = len(dev.xbar_sources(0, 0))
+    nl = _xbar_luts(ns)
+    if ns > 25:
+        raise ValueError(f"crossbar of {ns} sources: lxmux.v's two-level tree holds at most 25")
     L = []
     e = L.append
     e("// -----------------------------------------------------------------------------")
-    e(f"// bob_clb - the M21 cluster: {n} logic elements (LUT{k}, fracturable, 2 FFs), {ni} inputs,")
-    e(f"// {2 * n} outputs, a {c['xbar']} crossbar of {len(dev.xbar_sources(0, 0))}:1 muxes "
-      f"({xw} select bits) per element input.")
-    e(f"// cfg: element e at [{ew}e +: {ew}] (fields as bob_params.vh BOB_ELE_*, then input j's")
-    e(f"// crossbar select at BOB_ELE_XBAR_LO + {xw}j).")
+    e(f"// bob_clb - the cluster: {n} logic elements (LUT{k}, fracturable, 2 FFs), {ni} inputs,")
+    e(f"// {2 * n} outputs, a {c['xbar']} crossbar of {ns}:1 muxes per element input.")
+    e(f"// M22: LUT contents and crossbar in CFGLUT5 ({2 * n + n * k * nl} per CLB), loaded by")
+    e(f"// hw/src/core/lut_loader.v from the CLB's L-frames: lce[f] shifts frame f")
+    e(f"// (INIT frames 0..{lay['init_frames'] - 1}, crossbar frames {lay['init_frames']}..{lay['frames'] - 1}), "
+      "lcdi_* are the shared expander's")
+    e(f"// bits (lut_expand.v). cfg: the element flags, element e at [{ew}e +: {ew}] (BOB_ELE_*).")
     e("// -----------------------------------------------------------------------------")
     e("/* verilator lint_off DECLFILENAME */")
     e("module bob_clb (")
     e("    input  wire              clk, gce, gsr, gwe, ce, sr, cin,")
     e(f"    input  wire [{ni - 1}:0]       i,")
-    e(f"    input  wire [{tt.width - 1}:0]     cfg,")
+    e(f"    input  wire [{n * ew - 1}:0]       cfg,")
+    e("    input  wire              lck,")
+    e(f"    input  wire [{lay['frames'] - 1}:0]        lce,")
+    e(f"    input  wire [{2 * lay['init_per_frame'] - 1}:0]        lcdi_init,")
+    e(f"    input  wire [{lay['xbar_per_frame'] * nl - 1}:0]      lcdi_x,")
     e(f"    output wire [{2 * n - 1}:0]       o,")
     e("    output wire              cout")
     e(");")
+    e("    /* verilator lint_off UNUSEDSIGNAL */")
+    e("    wire _unused = &{1'b0, lcdi_init, lcdi_x};     // not every slot is used by every CLB frame")
+    e("    /* verilator lint_on UNUSEDSIGNAL */")
     e(f"    wire [{n}:0] cy;")
     e("    assign cy[0] = cin;")
     e(f"    assign cout  = cy[{n}];")
     for el in range(n):
-        base = el * ew
-        e(f"    // element {el}")
+        f_init, slot = divmod(el, lay["init_per_frame"])
+        e(f"    // element {el}: INIT in L-frame {f_init} slot {slot}")
         e(f"    wire [{k - 1}:0] x{el};")
         for j in range(k):
             srcs = dev.xbar_sources(el, j)
             vec = "{" + ", ".join(f"i[{p[2:-1]}]" if p.startswith("I") else f"o[{p[2:-1]}]"
                                   for p in reversed(srcs)) + "}"
-            lo = tt.field(f"e{el}.x{j}").offset
-            e(f"    bob_mux #(.N({len(srcs)}), .W({xw}), .C1(1)) m{el}_{j} "
-              f"(.sel(cfg[{lo} +: {xw}]), .in({vec}), .o(x{el}[{j}]));")
+            fx, t = divmod(el * k + j, lay["xbar_per_frame"])
+            e(f"    lxmux #(.S({len(srcs)})) m{el}_{j} (.in({vec}), .lck(lck), "
+              f".lce(lce[{lay['init_frames'] + fx}]), .lcdi(lcdi_x[{t * nl} +: {nl}]), .o(x{el}[{j}]));")
         e(f"    ble u_e{el} (.clk(clk), .gce(gce), .ce(ce), .sr(sr), .gsr(gsr), .gwe(gwe), "
-          f".i(x{el}), .cin(cy[{el}]), .cfg(cfg[{base} +: {ew}]), .o(o[{2 * el}]), "
-          f".o2(o[{2 * el + 1}]), .cout(cy[{el + 1}]));")
+          f".i(x{el}), .cin(cy[{el}]), .cfg(cfg[{el * ew} +: {ew}]),")
+        e(f"        .lck(lck), .lce(lce[{f_init}]), .lcdi(lcdi_init[{2 * slot} +: 2]),")
+        e(f"        .o(o[{2 * el}]), .o2(o[{2 * el + 1}]), .cout(cy[{el + 1}]));")
     e("endmodule")
     e("/* verilator lint_on DECLFILENAME */")
     e("")

@@ -1,11 +1,11 @@
 top blinky
 pcf -
-arch_sha256 842ee70653e1c0bb7f910190f562680eb10c283ada4aebbbc6b47c3cf05207fe
+arch_sha256 4afb4386337f382bcccacbc0f6436398fa0daf011e259d43af54d8ad0211c0e5
 eblif_sha256 2871834842f06efaecd01ebca121a6c8ba349a564768b27bb26ebb73341a4f70
 seed 1
 image ghcr.io/lnis-uofu/openfpga-master@sha256:2467ffa99296516cc1bcbb07542633c90723ae17ca3f67a175f61cb9f131abbb
-command vpr arch.xml blinky.eblif --device bob9x7 --route_chan_width 40 --read_rr_graph rr.xml --fix_clusters blinky.pins --seed 1 --absorb_buffer_luts off --const_gen_inference none --sweep_dangling_primary_ios off --sweep_dangling_nets off --sweep_dangling_blocks off --sweep_constant_primary_outputs off --pack --place --route --analysis
+command vpr arch.xml blinky.eblif --device bob11x9 --route_chan_width 40 --read_rr_graph rr.xml --fix_clusters blinky.pins --seed 1 --absorb_buffer_luts off --const_gen_inference none --sweep_dangling_primary_ios off --sweep_dangling_nets off --sweep_dangling_blocks off --sweep_constant_primary_outputs off --pack --place --route --analysis
 wirelength 21
 cpd_ns 0.912
-fmax_mhz 734.61
-result_sha 05bb4c2ecc79d4f7
+fmax_mhz 734.562
+result_sha 2ea8c54d48f54581

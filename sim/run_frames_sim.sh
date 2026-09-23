@@ -4,7 +4,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 ./gen_frame_vectors.py
-SRC=(); while read -r l; do SRC+=("$l"); done < <(./hwfiles.sh)
+SRC=(); while read -r l; do SRC+=("$l"); done < <(./hwfiles.sh --sim)
 iverilog -g2012 -DSIMULATION -I../hw/src/generated -I../hw/tb -s tb_frames -o tb_frames.vvp \
     "${SRC[@]}" ../hw/tb/tb_frames.v
 vvp tb_frames.vvp

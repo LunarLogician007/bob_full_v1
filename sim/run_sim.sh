@@ -8,7 +8,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 OUT=tb_mini_fpga.vvp
 
-SRC=(); while read -r l; do SRC+=("$l"); done < <(./hwfiles.sh)
+SRC=(); while read -r l; do SRC+=("$l"); done < <(./hwfiles.sh --sim)
 
 iverilog -g2012 -DSIMULATION -I../hw/src/generated -I../hw/tb -s tb_mini_fpga -o "$OUT" \
     "${SRC[@]}" ../hw/tb/tb_mini_fpga.v

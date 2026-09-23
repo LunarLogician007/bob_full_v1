@@ -20,7 +20,7 @@ run_one() {                      # run <name> <file under hw/> <perl expression>
             echo "  ERROR   $name: does not compile"; head -3 "$WORK/$name.err"; survivors=$((survivors+1)); return; }
     else
         local SRC=()
-        while read -r l; do if [[ "$l" == */$file ]]; then SRC+=("$mut"); else SRC+=("$l"); fi; done < <(sim/hwfiles.sh)
+        while read -r l; do if [[ "$l" == */$file ]]; then SRC+=("$mut"); else SRC+=("$l"); fi; done < <(sim/hwfiles.sh --sim)
         iverilog -g2012 -DSIMULATION -Ihw/src/generated -Ihw/tb -s "$tb" -o "$WORK/$name.vvp" \
             "${SRC[@]}" "hw/tb/$tb.v" 2>"$WORK/$name.err" || {
             echo "  ERROR   $name: does not compile"; head -3 "$WORK/$name.err"; survivors=$((survivors+1)); return; }

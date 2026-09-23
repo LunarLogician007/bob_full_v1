@@ -19,6 +19,9 @@ src/clb/clb_pkg.sv
 src/clb/lutk.sv
 src/clb/clb.sv
 src/clb/ble.sv
+# M22: a crossbar mux as a CFGLUT5 tree (CFGLUT5 is AMD's primitive: Vivado and yosys know
+# it; iverilog and verilator get hw/tb/prims/CFGLUT5.v from sim/hwfiles.sh --sim)
+src/clb/lxmux.v
 
 # JTAG TAP and the boundary scan cell
 src/core/jtag_tap.v
@@ -32,6 +35,9 @@ src/core/cfg_ctrl.v
 src/core/cfg_store.v
 src/core/cfg_frames.v
 src/core/capture_chain.v
+# M22: the CFGLUT5 loader and its shared expander
+src/core/lut_loader.v
+src/core/lut_expand.v
 
 # M4: user clock (sysclk + enable) and its synchronisers
 src/core/clock_ctrl.v

@@ -13,7 +13,7 @@ WORK=$(mktemp -d)
 trap 'rm -rf "$WORK"' EXIT
 sim/gen_cfg_vectors.py >/dev/null
 
-SRC=(); while read -r l; do [[ "$l" == *cfg_ctrl.v ]] || SRC+=("$l"); done < <(sim/hwfiles.sh)
+SRC=(); while read -r l; do [[ "$l" == *cfg_ctrl.v ]] || SRC+=("$l"); done < <(sim/hwfiles.sh --sim)
 
 survivors=0
 run() {

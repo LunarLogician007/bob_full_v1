@@ -1,5 +1,5 @@
 // ============================================================================
-// ble.sv -- one logic element of the M21 cluster (OpenFPGA k6_frac_N10's fle)
+// ble.sv -- one logic element of the cluster (OpenFPGA k6_frac_N10's fle)
 //
 //   LUTK (fracturable)  ->  carry chain (MUXCY/XORCY)  ->  two flops (FDRE/FDSE)
 //
@@ -10,9 +10,17 @@
 //   * a second flip-flop on O5 (a slice has two FFs per LUT), so both halves of a
 //     fractured LUT can be registered: out[1] = FF2 q or O5.
 //
-// Config word layout: the ELE_* offsets in bob_params.vh (software/bob/device.py,
-// Device.ELEMENT_FIELDS). The crossbar selects that follow each element's fields
-// in the chain are decoded by the cluster (bob_fabric.v), not here.
+// M22: the truth table lives in two CFGLUT5 (AMD UG953: a LUT5 whose 32 bits are shifted
+// in on CLK while CE, CDI first into bit 0 and out at bit 31), not in 2**K configuration
+// flip-flops and a 2**K:1 mux. lo holds INIT[2**(K-1)-1:0], hi the upper half, both
+// addressed by i[K-2:0] (upper address bits 0 when K < 6); O6 = (i[K-1] | frac) ? hi : lo
+// is a MUXF7 in the slice, O5 = lo. hw/src/core/lut_loader.v shifts the contents in while
+// the frame holding them is written (lck = TCK, lce = this element's INIT frame,
+// lcdi = the shared expander's bits for its slot). ZUMA (Brant & Lemieux, FCCM 2012) keeps
+// an overlay's LUTs in host LUTRAM the same way.
+//
+// Config word (cfg): the element's flags only, bits BOB_ELE_* (software/bob/device.py
+// ELEMENT_FIELDS). The crossbar in front of it is the cluster's (bob_clb, bob_fabric.v).
 //
 // Control inputs: ce, sr are the CLB's routed pins, shared by every flop of the
 // cluster (UG474: one CE and one SR per slice); gce/gsr/gwe as in clb.sv.
@@ -32,15 +40,15 @@ module ble #(
   input  wire [K-1:0]          i,
   input  wire                  cin,
   input  wire [`BOB_ELE_W-1:0] cfg,
+  input  wire                  lck,      // M22: CFGLUT5 shift clock (TCK)
+  input  wire                  lce,      // M22: shift enable (this element's INIT frame loading)
+  input  wire [1:0]            lcdi,     // M22: shift data, [0] lo half, [1] hi half
   output wire                  o,        // out[0]: FF q or O6 / carry sum
   output wire                  o2,       // out[1]: FF2 q or O5
   output wire                  cout
 );
 
-  localparam integer INIT_W = 1 << K;
-
   // ---- config field unpacking -----------------------------------------------
-  wire [INIT_W-1:0] init = cfg[`BOB_ELE_INIT_LO +: INIT_W];
   wire frac       = cfg[`BOB_ELE_FRAC];
   wire ff_en      = cfg[`BOB_ELE_FF_EN];
   wire ff_rstval  = cfg[`BOB_ELE_FF_RSTVAL];
@@ -55,9 +63,23 @@ module ble #(
   wire ff2_sr_en  = cfg[`BOB_ELE_FF2_SR_EN];
 
   // ---- LUT ------------------------------------------------------------------
-  wire [K-1:0] li = {i[K-1] | frac, i[K-2:0]};
-  wire lut_o6, lut_o5;
-  lutk #(.K(K)) u_lut (.init(init), .i(li), .o6(lut_o6), .o5(lut_o5));
+  wire [4:0] la;                                   // CFGLUT5 address: i[K-2:0]
+  generate
+    if (K == 6) begin : g_a6
+      assign la = i[4:0];
+    end else begin : g_ak
+      assign la = {{(6 - K){1'b0}}, i[K-2:0]};
+    end
+  endgenerate
+  wire lo6, hi6;
+  /* verilator lint_off PINCONNECTEMPTY */
+  CFGLUT5 u_lo (.CDO(), .O5(), .O6(lo6), .I4(la[4]), .I3(la[3]), .I2(la[2]), .I1(la[1]), .I0(la[0]),
+                .CDI(lcdi[0]), .CE(lce), .CLK(lck));
+  CFGLUT5 u_hi (.CDO(), .O5(), .O6(hi6), .I4(la[4]), .I3(la[3]), .I2(la[2]), .I1(la[1]), .I0(la[0]),
+                .CDI(lcdi[1]), .CE(lce), .CLK(lck));
+  /* verilator lint_on PINCONNECTEMPTY */
+  wire lut_o6 = (i[K-1] | frac) ? hi6 : lo6;        // MUXF7
+  wire lut_o5 = lo6;
 
   // ---- carry chain (clb.sv, unchanged) ---------------------------------------
   wire di      = cy_di_sel ? lut_o5 : i[0];
@@ -90,10 +112,5 @@ module ble #(
 
   assign o  = ff_en  ? q  : comb;
   assign o2 = ff2_en ? q2 : comb2;
-
-  // the crossbar selects after the element's fields are the cluster's (bob_clb)
-  /* verilator lint_off UNUSEDSIGNAL */
-  wire _unused = &{1'b0, cfg[`BOB_ELE_W-1:`BOB_ELE_XBAR_LO]};
-  /* verilator lint_on UNUSEDSIGNAL */
 
 endmodule

@@ -9,7 +9,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 ./gen_vectors.py
 
-SRC=(); while read -r l; do SRC+=("$l"); done < <(./hwfiles.sh)
+SRC=(); while read -r l; do SRC+=("$l"); done < <(./hwfiles.sh --sim)
 
 iverilog -g2012 -DSIMULATION -I../hw/src/generated -I../hw/tb -s tb_bob -o tb_bob.vvp \
     "${SRC[@]}" ../hw/tb/tb_bob.v

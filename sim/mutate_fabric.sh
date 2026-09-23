@@ -27,7 +27,7 @@ run_one() {
     local SRC=()
     while read -r l; do
         if [[ "$l" == */$file ]]; then SRC+=("$mut"); else SRC+=("$l"); fi
-    done < <(sim/hwfiles.sh)
+    done < <(sim/hwfiles.sh --sim)
     # M21: the element and the crossbar have the cluster unit bench (tb_clb, every mode,
     # every crossbar select, both flip-flops): seconds, where tb_bob takes minutes, so first
     local v
