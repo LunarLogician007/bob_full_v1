@@ -15,6 +15,8 @@ design land on the real floorplan, then program a board and watch the LEDs. `--p
 runs the whole thing against the board in software ([`software/host/fakeboard.py`](software/host/fakeboard.py)),
 so it works with no hardware attached.
 
+**New to FPGAs?** [`docs/learn/bit_by_bit.html`](docs/learn/bit_by_bit.html) is an animated tour from logic gates to bob's CLBs, routing, bitstreams, partial loads, BRAM and DSP, for anyone who knows a few gates.
+
 **Start here:** [`guide.html`](guide.html) / [`docs/project/GUIDE.md`](docs/project/GUIDE.md) explain every part — what it is, why it is built that way, how to use it and how to tweak it — and compare bob with OpenFPGA, Aegis and ZUMA. [`project.html`](project.html) / [`docs/project/REPORT.md`](docs/project/REPORT.md) are the project report: what was built, measured and learned. [`arch.html`](arch.html) is the interactive die slice.
 
 For the working plan, conventions, gotchas and every milestone, read [`PLAN.md`](PLAN.md); the live state and next steps are in [`HANDOFF.md`](HANDOFF.md); the short agent rules are in [`CLAUDE.md`](CLAUDE.md).
@@ -253,7 +255,8 @@ software/host/          Pico/JTAG tools: cfgplane, fpga, hwtest, bitstream (rout
 sim/           iverilog/verilator scripts, vector generators, mutation tests
 tests/         pytest
 work/examples/      Verilog designs for the synthesis flow
-docs/          bitstream-format.md, hwtest/Mx.md checklists, reports/, arch/ (arch.html sources)
+docs/          bitstream-format.md, hwtest/Mx.md checklists, reports/, arch/ (arch.html sources),
+              learn/ (bit_by_bit.html, assembled from learn/parts/ by concatenation)
 release/       frozen bundles: hw_M3…hw_M7, mac_M6/M7 (host tools), M7_8x8 (48-CLB profile)
 ```
 

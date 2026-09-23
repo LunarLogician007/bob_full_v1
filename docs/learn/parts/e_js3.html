@@ -1,0 +1,206 @@
+<script>
+"use strict";
+/* ---------- 12. CFGLUT5: a truth table shifted in ---------- */
+(function cfglut() {
+  const host = $("st-cfglut");
+  const svg = svgIn(host, 440, 210, "a CFGLUT5 filling its 32-bit truth table one bit per clock");
+  T(svg, 0, 16, "bits from the frame being written", "t-cfg");
+  const src = [];
+  const tt = [];
+  for (let k = 0; k < 32; k++) tt.push((k & 3) === 3 || k === 12 ? 1 : 0);   // an arbitrary function
+  for (let k = 0; k < 32; k++) src.push(S("rect", { x: 8 + k * 13.4, y: 24, width: 11, height: 14, rx: 2, class: tt[31 - k] ? "cellc1" : "cellc0" }, svg));
+  const cdi = W(svg, "M20,48 V74 H40", "thin");
+  T(svg, 0, 86, "CDI", "t-acc");
+  S("rect", { x: 40, y: 64, width: 390, height: 64, rx: 8, class: "gl" }, svg);
+  T(svg, 235, 146, "CFGLUT5: 32 cells, read by 5 inputs like any LUT", "t-m", "middle");
+  const cells = [];
+  for (let k = 0; k < 32; k++) {
+    const x = 48 + (k % 16) * 23.5, y = 70 + Math.floor(k / 16) * 28;
+    cells.push(S("rect", { x, y, width: 19, height: 22, rx: 3, class: "cellc0" }, svg));
+  }
+  const ctr = T(svg, 40, 170, "", "t-mono");
+  const note = T(svg, 40, 192, "", "t-m");
+  let reg = new Array(32).fill(0), n = 0, tmr = null;
+  function paint() { cells.forEach((c, k) => c.setAttribute("class", reg[k] ? "cellc1" : "cellc0"));
+    src.forEach((s, k) => s.setAttribute("opacity", k >= 32 - n ? 0.25 : 1));
+    ctr.textContent = `clock ${n} of 32`; setV(cdi, n < 32 ? tt[31 - n] : 0); }
+  function run() {
+    if (tmr) return;
+    reg = new Array(32).fill(0); n = 0; paint(); note.textContent = "each clock pushes one bit in; every stored bit moves one place along";
+    tmr = setInterval(() => {
+      reg.pop(); reg.unshift(tt[31 - n]); n++; paint();
+      if (n >= 32) { clearInterval(tmr); tmr = null; note.textContent = "32 clocks later the whole truth table is in place, while the next frame was still arriving"; }
+    }, REDUCED ? 20 : 160);
+  }
+  host.appendChild(H("div", { class: "ctl" }, [H("button", { type: "button", class: "pri", text: "Play", onclick: run })]));
+  host.appendChild(H("div", { class: "cap", html: "In M21 each bob LUT is <b>64 flip-flops + a 64-to-1 mux</b> in the host chip. In M22 it is <b>two CFGLUT5s</b>. The frames and the bitstream stay exactly the same: only where the bits are kept changes." }));
+  paint();
+})();
+
+/* ---------- 13. BRAM ---------- */
+(function bram() {
+  const host = $("st-bram");
+  const svg = svgIn(host, 440, 250, "a block RAM with address, data in, write enable and data out");
+  S("rect", { x: 150, y: 20, width: 150, height: 210, rx: 8, class: "gl" }, svg);
+  T(svg, 225, 16, "BRAM (8 of 1024 words shown)", "t-m", "middle");
+  const rowR = [], rowT = [];
+  for (let a = 0; a < 8; a++) {
+    const y = 34 + a * 24;
+    rowR.push(S("rect", { x: 160, y, width: 130, height: 20, rx: 3, class: "s-box" }, svg));
+    T(svg, 168, y + 14, "addr " + a, "t-m");
+    rowT.push(T(svg, 280, y + 14, "0", "t-mono", "end"));
+  }
+  T(svg, 10, 60, "address", "t-acc"); const addrT = T(svg, 10, 80, "-", "t-mono");
+  T(svg, 10, 120, "data in", "t-acc"); const dinT = T(svg, 10, 140, "-", "t-mono");
+  T(svg, 10, 180, "write", "t-acc"); const weT = T(svg, 10, 200, "0", "t-mono");
+  W(svg, "M80,75 H150", "thin"); W(svg, "M80,135 H150", "thin"); W(svg, "M80,195 H150", "thin");
+  T(svg, 320, 110, "data out", "t-acc"); const doutT = T(svg, 320, 132, "-", "t-big");
+  W(svg, "M300,125 H316", "thin");
+  const clkT = T(svg, 320, 200, "", "t-m");
+  let mem, A, Din, We, Dout;
+  function paint() {
+    rowT.forEach((t, a) => { t.textContent = mem[a]; });
+    rowR.forEach((r, a) => r.setAttribute("class", a === A ? "s-acc" : "s-box"));
+    addrT.textContent = A === null ? "-" : A; dinT.textContent = Din === null ? "-" : Din; weT.textContent = We;
+    doutT.textContent = Dout === null ? "-" : Dout;
+  }
+  function reset() { mem = [5, 0, 9, 0, 0, 2, 0, 0]; A = null; Din = null; We = 0; Dout = null; clkT.textContent = ""; paint(); }
+  const steps = [
+    { c: "Set up a <b>write</b>: address 3, data 7, write enable 1. Nothing is stored yet: the BRAM waits for the clock.", f: () => { A = 3; Din = 7; We = 1; paint(); } },
+    { c: "<b>Clock tick</b>: word 3 becomes 7.", f: () => { mem[3] = 7; clkT.textContent = "tick"; paint(); } },
+    { c: "Set up a <b>read</b> of address 5 (write enable 0). The output does not change yet...", f: () => { A = 5; Din = null; We = 0; clkT.textContent = ""; paint(); } },
+    { c: "...<b>clock tick</b>: now data out shows word 5 = 2. A BRAM read takes one clock.", f: () => { Dout = mem[5]; clkT.textContent = "tick"; paint(); } },
+    { c: "Read address 3 on the next tick: data out = <b>7</b>, the value written earlier.", f: () => { A = 3; Dout = mem[3]; paint(); } },
+  ];
+  Player(host, steps, reset, { intro: "A BRAM with some words already stored (they came in the bitstream). Press <b>Next</b>." });
+  reset();
+})();
+
+/* ---------- 14. DSP ---------- */
+(function dsp() {
+  const host = $("st-dsp");
+  const svg = svgIn(host, 440, 220, "a DSP slice computing P = P + A times B every clock");
+  T(svg, 10, 44, "A", "t-acc"); const aT = T(svg, 30, 44, "", "t-mono");
+  T(svg, 10, 104, "B", "t-acc"); const bT = T(svg, 30, 104, "", "t-mono");
+  W(svg, "M70,40 H120 V60", "thin"); W(svg, "M70,100 H120 V80", "thin");
+  S("circle", { cx: 130, cy: 70, r: 22, class: "gl" }, svg); T(svg, 130, 76, "×", "t-big", "middle");
+  const mT = T(svg, 130, 118, "", "t-mono", "middle");
+  W(svg, "M152,70 H218", "thin");
+  S("circle", { cx: 240, cy: 70, r: 22, class: "gl" }, svg); T(svg, 240, 77, "+", "t-big", "middle");
+  W(svg, "M262,70 H300", "thin");
+  S("rect", { x: 300, y: 45, width: 60, height: 50, rx: 6, class: "gl" }, svg); T(svg, 330, 66, "P", "t", "middle"); T(svg, 330, 84, "register", "t-m", "middle");
+  const fb = W(svg, "M360,70 H390 V150 H240 V92");
+  T(svg, 250, 168, "P fed back: accumulate", "t-m");
+  const pT = T(svg, 372, 40, "", "t-big");
+  const ops = [[3, 4], [2, 5], [6, 1], [7, 7]];
+  let P = 0, k = 0;
+  function paint(a, b) { aT.textContent = a === null ? "" : a; bT.textContent = b === null ? "" : b; mT.textContent = a === null ? "" : `${a}×${b}=${a * b}`; pT.textContent = "P = " + P; setV(fb, P > 0); }
+  function reset() { P = 0; k = 0; paint(null, null); }
+  const steps = ops.map(([a, b], i) => ({ c: `Clock ${i + 1}: A = ${a}, B = ${b}. The DSP multiplies them and adds the product to P: <b>P = ${ops.slice(0, i + 1).reduce((s, [x, y]) => s + x * y, 0)}</b>.`,
+    f: () => { P += a * b; paint(a, b); } }));
+  steps.push({ c: "That is a <b>multiply-accumulate</b>: the core of a digital filter (bob's <span class='mono'>fir</span> examples). The real slice does this with 25-bit × 18-bit numbers every clock.", f: () => {} });
+  Player(host, steps, reset, { intro: "P starts at 0. Press <b>Next</b> to feed in numbers." });
+})();
+
+/* ---------- 15. clock and timing ---------- */
+(function timing() {
+  const host = $("st-timing");
+  const svg = svgIn(host, 440, 230, "a path between two flip-flops and the clock period");
+  const hops = [["FF", 1], ["LUT", 3], ["route", 4], ["LUT", 3], ["route", 3]];
+  let x = 10;
+  const boxes = hops.map(([n, d]) => { const w = 64; S("rect", { x, y: 30, width: w - 8, height: 40, rx: 6, class: "gl" }, svg);
+    T(svg, x + (w - 8) / 2, 50, n, "t", "middle"); T(svg, x + (w - 8) / 2, 64, d + " ns", "t-m", "middle"); const r = { x, w }; x += w + 8; return r; });
+  S("rect", { x, y: 30, width: 56, height: 40, rx: 6, class: "gl" }, svg); T(svg, x + 28, 54, "FF", "t", "middle");
+  const total = hops.reduce((s, h) => s + h[1], 0) + 1;   // + setup
+  T(svg, x + 28, 84, "setup 1 ns", "t-m", "middle");
+  const pulse = S("circle", { cx: 12, cy: 90, r: 7, class: "dot1" }, svg);
+  // timeline
+  const tx0 = 20, scale = 18;
+  S("line", { x1: tx0, y1: 150, x2: tx0 + 22 * scale, y2: 150, class: "w thin dim" }, svg);
+  for (let t = 0; t <= 22; t += 2) { S("line", { x1: tx0 + t * scale, y1: 146, x2: tx0 + t * scale, y2: 154, class: "w thin dim" }, svg); T(svg, tx0 + t * scale, 170, t + "", "t-m", "middle"); }
+  T(svg, tx0, 138, "time (ns)", "t-m");
+  const pathBar = S("rect", { x: tx0, y: 176, width: total * scale, height: 12, rx: 3, fill: "var(--hi)" }, svg);
+  T(svg, tx0, 204, `the path needs ${total} ns (delays + setup)`, "t-m");
+  const clkMark = S("line", { x1: 0, y1: 130, x2: 0, y2: 196, stroke: "var(--acc)", "stroke-width": 3 }, svg);
+  const verdict = T(svg, tx0, 224, "", "t-acc");
+  const slider = H("input", { type: "range", min: 6, max: 22, value: 16, id: "tp", "aria-label": "clock period in nanoseconds" });
+  const lab = H("label", { for: "tp", class: "note" });
+  function paint() {
+    const P = Number(slider.value);
+    clkMark.setAttribute("x1", tx0 + P * scale); clkMark.setAttribute("x2", tx0 + P * scale);
+    lab.textContent = `clock period: ${P} ns (${(1000 / P).toFixed(0)} MHz)`;
+    const ok = P >= total;
+    verdict.textContent = ok ? `next clock at ${P} ns: the signal has arrived. Correct.` : `next clock at ${P} ns: too early! The flip-flop captures a wrong value.`;
+    verdict.setAttribute("class", ok ? "t-acc" : "t-acc");
+    verdict.style.fill = ok ? "var(--acc)" : "var(--warn)";
+    pathBar.setAttribute("fill", ok ? "var(--hi)" : "var(--warn)");
+  }
+  slider.addEventListener("input", paint);
+  let tmr = null;
+  const bRun = H("button", { type: "button", class: "pri", text: "Send a signal" });
+  bRun.addEventListener("click", () => {
+    if (tmr) return; let t = 0;
+    tmr = setInterval(() => { t += 0.5; let acc = 0, px = boxes[0].x;
+      for (let i = 0; i < hops.length; i++) { const d = hops[i][1]; if (t <= acc + d) { px = boxes[i].x + (boxes[i].w - 8) * ((t - acc) / d); break; } acc += d; px = boxes[i].x + boxes[i].w; }
+      pulse.setAttribute("cx", Math.min(px, x + 20));
+      if (t >= total) { clearInterval(tmr); tmr = null; } }, REDUCED ? 10 : 60);
+  });
+  host.appendChild(H("div", { class: "ctl" }, [bRun, slider, lab]));
+  host.appendChild(H("div", { class: "cap", html: "bob's <b>timing.py</b> adds these delays for your design's slowest path (using delays measured on the real chip), adds a safety margin, and sets the clock spacing so the capture is always correct." }));
+  paint();
+})();
+
+/* ---------- 16. flow ---------- */
+(function flow() {
+  const host = $("st-flow");
+  const svg = svgIn(host, 440, 250, "the tool flow from Verilog to the board");
+  const stages = ["Verilog", "yosys", "VPR", "FASM", "bitgen", "timing", "JTAG"];
+  const boxes = stages.map((s, k) => { const x = 4 + k * 62; const r = S("rect", { x, y: 10, width: 56, height: 30, rx: 6, class: "s-box" }, svg); T(svg, x + 28, 30, s, "t", "middle"); return r; });
+  const show = S("g", {}, svg);
+  function clear() { while (show.firstChild) show.removeChild(show.firstChild); }
+  function hi(k) { boxes.forEach((b, i) => b.setAttribute("class", i === k ? "s-acc" : i < k ? "s-box" : "s-box")); }
+  function lines(arr, cls) { arr.forEach((l, i) => T(show, 10, 76 + i * 20, l, cls || "t-mono")); }
+  function reset() { clear(); hi(-1); }
+  const steps = [
+    { c: "You write a design as <b>Verilog</b> text: here a 4-bit counter.", f: () => { clear(); hi(0); lines(["module counter(input clk, output [3:0] led);", "  reg [3:0] q;", "  always @(posedge clk) q <= q + 1;", "  assign led = q;", "endmodule"]); } },
+    { c: "<b>yosys</b> synthesises it into LUTs, adder cells and flip-flops: a netlist.", f: () => { clear(); hi(1); lines(["4 x BOB_FDRE    (the 4 bits of q)", "4 x BOB_ADD     (q + 1, on the carry chain)", "wires: q[0..3] -> adder -> D inputs", "source == netlist: checked in simulation"]); } },
+    { c: "<b>VPR</b> packs the cells into CLBs, places them on the grid, and routes every wire through the muxes.", f: () => { clear(); hi(2);
+        for (let r = 0; r < 4; r++) for (let c = 0; c < 9; c++) S("rect", { x: 20 + c * 30, y: 64 + r * 30, width: 24, height: 24, rx: 3, class: (r === 1 && c < 2) ? "s-acc" : "s-box" }, show);
+        W(show, "M68,106 H110 V76 H130", "sel"); T(show, 300, 90, "2 CLBs used", "t-m"); T(show, 300, 110, "route: 6 muxes", "t-m"); } },
+    { c: "<b>FASM</b> lists every setting that the placement and routing chose: each truth table, flag and mux select.", f: () => { clear(); hi(3); lines(["clb_x1y2.e0.init = 64'hAAAA...", "clb_x1y2.e0.cy_en = 1", "clb_x1y2.e0.ff_en = 1", "rr1523 = 3", "..."]); } },
+    { c: "<b>bitgen</b> turns the settings into the bitstream (and reads it back to check nothing was lost).", f: () => { clear(); hi(4); lines(["frames 0..256, 32,896 bits", "0000 0000 0000 0000  A5A5 0000 ...", "CRC 5F1BD9F4", "bits -> FASM -> bits: identical"]); } },
+    { c: "<b>timing</b> finds the critical path of this exact configuration and sets the clock.", f: () => { clear(); hi(5); lines(["critical path 12.4 ns x 1.25 margin", "clock: every 2 sysclk cycles = 62.5 MHz", "slack +3.5 ns: met"], "t-mono"); } },
+    { c: "<b>JTAG</b> carries the bits to the board (<span class='mono'>./bob load</span>). DONE lights, and the LEDs count.", f: () => { clear(); hi(6);
+        for (let i = 0; i < 4; i++) S("circle", { cx: 40 + i * 40, cy: 110, r: 12, class: i % 2 ? "dot1" : "cell0" }, show); T(show, 210, 116, "LD3..LD0", "t-m"); } },
+  ];
+  Player(host, steps, reset, { intro: "Seven tools, one command: <span class='mono'>./bob build counter.v</span>. Press <b>Next</b>." });
+})();
+
+/* ---------- 17. JTAG ---------- */
+(function jtag() {
+  const host = $("st-jtag");
+  const svg = svgIn(host, 440, 220, "JTAG: the Pico shifting bits into and out of the chip");
+  S("rect", { x: 10, y: 50, width: 90, height: 110, rx: 8, class: "gl" }, svg); T(svg, 55, 100, "Pico", "t", "middle"); T(svg, 55, 118, "(DirtyJTAG)", "t-m", "middle");
+  S("rect", { x: 200, y: 30, width: 230, height: 170, rx: 8, class: "gl" }, svg); T(svg, 315, 50, "the chip: a shift register", "t-m", "middle");
+  const names = ["TCK", "TMS", "TDI", "TDO"];
+  const ws = names.map((n, k) => { const y = 70 + k * 25; T(svg, 110, y - 4, n, "t-acc"); return W(svg, `M100,${y} H200`, "thin"); });
+  const reg = [];
+  for (let k = 0; k < 8; k++) reg.push(S("rect", { x: 222 + k * 25, y: 120, width: 21, height: 26, rx: 3, class: "cell0" }, svg));
+  const regT = [];
+  for (let k = 0; k < 8; k++) regT.push(T(svg, 232 + k * 25, 138, "", "t-mono", "middle"));
+  const mode = T(svg, 215, 176, "", "t-acc");
+  const outT = T(svg, 215, 196, "", "t-m");
+  const IN = [1, 0, 1, 0, 0, 0, 0, 0];     // CFG_IN = 000101, least significant bit first
+  let r, out, n;
+  function paint() { reg.forEach((c, k) => c.setAttribute("class", r[k] === null ? "cell0" : r[k] ? "cell1" : "cellc0"));
+    regT.forEach((t, k) => { t.textContent = r[k] === null ? "" : r[k]; t.style.fill = r[k] ? "#fff" : ""; }); outT.textContent = "out on TDO: " + (out.join("") || "-"); }
+  function reset() { r = [null, null, null, null, null, null, 1, 1]; out = []; n = 0; mode.textContent = ""; ws.forEach(w => setV(w, 0)); paint(); }
+  function shift(bit) { out.push(r[7] === null ? 0 : r[7]); r.pop(); r.unshift(bit); n++; setV(ws[0], 1); setV(ws[2], bit); setV(ws[3], out[out.length - 1]); paint(); }
+  const steps = [
+    { c: "<b>TMS</b> steers the chip's little state machine to \"shift the instruction register\".", f: () => { setV(ws[1], 1); mode.textContent = "shifting the instruction"; } },
+  ];
+  IN.slice(0, 6).forEach((b, i) => steps.push({ c: `TCK tick ${i + 1}: bit <b>${b}</b> goes in on TDI, and one old bit comes out on TDO.`, f: () => shift(b) }));
+  steps.push({ c: "6 bits in: that is the instruction (bob uses AMD's 6-bit codes, e.g. CFG_IN = 000101). Next the data for it is shifted the same way: that is how all 32,896 configuration bits travel.", f: () => { mode.textContent = "instruction loaded: now shift the data"; } });
+  Player(host, steps, reset, { intro: "Four wires. Press <b>Next</b> to shift an instruction in.", ms: 1300 });
+})();
+</script>
