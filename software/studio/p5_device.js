@@ -81,6 +81,31 @@ const device = {
     }
     svg.appendChild(g);
 
+    // M21: a CLB is N logic elements - draw them as small cells inside the tile, filled
+    // when used (a fractured LUT is split, an adder is ruled, a flip-flop is dotted)
+    if (d.cluster && S.placement && S.placement.elements && S.placement.elements.length) {
+      const n = d.cluster.n, cols = Math.ceil(n / 2), eg = this.n("g", {});
+      const cw = (CELL - GAP - 4) / cols, ch = (CELL - GAP - 4) / 2;
+      const used = {};
+      for (const e of S.placement.elements) used[`${e.x},${e.y},${e.e}`] = e;
+      for (const b of d.blocks) {
+        if (b.type !== "clb" || !placed[`${b.x},${b.y}`]) continue;
+        const [x, y] = this.px(b.x, b.y);
+        for (let k = 0; k < n; k++) {
+          const u = used[`${b.x},${b.y},${k}`];
+          const ex = x + GAP / 2 + 2 + (k % cols) * cw, ey = y + GAP / 2 + 2 + (1 - Math.floor(k / cols)) * ch;
+          const r = this.n("rect", { x: ex + 0.6, y: ey + 0.6, width: cw - 1.2, height: ch - 1.2, rx: 0.8,
+            fill: u ? "#fff" : "none", "fill-opacity": u ? (u.mode === "frac" ? 0.55 : 0.9) : 0,
+            stroke: "#fff", "stroke-width": 0.5, opacity: u ? 1 : 0.45 });
+          r.appendChild(this.n("title", {}, u ? `${b.name} element ${k}: ${u.mode}` +
+            `${u.ffs ? `, ${u.ffs} flip-flop${u.ffs > 1 ? "s" : ""}` : ""}\n${u.name}` : `${b.name} element ${k} - free`));
+          eg.appendChild(r);
+        }
+      }
+      svg.appendChild(eg);
+      byType.element = S.placement.elements.length;
+    }
+
     // Routed nets. Each CHANX/CHANY node occupies a channel segment along its own
     // span, so draw the span - joining node centres would suggest point-to-point
     // wires the fabric does not have. A segment used by several nets is darker.
@@ -134,7 +159,8 @@ const device = {
     $("devtitle").textContent = `${d.name} — ${d.grid.w} x ${d.grid.h} grid, W = ${d.chan_width}`;
     const pill = $("devpill");
     if (S.placement) {
-      pill.textContent = `${S.result ? S.result.design : ""}: ${byType.clb || 0} CLBs placed`;
+      pill.textContent = `${S.result ? S.result.design : ""}: ${byType.clb || 0} CLBs placed` +
+        (byType.element ? `, ${byType.element} of ${(byType.clb || 0) * d.cluster.n} elements used` : "");
       pill.className = "pill ok";
     } else {
       pill.textContent = "nothing placed yet"; pill.className = "pill";

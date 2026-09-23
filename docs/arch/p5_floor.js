@@ -135,7 +135,7 @@
     txt(LX + 15, LY + 23, "LEGEND", { size: 10.5, anchor: "start", w: 680, ls: 1.4 });
     line(LX + 15, LY + 31, LX + LW - 15, LY + 31, { s: C.RULE, sw: 1 });
     const sw = [
-      [`CLB  ×${NCLB}`, "1 BLE · LUT6 + carry + FDRE/FDSE", C.CLB, "clb"],
+      [`CLB  ×${NCLB}`, `${BOB.cluster.n} elements · LUT6 + carry + 2 FFs · crossbar`, C.CLB, "clb"],
       [`BRAM  ×${NTYPE.bram}`, "1024×18 true dual port", C.BRAM, "bram"],
       [`DSP  ×${NTYPE.dsp}`, "DSP48E1-style · cascaded", C.DSP, "dsp"],
       [`I/O PAD  ×${NPAD}`, "9 board pins · rest JTAG only", C.IO, "io"],
@@ -180,7 +180,11 @@
     y += 16;
     line(LX + 15, y, LX + LW - 15, y, { s: C.RULE, sw: 1 }); y += 19;
     txt(LX + 15, y, "ONE CHAIN, BY THE NUMBERS", { size: 9.2, anchor: "start", w: 680, ls: .9 }); y += 16;
-    [["ctrl tile", "8"], [`${NCLB} CLB words`, String(NCLB * 71)], ["BRAM + DSP fields", "48"], ["routing muxes", String(BOB.mbits)], ["tail pad", String(BOB.chain - 8 - NCLB * 71 - 48 - BOB.mbits)], ["total", String(BOB.chain)]]
+    // M21: the crossbar selects are CLB fields, so the routing count excludes them (EIN muxes)
+    [["ctrl tile", "40"], [`${NCLB} CLB words`, String(NCLB * BOB.cluster.clb_w)], ["BRAM + DSP fields", "48"],
+     ["routing muxes", String(BOB.mbits - NCLB * BOB.cluster.n * BOB.lut_k * BOB.cluster.xbar_w)],
+     ["frame padding", String(BOB.chain - 40 - NCLB * BOB.cluster.clb_w - 48 - (BOB.mbits - NCLB * BOB.cluster.n * BOB.lut_k * BOB.cluster.xbar_w))],
+     ["total", String(BOB.chain)]]
       .forEach(([a, b], i) => {
         txt(LX + 15, y, a, { size: 8, anchor: "start", fill: i === 5 ? C.INK : C.MUTE, w: i === 5 ? 680 : 400 });
         txt(LX + LW - 15, y, b, { size: 8.4, anchor: "end", mono: true, w: 700, fill: i === 5 ? C.CFG.t : C.INK });

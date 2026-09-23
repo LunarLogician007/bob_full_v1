@@ -173,6 +173,7 @@ def device():
                        for b in d["blocks"]],
             "capacity": used,
             "chain_w": B.CHAIN_W,
+            "cluster": {"n": B.CLB_N, "i": B.CLB_I, "xbar": B.CLUSTER["xbar"]},   # M21
             "frames": d["frames"]["count"],
             "muxes": len(d["rr"]["muxes"]),
             "pads": d["pads"]["count"],
@@ -186,14 +187,31 @@ def placement(name, work):
     """Where each netlist block landed, and the routed nets, for the Device view."""
     if not work or not os.path.isdir(work):
         return None
-    out = {"blocks": [], "nets": [], "wirelength": None}
+    out = {"blocks": [], "nets": [], "wirelength": None, "elements": []}
     place = os.path.join(work, f"{name}.place")
+    at = {}
     if os.path.exists(place):
-        for blk, (x, y) in sorted(FV.read_place(place).items()):
+        at = FV.read_place(place)
+        for blk, (x, y) in sorted(at.items()):
             site = BLOCK_AT.get((x, y))
             out["blocks"].append({"name": blk, "x": x, "y": y,
                                   "type": site["type"] if site else "?",
                                   "site": site["name"] if site else None})
+    # M21: the logic elements each CLB uses, and in which mode, from the packing
+    net = os.path.join(work, f"{name}.net")
+    if os.path.exists(net) and at:
+        import xml.etree.ElementTree as ET
+        for blk in ET.parse(net).getroot().findall("block"):
+            if not blk.get("instance", "").startswith("clb[") or blk.get("name") not in at:
+                continue
+            x, y = at[blk.get("name")]
+            for fle in blk.findall("block"):
+                if fle.get("name") == "open":
+                    continue
+                e = int(fle.get("instance").split("[")[1].rstrip("]"))
+                ffs = sum(1 for b in fle.iter("block") if b.get("instance") == "ff[0]" and b.get("name") != "open")
+                out["elements"].append({"x": x, "y": y, "e": e, "mode": fle.get("mode"),
+                                        "name": fle.get("name"), "ffs": ffs})
     route = os.path.join(work, f"{name}.route")
     if os.path.exists(route):
         nodes = {n[0]: n for n in B.DEVICE["rr"]["nodes"]}
