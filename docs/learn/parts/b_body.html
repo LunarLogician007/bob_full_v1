@@ -1,0 +1,321 @@
+<div class="wrap">
+<nav class="rail" aria-label="Chapters">
+  <div class="brand">bob, bit by bit</div>
+  <a href="#gates"><b>1</b>Gates</a>
+  <a href="#sram"><b>2</b>Remembering a bit</a>
+  <a href="#mux"><b>3</b>The multiplexer</a>
+  <a href="#lut"><b>4</b>The LUT</a>
+  <a href="#ff"><b>5</b>Why flip-flops</a>
+  <a href="#le"><b>6</b>The logic element</a>
+  <a href="#clb"><b>7</b>The CLB</a>
+  <a href="#routing"><b>8</b>Routing: why so many muxes</a>
+  <a href="#bits"><b>9</b>The configuration bits</a>
+  <a href="#full"><b>10</b>A full load</a>
+  <a href="#partial"><b>11</b>A partial load</a>
+  <a href="#cfglut"><b>12</b>LUTs that load themselves</a>
+  <a href="#bram"><b>13</b>BRAM</a>
+  <a href="#dsp"><b>14</b>DSP</a>
+  <a href="#timing"><b>15</b>The clock and timing</a>
+  <a href="#flow"><b>16</b>From Verilog to LEDs</a>
+  <a href="#jtag"><b>17</b>JTAG</a>
+  <a href="#gloss"><b>A</b>Words</a>
+</nav>
+
+<main>
+<header class="hero">
+  <h1>bob, bit by <span class="bit">bit</span></h1>
+  <p>bob is an FPGA that we built ourselves, running inside the chip of a PYNQ-Z2 board. This page explains how it works from the ground up. You only need to know a few logic gates and that a memory cell holds a 0 or a 1. Every chapter has a live diagram: press <b>Next</b> to go one step at a time, <b>Play</b> to watch, and click the switches to try things yourself.</p>
+  <div class="legend">
+    <span><i class="sw" style="background:var(--hi)"></i>a wire carrying 1</span>
+    <span><i class="sw" style="background:var(--lo)"></i>a wire carrying 0</span>
+    <span><i class="sw" style="background:var(--cfg)"></i>a configuration bit</span>
+    <span><i class="sw" style="background:var(--acc)"></i>something you can press, or the path that is chosen</span>
+  </div>
+</header>
+
+<section class="ch" id="gates">
+  <h2><span class="n">1</span>Gates: the smallest decisions</h2>
+  <p class="lead">Everything digital is built from gates. A gate looks at its inputs and answers with a 0 or a 1.</p>
+  <div class="cols">
+    <div class="txt">
+      <p>An <b>AND</b> gate answers 1 only when both inputs are 1. An <b>OR</b> gate answers 1 when either input is 1. <b>XOR</b> answers 1 when the inputs differ. <b>NAND</b> is AND with the answer flipped.</p>
+      <p>The table beside the gate is its <b>truth table</b>: every possible input, and the answer for each. With two inputs there are only 4 rows. Keep this table in mind. The whole trick of an FPGA is that it stores truth tables in memory instead of building fixed gates.</p>
+      <p class="aside">Try it: flip A and B, and change the gate. The highlighted row is the one being used right now.</p>
+    </div>
+    <div class="stage" id="st-gates"></div>
+  </div>
+</section>
+
+<section class="ch" id="sram">
+  <h2><span class="n">2</span>Remembering a bit</h2>
+  <p class="lead">An FPGA has to remember how it is wired. Each choice is one bit, kept in a tiny memory cell.</p>
+  <div class="cols">
+    <div class="txt">
+      <p>Connect two inverters in a ring: the output of one feeds the other. If the left one outputs 1, the right one outputs 0, which keeps the left one at 1. The pair holds itself. That is an <b>SRAM cell</b> (6 transistors in silicon). Writing means pushing the ring into the other state.</p>
+      <p>In an FPGA these bits are called <b>configuration bits</b>. They don't hold your data. They hold the FPGA's own settings: which truth table each LUT has, and which wire goes where. Load different bits and the same chip becomes a different circuit.</p>
+      <div class="bob"><b>In bob:</b> the board runs M21 with 32,896 configuration bits. Most of them are flip-flops in the host chip, and each is written like this cell.</div>
+    </div>
+    <div class="stage" id="st-sram"></div>
+  </div>
+</section>
+
+<section class="ch" id="mux">
+  <h2><span class="n">3</span>The multiplexer: a switch you control with bits</h2>
+  <p class="lead">A mux (multiplexer) picks one of its inputs and passes it to the output. Some select bits say which one.</p>
+  <div class="cols">
+    <div class="txt">
+      <p>A 4-input mux has two select bits, S1 and S0. Together they count 0 to 3, and that number is the input that gets through. A 2-input mux is just gates: <span class="mono">out = (A AND NOT S) OR (B AND S)</span>. Bigger muxes are trees of small ones.</p>
+      <p>This matters twice in an FPGA. First, a mux is how a LUT reads its truth table (next chapter). Second, a mux is how a wire chooses where its signal comes from (chapter 8). If the select bits are configuration bits, the mux is a switch that you set once, when you load the design.</p>
+      <p class="aside">Try it: set the four data inputs, then change S1 and S0 and watch which one reaches the output.</p>
+    </div>
+    <div class="stage" id="st-mux"></div>
+  </div>
+</section>
+
+<section class="ch" id="lut">
+  <h2><span class="n">4</span>The LUT: a truth table you can rewrite</h2>
+  <p class="lead">Put a truth table in SRAM cells, and let the inputs drive a mux that reads it. That is a Look-Up Table.</p>
+  <div class="cols">
+    <div class="txt">
+      <p>A 2-input LUT has 4 SRAM cells, one per row of the truth table. The inputs A and B are the mux's select bits, so they pick the row. The output is whatever bit is stored there.</p>
+      <p>To make an AND gate, store <span class="mono">0 0 0 1</span>. To make an XOR, store <span class="mono">0 1 1 0</span>. The hardware does not change at all: only the stored bits change. This is why one FPGA can become any circuit.</p>
+      <div class="bob"><b>In bob:</b> every LUT has 6 inputs, so it holds 2⁶ = 64 bits and can be <i>any</i> function of 6 inputs. It can also split into two 5-input LUTs that share their inputs ("fracturable", as in AMD's chips).</div>
+      <p class="aside">Try it: load a gate with the buttons (watch the bits go into the cells), then flip A and B.</p>
+    </div>
+    <div class="stage" id="st-lut"></div>
+  </div>
+</section>
+
+<section class="ch" id="ff">
+  <h2><span class="n">5</span>Why an FPGA needs flip-flops</h2>
+  <p class="lead">LUTs alone can only compute answers from the inputs you give them right now. Anything that counts or remembers needs a flip-flop.</p>
+  <div class="cols">
+    <div class="txt">
+      <p>Try to build a counter from logic alone: take the count, add 1, and feed the answer back to the input. The new value immediately comes round again, gets 1 added, and comes round again... The wire never settles. A single inverter fed back to itself does the same thing, flipping as fast as the silicon allows: a <b>ring oscillator</b>.</p>
+      <p>A <b>D flip-flop</b> fixes this. It copies its input D to its output Q <b>only at the moment the clock rises</b>, and holds Q steady the rest of the time. Put one in the loop and the counter moves exactly one step per clock tick. The flip-flop cuts the loop into steps.</p>
+      <p>So every logic element in an FPGA pairs a LUT (the "thinking") with a flip-flop (the "remembering"). A configuration bit chooses whether the output comes from the flip-flop or straight from the LUT.</p>
+      <p class="aside">Watch the top panel oscillate, then tick the clock in the bottom panel: Q only changes on the rising edge.</p>
+    </div>
+    <div class="stage" id="st-ff"></div>
+  </div>
+</section>
+
+<section class="ch" id="le">
+  <h2><span class="n">6</span>The logic element</h2>
+  <p class="lead">bob's basic building block: a LUT, a carry, and two flip-flops, with configuration bits deciding how they connect.</p>
+  <div class="cols">
+    <div class="txt">
+      <p>Each <b>logic element</b> has:</p>
+      <ul>
+        <li>a <b>6-input LUT</b> (64 configuration bits)</li>
+        <li>a <b>carry</b> path, so that neighbouring elements can add numbers quickly (the carry goes element to element without using the routing)</li>
+        <li><b>two flip-flops</b>, with enable (CE) and reset (SR) inputs</li>
+        <li>small muxes, set by <b>flag bits</b>, that choose "registered or not" for each output</li>
+      </ul>
+      <p>Together that is 106 configuration bits per element in bob (64 truth-table bits, 12 flags, and 30 bits for the crossbar that feeds its inputs, next chapter).</p>
+      <p class="aside">Step through it, and flip <b>ff_en</b> to see the output switch between "straight from the LUT" and "from the flip-flop".</p>
+    </div>
+    <div class="stage" id="st-le"></div>
+  </div>
+</section>
+
+<section class="ch" id="clb">
+  <h2><span class="n">7</span>The CLB: four elements that talk to each other</h2>
+  <p class="lead">A CLB (Configurable Logic Block) groups elements so that nearby logic can connect without leaving the block.</p>
+  <div class="cols">
+    <div class="txt">
+      <p>A bob CLB has <b>4 logic elements</b>, <b>16 inputs</b> from the routing and <b>8 outputs</b> back to it. In front of the elements sits a <b>crossbar</b>: every one of the 4 × 6 = 24 element inputs has its own mux. Each mux can pick any of the 16 CLB inputs or any of the 8 element outputs (feedback), or a constant 0 or 1.</p>
+      <p>Why group them? Signals that stay inside a CLB take one short hop through the crossbar instead of a long trip through the routing. Designs pack tighter and run faster. bob chose 4 elements per CLB after measuring 4, 6, 8 and 10: more elements need a bigger crossbar, and every crossbar mux costs chip area.</p>
+      <p class="aside">Try it: click an element input (a column) to change where it gets its signal. Each column is one 26-way mux, set by 5 configuration bits.</p>
+    </div>
+    <div class="stage" id="st-clb"></div>
+  </div>
+</section>
+
+<section class="ch" id="routing">
+  <h2><span class="n">8</span>Routing, and why there are so many muxes</h2>
+  <p class="lead">CLBs sit in a grid. Between them run wires, and every wire needs a way to choose its signal.</p>
+  <div class="cols">
+    <div class="txt">
+      <p>An FPGA doesn't know in advance which CLB will talk to which. So it lays wires (<b>tracks</b>) along every row and column, and at each point where a signal could change direction, or enter or leave a CLB, it puts a mux:</p>
+      <ul>
+        <li>a <b>connection box</b> mux picks which track feeds a CLB input</li>
+        <li>a <b>switch box</b> mux picks where a track continues from</li>
+      </ul>
+      <p>Connecting CLB A to CLB B means setting the select bits of every mux along one path. With thousands of possible paths, you need thousands of muxes. <b>This is where most of an FPGA goes: not the logic, the wiring.</b></p>
+      <div class="bob"><b>In bob:</b> 40 tracks per channel, 3,396 routing muxes plus 1,176 crossbar muxes, for 196 LUTs. VPR (the router) chooses the path; the result is just select values for these muxes.</div>
+      <p class="aside">Press Next to route one signal from the left CLB to the right one, one mux at a time.</p>
+    </div>
+    <div class="stage" id="st-route"></div>
+  </div>
+</section>
+
+<section class="ch" id="bits">
+  <h2><span class="n">9</span>All the settings, as one long string of bits</h2>
+  <p class="lead">Truth tables, flags and mux selects together form the configuration: one long string of bits, the bitstream.</p>
+  <div class="cols">
+    <div class="txt">
+      <p>bob can take the bits in two ways:</p>
+      <ul>
+        <li><b>The scan chain:</b> every configuration bit sits in one giant shift register. You push bits in one at a time; after 32,896 pushes every bit is in place. It's simple, but you have to rewrite everything to change anything.</li>
+        <li><b>Frames:</b> the bits are cut into <b>frames</b> of 128 bits (4 words of 32). Each frame has an address (FAR). You send "write frame 17" and 4 words, and only frame 17 changes. This is how AMD's real chips do it (their user guide UG470), and it makes partial loads possible.</li>
+      </ul>
+      <p>Every stream ends with a <b>CRC</b>, a checksum. If even one bit arrived wrong, the checksum doesn't match and bob refuses to start.</p>
+      <div class="bob"><b>In bob (M21):</b> 32,896 bits = 257 frames. Readback reads the frames back out, so you can check what went in.</div>
+    </div>
+    <div class="stage" id="st-bits"></div>
+  </div>
+</section>
+
+<section class="ch" id="full">
+  <h2><span class="n">10</span>A full load, step by step</h2>
+  <p class="lead">From a blank fabric to a running design: clear, send the frames, check, then wake up in a safe order.</p>
+  <div class="cols">
+    <div class="txt">
+      <p>Loading a design (<span class="mono">./bob load design.bit</span>) goes like this:</p>
+      <ul>
+        <li><b>JPROGRAM</b> clears every configuration bit: the fabric goes dark.</li>
+        <li>A <b>sync word</b> (<span class="mono">AA995566</span>) says "a bitstream starts here", and the <b>IDCODE</b> check makes sure the file was made for this chip.</li>
+        <li>The frames are written, and the frame address counts up by itself.</li>
+        <li>The <b>CRC</b> is compared.</li>
+        <li><b>Startup</b> runs in a fixed order: release the reset (GSR), then let the pins drive (GTS), then let the flip-flops change (GWE), then light DONE.</li>
+      </ul>
+      <p>The order matters. The flip-flops only start moving after every bit is in place, so the design never runs half-loaded.</p>
+    </div>
+    <div class="stage" id="st-full"></div>
+  </div>
+</section>
+
+<section class="ch" id="partial">
+  <h2><span class="n">11</span>A partial load: change a running design</h2>
+  <p class="lead">Rewrite only the frames that differ, while everything else keeps its state.</p>
+  <div class="cols">
+    <div class="txt">
+      <p>Say a design has a counter and an AND gate, and you want an OR gate instead. The two designs differ in one truth table, which lives in one frame. A partial load:</p>
+      <ul>
+        <li><b>freezes</b> the design: the clock is held, so no flip-flop changes (the command is AGHIGH)</li>
+        <li>writes <b>only the changed frame</b> (1 of 257)</li>
+        <li>checks the CRC</li>
+        <li><b>releases</b> the clock (LFRM)</li>
+      </ul>
+      <p>The counter never notices: it had 5 before and still has 5 after. The next tick makes it 6. Only the gate changed.</p>
+      <div class="bob"><b>In bob:</b> <span class="mono">./bob load new.bit --partial</span>. The board test <span class="mono">partial-cluster</span> even rewrites one element of a CLB while its neighbours keep counting.</div>
+    </div>
+    <div class="stage" id="st-partial"></div>
+  </div>
+</section>
+
+<section class="ch" id="cfglut">
+  <h2><span class="n">12</span>LUTs that load themselves (M22)</h2>
+  <p class="lead">bob's next step: store each truth table in a real LUT of the host chip, filled by shifting bits in.</p>
+  <div class="cols">
+    <div class="txt">
+      <p>bob runs <i>inside</i> another FPGA, AMD's XC7Z020. In chapter 4 each bob LUT was 64 flip-flops plus a big 64-to-1 mux, all built from the host chip's own parts. That costs a lot of the chip.</p>
+      <p>AMD's chips have a special LUT, the <b>CFGLUT5</b>, whose 32-bit truth table can be rewritten while the chip runs, by shifting bits in one per clock. M22 keeps each bob truth table in two of these. The frame buffer feeds the bits in over 32 clocks, while the next frame is still arriving.</p>
+      <p>The result, measured: a bob CLB drops from 469 host LUTs + 424 flip-flops to 193 LUTs + 48 flip-flops. That space pays for a 9 × 9 grid: 81 CLBs, 324 LUTs.</p>
+      <p class="aside">Press Play to watch a truth table shift into a CFGLUT5, one bit per clock.</p>
+    </div>
+    <div class="stage" id="st-cfglut"></div>
+  </div>
+</section>
+
+<section class="ch" id="bram">
+  <h2><span class="n">13</span>BRAM: a block of real memory</h2>
+  <p class="lead">For storing data (not settings), an FPGA has dedicated memory blocks.</p>
+  <div class="cols">
+    <div class="txt">
+      <p>You could build memory from LUTs and flip-flops, but it would eat the fabric. So FPGAs include <b>block RAMs</b>: dense memories with their own address and data pins, connected to the routing like a big CLB.</p>
+      <p>bob's BRAM holds <b>1024 words of 18 bits</b> and has two ports, A and B, that can work at the same time. It is <b>synchronous</b>: you give an address, and the data appears after the next clock tick.</p>
+      <p>Its initial contents come from the bitstream too (as frames of their own), so a design can start with a lookup table or a program already in memory.</p>
+      <p class="aside">Step through a write and a read. Notice that the read data appears one clock after the address.</p>
+    </div>
+    <div class="stage" id="st-bram"></div>
+  </div>
+</section>
+
+<section class="ch" id="dsp">
+  <h2><span class="n">14</span>DSP: a fast multiplier</h2>
+  <p class="lead">Multiplying is common (filters, audio, AI) and expensive in LUTs, so it gets its own hardware.</p>
+  <div class="cols">
+    <div class="txt">
+      <p>A 25 × 18-bit multiplier built from LUTs would take hundreds of them. A <b>DSP slice</b> is a ready-made multiplier plus an adder: it computes <span class="mono">P = A × B + C</span>, or keeps adding into P every clock (<b>multiply-accumulate</b>), which is the heart of a digital filter.</p>
+      <p>bob's DSP follows AMD's DSP48E1: A is 25 bits, B is 18, P is 48, with optional registers inside. Two DSPs are chained, so one can pass its result straight to the next.</p>
+      <div class="bob"><b>In bob:</b> the <span class="mono">fir</span> and <span class="mono">fir16</span> examples are digital filters. They multiply and add every clock.</div>
+    </div>
+    <div class="stage" id="st-dsp"></div>
+  </div>
+</section>
+
+<section class="ch" id="timing">
+  <h2><span class="n">15</span>The clock, and how fast a design can run</h2>
+  <p class="lead">A signal takes time to travel through LUTs and wires. The clock must wait for the slowest path.</p>
+  <div class="cols">
+    <div class="txt">
+      <p>Between two flip-flops, a signal passes through LUTs and routing muxes, and each one adds a little delay. The longest such path is the <b>critical path</b>. If the next clock tick arrives before the signal does, the flip-flop captures a wrong, half-finished value.</p>
+      <p>bob's clock is the board's 125 MHz clock with an <b>enable</b> (gce): the fabric only acts on the ticks where gce is 1. bob's tool <span class="mono">timing.py</span> adds up the delays of <i>your</i> design's real path and spaces the gce pulses just far enough apart, with a safety margin.</p>
+      <div class="bob"><b>In bob:</b> <span class="mono">./bob build design.v --hz auto</span> runs a design as fast as its own path allows. On the board the computed clock had a 4.5× margin.</div>
+      <p class="aside">Try it: shorten the clock period with the slider. When it gets shorter than the path, the capture goes wrong.</p>
+    </div>
+    <div class="stage" id="st-timing"></div>
+  </div>
+</section>
+
+<section class="ch" id="flow">
+  <h2><span class="n">16</span>From Verilog to LEDs</h2>
+  <p class="lead">How a design written as text ends up as configuration bits on the board.</p>
+  <div class="cols">
+    <div class="txt">
+      <ul>
+        <li><b>yosys</b> turns Verilog into a netlist of LUTs, adders and flip-flops (synthesis)</li>
+        <li><b>VPR</b> packs them into CLBs, places the CLBs on the grid, and routes the wires</li>
+        <li><b>FASM</b> lists every configuration setting that the placement and routing chose</li>
+        <li><b>bitgen</b> turns that list into the bitstream (and checks it survives the round trip)</li>
+        <li><b>timing</b> computes the critical path and the clock</li>
+        <li><b>JTAG</b> carries the bits to the board, and the LEDs light</li>
+      </ul>
+      <p>At every step bob checks itself against the source Verilog, a "golden" netlist and a Python model of the fabric, so a mistake is caught where it happens.</p>
+    </div>
+    <div class="stage" id="st-flow"></div>
+  </div>
+</section>
+
+<section class="ch" id="jtag">
+  <h2><span class="n">17</span>JTAG: four wires to talk to the chip</h2>
+  <p class="lead">The bits travel from the laptop, through a small Pico board, over four wires.</p>
+  <div class="cols">
+    <div class="txt">
+      <p><b>JTAG</b> is a standard test port. It has four wires: <b>TCK</b> (the clock), <b>TMS</b> (steers a small state machine), <b>TDI</b> (data in) and <b>TDO</b> (data out). Every TCK tick shifts one bit in on TDI and one bit out on TDO.</p>
+      <p>First you shift in an <b>instruction</b> (like "I'm sending configuration" or "give me your ID"). Then you shift the <b>data</b> for that instruction. bob uses AMD's instruction codes (JPROGRAM, CFG_IN, JSTART) and adds its own (CAPTURE to read every flip-flop, INTEST to drive the pins).</p>
+      <div class="bob"><b>In bob:</b> a Raspberry Pi Pico runs DirtyJTAG and wiggles these wires for the Mac. TCK runs at 100 kHz, so a full load takes about a third of a second.</div>
+    </div>
+    <div class="stage" id="st-jtag"></div>
+  </div>
+</section>
+
+<section class="ch" id="gloss">
+  <h2><span class="n">A</span>Words used on this page</h2>
+  <dl class="gloss">
+    <dt>FPGA</dt><dd>Field-Programmable Gate Array: a chip whose circuit is set by loading bits.</dd>
+    <dt>Configuration bit</dt><dd>One stored setting of the FPGA: a truth-table entry, a flag, or part of a mux select.</dd>
+    <dt>Bitstream</dt><dd>All the configuration bits for one design, in the order the chip takes them.</dd>
+    <dt>LUT</dt><dd>Look-Up Table: a small memory holding a truth table, read by a mux driven by the inputs.</dd>
+    <dt>Flip-flop</dt><dd>A 1-bit memory that updates only on a clock edge; it gives a circuit steps and state.</dd>
+    <dt>Logic element</dt><dd>LUT + carry + flip-flops, bob's basic unit (called a BLE or fle elsewhere).</dd>
+    <dt>CLB</dt><dd>Configurable Logic Block: 4 elements and their crossbar in bob.</dd>
+    <dt>Crossbar</dt><dd>The muxes inside a CLB that feed the element inputs.</dd>
+    <dt>Routing / track</dt><dd>The wires between blocks, and the muxes (connection and switch boxes) that steer them.</dd>
+    <dt>Frame</dt><dd>128 configuration bits with one address; the unit of writing and partial loading.</dd>
+    <dt>CRC</dt><dd>A checksum over the stream; a mismatch stops the design from starting.</dd>
+    <dt>BRAM</dt><dd>Block RAM: a dedicated 1024 × 18 memory block.</dd>
+    <dt>DSP</dt><dd>A dedicated multiplier + adder block.</dd>
+    <dt>Critical path</dt><dd>The slowest path between two flip-flops; it sets the fastest clock.</dd>
+    <dt>JTAG</dt><dd>The 4-wire test port that carries the bits to the chip.</dd>
+    <dt>Host chip</dt><dd>The real AMD FPGA on the PYNQ-Z2 that bob runs inside.</dd>
+  </dl>
+</section>
+
+<footer>
+  Built from the bob project's own design (docs/project/GUIDE.md, docs/bitstream-format.md). Numbers are the M21 fabric on the board, with M22 noted where it differs.
+</footer>
+</main>
+</div>

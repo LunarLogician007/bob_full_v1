@@ -1,0 +1,329 @@
+<script>
+"use strict";
+/* ---------- helpers ---------- */
+const NS = "http://www.w3.org/2000/svg";
+const REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function S(tag, a, parent) {
+  const e = document.createElementNS(NS, tag);
+  if (a) for (const k in a) {
+    if (k === "text") e.textContent = a[k];
+    else if (a[k] !== undefined && a[k] !== null) e.setAttribute(k, a[k]);
+  }
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function H(tag, a, kids) {
+  const e = document.createElement(tag);
+  if (a) for (const k in a) {
+    if (k === "text") e.textContent = a[k];
+    else if (k === "html") e.innerHTML = a[k];
+    else if (k.startsWith("on")) e.addEventListener(k.slice(2), a[k]);
+    else if (a[k] !== undefined && a[k] !== null) e.setAttribute(k, a[k]);
+  }
+  (kids || []).forEach(c => c && e.appendChild(typeof c === "string" ? document.createTextNode(c) : c));
+  return e;
+}
+function svgIn(host, w, h, label) {
+  const s = S("svg", { viewBox: `0 0 ${w} ${h}`, role: "img", "aria-label": label || "diagram" });
+  host.appendChild(s);
+  return s;
+}
+function W(svg, d, cls) { return S("path", { d, class: "w " + (cls || "") }, svg); }
+function T(svg, x, y, s, cls, anchor) { return S("text", { x, y, class: cls || "t", "text-anchor": anchor || "start", text: s }, svg); }
+function setV(el, v) { el.classList.toggle("v1", !!v); }
+function bitBtn(label, v, on) {
+  const b = H("button", { class: "bitbtn", type: "button", "data-v": v ? "1" : "0" });
+  const set = x => { v = x ? 1 : 0; b.dataset.v = String(v); b.textContent = `${label} = ${v}`; b.setAttribute("aria-pressed", v ? "true" : "false"); };
+  set(v);
+  b.addEventListener("click", () => { set(!v); on(v); });
+  b.set = set; b.get = () => v;
+  return b;
+}
+function choice(labels, cur, on) {
+  const row = H("div", { class: "ctl", role: "group" });
+  const btns = labels.map(l => {
+    const b = H("button", { type: "button", text: l, "aria-pressed": l === cur ? "true" : "false" });
+    b.addEventListener("click", () => { btns.forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false")); on(l); });
+    row.appendChild(b);
+    return b;
+  });
+  row.pick = l => btns.forEach(x => x.setAttribute("aria-pressed", x.textContent === l ? "true" : "false"));
+  return row;
+}
+/* A step player: every step is replayed from reset(), so Back is exact. */
+function Player(host, steps, reset, opt) {
+  opt = opt || {};
+  let i = -1, timer = null;
+  const cap = H("div", { class: "cap", "aria-live": "polite" });
+  const dots = H("div", { class: "dots", "aria-hidden": "true" });
+  steps.forEach(() => dots.appendChild(H("i")));
+  const bReset = H("button", { type: "button", text: "Reset" });
+  const bBack = H("button", { type: "button", text: "◀ Back" });
+  const bNext = H("button", { type: "button", class: "pri", text: "Next ▶" });
+  const bPlay = H("button", { type: "button", text: "Play" });
+  const ctl = H("div", { class: "ctl" }, [bReset, bBack, bNext, bPlay, dots]);
+  host.appendChild(cap); host.appendChild(ctl);
+  function go(n) {
+    i = Math.max(-1, Math.min(steps.length - 1, n));
+    reset();
+    for (let j = 0; j <= i; j++) steps[j].f();
+    cap.innerHTML = i < 0 ? (opt.intro || "Press <b>Next</b> to start.") : steps[i].c;
+    [...dots.children].forEach((d, k) => d.classList.toggle("on", k <= i));
+    bBack.disabled = i < 0; bNext.disabled = i >= steps.length - 1;
+  }
+  function stop() { if (timer) { clearInterval(timer); timer = null; bPlay.textContent = "Play"; } }
+  bReset.addEventListener("click", () => { stop(); go(-1); });
+  bBack.addEventListener("click", () => { stop(); go(i - 1); });
+  bNext.addEventListener("click", () => { stop(); go(i + 1); });
+  bPlay.addEventListener("click", () => {
+    if (timer) return stop();
+    if (i >= steps.length - 1) go(-1);
+    bPlay.textContent = "Pause";
+    timer = setInterval(() => { if (i >= steps.length - 1) stop(); else go(i + 1); }, opt.ms || 1800);
+  });
+  go(-1);
+  return { go, stop };
+}
+const $ = id => document.getElementById(id);
+
+/* ---------- 1. gates ---------- */
+(function gates() {
+  const host = $("st-gates");
+  const svg = svgIn(host, 360, 160, "a logic gate with inputs A and B");
+  const wa = W(svg, "M20,58 H150"), wb = W(svg, "M20,102 H150"), wo = W(svg, "M238,80 H330");
+  T(svg, 20, 50, "A", "t-acc"); T(svg, 20, 94, "B", "t-acc");
+  const shape = S("path", { class: "gl" }, svg);
+  const extra = S("path", { class: "w thin", style: "stroke:var(--ink)" }, svg);
+  const bubble = S("circle", { cx: 238, cy: 80, r: 5, class: "gl" }, svg);
+  const lbl = T(svg, 190, 86, "AND", "t", "middle");
+  const out = T(svg, 336, 86, "0", "t-big");
+  const SH = {
+    AND: "M150,40 H190 A40,40 0 0 1 190,120 H150 Z",
+    NAND: "M150,40 H190 A40,40 0 0 1 190,120 H150 Z",
+    OR: "M146,40 Q172,80 146,120 Q208,120 234,80 Q208,40 146,40 Z",
+    XOR: "M152,40 Q178,80 152,120 Q212,120 236,80 Q212,40 152,40 Z",
+  };
+  const FN = { AND: (a, b) => a & b, OR: (a, b) => a | b, XOR: (a, b) => a ^ b, NAND: (a, b) => 1 - (a & b) };
+  let g = "AND", A = 0, B = 1;
+  const table = H("table", { class: "tt" });
+  const tbody = H("tbody");
+  table.appendChild(H("thead", {}, [H("tr", {}, [H("th", { text: "A" }), H("th", { text: "B" }), H("th", { text: "out" })])]));
+  table.appendChild(tbody);
+  function draw() {
+    shape.setAttribute("d", SH[g]);
+    extra.setAttribute("d", g === "XOR" ? "M140,40 Q166,80 140,120" : "");
+    bubble.style.display = g === "NAND" ? "" : "none";
+    lbl.textContent = g;
+    const o = FN[g](A, B);
+    setV(wa, A); setV(wb, B); setV(wo, o);
+    out.textContent = String(o);
+    out.setAttribute("class", o ? "t-big t-hi" : "t-big");
+    tbody.innerHTML = "";
+    for (let r = 0; r < 4; r++) {
+      const a = r >> 1, b = r & 1;
+      tbody.appendChild(H("tr", { class: a === A && b === B ? "on" : "" },
+        [H("td", { text: a }), H("td", { text: b }), H("td", { text: FN[g](a, b) })]));
+    }
+  }
+  const row = H("div", { class: "ctl" }, [bitBtn("A", A, v => { A = v; draw(); }), bitBtn("B", B, v => { B = v; draw(); })]);
+  host.appendChild(row);
+  host.appendChild(choice(["AND", "OR", "XOR", "NAND"], g, x => { g = x; draw(); }));
+  host.appendChild(H("div", { class: "scroll" }, [table]));
+  draw();
+})();
+
+/* ---------- 2. SRAM cell ---------- */
+(function sram() {
+  const host = $("st-sram");
+  const svg = svgIn(host, 380, 250, "an SRAM cell: two inverters in a ring");
+  // top inverter: left -> right
+  S("path", { d: "M150,30 L150,90 L210,60 Z", class: "gl" }, svg); S("circle", { cx: 215, cy: 60, r: 5, class: "gl" }, svg);
+  // bottom inverter: right -> left
+  S("path", { d: "M230,130 L230,190 L170,160 Z", class: "gl" }, svg); S("circle", { cx: 165, cy: 160, r: 5, class: "gl" }, svg);
+  const q = W(svg, "M220,60 H280 V160 H230");       // Q: top out -> bottom in
+  const qb = W(svg, "M160,160 H100 V60 H150");      // Q̄: bottom out -> top in
+  T(svg, 286, 112, "Q", "t-acc"); T(svg, 78, 112, "Q̄", "t-acc");
+  const bl = W(svg, "M40,20 V230", "thin"), blb = W(svg, "M340,20 V230", "thin");
+  T(svg, 32, 244, "bit line", "t-m"); T(svg, 300, 244, "bit line", "t-m");
+  const acc1 = W(svg, "M40,110 H100", "thin dim"), acc2 = W(svg, "M280,110 H340", "thin dim");
+  const qv = T(svg, 300, 64, "Q = 1", "t-mono");
+  let v = 1;
+  const note = H("div", { class: "cap", html: "The ring holds <b>Q = 1</b> by itself: the top inverter sees 0 and outputs 1, the bottom one sees 1 and outputs 0." });
+  function paint(val) { setV(q, val); setV(qb, 1 - val); qv.textContent = "Q = " + val; }
+  paint(v);
+  let busy = false;
+  function write(x) {
+    if (busy) return; busy = true;
+    const steps = [
+      () => { setV(bl, 1 - x); setV(blb, x); note.innerHTML = `Writing <b>${x}</b>: the bit lines are driven to the new value...`; },
+      () => { acc1.classList.remove("dim"); acc2.classList.remove("dim"); acc1.classList.add("sel"); acc2.classList.add("sel"); note.innerHTML = "...the access switches open and overpower the ring..."; },
+      () => { paint(x); note.innerHTML = `...the ring flips to <b>Q = ${x}</b>...`; },
+      () => { acc1.classList.add("dim"); acc2.classList.add("dim"); acc1.classList.remove("sel"); acc2.classList.remove("sel"); setV(bl, 0); setV(blb, 0);
+              note.innerHTML = `...the switches close, and the ring keeps <b>Q = ${x}</b> with nothing driving it. One bit remembered.`; busy = false; },
+    ];
+    steps.forEach((f, k) => setTimeout(f, REDUCED ? 0 : k * 650));
+    v = x;
+  }
+  host.appendChild(note);
+  host.appendChild(H("div", { class: "ctl" }, [H("button", { type: "button", class: "pri", text: "Write 1", onclick: () => write(1) }),
+                                                H("button", { type: "button", text: "Write 0", onclick: () => write(0) })]));
+  // a grid of 64 cells: one LUT6's memory
+  const g = svgIn(host, 380, 120, "64 SRAM cells, the memory of one 6-input LUT");
+  T(g, 0, 12, "64 cells = the memory of one 6-input LUT", "t-m");
+  const cells = [];
+  for (let r = 0; r < 4; r++) for (let c = 0; c < 16; c++) {
+    cells.push(S("rect", { x: c * 23 + 2, y: 22 + r * 23, width: 19, height: 19, rx: 3, class: Math.random() < 0.4 ? "cellc1" : "cellc0" }, g));
+  }
+  host.appendChild(H("div", { class: "ctl" }, [H("button", { type: "button", text: "Load new bits", onclick: () => {
+    cells.forEach((c, k) => setTimeout(() => c.setAttribute("class", Math.random() < 0.4 ? "cellc1" : "cellc0"), REDUCED ? 0 : k * 18));
+  } })]));
+})();
+
+/* ---------- 3. mux ---------- */
+(function mux() {
+  const host = $("st-mux");
+  const svg = svgIn(host, 380, 250, "a 4-input multiplexer");
+  S("path", { d: "M170,25 L230,55 L230,185 L170,215 Z", class: "gl" }, svg);
+  T(svg, 200, 124, "MUX", "t", "middle");
+  const ys = [55, 95, 145, 185];
+  const ins = ys.map((y, k) => { T(svg, 20, y - 6, "D" + k, "t-acc"); return W(svg, `M20,${y} H170`); });
+  const inner = ys.map(y => W(svg, `M172,${y} L228,120`, "thin dim"));
+  const outw = W(svg, "M230,120 H330");
+  const s1 = W(svg, "M190,215 V240", "thin"), s0 = W(svg, "M210,205 V240", "thin");
+  T(svg, 178, 248, "S1", "t-m"); T(svg, 214, 248, "S0", "t-m");
+  const ov = T(svg, 336, 126, "0", "t-big");
+  const sv = T(svg, 240, 80, "select = 0", "t-mono");
+  let D = [1, 0, 1, 1], S1 = 0, S0 = 0;
+  function draw() {
+    const s = S1 * 2 + S0;
+    ins.forEach((w, k) => { setV(w, D[k]); });
+    inner.forEach((w, k) => { w.classList.toggle("dim", k !== s); w.classList.toggle("sel", k === s); });
+    setV(outw, D[s]); setV(s1, S1); setV(s0, S0);
+    ov.textContent = String(D[s]); ov.setAttribute("class", D[s] ? "t-big t-hi" : "t-big");
+    sv.textContent = `select = ${S1}${S0} = ${s}`;
+  }
+  host.appendChild(H("div", { class: "ctl" }, D.map((d, k) => bitBtn("D" + k, d, v => { D[k] = v; draw(); }))));
+  host.appendChild(H("div", { class: "ctl" }, [bitBtn("S1", S1, v => { S1 = v; draw(); }), bitBtn("S0", S0, v => { S0 = v; draw(); })]));
+  draw();
+})();
+
+/* ---------- 4. LUT ---------- */
+(function lut() {
+  const host = $("st-lut");
+  const svg = svgIn(host, 400, 270, "a 2-input LUT: four SRAM cells read by a mux");
+  T(svg, 10, 16, "configuration bits (the truth table)", "t-cfg");
+  const ys = [50, 100, 150, 200];
+  const cells = [], cellT = [];
+  ys.forEach((y, k) => {
+    const r = S("rect", { x: 70, y: y - 16, width: 40, height: 32, rx: 5, class: "cellc0 clickable", tabindex: 0, role: "button",
+                          "aria-label": `truth table row ${k}` }, svg);
+    cells.push(r);
+    cellT.push(T(svg, 90, y + 5, "0", "t-mono", "middle"));
+    T(svg, 10, y + 4, `A${k >> 1} B${k & 1}`.replace("A", "A=").replace(" B", " B="), "t-m");
+  });
+  S("path", { d: "M200,25 L260,55 L260,195 L200,225 Z", class: "gl" }, svg);
+  T(svg, 230, 130, "MUX", "t", "middle");
+  const links = ys.map(y => W(svg, `M110,${y} H200`));
+  const inner = ys.map(y => W(svg, `M202,${y} L258,125`, "thin dim"));
+  const outw = W(svg, "M260,125 H350");
+  const wa = W(svg, "M220,225 V255", "thin"), wb = W(svg, "M240,215 V255", "thin");
+  T(svg, 206, 266, "A", "t-acc"); T(svg, 246, 266, "B", "t-acc");
+  const ov = T(svg, 356, 131, "0", "t-big");
+  const status = T(svg, 280, 60, "", "t-m");
+  let bits = [0, 0, 0, 1], A = 1, B = 1, loading = false;
+  function draw() {
+    const s = A * 2 + B;
+    bits.forEach((b, k) => { cells[k].setAttribute("class", (b ? "cellc1" : "cellc0") + " clickable"); cellT[k].textContent = b;
+      cellT[k].style.fill = b ? "#fff" : ""; setV(links[k], b); });
+    inner.forEach((w, k) => { w.classList.toggle("dim", k !== s); w.classList.toggle("sel", k === s); });
+    setV(outw, bits[s]); setV(wa, A); setV(wb, B);
+    ov.textContent = String(bits[s]); ov.setAttribute("class", bits[s] ? "t-big t-hi" : "t-big");
+  }
+  cells.forEach((c, k) => {
+    const flip = () => { if (loading) return; bits[k] ^= 1; status.textContent = "custom function"; pre.pick(""); draw(); };
+    c.addEventListener("click", flip);
+    c.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); flip(); } });
+  });
+  const P = { AND: [0, 0, 0, 1], OR: [0, 1, 1, 1], XOR: [0, 1, 1, 0], NAND: [1, 1, 1, 0] };
+  function load(name) {
+    if (loading) return; loading = true;
+    const tgt = P[name];
+    bits = [0, 0, 0, 0]; draw();
+    status.textContent = `loading ${name}...`;
+    tgt.forEach((b, k) => setTimeout(() => {
+      bits[k] = b; draw();
+      status.textContent = `bit ${k + 1} of 4 written`;
+      if (k === 3) { status.textContent = `now it is ${name}`; loading = false; }
+    }, REDUCED ? 0 : 350 * (k + 1)));
+  }
+  const pre = choice(["AND", "OR", "XOR", "NAND"], "AND", load);
+  host.appendChild(pre);
+  host.appendChild(H("div", { class: "ctl" }, [bitBtn("A", A, v => { A = v; draw(); }), bitBtn("B", B, v => { B = v; draw(); }),
+    H("span", { class: "note", text: "Click a cell to change one bit of the truth table." })]));
+  status.textContent = "now it is AND";
+  draw();
+})();
+
+/* ---------- 5. why flip-flops ---------- */
+(function ff() {
+  const host = $("st-ff");
+  // (a) ring oscillator
+  host.appendChild(H("div", { class: "note", html: "<b>Without a flip-flop:</b> an inverter feeding itself" }));
+  const a = svgIn(host, 400, 120, "an inverter whose output feeds its own input, oscillating");
+  S("path", { d: "M60,20 L60,70 L110,45 Z", class: "gl" }, a); S("circle", { cx: 115, cy: 45, r: 5, class: "gl" }, a);
+  const loopW = W(a, "M120,45 H150 V95 H30 V45 H60");
+  const wave = S("polyline", { class: "w thin", points: "" }, a);
+  T(a, 170, 16, "the wire over time", "t-m");
+  const noteA = T(a, 170, 112, "", "t-m");
+  let samples = [], osc = null, val = 0;
+  function drawWave() {
+    const pts = samples.map((s, k) => `${170 + k * 4},${s ? 30 : 80} ${170 + (k + 1) * 4},${s ? 30 : 80}`).join(" ");
+    wave.setAttribute("points", pts); setV(loopW, val); setV(wave, 1);
+  }
+  const bOsc = H("button", { type: "button", class: "pri", text: "Run the loop" });
+  bOsc.addEventListener("click", () => {
+    if (osc) { clearInterval(osc); osc = null; bOsc.textContent = "Run the loop"; return; }
+    bOsc.textContent = "Stop";
+    osc = setInterval(() => { val ^= 1; samples.push(val); if (samples.length > 55) samples.shift(); drawWave();
+      noteA.textContent = "flips forever: it never settles on an answer"; }, REDUCED ? 400 : 90);
+  });
+  host.appendChild(H("div", { class: "ctl" }, [bOsc]));
+  // (b) D flip-flop
+  host.appendChild(H("div", { class: "note", html: "<b>With a flip-flop:</b> Q copies D only when the clock rises" }));
+  const b = svgIn(host, 400, 200, "a D flip-flop and its waveforms");
+  S("rect", { x: 20, y: 20, width: 70, height: 80, rx: 6, class: "gl" }, b);
+  T(b, 26, 44, "D", "t"); T(b, 76, 64, "Q", "t", "end"); S("path", { d: "M20,78 L30,85 L20,92", class: "w thin", style: "stroke:var(--ink)" }, b);
+  T(b, 34, 90, "clk", "t-m");
+  const dW = W(b, "M0,40 H20"), qW = W(b, "M90,60 H110"), cW = W(b, "M0,85 H20", "thin");
+  const names = ["clk", "D", "Q"];
+  names.forEach((n, k) => T(b, 120, 132 + k * 24, n, "t-acc"));
+  const traces = names.map(() => S("polyline", { class: "w thin", points: "" }, b));
+  const cnt = T(b, 120, 40, "", "t-mono");
+  let hist = [{ c: 0, d: 0, q: 0 }], D = 0, Q = 0, ticks = 0, auto = null;
+  function paint() {
+    const x0 = 150, dx = 12, last = hist.slice(-20);
+    names.forEach((n, k) => {
+      const key = n === "clk" ? "c" : n === "D" ? "d" : "q";
+      const base = 136 + k * 24;
+      traces[k].setAttribute("points", last.map((h, i) => `${x0 + i * dx},${h[key] ? base - 14 : base} ${x0 + (i + 1) * dx},${h[key] ? base - 14 : base}`).join(" "));
+      setV(traces[k], 1);
+    });
+    setV(dW, D); setV(qW, Q);
+    cnt.textContent = `clock ticks: ${ticks}   Q = ${Q}`;
+  }
+  function setD(v) { D = v; hist.push({ c: 0, d: D, q: Q }); paint(); }
+  function tick() { hist.push({ c: 0, d: D, q: Q }); Q = D; ticks++; hist.push({ c: 1, d: D, q: Q }); hist.push({ c: 1, d: D, q: Q }); setV(cW, 1);
+    setTimeout(() => setV(cW, 0), 250); paint(); }
+  const dBtn = bitBtn("D", D, setD);
+  const tBtn = H("button", { type: "button", class: "pri", text: "Tick the clock", onclick: tick });
+  const aBtn = H("button", { type: "button", text: "Auto" });
+  aBtn.addEventListener("click", () => {
+    if (auto) { clearInterval(auto); auto = null; aBtn.textContent = "Auto"; return; }
+    aBtn.textContent = "Stop"; let k = 0;
+    auto = setInterval(() => { if (k % 3 === 1) { dBtn.set(D ? 0 : 1); setD(dBtn.get()); } else tick(); k++; }, REDUCED ? 900 : 700);
+  });
+  host.appendChild(H("div", { class: "ctl" }, [dBtn, tBtn, aBtn]));
+  host.appendChild(H("div", { class: "cap", html: "Change D as often as you like: Q waits for the <b>rising edge</b> of the clock. Feed Q + 1 back to D and you get a counter that moves exactly one step per tick." }));
+  paint();
+})();
+</script>

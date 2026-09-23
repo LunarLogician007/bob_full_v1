@@ -1,0 +1,258 @@
+<script>
+"use strict";
+/* ---------- 6. logic element ---------- */
+(function le() {
+  const host = $("st-le");
+  const svg = svgIn(host, 440, 250, "a logic element: LUT, carry, flip-flop and output mux");
+  // inputs
+  const inW = [];
+  for (let k = 0; k < 6; k++) { const y = 40 + k * 20; T(svg, 0, y + 4, "i" + k, "t-m"); inW.push(W(svg, `M18,${y} H70`, "thin")); }
+  S("rect", { x: 70, y: 25, width: 90, height: 125, rx: 8, class: "gl" }, svg);
+  T(svg, 115, 80, "LUT6", "t", "middle"); T(svg, 115, 98, "64 bits", "t-cfg", "middle");
+  S("rect", { x: 80, y: 180, width: 70, height: 36, rx: 6, class: "s-box" }, svg);
+  T(svg, 115, 202, "carry", "t-m", "middle");
+  const cin = W(svg, "M115,240 V216", "thin"), cout = W(svg, "M115,180 V160", "thin dim");
+  T(svg, 122, 238, "carry in", "t-m");
+  const lutOut = W(svg, "M160,88 H250");
+  const toFF = W(svg, "M200,88 V60 H240"), toMux0 = W(svg, "M250,88 H330 V110 H350");
+  S("rect", { x: 240, y: 30, width: 60, height: 60, rx: 6, class: "gl" }, svg);
+  T(svg, 270, 55, "FF", "t", "middle"); T(svg, 270, 75, "D → Q", "t-m", "middle");
+  const clkW = W(svg, "M270,110 V90", "thin"); T(svg, 256, 124, "clock", "t-m");
+  const ffQ = W(svg, "M300,60 H330 V90 H350");
+  S("path", { d: "M350,70 L375,82 L375,128 L350,140 Z", class: "gl" }, svg);
+  T(svg, 356, 88, "1", "t-m"); T(svg, 356, 118, "0", "t-m");
+  const sel = S("rect", { x: 355, y: 150, width: 14, height: 14, rx: 2, class: "cellc1" }, svg);
+  W(svg, "M362,150 V134", "thin dim");
+  T(svg, 376, 162, "ff_en", "t-cfg");
+  const outW = W(svg, "M375,105 H435");
+  const pathA = W(svg, "M352,112 L373,105", "thin dim"), pathB = W(svg, "M352,88 L373,105", "thin dim");
+  const ov = T(svg, 400, 96, "", "t-mono");
+  let ffEn = 1, ins = [1, 0, 1, 1, 0, 0], lutV = 0, q = 0, clk = 0, cy = 0;
+  function paint() {
+    ins.forEach((v, k) => setV(inW[k], v));
+    setV(lutOut, lutV); setV(toFF, lutV); setV(toMux0, lutV); setV(ffQ, q); setV(clkW, clk); setV(cin, cy);
+    sel.setAttribute("class", ffEn ? "cellc1" : "cellc0");
+    pathB.classList.toggle("sel", !!ffEn); pathB.classList.toggle("dim", !ffEn);
+    pathA.classList.toggle("sel", !ffEn); pathA.classList.toggle("dim", !!ffEn);
+    const o = ffEn ? q : lutV; setV(outW, o); ov.textContent = "out = " + o;
+  }
+  function reset() { ins = [0, 0, 0, 0, 0, 0]; lutV = 0; q = 0; clk = 0; cy = 0; paint(); }
+  const steps = [
+    { c: "Six signals arrive from the crossbar on inputs <b>i0–i5</b>.", f: () => { ins = [1, 0, 1, 1, 0, 0]; paint(); } },
+    { c: "Together they are a 6-bit number (here 13). The LUT reads <b>row 13</b> of its 64-bit truth table: it holds a 1, so the LUT outputs 1 straight away.", f: () => { lutV = 1; paint(); } },
+    { c: "The carry chain can also combine this element with its neighbour (used by adders and counters); here it is idle.", f: () => { cy = 0; paint(); } },
+    { c: "The LUT's answer waits at the flip-flop's D input. Nothing happens until the clock rises.", f: () => { paint(); } },
+    { c: "The <b>clock rises</b>: the flip-flop copies D to Q. Q = 1 now, and it stays 1 until the next tick.", f: () => { clk = 1; q = 1; paint(); } },
+    { c: "The output mux is set by the configuration bit <b>ff_en</b>. With ff_en = 1 the element's output is the flip-flop (registered). Flip ff_en below to take the LUT's answer directly instead.", f: () => { clk = 0; paint(); } },
+  ];
+  Player(host, steps, reset, { intro: "A logic element at rest. Press <b>Next</b>." });
+  host.appendChild(H("div", { class: "ctl" }, [bitBtn("ff_en", ffEn, v => { ffEn = v; paint(); }),
+    H("span", { class: "note", text: "A configuration bit: set once when the design is loaded." })]));
+  paint();
+})();
+
+/* ---------- 7. CLB with crossbar ---------- */
+(function clb() {
+  const host = $("st-clb");
+  const svg = svgIn(host, 460, 330, "a CLB: 4 logic elements behind a crossbar");
+  const rows = [];
+  for (let k = 0; k < 16; k++) rows.push("I" + k);
+  for (let k = 0; k < 8; k++) rows.push("O" + k);
+  const X0 = 96, DX = 14.2, Y0 = 26, DY = 9.4;
+  rows.forEach((r, k) => {
+    const y = Y0 + k * DY;
+    T(svg, X0 - 8, y + 3, r, k < 16 ? "t-m" : "t-acc", "end");
+    S("line", { x1: X0 - 4, y1: y, x2: X0 + 23 * DX + 4, y2: y, class: "w thin dim" }, svg);
+  });
+  T(svg, 4, Y0 + 5 * DY, "16 inputs", "t-m"); T(svg, 4, Y0 + 7 * DY, "from routing", "t-m");
+  T(svg, 4, Y0 + 19 * DY, "feedback", "t-acc"); T(svg, 4, Y0 + 21 * DY, "(outputs)", "t-m");
+  const cols = [], marks = [];
+  let src = [];
+  for (let c = 0; c < 24; c++) src.push((c * 7 + 3) % 24);
+  const yBot = Y0 + 23 * DY + 8;
+  for (let c = 0; c < 24; c++) {
+    const x = X0 + c * DX;
+    const col = S("line", { x1: x, y1: Y0 - 6, x2: x, y2: yBot, class: "w thin dim" }, svg);
+    const hit = S("rect", { x: x - 6, y: Y0 - 8, width: 12, height: yBot - Y0 + 12, fill: "transparent", class: "clickable", tabindex: 0, role: "button",
+                            "aria-label": `element ${c / 6 | 0} input ${c % 6}` }, svg);
+    const mark = S("circle", { r: 4, cx: x, cy: 0, class: "dot1" }, svg);
+    cols.push(col); marks.push(mark);
+    const step = () => { src[c] = (src[c] + 1) % 24; picked = c; paint(); };
+    hit.addEventListener("click", step);
+    hit.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); step(); } });
+  }
+  // elements
+  for (let e = 0; e < 4; e++) {
+    const x = X0 + e * 6 * DX - 5;
+    S("rect", { x, y: yBot + 6, width: 6 * DX - 4, height: 34, rx: 5, class: "gl" }, svg);
+    T(svg, x + 3 * DX - 2, yBot + 20, "element " + e, "t", "middle");
+    T(svg, x + 3 * DX - 2, yBot + 34, "LUT6 + FF", "t-m", "middle");
+  }
+  T(svg, X0 + 11.5 * DX, 14, "crossbar: one 26-way mux per element input (24 columns)", "t-m", "middle");
+  const info = H("div", { class: "cap" });
+  let picked = 0;
+  function paint() {
+    for (let c = 0; c < 24; c++) {
+      const y = Y0 + src[c] * DY;
+      marks[c].setAttribute("cy", y);
+      cols[c].classList.toggle("sel", c === picked); cols[c].classList.toggle("dim", c !== picked);
+    }
+    const r = rows[src[picked]];
+    info.innerHTML = `<b>Element ${picked / 6 | 0}, input ${picked % 6}</b> takes <b>${r}</b> ` +
+      (r[0] === "O" ? `(element ${Number(r.slice(1)) >> 1}'s output fed back)` : "(a CLB input from the routing)") +
+      `. Its mux select is ${src[picked] + 2} (0 and 1 mean constant 0 and 1), stored in 5 configuration bits. Click a column to change it.`;
+  }
+  host.appendChild(info);
+  paint();
+})();
+
+/* ---------- 8. routing ---------- */
+(function routing() {
+  const host = $("st-route");
+  const svg = svgIn(host, 460, 290, "a small grid of CLBs with routing tracks and muxes");
+  const cx = [30, 180, 330], cy = [30, 170];
+  // tracks: horizontal channel between rows, vertical channels between columns
+  for (let t = 0; t < 5; t++) {
+    S("line", { x1: 10, y1: 122 + t * 8, x2: 450, y2: 122 + t * 8, class: "w thin dim" }, svg);
+    S("line", { x1: 132 + t * 8, y1: 10, x2: 132 + t * 8, y2: 280, class: "w thin dim" }, svg);
+    S("line", { x1: 282 + t * 8, y1: 10, x2: 282 + t * 8, y2: 280, class: "w thin dim" }, svg);
+  }
+  cx.forEach((x, i) => cy.forEach((y, j) => {
+    S("rect", { x, y, width: 90, height: 80, rx: 8, class: "gl" }, svg);
+    T(svg, x + 45, y + 44, `CLB (${i},${j})`, "t-m", "middle");
+  }));
+  // switch boxes at channel crossings
+  [[136, 138], [286, 138]].forEach(([x, y]) => S("rect", { x: x - 8, y: y - 20, width: 40, height: 38, rx: 4, class: "s-box", opacity: 0.55 }, svg));
+  T(svg, 170, 186 - 20, "switch box", "t-m");
+  const route = [
+    { d: "M120,70 H132", m: [120, 70], c: "The source: CLB (0,0)'s element output leaves the CLB on its <b>output pin</b>." },
+    { d: "M132,70 V130", m: [132, 100], c: "A <b>connection mux</b> puts it on track 1 of the vertical channel. Its select says \"take the CLB output\": 3 configuration bits." },
+    { d: "M132,130 H290", m: [212, 130], c: "At the <b>switch box</b> a mux on the horizontal track picks \"come from the vertical track\": the signal turns the corner." },
+    { d: "M290,130 H298 V60", m: [298, 95], c: "At the next switch box another mux sends it up the vertical channel beside CLB (2,0)." },
+    { d: "M298,60 H330", m: [314, 60], c: "A <b>connection-box mux</b> on CLB (2,0)'s input pin picks this track. The signal has arrived." },
+  ];
+  const segs = route.map(r => W(svg, r.d, "dim"));
+  const mks = route.map(r => S("circle", { cx: r.m[0], cy: r.m[1], r: 6, class: "s-cfg", opacity: 0 }, svg));
+  const tally = T(svg, 10, 286, "", "t-cfg");
+  function reset() { segs.forEach(s => { s.classList.add("dim"); s.classList.remove("sel"); }); mks.forEach(m => m.setAttribute("opacity", 0)); tally.textContent = ""; }
+  let used = 0;
+  const steps = route.map((r, k) => ({ c: r.c, f: () => { segs[k].classList.remove("dim"); segs[k].classList.add("sel"); mks[k].setAttribute("opacity", 1);
+    tally.textContent = `muxes set so far: ${k + 1} of this net's ${route.length}; every other track here has its own mux too`; } }));
+  steps.push({ c: "One net used 5 muxes. A real design has hundreds of nets, and the fabric must offer <b>every</b> path VPR might want, so every track end has a mux. That is why routing is most of the chip.", f: () => {} });
+  Player(host, steps, reset, { intro: "A net must go from CLB (0,0) to CLB (2,0). The faint lines are all the tracks it could use. Press <b>Next</b>." });
+})();
+
+/* ---------- 9. configuration bits: chain vs frames ---------- */
+(function bits() {
+  const host = $("st-bits");
+  host.appendChild(H("div", { class: "note", html: "<b>Scan chain:</b> one long shift register, one bit per clock" }));
+  const a = svgIn(host, 440, 70, "a scan chain filling bit by bit");
+  T(a, 0, 40, "TDI →", "t-acc");
+  const chain = [];
+  for (let k = 0; k < 32; k++) chain.push(S("rect", { x: 48 + k * 12.2, y: 26, width: 10, height: 20, rx: 2, class: "cellc0" }, a));
+  const ctr = T(a, 48, 64, "", "t-m");
+  const pattern = [];
+  for (let k = 0; k < 32; k++) pattern.push((k * 5 + 3) % 7 < 3 ? 1 : 0);
+  let state = new Array(32).fill(0), shifted = 0, tmr = null;
+  function paintChain() { chain.forEach((c, k) => c.setAttribute("class", state[k] ? "cellc1" : "cellc0"));
+    ctr.textContent = `${shifted} clocks: every bit moves one place right each clock`; }
+  const bRun = H("button", { type: "button", class: "pri", text: "Shift the chain" });
+  bRun.addEventListener("click", () => {
+    if (tmr) return;
+    state = new Array(32).fill(0); shifted = 0; paintChain();
+    tmr = setInterval(() => {
+      state.pop(); state.unshift(pattern[31 - shifted]); shifted++; paintChain();
+      if (shifted >= 32) { clearInterval(tmr); tmr = null; ctr.textContent = "32 clocks: the whole chain is full. To change one bit you shift it all again."; }
+    }, REDUCED ? 30 : 120);
+  });
+  host.appendChild(H("div", { class: "ctl" }, [bRun]));
+  host.appendChild(H("div", { class: "note", html: "<b>Frames:</b> address, then 128 bits, and only that frame changes" }));
+  const b = svgIn(host, 440, 190, "configuration frames written by address");
+  const F = [];
+  for (let f = 0; f < 8; f++) {
+    T(b, 0, 26 + f * 21, "frame " + f, "t-m");
+    const row = [];
+    for (let k = 0; k < 16; k++) row.push(S("rect", { x: 60 + k * 16, y: 14 + f * 21, width: 13, height: 15, rx: 2, class: "cellc0" }, b));
+    F.push(row);
+  }
+  const pkt = S("g", {}, b);
+  S("rect", { x: 330, y: 14, width: 104, height: 50, rx: 6, class: "s-acc" }, pkt);
+  const pktT = T(pkt, 382, 36, "FAR = 0", "t-mono", "middle");
+  T(pkt, 382, 54, "+ 4 words", "t-m", "middle");
+  const hl = S("rect", { x: 56, y: 10, width: 264, height: 23, rx: 4, fill: "none", stroke: "var(--acc)", "stroke-width": 2, opacity: 0 }, b);
+  function fill(f, seed) { F[f].forEach((c, k) => c.setAttribute("class", ((k * 3 + f * 5 + seed) % 5 < 2) ? "cellc1" : "cellc0")); }
+  function reset() { F.forEach(r => r.forEach(c => c.setAttribute("class", "cellc0"))); hl.setAttribute("opacity", 0); pktT.textContent = "FAR = 0"; pkt.setAttribute("transform", ""); }
+  const steps = [];
+  [0, 1, 2].forEach(f => steps.push({ c: `The stream says <b>FAR = ${f}</b>, then 4 words: frame ${f} is written. The address then counts up by itself.`,
+    f: () => { fill(f, 0); hl.setAttribute("y", 10 + f * 21); hl.setAttribute("opacity", 1); pktT.textContent = "FAR = " + f; } }));
+  steps.push({ c: "...and so on to the last frame (bob M21 has 257). A <b>CRC</b> word at the end checks that every bit arrived correctly.", f: () => { for (let f = 3; f < 8; f++) fill(f, 0); hl.setAttribute("opacity", 0); pktT.textContent = "CRC ✓"; } });
+  steps.push({ c: "Later, to change only frame 5: send <b>FAR = 5</b> and 4 new words. The other frames are not touched. This is what makes a <b>partial load</b> possible.", f: () => { fill(5, 2); hl.setAttribute("y", 10 + 5 * 21); hl.setAttribute("opacity", 1); pktT.textContent = "FAR = 5"; } });
+  Player(host, steps, reset, { intro: "8 frames, all zero (a real bob has hundreds). Press <b>Next</b>." });
+})();
+
+/* ---------- 10. full load ---------- */
+(function full() {
+  const host = $("st-full");
+  const svg = svgIn(host, 440, 250, "the stages of a full configuration load");
+  const labels = ["JPROGRAM", "sync AA995566", "IDCODE check", "frames", "CRC check", "GSR off", "GTS off", "GWE on", "DONE"];
+  const lamps = labels.map((l, k) => {
+    const y = 18 + k * 25;
+    const c = S("circle", { cx: 14, cy: y, r: 7, class: "cell0" }, svg);
+    T(svg, 28, y + 4, l, "t");
+    return c;
+  });
+  // fabric mini-view: 7x7 CLBs
+  const fab = [];
+  for (let r = 0; r < 7; r++) for (let c = 0; c < 7; c++) fab.push(S("rect", { x: 200 + c * 26, y: 14 + r * 26, width: 21, height: 21, rx: 3, class: "cell0" }, svg));
+  const ft = T(svg, 200, 206, "", "t-m");
+  const led = S("circle", { cx: 404, cy: 232, r: 9, class: "cell0" }, svg);
+  T(svg, 392, 212, "LD3", "t-m", "end");
+  const bar = S("rect", { x: 28, y: 238, width: 0, height: 6, rx: 3, fill: "var(--acc)" }, svg);
+  function lamp(k, on, cls) { lamps[k].setAttribute("class", on ? (cls || "dot1") : "cell0"); }
+  function fabric(n, cls) { fab.forEach((f, k) => f.setAttribute("class", k < n ? (cls || "cellc1") : "cell0")); }
+  function reset() { lamps.forEach((_, k) => lamp(k, 0)); fabric(49, "cellc1"); ft.textContent = "an old design is loaded"; led.setAttribute("class", "dot1"); bar.setAttribute("width", 0); }
+  const steps = [
+    { c: "<b>JPROGRAM</b> clears every configuration bit. The fabric goes dark and DONE turns off.", f: () => { lamp(0, 1); fabric(0); ft.textContent = "all bits cleared"; led.setAttribute("class", "cell0"); } },
+    { c: "The <b>sync word</b> AA995566 marks the start of the stream.", f: () => lamp(1, 1) },
+    { c: "The <b>IDCODE</b> in the stream must match this chip's. A bitstream for another device is refused here.", f: () => lamp(2, 1) },
+    { c: "The <b>frames</b> arrive one after another, the address counting up. The fabric fills in, but nothing runs yet: the flip-flops are frozen (GWE is off).", f: () => { lamp(3, 1); fabric(49, "cellc1"); ft.textContent = "257 frames written"; bar.setAttribute("width", 150); } },
+    { c: "The <b>CRC</b> sent at the end matches the one bob computed while receiving. Every bit is correct.", f: () => lamp(4, 1) },
+    { c: "Startup, step 1: <b>GSR</b> (global set/reset) is released. Every flip-flop holds its starting value.", f: () => lamp(5, 1) },
+    { c: "Step 2: <b>GTS</b> is released. The pins may now drive the LEDs.", f: () => lamp(6, 1) },
+    { c: "Step 3: <b>GWE</b> turns on. Flip-flops may now change: the design starts running.", f: () => { lamp(7, 1); fabric(49, "cell1"); ft.textContent = "the new design runs"; } },
+    { c: "Step 4: <b>DONE</b> lights (LD3 on the board). The load is complete.", f: () => { lamp(8, 1); led.setAttribute("class", "dot1"); } },
+  ];
+  Player(host, steps, reset, { intro: "An old design is running. Load a new one: press <b>Next</b>." });
+})();
+
+/* ---------- 11. partial load ---------- */
+(function partial() {
+  const host = $("st-partial");
+  const svg = svgIn(host, 440, 250, "a partial reconfiguration of a running design");
+  S("rect", { x: 20, y: 20, width: 150, height: 90, rx: 8, class: "gl" }, svg);
+  T(svg, 95, 44, "counter", "t", "middle");
+  const cv = T(svg, 95, 84, "3", "t-big", "middle");
+  S("rect", { x: 210, y: 20, width: 150, height: 90, rx: 8, class: "gl" }, svg);
+  const gl = T(svg, 285, 44, "gate: AND", "t", "middle");
+  const gt = T(svg, 285, 84, "truth table 0001", "t-mono", "middle");
+  const clk = S("circle", { cx: 395, cy: 40, r: 12, class: "dot1" }, svg);
+  const clkT = T(svg, 395, 70, "clock", "t-m", "middle");
+  // frame map 257 tiny cells
+  const cells = [];
+  for (let k = 0; k < 257; k++) cells.push(S("rect", { x: 20 + (k % 43) * 9.4, y: 140 + Math.floor(k / 43) * 11, width: 7.5, height: 8.5, rx: 1, class: "cellc0" }, svg));
+  const ft = T(svg, 20, 132, "the 257 frames", "t-m");
+  const FR = 118;
+  let n = 3;
+  function reset() { n = 3; cv.textContent = n; gl.textContent = "gate: AND"; gt.textContent = "truth table 0001"; clk.setAttribute("class", "dot1"); clkT.textContent = "clock running";
+    cells.forEach(c => c.setAttribute("class", "cellc0")); ft.textContent = "the 257 frames"; }
+  const steps = [
+    { c: "The design is running: the counter ticks along (4, then 5) and the gate is an AND.", f: () => { n = 5; cv.textContent = n; } },
+    { c: "<b>Freeze</b> (AGHIGH): the user clock is held. The counter stops at 5. No flip-flop can change now.", f: () => { clk.setAttribute("class", "cell0"); clkT.textContent = "clock held"; } },
+    { c: "bob compares the old and new bitstreams: only <b>1 frame of 257</b> differs, the one holding the gate's truth table.", f: () => { cells[FR].setAttribute("class", "cellc1"); ft.textContent = "frame 118 differs"; } },
+    { c: "Write just that frame. The gate's truth table becomes <b>0111</b>: an OR.", f: () => { gl.textContent = "gate: OR"; gt.textContent = "truth table 0111"; } },
+    { c: "The CRC matches, so <b>release</b> (LFRM): the clock runs again.", f: () => { clk.setAttribute("class", "dot1"); clkT.textContent = "clock running"; } },
+    { c: "The counter carries on from where it was: <b>6</b>, then 7. Its state survived; only the gate changed.", f: () => { n = 7; cv.textContent = n; } },
+  ];
+  Player(host, steps, reset, { intro: "A counter and a gate are running. Change the gate from AND to OR without stopping the counter: press <b>Next</b>." });
+})();
+</script>
