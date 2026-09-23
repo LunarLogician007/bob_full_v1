@@ -258,3 +258,19 @@ def test_a_constraint_does_not_mix_with_a_stepped_clock_or_hz(tmp_path):
         flow.Flow(["x.v"], sdc=sdc, hz="auto")
     with pytest.raises(flow.FlowError, match="not supported"):
         flow.Flow(["x.v"], sdc=_sdc(tmp_path, "set_false_path -from x\n", "bad.sdc"))
+
+
+def test_delay_samples_name_this_device():
+    """hw/scripts/delay_samples.txt (delays.py plan) must be regenerated when the device
+    changes: every sampled hop must be two nets of this fabric, or the build times nothing
+    (M21: a plan left from an earlier architecture would fold to no measurement at all)."""
+    import delays
+    lines = [ln.split() for ln in open(delays.SAMPLES) if ln.strip() and ln[0] != "#"]
+    assert lines
+    for cls, a, b in lines:
+        if cls == "ffq":
+            assert delays._node(b) is not None, (cls, b)
+        elif cls == "ffd":
+            assert delays._node(a) is not None, (cls, a)
+        else:
+            assert delays._node(a) is not None and delays._node(b) is not None, (cls, a, b)
