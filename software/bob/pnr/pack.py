@@ -239,11 +239,18 @@ def pack(nl):
     def attraction(c, el):
         return sum(1 for n in nets_of[id(el)] if n in c.made or n in c.need)
 
+    # a design that would fill most of the device is packed densely: once nothing related is
+    # left, a CLB takes unrelated elements too (VPR's packer does the same when the device
+    # is tight); a small one keeps its CLBs to related logic, which routes better
+    have = len(B.CLBS)
+    need = len(clbs) + -(-len(pool) // N)
+    dense = need > 0.7 * have
+
     def fill(c):
         while None in c.el and pool:
             best = None
             for el in sorted(pool, key=lambda el: (-attraction(c, el), el.outs[0] or el.outs[1] or "")):
-                if attraction(c, el) == 0:
+                if attraction(c, el) == 0 and not dense:
                     break                               # nothing related left: close the CLB
                 if c.fits(el):
                     best = el
