@@ -38,3 +38,9 @@ vvp_verdict() {
 killed_note() {
     [[ $1 == hang ]] && echo " (hang: no verdict in ${MUTATE_TIMEOUT} s, killed)"
 }
+
+# skip <name>: true when MUTATE_ONLY names mutants and this is not one of them
+# (MUTATE_ONLY="carry-direct-cut xbar-no-feedback" make mutate reruns just those)
+skip() {
+    [[ -n "${MUTATE_ONLY:-}" && " $MUTATE_ONLY " != *" $1 "* ]]
+}
