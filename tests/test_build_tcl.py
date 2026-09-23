@@ -190,6 +190,25 @@ def test_the_build_measures_the_fabric_delays(site):
     assert d["ns"]["ff_setup"] == round(max(0.0, 1.05 - d["ns"]["lut"]), 3)
 
 
+def test_the_delays_are_measured_when_the_netlist_renames_the_fabric(site, monkeypatch):
+    """M23: the M22 build returned every sample NOPATH because the flattened netlist filed
+    fabric nets under another block (u_core/u_store/u_fabric/...). extract_delays.tcl finds
+    them by their path from u_fabric/ on, and the fold reads the renamed nets back."""
+    import sys
+    sys.path.insert(0, os.path.join(os.path.dirname(HW), "software", "bob"))
+    import delays
+    hw, state = site
+    monkeypatch.setenv("BOB_STUB_RENAME", "1")
+    out = run_build(str(hw), state=state)
+    assert "indexed" in out
+    text = (hw.parent / "bob_vivado" / "out" / TAG / "delay_paths.rpt").read_text()
+    assert "NONET" not in text and "u_core/u_store/u_fabric/" in text
+    d = delays.fold([text], False, "stub")
+    for cls in ("mux_chan", "mux_ipin", "carry"):
+        assert d["measured"][cls]["max"] == 1.5, cls
+    assert d["ns"]["ff_clk_q"] == 1.2
+
+
 def test_delays_0_skips_the_measurement(site):
     hw, state = site
     out = run_build(str(hw), "delays=0", state=state)

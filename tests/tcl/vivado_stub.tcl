@@ -93,6 +93,7 @@ proc set_property {args} {
 
 proc get_property {name obj} {
     switch -- $name {
+        NAME { return $obj }
         PART {
             if {[info exists ::prop(PART,proj)]} { return $::prop(PART,proj) }
             return $::stub_part
@@ -128,12 +129,43 @@ proc get_timing_paths {args} { return "" }
 proc report_timing_summary {args} { close [open [lindex $args end] w] }
 proc report_utilization {args}    { close [open [lindex $args end] w] }
 proc report_drc {args}            { close [open [lindex $args end] w] }
+# M23: BOB_STUB_RENAME=1 plays a netlist that filed the fabric under another block (as the
+# M21/M22 builds did: u_core/u_store/u_fabric/...): exact u_core/u_fabric/ names find
+# nothing, and a hierarchical listing returns the renamed objects of delay_samples.txt.
+proc stub_renamed {kind} {
+    set out {}
+    set fh [open $::samples r]
+    foreach line [split [read $fh] "\n"] {
+        set line [string trim $line]
+        if {$line eq "" || [string index $line 0] eq "#"} { continue }
+        lassign $line cls a b
+        foreach {obj k} [list $a [expr {$cls eq "ffq" ? "cells" : "nets"}] $b [expr {$cls eq "ffd" ? "cells" : "nets"}]] {
+            if {$k eq $kind} { lappend out [string map {u_core/u_fabric/ u_core/u_store/u_fabric/} $obj] }
+        }
+    }
+    close $fh
+    return [lsort -unique $out]
+}
+proc stub_rename {} { return [expr {[info exists ::env(BOB_STUB_RENAME)] && $::env(BOB_STUB_RENAME) eq "1"}] }
 proc get_cells {args} {
     # the sysclk_1cycle listing asks with -hier -filter: nothing; a named cell: itself
-    if {[lsearch $args -hier] >= 0} { return {} }
-    return [lindex $args end]
+    if {[lsearch -glob $args -hier*] >= 0} {
+        if {[stub_rename] && [string match *u_fabric* [lindex $args end]]} { return [stub_renamed cells] }
+        return {}
+    }
+    set n [lindex $args end]
+    if {[stub_rename] && [string match u_core/u_fabric/* $n]} { return {} }
+    return $n
 }
-proc get_nets {args} { return [lindex $args end] }
+proc get_nets {args} {
+    if {[lsearch -glob $args -hier*] >= 0} {
+        if {[stub_rename]} { return [stub_renamed nets] }
+        return {}
+    }
+    set n [lindex $args end]
+    if {[stub_rename] && [string match u_core/u_fabric/* $n]} { return {} }
+    return $n
+}
 # M20 extract_delays.tcl: a report in Vivado's text layout, with fixed numbers the test
 # folds back (a hop of 1.500 ns, clock-to-Q 1.200 ns, input -> D 1.050 ns with setup).
 proc report_timing {args} {
