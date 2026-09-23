@@ -38,7 +38,7 @@
 //   next one; CHAIN_OUT reads frame idx+1, where idx rests at all-ones between DR scans
 //   (set at Update-DR), so frame 0 is waiting at Capture-DR.
 //
-// M22: the bits in LBITS keep no flip-flops: they live in the fabric's CFGLUT5s, which
+// M22: the bits in the L masks (LKIND / LMASKS) keep no flip-flops: they live in the fabric's CFGLUT5s, which
 // lut_loader.v fills from the same write (wr / wr_idx / wr_data, the falling edge that
 // writes the shadow). Their `cfg` bits read 0 (a frame's other bits load as before, so a
 // mixed frame's flags are in place before its CFGLUT5s start shifting).
@@ -62,7 +62,11 @@ module cfg_store #(
     parameter integer NFRAMES = 4,
     parameter integer FIDX_W  = 8,
     parameter integer W       = FB * NFRAMES,
-    parameter [W-1:0] LBITS = {W{1'b0}}                 // M22: bits held only in CFGLUT5s
+    // M22: the bits held only in CFGLUT5s. M23: frame f's mask is LMASKS[LKIND[f] * FB +: FB]
+    // (the whole-chain mask outgrew iverilog's widest constant)
+    parameter integer          LKW    = 1,
+    parameter [NFRAMES*LKW-1:0] LKIND  = {NFRAMES*LKW{1'b0}},
+    parameter [(FB<<LKW)-1:0]  LMASKS = {(FB<<LKW){1'b0}}
 )(
     input  wire              tck,
     // chain
@@ -175,7 +179,8 @@ module cfg_store #(
     genvar f;
     generate
         for (f = 0; f < NFRAMES; f = f + 1) begin : g_frame
-            localparam [FB-1:0] KEEP = ~LBITS[f*FB +: FB];   // the frame's flip-flop bits
+            localparam [LKW-1:0] KIND = LKIND[f*LKW +: LKW];
+            localparam [FB-1:0]  KEEP = ~LMASKS[KIND*FB +: FB];   // the frame's flip-flop bits
             if (KEEP != {FB{1'b0}}) begin : g_ff
                 wire we = (cwe && cidx == f[FIDX_W-1:0]) || (frame_we && frame_idx == f[FIDX_W-1:0]);
                 always @(negedge tck) begin
@@ -201,7 +206,7 @@ module cfg_store #(
         if (clear)
             sim_lmem <= {W{1'b0}};
         else if (swe && wok)
-            sim_lmem[waddr*FB +: FB] <= buf_q & LBITS[waddr*FB +: FB];
+            sim_lmem[waddr*FB +: FB] <= buf_q & LMASKS[LKIND[waddr*LKW +: LKW]*FB +: FB];
 `endif
 
     initial cfg = {W{1'b0}};

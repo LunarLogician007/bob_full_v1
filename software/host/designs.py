@@ -14,7 +14,7 @@ Each entry is (key, description, builder, input_sweep). The builder returns a
 Design; the sweep is the set of pad_i values worth checking.
 """
 
-from bitstream import BRAM_PINS, CLB_AT, CLB_N, DSP_CTRL_NAMES, Cell, Design, LUT, LUT_K
+from bitstream import BRAM_PINS, CLB_AT, CLB_N, DSP_CTRL_NAMES, Cell, Const, Design, LUT, LUT_K
 
 # the grid's extent, so designs follow device.py's ARCH (6x4 core now, 8x8 later)
 CLB_COLS = sorted({x for x, _y in CLB_AT})
@@ -387,5 +387,28 @@ def d_snake(invert=0):
     s = d.input(0)
     for k, (x, y, e) in enumerate(snake_order()):
         s = d.lut(x, y, LUT.inv(0) if (invert >> k) & 1 else LUT.buf(0), [s], e=e)
+    d.output(0, s)
+    return d
+
+
+def snake_pin(k):
+    """M23: the input pin element k of snake_order() takes the chain on: CLB c's element e
+    uses pin (c + e) % K, so every element meets every pin somewhere on the chip"""
+    return (k // CLB_N + k % CLB_N) % LUT_K
+
+
+def d_snake_pins(invert=0):
+    """M23: d_snake, but element k reads the chain on pin snake_pin(k) and every other pin of
+    it is const1. A crossbar pair (lxpair.v: muxes 2p and 2p+1 of a CLB share CFGLUT5 leaves,
+    O5 the low half, O6 the high half) then holds the chain's source in one half and const1
+    (leaf 0 all ones) in the other, both ways round over the chip: a half written into the
+    wrong place, or read from the wrong output, sticks LD0 at 1 or breaks the chain."""
+    d = Design()
+    s = d.input(0)
+    for k, (x, y, e) in enumerate(snake_order()):
+        j = snake_pin(k)
+        ins = [Const(1)] * LUT_K
+        ins[j] = s
+        s = d.lut(x, y, LUT.inv(j) if (invert >> k) & 1 else LUT.buf(j), ins, e=e)
     d.output(0, s)
     return d

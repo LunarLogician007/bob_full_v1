@@ -32,7 +32,7 @@ run_one() {
     # every crossbar select, both flip-flops): seconds, where tb_bob takes minutes, so first
     local v
     if [[ "$file" == src/clb/ble.sv || "$file" == src/generated/bob_fabric.v ||
-          "$file" == src/clb/lxmux.v || "$file" == src/core/lut_expand.v ]]; then   # M22 too
+          "$file" == src/clb/lxpair.v || "$file" == src/core/lut_expand.v ]]; then   # M22, M23 too
         if iverilog -g2012 -DSIMULATION -Ihw/src/generated -Ihw/tb -s tb_clb -o "$WORK/$name-clb.vvp" \
                 "${SRC[@]}" hw/tb/tb_clb.sv 2>/dev/null; then
             v=$(vvp_verdict "$WORK" "$name-clb.vvp")
@@ -118,10 +118,21 @@ run dsp-b-no-jtag       src/tiles/dsp_block.v 's/cfg\[11\] \? drive\[42:25\]   :
 # M22: the CFGLUT5s and their loader (tb_clb loads through lut_expand.v; tb_bob through
 # lut_loader.v over JTAG and checks CLB (1,1)'s tables and the JPROGRAM sweep)
 run expand-bit-order    src/core/lut_expand.v   's/wire \[4:0\] a = ~cnt;/wire [4:0] a = cnt;/'
-run lxmux-root-no-ce    src/clb/lxmux.v         's/\.CDI\(lcdi\[L\]\), \.CE\(lce\)/.CDI(lcdi[L]), .CE(1'"'"'b0)/'
 run lut-halves-swapped  src/clb/ble.sv          's/\? hi6 : lo6;/? lo6 : hi6;/'
 run loader-31-shifts    src/core/lut_loader.v   's/if \(cnt == 5.d31\) begin/if (cnt == 5'"'"'d30) begin/'
 run loader-no-sweep     src/core/lut_loader.v   's/clr  <= 1.b1;/clr  <= 1'"'"'b0;/'
+
+# M23: the crossbar pairs (shared dual-output leaves, OR roots) and the routing muxes as
+# primitives (bob_mux.v: LUT6 leaves on sel[1:0], MUXF7 on sel[2], MUXF8 on sel[3])
+run pair-outputs-swapped src/clb/lxpair.v       's/\.O5\(la\[g\]\), \.O6\(lb\[g\]\)/.O5(lb[g]), .O6(la[g])/'
+run pair-i4-low         src/clb/lxpair.v        's/\.I4\(1.b1\)/.I4(1'"'"'b0)/'
+run pair-root-and       src/clb/lxpair.v        's/assign oa = \|la;/assign oa = \&la;/'
+run expand-half-select  src/core/lut_expand.v   's/= a\[4\] \? hb/= ~a[4] ? hb/'
+run expand-const1-leaf  src/core/lut_expand.v   's/\(one && g == 0\)/(one \&\& g == 1)/'
+run mux-f7-select       src/fabric/bob_mux.v    's/\.S\(s\[2\]\)/.S(s[1])/'
+run mux-f8-select       src/fabric/bob_mux.v    's/\.S\(s\[3\]\)/.S(s[2])/'
+run mux-leaf-init       src/fabric/bob_mux.v    's/64.hFF00F0F0CCCCAAAA/64'"'"'hFF00CCCCF0F0AAAA/'
+run mux-top-select      src/fabric/bob_mux.v    's/assign o = top\[s\[SW-1:4\]\];/assign o = top[0];/'
 
 wait
 cat "$WORK"/*.out

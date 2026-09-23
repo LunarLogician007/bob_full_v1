@@ -4,8 +4,8 @@ btn[1]	0	4	0
 btn[2]	0	5	0
 btn[3]	0	6	0
 clk	1	0	0
-out:led[0]	12	1	0
-out:led[1]	12	2	0
-out:led[2]	12	3	0
+out:led[0]	15	1	0
+out:led[1]	15	2	0
+out:led[2]	15	3	0
 sw[0]	0	1	0
 sw[1]	0	2	0

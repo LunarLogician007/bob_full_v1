@@ -1,17 +1,17 @@
-Netlist_File: wide.net Netlist_ID: SHA256:42d72b8b85095d87928f8cebb3333877233618f6bd6ee1771bd2298e251762b0
-Array size: 13 x 11 logic blocks
+Netlist_File: wide.net Netlist_ID: SHA256:ce2149e7841e902ebbf1d2336ebd46e6f1b4d3ba0267223c964e6671da07a8c7
+Array size: 16 x 13 logic blocks
 
 #block name	x	y	subblk	layer	block number
 #----------	--	--	------	-----	------------
-$auto$alumacc.cc:548:replace_alu$34.slice[3].add	5	2	0	0	#0
-$auto$alumacc.cc:548:replace_alu$34.slice[7].add	5	3	0	0	#1
-bob_gen1	5	1	0	0	#2
-n35		4	4	0	0	#3
-$auto$alumacc.cc:548:replace_alu$34.slice[11].add	5	4	0	0	#4
-n20		4	2	0	0	#5
-out:led[0]	12	1	0	0	#6
-out:led[1]	12	2	0	0	#7
-out:led[2]	12	3	0	0	#8
+$auto$alumacc.cc:548:replace_alu$34.slice[3].add	7	2	0	0	#0
+$auto$alumacc.cc:548:replace_alu$34.slice[7].add	7	3	0	0	#1
+bob_gen1	7	1	0	0	#2
+n35		6	4	0	0	#3
+$auto$alumacc.cc:548:replace_alu$34.slice[11].add	7	4	0	0	#4
+n20		6	1	0	0	#5
+out:led[0]	15	1	0	0	#6
+out:led[1]	15	2	0	0	#7
+out:led[2]	15	3	0	0	#8
 clk		1	0	0	0	#9
 sw[0]		0	1	0	0	#10
 sw[1]		0	2	0	0	#11

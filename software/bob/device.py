@@ -217,7 +217,26 @@ ARCH_M22 = {
     "cluster": CLUSTER_N4,
 }
 
-ARCH = ARCH_M22
+# M23: the host cost of a CLB falls twice (software/bob/gridsweep.py, docs/reports/M23/grid_sweep.md).
+# The crossbar muxes go in pairs sharing dual-output CFGLUT5 leaves with fixed OR roots
+# (lxpair.v: 80 CFGLUT5 per CLB, not 152; M22 packed 3.37 per SLICEM, 84% of them at 81 CLBs),
+# and the routing muxes are LUT6 + MUXF7/MUXF8 primitives (bob_mux.v; Vivado made 18.5k LUTs of
+# M22's routing, the primitives ~11k). The sweep over grids x fc_in x W: 12 x 11 = 132 CLBs
+# (528 LUTs, 1.63x M22) predicted at 39.2k LUTs (74%), 84% of slices, 72% of the SLICEMs;
+# 12 x 12 would sit at 91%. fc_in 0.10 and W 36: fir16 needs 34, every other example 20.
+ARCH_M23 = {
+    "nx": 14, "ny": 11,
+    "chan_width": 36,
+    "segment_length": 4,
+    "fs": 3,
+    "fc_in": 0.10, "fc_out": 0.10,
+    "io_capacity": 1,
+    "columns": [{"type": "bram", "x": 3, "height": 5},
+                {"type": "dsp", "x": 10, "height": 5}],
+    "cluster": CLUSTER_N4,
+}
+
+ARCH = ARCH_M23
 
 # Board pads (PYNQ-Z2): pad_i bit order and pad_o bit order used by every host tool
 BOARD_INPUTS = ("SW0", "SW1", "BTN0", "BTN1", "BTN2", "BTN3")
@@ -1080,17 +1099,40 @@ class Device:
                 packed |= table[c]["base"] << (32 * c) | table[c]["count"] << (32 * c + 16)
         lines += ["", "// FAR column c: [32c+15:32c] first frame index, [32c+31:32c+16] frame count (0: no frames)",
                   f"`define BOB_FAR_TABLE {32 * ncol}'h{packed:0{8 * ncol}x}"]
-        # M22: bit k set = chain bit k lives only in a CFGLUT5 (no flip-flop in cfg_store.v)
-        lines += ["", "// M22: chain bits held only in CFGLUT5s (hw/src/core/cfg_store.v keeps no flip-flops for them)",
-                  f"`define BOB_LBIT_MASK {self.chain_width}'h{self.lbits:0{-(-self.chain_width // 4)}x}"]
+        # M22: the chain bits that live only in CFGLUT5s (no flip-flop in cfg_store.v). M23: as a
+        # frame -> mask-kind table plus the few distinct masks, since the whole-chain mask outgrew
+        # iverilog's widest constant (65,536 bits) at 12 x 11
+        kinds, idx = self.lmask_kinds()
+        kw = max(1, (len(kinds) - 1).bit_length())
+        ktab = sum(k << (kw * f) for f, k in enumerate(idx))
+        mtab = sum(m << (FRAME_BITS * i) for i, m in enumerate(kinds))
+        lines += ["", "// M22/M23: chain bits held only in CFGLUT5s (hw/src/core/cfg_store.v keeps no flip-flops for them):",
+                  "// frame f's mask is BOB_LMASKS[BOB_LKIND[f*BOB_LKIND_W +: BOB_LKIND_W]*FRAME_BITS +: FRAME_BITS]",
+                  f"`define BOB_LKIND_W  {kw}",
+                  f"`define BOB_LKIND    {kw * self.nframes}'h{ktab:0{-(-kw * self.nframes // 4)}x}",
+                  f"`define BOB_LMASKS   {FRAME_BITS << kw}'h{mtab:0{(FRAME_BITS << kw) // 4}x}"]
         lines += ["", "`endif", ""]
         return "\n".join(lines)
 
+    def lmask_kinds(self):
+        """([mask, ...], [kind of frame f, ...]): the distinct per-frame L-bit masks, kind 0 all
+        zeros, and which one each frame has (they come together to self.lbits)"""
+        fm = (1 << FRAME_BITS) - 1
+        kinds, idx = [0], []
+        for f in range(self.nframes):
+            m = (self.lbits >> (f * FRAME_BITS)) & fm
+            if m not in kinds:
+                kinds.append(m)
+            idx.append(kinds.index(m))
+        while len(kinds) & (len(kinds) - 1):
+            kinds.append(0)                             # a power of two, for the part select
+        return kinds, idx
+
     def cfglut5_per_clb(self):
-        """CFGLUT5 primitives in one CLB: two per element LUT, a tree per crossbar mux."""
+        """CFGLUT5 primitives in one CLB: two per element LUT, ceil(S/4) shared leaves per
+        pair of crossbar muxes (hw/src/clb/lxpair.v, M23)."""
         s = len(self.xbar_sources(0, 0))
-        leaves = -(-s // 5)
-        return self.cluster["n"] * 2 + self.cluster["n"] * self.lut_k * (leaves + (1 if leaves > 1 else 0))
+        return self.cluster["n"] * 2 + self.cluster["n"] * self.lut_k // 2 * -(-s // 4)
 
 
 def generated(lut_k=6, out_dir=None, arch_only=False):

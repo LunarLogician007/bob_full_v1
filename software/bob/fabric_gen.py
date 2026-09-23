@@ -112,7 +112,7 @@ def fabric_verilog(dev):
     ns = len(dev.xbar_sources(0, 0))
     nl = _xbar_luts(ns)
     e(f"    wire [{2 * lay['init_per_frame'] - 1}:0] l_cdi_init;")
-    e(f"    wire [{lay['xbar_per_frame'] * nl - 1}:0] l_cdi_x;")
+    e(f"    wire [{lay['xbar_per_frame'] // 2 * nl - 1}:0] l_cdi_x;")
     e(f"    lut_expand #(.FB(`BOB_FRAME_BITS), .K({k}), .NI({lay['init_per_frame']}), .XW({dev.xbar_width()}), "
       f".NX({lay['xbar_per_frame']}), .S({ns})) u_lexp (")
     e("        .lbuf(l_buf), .cnt(l_cnt), .cdi_init(l_cdi_init), .cdi_x(l_cdi_x));")
@@ -200,14 +200,14 @@ def fabric_verilog(dev):
 
 
 def _xbar_luts(ns):
-    """CFGLUT5s in one crossbar mux of ns sources (hw/src/clb/lxmux.v)."""
-    leaves = -(-ns // 5)
-    return leaves + 1 if leaves > 1 else 1
+    """CFGLUT5s in one pair of crossbar muxes over ns sources (hw/src/clb/lxpair.v, M23)."""
+    return -(-ns // 4)
 
 
 def cluster_verilog(dev):
-    """bob_clb: N elements (hw/src/clb/ble.sv) behind the local crossbar, one lxmux (a
-    CFGLUT5 tree, M22) per element input over device.xbar_sources, and the carry
+    """bob_clb: N elements (hw/src/clb/ble.sv) behind the local crossbar, one lxpair (two
+    muxes sharing dual-output CFGLUT5 leaves, M23) per two element inputs over
+    device.xbar_sources, and the carry
     cin -> e0 -> ... -> e<N-1> -> cout. Generated, because the crossbar's population and
     the L-frame layout are architecture parameters (device.py CLUSTER, lutram_layout)."""
     c, k = dev.cluster, dev.lut_k
@@ -216,14 +216,16 @@ def cluster_verilog(dev):
     lay = dev.lutram_layout()
     ns = len(dev.xbar_sources(0, 0))
     nl = _xbar_luts(ns)
-    if ns > 25:
-        raise ValueError(f"crossbar of {ns} sources: lxmux.v's two-level tree holds at most 25")
+    if ns > 24:
+        raise ValueError(f"crossbar of {ns} sources: lxpair.v's OR root is one LUT6 (at most 24)")
+    if c["xbar"] != "full" or (n * k) % 2:
+        raise ValueError("lxpair.v pairs crossbar muxes over one source list: a full crossbar, N*K even")
     L = []
     e = L.append
     e("// -----------------------------------------------------------------------------")
     e(f"// bob_clb - the cluster: {n} logic elements (LUT{k}, fracturable, 2 FFs), {ni} inputs,")
     e(f"// {2 * n} outputs, a {c['xbar']} crossbar of {ns}:1 muxes per element input.")
-    e(f"// M22: LUT contents and crossbar in CFGLUT5 ({2 * n + n * k * nl} per CLB), loaded by")
+    e(f"// M22: LUT contents and crossbar in CFGLUT5 ({dev.cfglut5_per_clb()} per CLB; M23 pairs the crossbar), loaded by")
     e(f"// hw/src/core/lut_loader.v as the tile's frames are written: lce[f] shifts tile frame f")
     e(f"// ({', '.join(f'{i} {kd}' for i, kd in enumerate(lay['kinds']))}), lcdi_* are the shared expander's")
     e(f"// bits (lut_expand.v). cfg: the element flags, element e at [{ew}e +: {ew}] (BOB_ELE_*).")
@@ -236,7 +238,7 @@ def cluster_verilog(dev):
     e("    input  wire              lck,")
     e(f"    input  wire [{lay['frames'] - 1}:0]        lce,")
     e(f"    input  wire [{2 * lay['init_per_frame'] - 1}:0]        lcdi_init,")
-    e(f"    input  wire [{lay['xbar_per_frame'] * nl - 1}:0]      lcdi_x,")
+    e(f"    input  wire [{lay['xbar_per_frame'] // 2 * nl - 1}:0]      lcdi_x,")
     e(f"    output wire [{2 * n - 1}:0]       o,")
     e("    output wire              cout")
     e(");")
@@ -247,17 +249,21 @@ def cluster_verilog(dev):
     e("    assign cy[0] = cin;")
     e(f"    assign cout  = cy[{n}];")
     for el in range(n):
+        e(f"    wire [{k - 1}:0] x{el};")
+    for p in range(n * k // 2):
+        (ea, ja), (eb, jb) = divmod(2 * p, k), divmod(2 * p + 1, k)
+        srcs = dev.xbar_sources(ea, ja)
+        assert srcs == dev.xbar_sources(eb, jb)
+        vec = "{" + ", ".join(f"i[{q[2:-1]}]" if q.startswith("I") else f"o[{q[2:-1]}]"
+                              for q in reversed(srcs)) + "}"
+        fx, t = dev.xbar_slot(2 * p)
+        assert (fx, t + 1) == dev.xbar_slot(2 * p + 1) and t % 2 == 0, "a pair splits across frames"
+        e(f"    lxpair #(.S({len(srcs)})) m{p} (.in({vec}), .lck(lck), .lce(lce[{fx}]), "
+          f".lcdi(lcdi_x[{t // 2 * nl} +: {nl}]), .oa(x{ea}[{ja}]), .ob(x{eb}[{jb}]));")
+    for el in range(n):
         f_init, slot = divmod(el, lay["init_per_frame"])
         f_init += 1                                        # tile frame 0 holds selects + flags
         e(f"    // element {el}: INIT in tile frame {f_init} slot {slot}")
-        e(f"    wire [{k - 1}:0] x{el};")
-        for j in range(k):
-            srcs = dev.xbar_sources(el, j)
-            vec = "{" + ", ".join(f"i[{p[2:-1]}]" if p.startswith("I") else f"o[{p[2:-1]}]"
-                                  for p in reversed(srcs)) + "}"
-            fx, t = dev.xbar_slot(el * k + j)
-            e(f"    lxmux #(.S({len(srcs)})) m{el}_{j} (.in({vec}), .lck(lck), "
-              f".lce(lce[{fx}]), .lcdi(lcdi_x[{t * nl} +: {nl}]), .o(x{el}[{j}]));")
         e(f"    ble u_e{el} (.clk(clk), .gce(gce), .ce(ce), .sr(sr), .gsr(gsr), .gwe(gwe), "
           f".i(x{el}), .cin(cy[{el}]), .cfg(cfg[{el * ew} +: {ew}]),")
         e(f"        .lck(lck), .lce(lce[{f_init}]), .lcdi(lcdi_init[{2 * slot} +: 2]),")

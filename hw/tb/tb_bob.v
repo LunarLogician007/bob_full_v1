@@ -324,7 +324,7 @@ module tb_bob;
             shift_chain(cfgw);
             read_ctrl(st);
             checks = checks + 1;
-            if (!st[B_COMMITTED] || !st[B_CRC_OK] || st[47:32] != CFG_W) begin
+            if (!st[B_COMMITTED] || !st[B_CRC_OK] || st[B_LEN_ERR] || st[47:32] != CFG_W[15:0]) begin   // M23: the low 16 bits
                 errors = errors + 1;
                 $display("  FAIL  %0s: not committed (crc_err=%b len_err=%b count=%0d)",
                          dname, st[B_CRC_ERR], st[B_LEN_ERR], st[47:32]);
@@ -583,18 +583,20 @@ module tb_bob;
         read_ctrl(st);
         check("random chain committed", {63'h0, st[B_COMMITTED]}, 64'h1);
         check("chip CRC == chainbits.py", {32'h0, st[31:0]}, {32'h0, `RT_CRC});
-        check("bit count", {48'h0, st[47:32]}, CFG_W);
+        check("bit count (low 16 bits; M23)", {48'h0, st[47:32]}, {48'h0, CFG_W[15:0]});
+        check("length good", {63'h0, st[B_LEN_ERR]}, 64'h0);
         check("shadow bus == chain", {63'h0, (cfg === `RT_WORD)}, 64'h1);
         // M22: the CFGLUT5s themselves, against contents gen_vectors.py computes from the word
         idle(40);                                     // the loader's last 32 shifts
         check("CFGLUT5: clb(1,1) e0 INIT lo", {32'h0, dut.u_fabric.u_clb_x1y1.u_e0.u_lo.r}, {32'h0, `RT_E0_LO});
         check("CFGLUT5: clb(1,1) e0 INIT hi", {32'h0, dut.u_fabric.u_clb_x1y1.u_e0.u_hi.r}, {32'h0, `RT_E0_HI});
-        check("CFGLUT5: clb(1,1) crossbar root", {32'h0, dut.u_fabric.u_clb_x1y1.`RT_X0_MUX.g_root.u.r}, {32'h0, `RT_X0_ROOT});
+        // M23: a crossbar pair's six shared leaves (both halves)
         check("CFGLUT5: clb(1,1) crossbar leaf 0", {32'h0, dut.u_fabric.u_clb_x1y1.`RT_X0_MUX.g_leaf[0].u.r}, {32'h0, `RT_X0_LEAF0});
         check("CFGLUT5: clb(1,1) crossbar leaf 1", {32'h0, dut.u_fabric.u_clb_x1y1.`RT_X0_MUX.g_leaf[1].u.r}, {32'h0, `RT_X0_LEAF1});
         check("CFGLUT5: clb(1,1) crossbar leaf 2", {32'h0, dut.u_fabric.u_clb_x1y1.`RT_X0_MUX.g_leaf[2].u.r}, {32'h0, `RT_X0_LEAF2});
         check("CFGLUT5: clb(1,1) crossbar leaf 3", {32'h0, dut.u_fabric.u_clb_x1y1.`RT_X0_MUX.g_leaf[3].u.r}, {32'h0, `RT_X0_LEAF3});
         check("CFGLUT5: clb(1,1) crossbar leaf 4", {32'h0, dut.u_fabric.u_clb_x1y1.`RT_X0_MUX.g_leaf[4].u.r}, {32'h0, `RT_X0_LEAF4});
+        check("CFGLUT5: clb(1,1) crossbar leaf 5", {32'h0, dut.u_fabric.u_clb_x1y1.`RT_X0_MUX.g_leaf[5].u.r}, {32'h0, `RT_X0_LEAF5});
         shift_ir(IR_CHAIN_OUT, irc);
         shift_chain({CFG_W{1'b0}});
         check("CFG_OUT readback == chain", {63'h0, (cfgrx === `RT_WORD)}, 64'h1);
@@ -707,7 +709,7 @@ module tb_bob;
         check("JPROGRAM: config cleared", {63'h0, (cfg === {CFG_W{1'b0}})}, 64'h1);
         idle(40);                                     // M22: the loader's zero sweep
         check("JPROGRAM: CFGLUT5 INIT swept to 0", {32'h0, dut.u_fabric.u_clb_x1y1.u_e0.u_lo.r | dut.u_fabric.u_clb_x1y1.u_e0.u_hi.r}, 64'h0);
-        check("JPROGRAM: CFGLUT5 crossbar swept to 0", {32'h0, dut.u_fabric.u_clb_x1y1.`RT_X0_MUX.g_root.u.r}, 64'h0);
+        check("JPROGRAM: CFGLUT5 crossbar swept to 0", {32'h0, dut.u_fabric.u_clb_x1y1.`RT_X0_MUX.g_leaf[`RT_X0_G].u.r}, 64'h0);
         check("JPROGRAM: pads dark", {63'h0, (pads_o === {NPAD{1'b0}})}, 64'h1);
         check("JPROGRAM: DONE off", {63'h0, configured}, 64'h0);
 

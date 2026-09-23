@@ -56,16 +56,15 @@ Generated from `software/bob/device.json` by `software/bob/devtable.py`; `tests/
 
 | | |
 |---|---|
-| VPR grid | 13 × 11 (11 × 9 core inside an I/O ring, corners empty) |
-| CLBs | 81 × 4 logic elements = 324 LUTs (columns x = 1, 2, 4, 5, 6, 7, 9, 10, 11); each element LUT6 (or two LUT5), MUXCY/XORCY carry, two FDRE/FDSE; 16 inputs and a full crossbar per CLB; LUT contents and crossbar in CFGLUT5 (M22) |
-| BRAM | 2 × 1024×18 true dual port (column x = 3, 4 rows tall); contents as frames (FAR type 001) or over USER4 |
-| DSP | 2 × DSP48E1-style slices (column x = 8, 4 rows tall), PCOUT→PCIN cascade |
-| I/O | 40 pads; board switches, buttons and LEDs on fixed pads, LD3 = DONE |
-| Routing | L4 unidirectional, W = 40, Wilton Fs = 3 (from OpenFPGA's k6_frac_N10 tileable arch); 4934 muxes |
-| Configuration | 56448 bits = 441 frames of 4 × 32 (324 of them held only in CFGLUT5s); UG470-style packets on CFG_IN/CFG_OUT (CRC-32C, IDCODE, partial reconfiguration, BRAM content frames) or the streamed chain on CHAIN_IN/CHAIN_OUT; GSR → GTS → GWE → DONE startup |
+| VPR grid | 16 × 13 (14 × 11 core inside an I/O ring, corners empty) |
+| CLBs | 132 × 4 logic elements = 528 LUTs (columns x = 1, 2, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14); each element LUT6 (or two LUT5), MUXCY/XORCY carry, two FDRE/FDSE; 16 inputs and a full crossbar per CLB; LUT contents and crossbar in CFGLUT5 (M22), crossbar muxes in pairs sharing dual-output leaves (M23) |
+| BRAM | 2 × 1024×18 true dual port (column x = 3, 5 rows tall); contents as frames (FAR type 001) or over USER4 |
+| DSP | 2 × DSP48E1-style slices (column x = 10, 5 rows tall), PCOUT→PCIN cascade |
+| I/O | 50 pads; board switches, buttons and LEDs on fixed pads, LD3 = DONE |
+| Routing | L4 unidirectional, W = 36, Wilton Fs = 3 (from OpenFPGA's k6_frac_N10 tileable arch); 7064 muxes, each LUT6 4:1 leaves + MUXF7/MUXF8 (M23) |
+| Configuration | 89216 bits = 697 frames of 4 × 32 (528 of them held only in CFGLUT5s); UG470-style packets on CFG_IN/CFG_OUT (CRC-32C, IDCODE, partial reconfiguration, BRAM content frames) or the streamed chain on CHAIN_IN/CHAIN_OUT; GSR → GTS → GWE → DONE startup |
 | User clock | one sysclk enable at a time, spaced by each design's own timing (clk_gap from software/bob/timing.py, never under 2 cycles = 62.5 MHz); unset, at least 2**9 = 512 cycles apart (a word is loaded only if its critical path fits its spacing), at most 244 kHz |
-| JTAG | 6-bit AMD 7-series IR, IDCODE `0x0B022093` (M22) |
-| Host utilisation (Vivado, M22) | 38 184 LUTs (71.77%), 25 599 FFs (24.06%), 2 RAMB18, 2 DSP48E1, WNS +0.172 ns |
+| JTAG | 6-bit AMD 7-series IR, IDCODE `0x0B023093` (M23) |
 
 <!-- device:end -->
 

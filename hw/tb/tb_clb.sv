@@ -35,7 +35,7 @@ module tb_clb;
     localparam integer FB  = `BOB_FRAME_BITS;
     localparam integer LFN = `BOB_LF_N;
     localparam integer NS  = `BOB_XBAR_N;
-    localparam integer NL  = ((NS + 4) / 5 > 1) ? (NS + 4) / 5 + 1 : 1;
+    localparam integer NL  = (NS + 3) / 4;                 // M23: leaves per crossbar pair (lxpair.v)
     reg           lck = 1'b0;
     reg  [LFN-1:0] lce = '0;
     reg  [FB-1:0] lbuf = '0;
@@ -43,7 +43,7 @@ module tb_clb;
     reg  [W-1:0]  loaded = '0;
     reg           ever = 1'b0;
     wire [2*`BOB_LF_INIT_PER-1:0]  cdi_init;
-    wire [`BOB_LF_XBAR_PER*NL-1:0] cdi_x;
+    wire [`BOB_LF_XBAR_PER/2*NL-1:0] cdi_x;
     integer lf, c;
 
     lut_expand #(.FB(FB), .K(`BOB_LUT_K), .NI(`BOB_LF_INIT_PER), .XW(`BOB_XBAR_W),

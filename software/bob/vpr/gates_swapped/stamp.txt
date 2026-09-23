@@ -1,11 +1,11 @@
 top gates
 pcf work/examples/gates/gates_swapped.pcf
-arch_sha256 4afb4386337f382bcccacbc0f6436398fa0daf011e259d43af54d8ad0211c0e5
+arch_sha256 aa16725911ba09e6df661a37a7f3a32d8b53d76a6a69716a61b95ffeec9ba456
 eblif_sha256 8e806ef632e328de5e6d2761344663d8d7ace668fb96cd599657b9ea46ed8a72
 seed 1
 image ghcr.io/lnis-uofu/openfpga-master@sha256:2467ffa99296516cc1bcbb07542633c90723ae17ca3f67a175f61cb9f131abbb
-command vpr arch.xml gates_swapped.eblif --device bob11x9 --route_chan_width 40 --read_rr_graph rr.xml --fix_clusters gates_swapped.pins --seed 1 --absorb_buffer_luts off --const_gen_inference none --sweep_dangling_primary_ios off --sweep_dangling_nets off --sweep_dangling_blocks off --sweep_constant_primary_outputs off --pack --place --route --analysis
-wirelength 94
-cpd_ns 1.65269
-fmax_mhz 696.035
-result_sha 2b591c590eda7d29
+command vpr arch.xml gates_swapped.eblif --device bob14x11 --route_chan_width 36 --read_rr_graph rr.xml --fix_clusters gates_swapped.pins --seed 1 --absorb_buffer_luts off --const_gen_inference none --sweep_dangling_primary_ios off --sweep_dangling_nets off --sweep_dangling_blocks off --sweep_constant_primary_outputs off --pack --place --route --analysis
+wirelength 105
+cpd_ns 1.85848
+fmax_mhz 681.372
+result_sha 38397fdc8b8ef674

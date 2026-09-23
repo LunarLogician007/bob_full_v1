@@ -21,7 +21,7 @@ src/clb/clb.sv
 src/clb/ble.sv
 # M22: a crossbar mux as a CFGLUT5 tree (CFGLUT5 is AMD's primitive: Vivado and yosys know
 # it; iverilog and verilator get hw/tb/prims/CFGLUT5.v from sim/hwfiles.sh --sim)
-src/clb/lxmux.v
+src/clb/lxpair.v
 
 # JTAG TAP and the boundary scan cell
 src/core/jtag_tap.v

@@ -234,7 +234,7 @@ module bob_fpga #(
 
     // chain: TDI -> memory bit CHAIN_W-1 ... bit 0 -> TDO; frames: frame f = bits [FB*f +: FB]
     cfg_store #(.FB(`BOB_FRAME_BITS), .NFRAMES(`BOB_NFRAMES), .FIDX_W(FIDX_W),
-                .LBITS(`BOB_LBIT_MASK)) u_store (
+                .LKW(`BOB_LKIND_W), .LKIND(`BOB_LKIND), .LMASKS(`BOB_LMASKS)) u_store (
         .tck        (tck),
         .chain_in   (sel_chain_in),
         .chain_out  (sel_chain_out),

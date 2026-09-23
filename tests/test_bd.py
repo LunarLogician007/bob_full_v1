@@ -224,7 +224,8 @@ def _one(errs, where, text):
     (lambda w: w + [{"src": "cnt.q[0]", "dst": "board.sw[0]"}], "board.sw[0]", "board input"),
     (lambda w: w + [{"src": "board.led[0]", "dst": "cnt.en"}], "board.led[0]", "board output"),
     (lambda w: w + [{"src": "board.sw[0]", "dst": "cnt.clk"}], "cnt.clk", "connected for you"),
-    (lambda w: w + [{"src": "board.pad12", "dst": "cnt.en"}], "cnt.en", "wired to a switch"),
+    # a pad the board wires to a switch, button or LED (BD.BOARD_PADS; it moves with the grid)
+    (lambda w: w + [{"src": f"board.pad{min(BD.BOARD_PADS)}", "dst": "cnt.en"}], "cnt.en", "wired to a switch"),
     (lambda w: w + [{"src": "board.pad99", "dst": "cnt.en"}], "cnt.en", "there is no pad99"),
     (lambda w: w + [{"src": "cnt.nope", "dst": "mux.a"}], "mux.a", "has no port nope"),
     (lambda w: w + [{"src": "cnt.q[5:0]", "dst": "mux.a"}], "mux.a", "outside"),

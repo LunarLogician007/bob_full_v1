@@ -59,10 +59,13 @@ module cfg_ctrl #(
     localparam [31:0] CRC_INIT     = 32'hFFFFFFFF;
     localparam [7:0]  CTRL_VERSION = 8'h02;
     localparam [7:0]  CTRL_KEY     = 8'hC5;
-    localparam [15:0] WANT_COUNT   = CHAIN_W[15:0];
+    // M23: the count is as wide as the chain needs (89,216 bits at 12 x 11 overflowed M22's 16);
+    // CFG_CTRL still reports its low 16 bits, and len_err is the full comparison
+    localparam integer CW          = 24;
+    localparam [CW-1:0] WANT_COUNT = CHAIN_W[CW-1:0];
 
     reg [31:0] crc      = CRC_INIT;
-    reg [15:0] count    = 16'h0;
+    reg [CW-1:0] count  = {CW{1'b0}};
     reg [31:0] expected = 32'h0;
     reg        crc_ok   = 1'b0;
     reg        crc_err  = 1'b0;
@@ -92,11 +95,11 @@ module cfg_ctrl #(
     always @(posedge tck) begin
         if (sel_cfg_in & dr_capture) begin
             crc   <= CRC_INIT;
-            count <= 16'h0;
+            count <= {CW{1'b0}};
         end else if (sel_cfg_in & dr_shift) begin
             crc <= crc_next;
-            if (count != 16'hFFFF)
-                count <= count + 16'h1;
+            if (count != {CW{1'b1}})
+                count <= count + 1'b1;
         end
     end
 
@@ -143,7 +146,7 @@ module cfg_ctrl #(
         if (sel_ctrl & dr_capture)
             ctrl_sr <= {CTRL_VERSION, done, gwe, gts, gsr,
                         committed, len_err, crc_err, crc_ok,
-                        count, ~crc};
+                        count[15:0], ~crc};
         else if (sel_ctrl & dr_shift)
             ctrl_sr <= {tdi, ctrl_sr[63:1]};
     end
