@@ -99,12 +99,15 @@ The user's log: `/Users/sk/work/bob/bob_full_v1/runme.log` (copied from
    stop a run), PLAN M21 section and status row, REUSE, GUIDE, bitstream-format §rules, the arch
    page's timing card (`xdc_mc`), and the README device table (generated).
 
-**Second rebuild (2026-09-23 15:58, the user's `runme.log`): still WNS −228 ns after
-placement, phys_opt grinding.** That cannot be sysclk any more (it would take a 131 µs path).
-The clock was **TCK**: the nets phys_opt worked on are TCK cells (`u_tap/sr_reg` boundary,
-`cfg_reg` configuration bits, `u_dsp_jtag`, `capture_reg`). The path runs from a config or
-update cell through the empty mesh into CAPTURE / boundary / DSP-JTAG capture, about 10.2 µs
-against TCK's 10 µs. M7 missed TCK the same way (−657 ns). So the earlier diagnosis that the
+**Second rebuild (2026-09-23 15:58): WNS −228 ns after placement; it finished at 18:07 with a
+bitstream** (`bob_full_v1/docs/reports/M21/`: `timing.rpt`, `util.rpt`, `bob_top.bit`).
+- **sysclk met: WNS +0.868 ns, WHS +0.119 ns.** The sysclk fix worked.
+- **TCK failed: WNS −463 ns, 66 endpoints.** Worst path: `u_tap/ir_reg[2]` (updated on the
+  falling edge) → 6349 logic levels of empty fabric and DSP → `u_dsp_jtag/sr_reg[91]`,
+  5463 ns against the 5000 ns fall → rise half period.
+- **Utilization:** 36,450 LUTs (68.5%, as estimated), 36,308 FFs, 3 BRAM tiles, 2 DSPs.
+
+M7 missed TCK the same way (−657 ns). M7 missed TCK the same way (−657 ns). So the earlier diagnosis that the
 path "grows with the budget" was probably wrong: −133 / −290 / −228 ns look like this one
 TCK path, moving with placement.
 - **Fix:** TCK → TCK multicycle 16/15 (`XDC_TCK_MULTICYCLE`, `tests/test_layout.py`). Hold

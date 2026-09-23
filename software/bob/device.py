@@ -107,8 +107,8 @@ XDC_TCK_MULTICYCLE = 16              # M21: the same for TCK -> TCK (16 x 10 us 
                                      # Configuration bits and the boundary / IR update cells
                                      # drive the fabric and CAPTURE / boundary / DSP JTAG
                                      # capture it, all on TCK; the empty mesh's loop-cut path
-                                     # passed the 10 us period (second M21 build, WNS -228 ns
-                                     # with sysclk already relaxed).
+                                     # IR -> DSP JTAG was 5463 ns against the 5000 ns fall ->
+                                     # rise half period (M21 build, sysclk met, tck -463 ns).
 GCE_GAP_FLOOR = 2                    # M20: hardware floor of the gce spacing (62.5 MHz)
 PERIOD_W = 16                        # M20: clk_period / clk_gap field width (up to 65535 cycles)
 

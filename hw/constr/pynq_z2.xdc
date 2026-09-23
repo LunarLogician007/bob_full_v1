@@ -96,10 +96,10 @@ set_clock_groups -asynchronous -group [get_clocks tck] -group [get_clocks sysclk
 # bits (cfg_reg) and the boundary / IR update cells are TCK registers that drive the
 # fabric, and CAPTURE, the boundary capture and the DSP JTAG capture are TCK registers
 # fed by it, so Vivado times TCK paths through the UNCONFIGURED mesh too (M7: 1650 ns,
-# failed a 1 MHz TCK by 657 ns). On the cluster fabric that loop-cut path passed the
-# 10 us period: the second M21 implementation, with sysclk already relaxed, still
-# placed at WNS -228 ns, phys_opt working on u_tap/sr_reg, cfg_reg, u_dsp_jtag and
-# capture_reg nets. A configured design's pad and capture paths are tens of ns
+# failed a 1 MHz TCK by 657 ns). The M21 build with sysclk relaxed routed with sysclk
+# met (+0.868 ns) and TCK at WNS -463 ns: u_tap/ir_reg[2] (updated on the falling edge)
+# -> 6349 logic levels of empty fabric and DSP -> u_dsp_jtag/sr_reg[91], 5463 ns against
+# the 5000 ns fall -> rise half period (docs/reports/M21/timing.rpt). A configured design's pad and capture paths are tens of ns
 # (software/bob/timing.py), and a configuration bit never changes while the fabric is
 # captured (GWE = 0). So TCK -> TCK gets 16 periods (160 us, past any path through the
 # ~4800 fabric muxes). Hold stays at the same edge (-hold 15), so the TAP and shift

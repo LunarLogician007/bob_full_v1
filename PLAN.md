@@ -152,8 +152,9 @@ not have converged, and each doubling halves the default guest clock.
 - The gap is back to 512 (M16–M20, board-proven).
 - TCK → TCK gets a 16-period multicycle (160 µs) for the same reason. Configuration bits and
   the boundary/IR update cells drive the empty mesh, and TCK registers capture it (CAPTURE,
-  boundary, DSP JTAG). The second build, with sysclk already relaxed, still placed at
-  −228 ns on that TCK path (~10.2 µs against 10 µs). `place_report.tcl` now prints each
+  boundary, DSP JTAG). The second build, with sysclk relaxed, routed with sysclk met
+  (+0.868 ns) and TCK at −463 ns: IR update → 6349 levels of empty fabric → DSP JTAG
+  capture, 5463 ns against the 5000 ns fall → rise half period. `place_report.tcl` now prints each
   clock's worst path right after placement.
 - `timing.contract()` holds every word to its own gce spacing (`clk_gap`, or the default
   when it is 0), stepped or free-running: the flow's timing stage fails the build and
