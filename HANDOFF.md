@@ -33,6 +33,11 @@ This file is the live state: what is finished, what is in flight, and exactly wh
   (with CFGLUT5 contents against an independent model and the JPROGRAM sweep), cfg, K=4,
   frames, cosim, synth; lint clean; pytest 501 + the device table; every example re-routed by
   VPR and legal; M22 mutants killed (see below).
+- **Mutants:** all M22 mutants killed - `expand-bit-order`, `lxmux-root-no-ce`,
+  `lut-halves-swapped` (tb_clb), `loader-no-sweep` (tb_bob), `loader-31-shifts` (as a hang:
+  every table one bit off leaves loops, and the watchdog's 2700 s ended it). The full
+  `make mutate` for M22 has not been rerun end to end (each tb_bob mutant is ~10 min).
+- **`make check` green 2026-09-24** (2 h 20 min: cosim alone ~90 min with the CFGLUT5 model).
 - **Size (yosys, whole design):** 36,980 logic LUTs + 12,312 CFGLUT5 = 49.3k (M21 58.5k),
   25.4k FFs (M21 36.0k), 5.1 GB peak. **Vivado projection 35-42k LUTs (66-79%)** - the two
   M21 calibrations disagree - and SLICEM ~71%. My grid table for the user said ~28k; it
@@ -52,7 +57,7 @@ This file is the live state: what is finished, what is in flight, and exactly wh
   `tests/test_device.py::test_a_load_sets_the_flags_before_any_crossbar_select` holds it.
 
 ### Then
-1. The user builds M22 in Vivado (`docs/hwtest/M22.md`); watch the two `place_report:` lines.
+1. **The M22 Vivado build is running (started 2026-09-24).** Watch the two `place_report:` lines.
 2. Copy the whole `out\M22\` to `docs/reports/M22/`, `delays.py fold`, `make check`.
 3. `make hwtest M=M22` from the m22 worktree; merge `m22` into `main`, tag `m22`.
 
