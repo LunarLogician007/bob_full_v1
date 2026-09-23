@@ -71,7 +71,12 @@ def test_arch_has_bob_cells():
     arch = open(os.path.join(vpr_run.ARCH_DIR, f"bob_k{B.LUT_K}.xml")).read()
     for model in ("bob_add", "bob_ff", "bob_bram", "bob_dsp"):
         assert f'<model name="{model}">' in arch
-    assert '<mode name="logic">' in arch and '<mode name="arithmetic">' in arch
+    # M21: the cluster's element (fle) has the reference's modes: one LUT, two fractured
+    # LUTs, the adder; the crossbar feeds the element inputs
+    for mode in ("lut", "frac", "arithmetic"):
+        assert f'<mode name="{mode}">' in arch
+    assert f'<pb_type name="fle" num_pb="{B.CLB_N}">' in arch
+    assert 'name="crossbar"' in arch or 'name="xb0_0"' in arch
 
 
 def test_legality_rejects_bad_features():
@@ -84,8 +89,13 @@ def test_legality_rejects_bad_features():
     with pytest.raises(FV.FasmError):
         FV.check_legal({f"{clb}.no_such_field": 1})
     with pytest.raises(FV.FasmError):
-        FV.check_legal({f"{clb}.ff_en": 2})
-    FV.check_legal({f"{clb}.ff_en": 1, f"rr{node}": base})
+        FV.check_legal({f"{clb}.e0.ff_en": 2})
+    with pytest.raises(FV.FasmError):                               # M21: a crossbar select past its sources
+        FV.check_legal({f"{clb}.e0.x0": 2 + len(B.XBAR_SOURCES[0][0])})
+    with pytest.raises(FV.FasmError):
+        FV.check_legal({f"{clb}.e{B.CLB_N}.ff_en": 1})               # no such element
+    FV.check_legal({f"{clb}.e0.ff_en": 1, f"{clb}.e0.x0": 1 + len(B.XBAR_SOURCES[0][0]),
+                    f"rr{node}": base})
 
 
 @needs_tools

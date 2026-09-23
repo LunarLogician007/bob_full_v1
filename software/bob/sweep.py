@@ -85,9 +85,23 @@ GRIDS = {4: grid(11, 10, 3, 8, 5),        # 9 x 10 CLBs = 90 x 4  = 360 LUTs
 CONFIGS = [(f"n{n}_{x}", n, x) for n in (4, 8, 10) for x in ("full", "half")]
 EXTRA = {"n10_half_7x5": (10, "half", grid(7, 5, 3, 6, 2)),       # 5 x 5 = 25 CLBs = 250 LUTs
          "n10_half_6x4": (10, "half", grid(6, 4, 3, 6, 2))}       # 4 x 4 = 16 CLBs = 160 LUTs
+# round 2: what the XC7Z020 can afford (round 1 put a 360-LUT cluster fabric at 100k+ host
+# LUTs): about 200 LUTs each, full crossbars, I = 4N or Betz's K(N+1)/2
+ROUND2 = {"r2_n4": (4, 16, grid(9, 7, 3, 6, 3)),          # 7 x 7 = 49 CLBs = 196 LUTs
+          "r2_n6": (6, 24, grid(8, 6, 3, 6, 3)),          # 6 x 6 = 36 CLBs = 216
+          "r2_n8": (8, 32, grid(7, 5, 3, 6, 2)),          # 5 x 5 = 25 CLBs = 200
+          "r2_n8_i27": (8, 27, grid(7, 5, 3, 6, 2)),
+          "r2_n10": (10, 40, grid(6, 5, 3, 5, 2)),        # 4 x 5 = 20 CLBs = 200
+          "r2_n10_i33": (10, 33, grid(6, 5, 3, 5, 2))}
 
 
 def arch_of(tag):
+    if tag in ROUND2:
+        n, i, g = ROUND2[tag]
+        a = json.loads(json.dumps(g))
+        a["cluster"] = {"n": n, "i": i, "xbar": "full", "frac": True}
+        a["delays"] = bob_delays()
+        return a
     if tag in EXTRA:
         n, x, g = EXTRA[tag]
     else:
@@ -236,7 +250,7 @@ def run_config(tag, with_yosys):
             res["min_w"][n] = r["min_w"] if r["routed"] else None
             if not r["routed"]:
                 res.setdefault("unroutable", {})[n] = r.get("why")
-    need = max((w for w in res["min_w"].values() if w), default=24)
+    need = max((w for w in res["min_w"].values() if w), default=24)       # the examples that fit
     W = max(2, 2 * math.ceil(need * MARGIN / 2))
     res["W"] = W
     # 2. rr graph at W -> exact configuration bits
@@ -270,6 +284,67 @@ def run_config(tag, with_yosys):
     return res
 
 
+def _luts(path):
+    try:
+        s = open(path).read()
+    except OSError:
+        return None
+    return sum(int(m) for m in re.findall(r"^\s+(\d+)\s+LUT\d", s, re.M)) or None
+
+
+def tables():
+    """The measured tables of docs/reports/M21/cluster_sweep.md, from build/sweep."""
+    res = {}
+    for t in ["baseline"] + [c[0] for c in CONFIGS] + list(EXTRA) + list(ROUND2):
+        f = os.path.join(OUT, t, "result.json")
+        if os.path.exists(f):
+            res[t] = json.load(open(f))
+            y = _luts(os.path.join(OUT, t, "stat.txt"))
+            if y and not res[t].get("yosys"):
+                res[t]["yosys"] = {"luts": y}
+    base_y = _luts(os.path.join(OUT, "baseline_yosys", "stat.txt"))
+    if "n10_full" in res and not res["n10_full"].get("yosys"):
+        y = _luts(os.path.join(OUT, "n10_full_yosys", "stat.txt"))
+        if y:
+            res["n10_full"]["yosys"] = {"luts": y}
+    show = ["big", "atspeed", "wide", "fir16"]
+    L = []
+
+    def row(t, r):
+        b = r["bits"]
+        y = (r.get("yosys") or {}).get("luts")
+        luts = b.get("luts") or 100
+        if t == "baseline":
+            y = base_y
+        cells = [t, str(r.get("n", "-")), str(r.get("i", 6 if t == "baseline" else "-")),
+                 r.get("xbar", "-"), r.get("grid", ""), str(luts if t != "baseline" else 100),
+                 str(r["W"]), f"{b.get('per_lut'):.0f}" if b.get("per_lut") else "149",
+                 str(b.get("chain", 18560)), f"{y:,}" if y else "-", f"{y / luts:.0f}" if y else "-"]
+        for n in show:
+            v = r["route"].get(n, {})
+            cells.append(f"{v['wirelength']} / {v['cpd_ns']:.0f}" if v.get("routed") else "does not fit")
+        return "| " + " | ".join(cells) + " |"
+    head = ("| config | N | I | crossbar | grid | LUTs | W | bits/LUT | chain bits | fabric host LUTs "
+            "(yosys) | host LUTs / LUT | " + " | ".join(f"{n}: wirelength / critical path ns" for n in show) + " |")
+    sep = "|" + "---|" * (11 + len(show))
+    for title, tags in (("Round 1: about 350 LUTs", ["baseline"] + [c[0] for c in CONFIGS] + list(EXTRA)),
+                        ("Round 2: about 200 LUTs, what the XC7Z020 can afford", ["baseline"] + list(ROUND2))):
+        L += [f"### {title}", "", head, sep]
+        L += [row(t, res[t]) for t in tags if t in res]
+        L.append("")
+    return "\n".join(L), res
+
+
+def report():
+    text = open(REPORT).read() if os.path.exists(REPORT) else "<!-- tables -->\n<!-- /tables -->\n"
+    t, _res = tables()
+    a, b = text.index("<!-- tables -->"), text.index("<!-- /tables -->")
+    text = text[:a] + "<!-- tables -->\n" + t + "\n" + text[b:]
+    os.makedirs(os.path.dirname(REPORT), exist_ok=True)
+    open(REPORT, "w").write(text)
+    print(f"wrote {os.path.relpath(REPORT, ROOT)}")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--only", nargs="*")
@@ -279,6 +354,9 @@ def main():
                     help="size the fabric of configurations already routed (build/sweep/<tag>)")
     args = ap.parse_args()
     tags = args.only or (["baseline"] + [c[0] for c in CONFIGS] + list(EXTRA))
+    if args.report:
+        report()
+        return 0
     if args.yosys_only:
         def one(t):
             work = os.path.join(OUT, t)

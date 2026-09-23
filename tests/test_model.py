@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.join(ROOT, "software", "host"))
 
 import bitstream as B  # noqa: E402
 import model as M      # noqa: E402
-from designs import (DESIGNS, d_ce_sr, d_counter, d_gsr_probe, d_pipeline,  # noqa: E402
+from designs import (COUNTER_X, DESIGNS, counter_cells, d_ce_sr, d_counter, d_gsr_probe, d_pipeline,  # noqa: E402
                      PIPELINE_BRAM)
 
 TRUTH = {
@@ -49,7 +49,7 @@ def test_counter_counts_through_the_carry_chain():
     m.clock(gsr=1)
     seen = []
     for _ in range(20):
-        seen.append(sum(m.q[(1, 1 + r)] << r for r in range(4)))
+        seen.append(sum(m.q[c] << r for r, c in enumerate(counter_cells(COUNTER_X, 4))))
         m.clock(cin=1)
     assert seen == [n % 16 for n in range(20)]
 
@@ -60,7 +60,7 @@ def test_counter_up_the_full_column():
     m.clock(gsr=1)
     for _ in range(300):
         m.clock(cin=1)
-    assert sum(m.q[(X, 1 + r)] << r for r in range(NB)) == 300 % (1 << NB)
+    assert sum(m.q[c] << r for r, c in enumerate(counter_cells(X, NB))) == 300 % (1 << NB)
 
 
 def test_counter_holds_without_gce_or_gwe_and_resets_on_gsr():
@@ -79,7 +79,7 @@ def test_counter_holds_without_gce_or_gwe_and_resets_on_gsr():
 def test_routed_ce_and_sr():
     m = M.Fabric(d_ce_sr().build())
     m.clock(gsr=1)
-    q = lambda: m.q[(1, 1)]                   # noqa: E731
+    q = lambda: m.q[(1, 1, 0)]                   # noqa: E731
     m.clock(pad_i=0b00); assert q() == 0      # CE low: hold INIT 0
     m.clock(pad_i=0b01); assert q() == 1      # CE high: D = 1
     m.clock(pad_i=0b00); assert q() == 1      # hold
@@ -208,8 +208,8 @@ def test_pipeline_pad_lut_ff_bram_dsp_pad():
 def test_gsr_probe():
     m = M.Fabric(d_gsr_probe().build())
     m.clock(gsr=1)
-    assert m.q[(1, 1)] == 1
+    assert m.q[(1, 1, 0)] == 1
     m.clock(gwe=0)
-    assert m.q[(1, 1)] == 1
+    assert m.q[(1, 1, 0)] == 1
     m.clock()
-    assert m.q[(1, 1)] == 0
+    assert m.q[(1, 1, 0)] == 0

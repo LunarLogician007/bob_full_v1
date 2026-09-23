@@ -9,23 +9,25 @@ M8 can prove synthesis on the board before VPR takes over packing, placement and
 routing at M9. It reads build/synth/<top>/<top>.json (software/bob/synth.py), builds
 a software/host/bitstream.py Design, and lets that router route it.
 
-Packing (one CLB = one BLE):
+Packing (one element each; M21: a CLB is N elements, placed as element slots):
   BOB_ADD                      a CLB in carry mode, LUT = A ^ B (^1), I0 = A,
                                I1 = B; a BOB_FDRE/FDSE on its sum is absorbed when
                                the sum has no other load
   $lut -> FF                   one CLB when the LUT feeds only that FF; a LUT of at
                                most K-1 inputs with other loads too keeps them on O5
   $lut, FF alone               one CLB each (a lone FF gets a buffer LUT)
-  carry chains                 run up a CLB column (VPR's carry direct). Row 1 of
-                               the column is a carry-in generator (LUT 0, carry
-                               generate = I0 = CI): the global USER1 cin never
-                               enters a design. A chain longer than the column
-                               ends in a tap CLB (sum = carry) and continues from
-                               a generator in the next carry column.
+  carry chains                 run through the elements of a CLB column in carry
+                               order (column(): e0..e<N-1> of each CLB, then the
+                               carry direct to the CLB above). The first slot is a
+                               carry-in generator (LUT 0, carry generate = I0 = CI):
+                               the global USER1 cin never enters a design. A chain
+                               longer than the column ends in a tap (sum = carry) and
+                               continues from a generator in the next carry column.
   BOB_BRAM18 / BOB_DSP         bram0, bram1 / dsp0, dsp1
 
-Placement: carry columns first (x = 1, 2, 4, 5, 7, 8), everything else on the
-free CLBs column by column; the Design router routes. Board ports: clk (the user
+Placement: carry columns first, everything else on the free element slots column by
+column, never putting two flip-flops with different CE or SR nets in one CLB (a CLB has
+one CE and one SR pin); the Design router routes, through the crossbars. Board ports: clk (the user
 clock), sw[1:0], btn[3:0] -> pad_i, led[2:0] -> LD2..0.
 
 --check replays <top>.trace.json (software/bob/equiv.py: the SOURCE Verilog's outputs
@@ -47,6 +49,12 @@ from bitstream import Cell, Const, Design, BramOut, DspOut  # noqa: E402
 
 CLB_COLS = sorted({x for x, _y in B.CLB_AT})
 ROWS = sorted({y for _x, y in B.CLB_AT})
+
+
+def column(x):
+    """M21: the element slots of CLB column x in carry order - every element of the bottom
+    CLB (e0 .. e<N-1>), then the CLB above"""
+    return [(x, y, e) for y in ROWS for e in range(B.CLB_N)]
 
 
 class PlaceError(Exception):
@@ -186,8 +194,8 @@ def place(top, seed=0):
         clusters[f] = {"kind": "ff", "main": None, "ff": f}
 
     # --- placement ------------------------------------------------------------------
-    free = [(x, y) for x in CLB_COLS for y in ROWS]
-    at = {}                                   # cluster name -> (x, y)
+    free = [s for x in CLB_COLS for s in column(x)]
+    at = {}                                   # cluster name -> (x, y, e)
     gens, taps = [], []                       # generator / tap CLBs: (xy, ci signal bit or const)
     col = 0
     for chain in chains:
@@ -199,54 +207,77 @@ def place(top, seed=0):
                 raise PlaceError("not enough CLB columns for the carry chains")
             x = CLB_COLS[col]
             col += 1
-            rows = [y for y in ROWS if (x, y) in free]
-            if rows != ROWS:
+            slots = column(x)
+            if [s for s in slots if s in free] != slots:
                 raise PlaceError("carry column already used")
-            gens.append(((x, ROWS[0]), carry_sig))
-            room = len(ROWS) - 1
+            gens.append((slots[0], carry_sig))
+            room = len(slots) - 1
             take = chain[i:i + room] if len(chain) - i <= room else chain[i:i + room - 1]
             for k, a in enumerate(take):
-                at[a] = (x, ROWS[1 + k])
+                at[a] = slots[1 + k]
             i += len(take)
             last = take[-1]
             co_used = nl.loads(nl.bit(last, "CO")) > (1 if i < len(chain) else 0)
             if i < len(chain) or co_used:
-                tap_xy = (x, ROWS[1 + len(take)])
-                if tap_xy[1] > ROWS[-1]:
-                    raise PlaceError("no row left for a carry tap")
+                if 1 + len(take) >= len(slots):
+                    raise PlaceError("no element left for a carry tap")
+                tap_xy = slots[1 + len(take)]
                 taps.append((tap_xy, nl.bit(last, "CO")))
                 carry_sig = ("tap", tap_xy)
                 free.remove(tap_xy)
-            for y in ROWS[:1 + len(take)]:
-                free.remove((x, y))
+            for sl in slots[:1 + len(take)]:
+                free.remove(sl)
     others = [n for n in clusters if n not in at]
     if len(others) > len(free):
-        raise PlaceError(f"{len(others)} CLBs needed, {len(free)} free")
+        raise PlaceError(f"{len(others)} elements needed, {len(free)} free")
     if seed:
         import random
         random.Random(seed).shuffle(free)
-    for n, xy in zip(others, free):
-        at[n] = xy
+
+    def ctl(n):
+        """the CE and SR nets a cluster's flip-flop needs (None: not used)"""
+        f = clusters[n]["ff"]
+        if not f:
+            return None, None
+        rst = "R" if cells[f]["type"] == "BOB_FDRE" else "S"
+        ce, sr = nl.bit(f, "CE"), nl.bit(f, rst)
+        return (None if ce == "1" else ce), (None if sr in ("0", "x") else sr)
+    clb_ctl = {}                              # (x, y) -> [ce net, sr net] its flip-flops share
+    for n in list(at):                        # the chains' flip-flops come first
+        ce, sr = ctl(n)
+        c = clb_ctl.setdefault(at[n][:2], [None, None])
+        c[0], c[1] = c[0] or ce, c[1] or sr
+    for n in others:
+        ce, sr = ctl(n)
+        for sl in free:
+            c = clb_ctl.setdefault(sl[:2], [None, None])
+            if (ce is None or c[0] in (None, ce)) and (sr is None or c[1] in (None, sr)):
+                c[0], c[1] = c[0] or ce, c[1] or sr
+                at[n] = sl
+                free.remove(sl)
+                break
+        else:
+            raise PlaceError(f"{n}: no CLB left whose CE/SR nets it can share")
 
     # --- signals of placed outputs ----------------------------------------------------
     for n, cl in clusters.items():
-        x, y = at[n]
+        x, y, e = at[n]
         if cl["kind"] == "add":
             if cl["ff"]:
-                sig[nl.bit(cl["ff"], "Q")] = Cell(x, y)
+                sig[nl.bit(cl["ff"], "Q")] = Cell(x, y, "o", e)
             else:
-                sig[nl.bit(n, "O")] = Cell(x, y)
+                sig[nl.bit(n, "O")] = Cell(x, y, "o", e)
         elif cl["kind"] == "lut":
             if cl["ff"]:
-                sig[nl.bit(cl["ff"], "Q")] = Cell(x, y)
+                sig[nl.bit(cl["ff"], "Q")] = Cell(x, y, "o", e)
                 if cl["o5"]:
-                    sig[nl.bit(n, "Y")] = Cell(x, y, "o5")
+                    sig[nl.bit(n, "Y")] = Cell(x, y, "o5", e)
             else:
-                sig[nl.bit(n, "Y")] = Cell(x, y)
+                sig[nl.bit(n, "Y")] = Cell(x, y, "o", e)
         else:
-            sig[nl.bit(cl["ff"], "Q")] = Cell(x, y)
-    for xy, co_bit in taps:
-        sig[co_bit] = Cell(*xy)
+            sig[nl.bit(cl["ff"], "Q")] = Cell(x, y, "o", e)
+    for (x, y, e), co_bit in taps:
+        sig[co_bit] = Cell(x, y, "o", e)
     brams = sorted(n for n, c in cells.items() if c["type"] == "BOB_BRAM18")
     dsps = sorted(n for n, c in cells.items() if c["type"] == "BOB_DSP")
     if len(brams) > B.NBRAM or len(dsps) > B.NDSP:
@@ -272,26 +303,26 @@ def place(top, seed=0):
         return sum(((lut_bits >> (a & ((1 << width) - 1))) & 1) << a for a in range(1 << K))
 
     for n, cl in clusters.items():
-        x, y = at[n]
+        x, y, e = at[n]
         flags, ce, sr = ({}, None, None)
         if cl["ff"]:
             flags, ce, sr = ff_args(cl["ff"])
         if cl["kind"] == "add":
             inv = _param(cells[n], "INV_B")
             init = B.lut(lambda a, b: a ^ b ^ inv, 2)
-            d.lut(x, y, init, [S(nl.bit(n, "A")), S(nl.bit(n, "B"))], ce=ce, sr=sr,
+            d.lut(x, y, init, [S(nl.bit(n, "A")), S(nl.bit(n, "B"))], ce=ce, sr=sr, e=e,
                   cy_en=1, **flags)
         elif cl["kind"] == "lut":
             width = _param(cells[n], "WIDTH")
             ins = [S(b) for b in cells[n]["connections"]["A"]]
-            d.lut(x, y, full_init(_param(cells[n], "LUT"), width), ins, ce=ce, sr=sr, **flags)
+            d.lut(x, y, full_init(_param(cells[n], "LUT"), width), ins, ce=ce, sr=sr, e=e, **flags)
         else:
-            d.lut(x, y, B.LUT.buf(0), [S(nl.bit(cl["ff"], "D"))], ce=ce, sr=sr, **flags)
-    for (x, y), carry in gens:
-        src = S(carry[1]) if carry[0] == "bit" else Cell(*carry[1])
-        d.lut(x, y, B.LUT.const0(), [src], cy_en=1)          # O6 = 0: cout = DI = I0
-    for (x, y), _co in taps:
-        d.lut(x, y, B.LUT.const0(), [], cy_en=1)             # sum = O6 ^ cin = the carry
+            d.lut(x, y, B.LUT.buf(0), [S(nl.bit(cl["ff"], "D"))], ce=ce, sr=sr, e=e, **flags)
+    for (x, y, e), carry in gens:
+        src = S(carry[1]) if carry[0] == "bit" else Cell(carry[1][0], carry[1][1], "o", carry[1][2])
+        d.lut(x, y, B.LUT.const0(), [src], e=e, cy_en=1)     # O6 = 0: cout = DI = I0
+    for (x, y, e), _co in taps:
+        d.lut(x, y, B.LUT.const0(), [], e=e, cy_en=1)        # sum = O6 ^ cin = the carry
     for b, n in enumerate(brams):
         c = cells[n]
         for port in "ab":

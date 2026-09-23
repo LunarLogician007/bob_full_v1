@@ -9,6 +9,7 @@ Controller model, software/bob/model.py and software/host/bitstream.py - never f
 
 import os
 import random
+import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -18,7 +19,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "software", "bob"))
 import bitstream as B                    # noqa: E402
 import packets as P                      # noqa: E402
 from chainbits import crc32c_bits        # noqa: E402
-from designs import d_showcase, d_counter, d_partial  # noqa: E402
+from designs import PARTIAL_Q, d_showcase, d_counter, d_partial  # noqa: E402
 
 W = B.CHAIN_W
 # stream vector width in the testbench (TB_SW): a whole load of the chain plus packet overhead
@@ -27,6 +28,32 @@ SW = 4096 * ((W + W // 16 + 4096) // 4096 + 1)
 
 def hexw(v, w=W):
     return f"{w}'h{v:0{(w + 3) // 4}x}"
+
+
+def chunked(lines, limit=8000, piece=2048):
+    """iverilog's scanner holds at most 16 KB of one token (a `define of a 64k-bit vector is
+    16 400 characters): a wide constant becomes a function that assigns it piece by piece,
+    and the macro calls the function"""
+    out = []
+    for line in lines:
+        m = re.fullmatch(r"`define (\w+) (\d+)'h([0-9a-fA-F]+)", line)
+        if not m or len(line) <= limit:
+            out.append(line)
+            continue
+        name, w, digits = m.group(1), int(m.group(2)), m.group(3)
+        v = int(digits, 16)
+        out.append(f"function [{w - 1}:0] f_{name}(input dummy);")
+        out.append("    begin")
+        out.append(f"        f_{name} = {w}'h0;")
+        for lo in range(0, w, piece):
+            n = min(piece, w - lo)
+            part = (v >> lo) & ((1 << n) - 1)
+            if part:
+                out.append(f"        f_{name}[{lo} +: {n}] = {n}'h{part:x};")
+        out.append("    end")
+        out.append("endfunction")
+        out.append(f"`define {name} f_{name}(1'b0)")
+    return out
 
 
 def stream(name, words):
@@ -151,8 +178,7 @@ def main():
     changed = P.changed_frames(pra, prb)
     assert 1 <= len(changed) <= 2, changed
     out += [f"`define PRA_W {hexw(pra)}", f"`define PRB_W {hexw(prb)}",
-            f"`define PR_Q {{dut.clb_o[{B.CLB_XY_INDEX[(1, 4)]}], dut.clb_o[{B.CLB_XY_INDEX[(1, 3)]}], "
-            f"dut.clb_o[{B.CLB_XY_INDEX[(1, 2)]}], dut.clb_o[{B.CLB_XY_INDEX[(1, 1)]}]}}"]
+            "`define PR_Q {" + ", ".join(f"dut.clb_o[{B.CAP_INDEX[c]}]" for c in reversed(PARTIAL_Q)) + "}"]
     prload = P.load_stream(pra)
     c = run(prload)
     assert c.mem == pra and c.flags["start_ok"]
@@ -168,6 +194,13 @@ def main():
     assert c.mem == prb and not c.frozen() and not c.errors()
     out += stream("PRFRM", frames) + [f"`define PRFRM_STAT 32'h{c.stat(gsr=0, gts=0, gwe=1, done=1):08x}",
                                       f"`define PR_NFRAMES {nfr}"]
+    # M21: readback right after the partial write comes from the BRAM shadow, which must
+    # hold design B's frames (the controller model reads the memory itself); the read
+    # leaves RCFG set, which [14]'s STAT then includes
+    c.shift_in(*P.to_jtag(P.readback_stream()))
+    words = [c.read_word(gsr=0, gts=0, gwe=1, done=1) for _ in range(P.NFRAMES * P.FW)]
+    assert words == P.frame_words(prb)
+    out += [f"`define PRB_RB_EXP {hexw(P.to_jtag(words)[1], 32 * P.NFRAMES * P.FW)}"]
     # [14] (continuing from [13]) a partial with no CRC write: frames land, LFRM refuses,
     # WR_ERROR, the fabric stays frozen
     nfreeze, nframes, _ = P.partial_streams(prb, pra)
@@ -254,7 +287,7 @@ def main():
     # STAT read stream
     out += stream("RDSTAT", P.read_stream("STAT", 1))
     path = os.path.join(HERE, "..", "hw", "tb", "frame_vectors.vh")
-    open(path, "w").write("\n".join(out) + "\n")
+    open(path, "w").write("\n".join(chunked(out)) + "\n")
     print(f"wrote {os.path.normpath(path)}: frame-path scenarios incl. M14 partial reconfiguration, {P.NFRAMES} frames x {P.FW} words")
 
 
