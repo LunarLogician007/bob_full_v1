@@ -26,7 +26,7 @@ module tb_cosim;
 
     reg  [5:0]                src_in = 6'b0;
     reg  [2:0]                exp_led, gld_led;
-    reg  [`BOB_NCLB-1:0]      cap_exp, cap_mask;
+    reg  [`BOB_NCAP-1:0]      cap_exp, cap_mask;
     integer                   cur = -1;
     integer                   dcycles = 0;
     integer                   dcaps = 0;
@@ -59,13 +59,13 @@ module tb_cosim;
             end
             if (cap_mask != 0) begin
                 shift_ir(IR_CAPTURE, irc);
-                shift_dr(`BOB_NCLB, 128'h0, rx);
+                shift_cap(capx);
                 checks = checks + 1;
-                if ((rx[`BOB_NCLB-1:0] & cap_mask) !== (cap_exp & cap_mask)) begin
+                if ((capx & cap_mask) !== (cap_exp & cap_mask)) begin
                     errors = errors + 1;
                     if (errors < 20)
                         $display("  FAIL  %0s cycle %0d CAPTURE %h golden %h (mask %h)",
-                                 dname, dcycles, rx[`BOB_NCLB-1:0] & cap_mask, cap_exp & cap_mask, cap_mask);
+                                 dname, dcycles, capx & cap_mask, cap_exp & cap_mask, cap_mask);
                 end else
                     dcaps = dcaps + 1;
             end

@@ -119,6 +119,23 @@
         end
     endtask
 
+    // M21: CAPTURE is 2 bits per element (720 at N = 10), wider than shift_dr's 128
+    reg [`BOB_NCAP-1:0] capx;
+    task shift_cap(output [`BOB_NCAP-1:0] dout);
+        integer k;
+        begin
+            dout = {`BOB_NCAP{1'b0}};
+            tick(1'b1, 1'b0); tick(1'b0, 1'b0); tick(1'b0, 1'b0);
+            for (k = 0; k < `BOB_NCAP - 1; k = k + 1) begin
+                tick(1'b0, 1'b0);
+                dout[k] = tdo_s;
+            end
+            tick(1'b1, 1'b0);
+            dout[`BOB_NCAP-1] = tdo_s;
+            tick(1'b1, 1'b0); tick(1'b0, 1'b0);
+        end
+    endtask
+
     task shift_chain(input [CFG_W-1:0] din);
         integer k;
         begin

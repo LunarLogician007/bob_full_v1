@@ -4,8 +4,10 @@ write.py - the Python PnR result in VPR's file formats (M12a).
 Only the parts software/bob/fasm_from_vpr.py reads are written, in the same shape VPR
 writes them:
   <name>.net     top block with one child per cluster (instance clb[i] / io[i] /
-                 bram[i] / dsp[i], mode logic / arithmetic / inpad / outpad); inside
-                 a CLB the lut (with port_rotation_map), add and ff blocks by atom name
+                 bram[i] / dsp[i]); inside a CLB (M21) its I pins and elements
+                 fle[e] (mode lut / frac / arithmetic, each input's crossbar source),
+                 then the lut / lutf (with port_rotation_map), add and ff blocks by
+                 atom name
   <name>.place   "block x y subblk layer #n"
   <name>.route   "Net n (name)" then "Node: id TYPE" lines; each branch after the
                  first starts by repeating the tree node it leaves from; global nets
@@ -22,9 +24,39 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(HERE)), "host"))
 import bitstream as B  # noqa: E402
 
 
+def _port(parent, direction, name, text):
+    io = parent.find(direction)
+    if io is None:
+        io = ET.SubElement(parent, direction)
+    ET.SubElement(io, "port", name=name).text = text
+
+
+def _leaf(parent, atom, inst, rot=None):
+    if atom is None:
+        ET.SubElement(parent, "block", name="open", instance=inst)
+        return
+    blk = ET.SubElement(parent, "block", name=atom.name, instance=inst)
+    if rot is not None:
+        ins = ET.SubElement(blk, "inputs")
+        ET.SubElement(ins, "port_rotation_map", name="in").text = " ".join(rot)
+    if atom.kind == "bob_ff":
+        _port(blk, "outputs", "Q", atom.pins["Q"])
+
+
+def _rot(atom, pins, width):
+    """physical LUT pin j carries atom input rot[j]: pins[j] is the net on pin j"""
+    import pnr.pack as pk
+    ins = pk.lut_ins(atom)
+    return [str(ins.index(pins[j])) if j < len(pins) and pins[j] in ins else "open" for j in range(width)]
+
+
 def write_net(path, name, packed):
+    """M21: a CLB is its elements (fle[e], modes lut / frac / arithmetic), each input
+    naming its crossbar source - a CLB input pin (clb.I[k], the pin the router chose) or
+    an element output of the same CLB (fle[m].out[o], feedback)"""
     top = ET.Element("block", name=f"{name}.net", instance="FPGA_packed_netlist[0]")
     count = {}
+    K = B.LUT_K
     for cname in sorted(packed.clusters):
         cl = packed.clusters[cname]
         i = count.get(cl.type, 0)
@@ -34,21 +66,43 @@ def write_net(path, name, packed):
             attrs["mode"] = cl.mode
         blk = ET.SubElement(top, "block", attrs)
         if cl.type == "clb":
-            if cl.mode == "logic":
-                lut = ET.SubElement(blk, "block", name=cl.atoms["lut"].name, instance="lut[0]")
-                ins = ET.SubElement(lut, "inputs")
-                rot = ["open"] * B.LUT_K                  # physical pin j carries atom input rot[j]
-                for k in cl.lut_inputs:
-                    rot[cl.lut_pin.get(k, k)] = str(k)
-                ET.SubElement(ins, "port_rotation_map", name="in").text = " ".join(rot)
-            else:
-                ET.SubElement(blk, "block", name=cl.atoms["add"].name, instance="add[0]")
-            if "ff" in cl.atoms:
-                ff = ET.SubElement(blk, "block", name=cl.atoms["ff"].name, instance="ff[0]")
-                outs = ET.SubElement(ff, "outputs")
-                ET.SubElement(outs, "port", name="Q").text = cl.atoms["ff"].pins["Q"]
-            else:
-                ET.SubElement(blk, "block", name="open", instance="ff[0]")
+            pins = ["open"] * B.CLB_I
+            for net, k in cl.in_pin.items():
+                pins[k] = net
+            _port(blk, "inputs", "I", " ".join(pins))
+            made = {}
+            for e, el in enumerate(cl.elems):
+                if el is not None:
+                    for o, net in enumerate(el.outs):
+                        if net:
+                            made[net] = f"fle[{e}].out[{o}]"
+            for e, el in enumerate(cl.elems):
+                if el is None:
+                    continue
+                mode = {"lut": "lut", "frac": "frac", "arith": "arithmetic"}[el.mode]
+                fle = ET.SubElement(blk, "block", name=el.outs[0] or el.outs[1] or f"{cname}.e{e}",
+                                    instance=f"fle[{e}]", mode=mode)
+                src = []
+                for net in el.ins:
+                    if net is None:
+                        src.append("open")
+                    elif net in made:
+                        src.append(f"{made[net]}->crossbar")
+                    else:
+                        src.append(f"clb.I[{cl.in_pin[net]}]->crossbar")
+                _port(fle, "inputs", "in", " ".join(src))
+                if el.mode == "lut":
+                    ble = ET.SubElement(fle, "block", name=el.luts[0].name, instance="ble[0]")
+                    _leaf(ble, el.luts[0], "lut[0]", _rot(el.luts[0], el.ins, K))
+                    _leaf(ble, el.ffs[0], "ff[0]")
+                elif el.mode == "frac":
+                    for half in (0, 1):
+                        ble = ET.SubElement(fle, "block", name=el.luts[half].name, instance=f"blef[{half}]")
+                        _leaf(ble, el.luts[half], "lutf[0]", _rot(el.luts[half], el.ins[:K - 1], K - 1))
+                        _leaf(ble, el.ffs[half], "ff[0]")
+                else:
+                    _leaf(fle, el.add, "add[0]")
+                    _leaf(fle, el.ffs[0], "ff[0]")
         elif cl.type in ("bram", "dsp"):
             ET.SubElement(blk, "block", name=cl.atoms["prim"].name, instance=f"{cl.type}_prim[0]")
     ET.ElementTree(top).write(path, encoding="unicode")

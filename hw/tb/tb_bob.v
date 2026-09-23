@@ -194,6 +194,26 @@ module tb_bob;
         end
     endtask
 
+    // M21: CAPTURE is 2 bits per element, wider than shift_dr's 128
+    reg [`BOB_NCAP-1:0] capx;
+    task shift_cap(output [`BOB_NCAP-1:0] dout);
+        integer k;
+        begin
+            dout = {`BOB_NCAP{1'b0}};
+            tick(1'b1, 1'b0);
+            tick(1'b0, 1'b0);
+            tick(1'b0, 1'b0);
+            for (k = 0; k < `BOB_NCAP - 1; k = k + 1) begin
+                tick(1'b0, 1'b0);
+                dout[k] = tdo_s;
+            end
+            tick(1'b1, 1'b0);
+            dout[`BOB_NCAP-1] = tdo_s;
+            tick(1'b1, 1'b0);
+            tick(1'b0, 1'b0);
+        end
+    endtask
+
     task shift_dr(input integer len, input [127:0] din, output [127:0] dout);
         integer k;
         begin
@@ -501,7 +521,7 @@ module tb_bob;
     endtask
 
     // one clock, then every CLB output and the LEDs against the model
-    task rnd_step(input [5:0] pi, input [NCLB-1:0] eclb, input [2:0] epo);
+    task rnd_step(input [5:0] pi, input [`BOB_NCAP-1:0] eclb, input [2:0] epo);
         begin
             pad_i = pi;
             #20;
@@ -618,9 +638,9 @@ module tb_bob;
         shift_ir(IR_USER1, irc);
         shift_dr(32, 128'h0, ux);
         shift_ir(IR_CAPTURE, irc);
-        shift_dr(NCLB, 128'h0, rx);
-        check("CAPTURE[15:0] == USER1 status [19:4]", {48'h0, rx[15:0]}, {48'h0, ux[19:4]});
-        check("CAPTURE == model.py (all CLBs, SW1=SW0=1)", {63'h0, (rx[NCLB-1:0] === `SHOW_CAP_11)}, 64'h1);
+        shift_cap(capx);
+        check("CAPTURE[15:0] == USER1 status [19:4]", {48'h0, capx[15:0]}, {48'h0, ux[19:4]});
+        check("CAPTURE == model.py (every element output, SW1=SW0=1)", {63'h0, (capx === `SHOW_CAP_11)}, 64'h1);
 
         $display("");
         $display("[7] GSR holds flip-flops at INIT until JSTART; GWE lets them clock");
@@ -631,8 +651,8 @@ module tb_bob;
         write_user1(32'h1);
         idle(8);
         shift_ir(IR_CAPTURE, irc);
-        shift_dr(NCLB, 128'h0, rx);
-        check("under GSR, clb(1,1) q = INIT (1)", {63'h0, rx[0]}, 64'h1);
+        shift_cap(capx);
+        check("under GSR, clb(1,1) q = INIT (1)", {63'h0, capx[0]}, 64'h1);
         check("GTS: LD0 forced 0 even though q = 1", {63'h0, pad_o[0]}, 64'h0);
         shift_ir(IR_JSTART, irc);
         tick(1'b0, 1'b0);
@@ -646,8 +666,8 @@ module tb_bob;
         check("DONE (LD3) on after edge 4", {63'h0, configured}, 64'h1);
         idle(8);
         shift_ir(IR_CAPTURE, irc);
-        shift_dr(NCLB, 128'h0, rx);
-        check("after JSTART, CAPTURE shows q = D (0)", {63'h0, rx[0]}, 64'h0);
+        shift_cap(capx);
+        check("after JSTART, CAPTURE shows q = D (0)", {63'h0, capx[0]}, 64'h0);
         write_user1(32'h0);
 
         $display("");
@@ -846,13 +866,13 @@ module tb_bob;
         pipe_check;
 
         $display("");
-        $display("[21] M7: %0d-bit counter up the whole last CLB column (every carry direct in it)", `CNT8_BITS);
+        $display("[21] M21: %0d-bit counter through every element of a CLB and across the carry direct", `CNT8_BITS);
         cfgw = `CNT8_WORD; cfgcrc = `CNT8_CRC; dname = "counter8";
         load_config;
         write_user1(32'h5);
         c8_0 = counter8;
         dchecks = 0;
-        for (n = 1; n <= 300; n = n + 1) begin
+        for (n = 1; n <= `CNT8_MASK + 45; n = n + 1) begin     // wraps: every carry link toggles
             tick(1'b0, 1'b0);
             checks = checks + 1;
             c8 = (c8_0 + n) & {{(32-`CNT8_BITS){1'b0}}, `CNT8_MASK};

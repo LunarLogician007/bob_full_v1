@@ -89,8 +89,10 @@ def guest_hz(mode="run", div=0, period=0, gap=0):
 BLOCKS = {b["name"]: b for b in DEVICE["blocks"]}
 CLBS = [b["name"] for b in DEVICE["blocks"] if b["type"] == "clb"]          # CAPTURE order
 CLB_AT = {(b["x"], b["y"]): b["name"] for b in DEVICE["blocks"] if b["type"] == "clb"}
-CLB_XY_INDEX = {(BLOCKS[n]["x"], BLOCKS[n]["y"]): i for i, n in enumerate(CLBS)}
 NCLB = len(CLBS)
+# CAPTURE bit of an element's out[0] (M21: 2 bits per element, out[1] is the next one)
+CAP_INDEX = {(el["x"], el["y"], el["e"]): 2 * el["index"] for el in ELEMENTS}
+CLB_XY_INDEX = {(x, y): i for (x, y, e), i in CAP_INDEX.items() if e == 0}      # element 0
 NBRAM = DEVICE["bram"]["count"]
 NDSP = DEVICE["dsp"]["count"]
 

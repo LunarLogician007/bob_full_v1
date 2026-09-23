@@ -28,7 +28,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "software", "bob"))
 import bitstream as B                                                    # noqa: E402
 from bitstream import FABRIC_CFG_W, LUT_K, Cell, Design, RouteError      # noqa: E402
 from chainbits import crc32c_bits                                        # noqa: E402
-from designs import (DESIGNS, BY_KEY, SKIPPED, BRAM_JTAG_VARIANTS, DSP_JTAG_VARIANTS,  # noqa: E402
+from designs import (counter_cells, DESIGNS, BY_KEY, SKIPPED, BRAM_JTAG_VARIANTS, DSP_JTAG_VARIANTS,  # noqa: E402
                      COUNTER_X, FULL_COL_X, FULL_COL_BITS, PIPELINE_BRAM, d_gsr_probe, d_ce_sr, d_counter, d_bram_rom,
                      d_bram_jtag, d_dsp_jtag, d_dsp_mult_sw, d_dsp_accum, d_pipeline)
 import model                                                             # noqa: E402
@@ -53,8 +53,12 @@ def define(name, word):
 
 
 def q_expr(cells):
-    """{dut.clb_o[i_n-1], ..., dut.clb_o[i_0]} for CLB coordinates, first = bit 0."""
-    return "{" + ", ".join(f"dut.clb_o[{B.CLB_XY_INDEX[xy]}]" for xy in reversed(cells)) + "}"
+    """{dut.clb_o[i_n-1], ..., dut.clb_o[i_0]} for element (x, y, e) out[0]s, first = bit 0."""
+    return "{" + ", ".join(f"dut.clb_o[{B.CAP_INDEX[c]}]" for c in reversed(cells)) + "}"
+
+
+def C(spot, which="o"):
+    return Cell(spot[0], spot[1], which, spot[2])
 
 
 def loop_free_random_chain(rng):
@@ -70,38 +74,44 @@ def loop_free_random_chain(rng):
 
 
 def random_design(rng, ncells=None):
-    """Random LUTs/FFs anywhere on the grid, connections without combinational
-    loops: a LUT reads board inputs, constants, any flip-flop, or the
-    combinational output of a LUT placed before it."""
-    ncells = ncells or min(14, (len(B.CLB_AT) * 5) // 8)     # 14 of 48, 10 of 16
+    """Random LUTs/FFs on the grid, connections without combinational loops: a LUT reads
+    board inputs, constants, any flip-flop, or the combinational output of a LUT placed
+    before it. M21: the elements are drawn from a few CLBs, so most connections use the
+    crossbar (feedback and shared CLB inputs) and CE/SR are shared per CLB."""
+    ncells = ncells or 14
     while True:
         d = Design()
-        spots = rng.sample(sorted(B.CLB_AT), ncells)
-        reg = {xy: rng.random() < 0.5 for xy in spots}
-        for i, (x, y) in enumerate(spots):
+        clbs = rng.sample(sorted(B.CLB_AT), 4)
+        spots = rng.sample([(x, y, e) for x, y in clbs for e in range(B.CLB_N)], ncells)
+        reg = {sp: rng.random() < 0.5 for sp in spots}
+        ctl = {}                                     # CLB -> (ce, sr) shared by its elements
+        for i, sp in enumerate(spots):
             cands = [d.input(k) for k in range(6)] + [d.const(rng.randrange(2))]
-            cands += [Cell(*xy) for xy in spots if reg[xy]]
-            cands += [Cell(*xy, rng.choice(("o", "o5"))) for xy in spots[:i] if not reg[xy]]
-            cands += [Cell(*xy, "o5") for xy in spots[:i] if reg[xy]]
+            cands += [C(s2) for s2 in spots if reg[s2]]
+            cands += [C(s2, rng.choice(("o", "o5"))) for s2 in spots[:i] if not reg[s2]]
+            cands += [C(s2, "o5") for s2 in spots[:i] if reg[s2]]
             nin = rng.randrange(1, LUT_K + 1)
             ins = [rng.choice(cands) for _ in range(nin)]
             flags = {}
             ce = sr = None
-            if reg[(x, y)]:
+            if reg[sp]:
                 flags = {"ff_en": 1, "ff_rstval": rng.randrange(2), "ff_d_sel": rng.randrange(2),
                          "ff_ce_en": int(rng.random() < 0.5), "ff_sr_en": int(rng.random() < 0.3)}
+                cce, csr = ctl.setdefault(sp[:2], (rng.choice(cands), rng.choice(cands)))
                 if flags["ff_ce_en"]:
-                    ce = rng.choice(cands)
+                    ce = cce
                 if flags["ff_sr_en"]:
-                    sr = rng.choice(cands)
+                    sr = csr
             elif rng.random() < 0.3:
                 flags = {"ff_d_sel": 1}
-            d.lut(x, y, rng.getrandbits(1 << LUT_K), ins, ce=ce, sr=sr, **flags)
+            if rng.random() < 0.25:
+                flags["frac"] = 1
+            d.lut(sp[0], sp[1], rng.getrandbits(1 << LUT_K), ins, ce=ce, sr=sr, e=sp[2], **flags)
         for k in range(3):
-            d.output(k, Cell(*rng.choice(spots), rng.choice(("o", "o5"))))
+            d.output(k, C(rng.choice(spots), rng.choice(("o", "o5"))))
         try:
             return d, d.build()
-        except RouteError:
+        except (RouteError, ValueError):
             continue
 
 
@@ -131,16 +141,16 @@ def main():
     out += ["// showcase, and a corrupted 'three' chain carrying its true CRC"]
     out += define("SHOW", show_bs.to_int())
     out += [f"`define BAD_WORD {hexw(other ^ (1 << 1234))}", f"`define BAD_CRC {crc(other)}"]
-    out += [f"`define SHOW_CAP_11 {NCLB}'h{model.Fabric(show_bs).clb_o(0b11):x}"
-            "   // every CLB output with SW1=SW0=1"]
+    out += [f"`define SHOW_CAP_11 {B.NCAP}'h{model.Fabric(show_bs).clb_o(0b11):x}"
+            "   // every element output with SW1=SW0=1"]
     out += ["// M4: routed CE/SR; 4-bit carry-chain counter, JTAG-stepped and free-running"]
     out += define("CE_SR", ce_sr_bs.to_int())
     out += define("CNTJ", cntj_bs.to_int())
     out += define("CNTR", cntr_bs.to_int())
-    out += [f"`define CNT_Q {q_expr([(COUNTER_X, 1 + r) for r in range(4)])}"]
-    out += [f"// M7: a {FULL_COL_BITS}-bit counter up the whole of CLB column {FULL_COL_X} (every carry direct in it)"]
+    out += [f"`define CNT_Q {q_expr(counter_cells(COUNTER_X, 4))}"]
+    out += [f"// M21: a {FULL_COL_BITS}-bit counter through every element of a CLB and across the carry direct"]
     out += define("CNT8", d_counter("jtag", x=FULL_COL_X, bits=FULL_COL_BITS).build().to_int())
-    out += [f"`define CNT8_Q {q_expr([(FULL_COL_X, 1 + r) for r in range(FULL_COL_BITS)])}",
+    out += [f"`define CNT8_Q {q_expr(counter_cells(FULL_COL_X, FULL_COL_BITS))}",
             f"`define CNT8_MASK {FULL_COL_BITS}'h{(1 << FULL_COL_BITS) - 1:0{(FULL_COL_BITS + 3) // 4}x}",
             f"`define CNT8_BITS {FULL_COL_BITS}"]
     out.append("")
@@ -192,7 +202,7 @@ def main():
     m.clock(gsr=1)
     out += ["task init_cnt_seq;", "begin"]
     for n in range(16):
-        state = sum(m.q[(COUNTER_X, 1 + r)] << r for r in range(4))
+        state = sum(m.q[c] << r for r, c in enumerate(counter_cells(COUNTER_X, 4)))
         out.append(f"    cnt_state[{n}] = 4'b{state:04b}; cnt_pad[{n}] = 3'b{m.outputs(0, cin=1):03b};")
         m.clock(cin=1)
     out += ["end", "endtask", ""]
@@ -305,7 +315,7 @@ def main():
         for _ in range(RANDOM_STEPS):
             v = rng_r.randrange(64)
             m.clock(pad_i=v)
-            out.append(f"    rnd_step(6'b{v:06b}, {NCLB}'h{m.clb_o(v):x}, 3'b{m.outputs(v):03b});")
+            out.append(f"    rnd_step(6'b{v:06b}, {B.NCAP}'h{m.clb_o(v):x}, 3'b{m.outputs(v):03b});")
         out.append("    finish_design;")
     out += ["end", "endtask", ""]
 
