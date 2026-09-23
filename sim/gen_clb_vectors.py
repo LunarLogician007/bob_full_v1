@@ -89,9 +89,27 @@ def random_cfg(rng, t, flags_on=None):
         if t % 5 == 0:                            # a carry chain through every element
             f["cy_en"] = 1
         cfg.append(f)
+    def legal(e, v, j):
+        if v < 2:
+            return True
+        src = B.XBAR_SOURCES[e][j][v - 2]
+        if src.startswith("I"):
+            return True
+        m = int(src[2:-1])
+        return bool(cfg[m // 2]["ff_en" if m % 2 == 0 else "ff2_en"]) or m // 2 < e
+
     for e in range(N):
         for j in range(K):
             n = len(B.XBAR_SOURCES[e][j])
+            v = (t + 7 * e + 3 * j) % (2 + n)     # every select value comes round in turn
+            if legal(e, v, j):
+                cfg[e][f"x{j}"] = v
+                continue
+            if flags_on is None:                   # a combinational feedback from above:
+                m = int(B.XBAR_SOURCES[e][j][v - 2][2:-1])  # register that output instead
+                cfg[m // 2]["ff_en" if m % 2 == 0 else "ff2_en"] = 1
+                cfg[e][f"x{j}"] = v
+                continue
             while True:
                 v = rng.randrange(2 + n)
                 if v < 2:

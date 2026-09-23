@@ -158,6 +158,7 @@ module cfg_store #(
     // ---------------------------------------------------------------------
     // memory (falling edge)
     // ---------------------------------------------------------------------
+    genvar f;
     generate
         for (f = 0; f < NFRAMES; f = f + 1) begin : g_frame
             wire we = (cwe && cidx == f[FIDX_W-1:0]) || (frame_we && frame_idx == f[FIDX_W-1:0]);

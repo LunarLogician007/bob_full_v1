@@ -12,10 +12,13 @@
 # fpga4x4*.v, bram_tile.v, dsp_tile.v); they stay frozen in release/hw_M6.
 # -----------------------------------------------------------------------------
 
-# CLB: fracturable LUT + carry + FF (AMD UG474)
+# CLB: fracturable LUT + carry + FF (AMD UG474). clb.sv is the one-element CLB of M4-M20,
+# kept for the M0 bring-up fabric (mini_fpga.v); M21's cluster is ble.sv x N behind the
+# crossbar (bob_clb, generated into bob_fabric.v)
 src/clb/clb_pkg.sv
 src/clb/lutk.sv
 src/clb/clb.sv
+src/clb/ble.sv
 
 # JTAG TAP and the boundary scan cell
 src/core/jtag_tap.v

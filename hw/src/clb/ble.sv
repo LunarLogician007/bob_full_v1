@@ -91,4 +91,9 @@ module ble #(
   assign o  = ff_en  ? q  : comb;
   assign o2 = ff2_en ? q2 : comb2;
 
+  // the crossbar selects after the element's fields are the cluster's (bob_clb)
+  /* verilator lint_off UNUSEDSIGNAL */
+  wire _unused = &{1'b0, cfg[`BOB_ELE_W-1:`BOB_ELE_XBAR_LO]};
+  /* verilator lint_on UNUSEDSIGNAL */
+
 endmodule

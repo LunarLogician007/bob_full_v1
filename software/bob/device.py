@@ -158,9 +158,24 @@ ARCH_12X10 = {
 # front of every element input: "full" = every CLB input and every element output, "half"
 # = every other one (a depopulated crossbar). Sized by software/bob/sweep.py
 # (docs/reports/M21/cluster_sweep.md).
-CLUSTER_N10 = {"n": 10, "i": 40, "xbar": "half", "frac": True}
+CLUSTER_N10 = {"n": 10, "i": 40, "xbar": "full", "frac": True}
 
-ARCH = ARCH_12X10
+# M21: 8x6 core = 6 CLB columns x 6 rows = 36 CLBs of 10 elements = 360 LUTs, BRAM x=3 and
+# DSP x=6 (height 3: two of each), 28 pads. W = 56: 1.3x the widest channel VPR needed on
+# any example (fir16, 42; sweep.py).
+ARCH_M21 = {
+    "nx": 8, "ny": 6,
+    "chan_width": 56,
+    "segment_length": 4,
+    "fs": 3,
+    "fc_in": 0.15, "fc_out": 0.10,
+    "io_capacity": 1,
+    "columns": [{"type": "bram", "x": 3, "height": 3},
+                {"type": "dsp", "x": 6, "height": 3}],
+    "cluster": CLUSTER_N10,
+}
+
+ARCH = ARCH_M21
 
 # Board pads (PYNQ-Z2): pad_i bit order and pad_o bit order used by every host tool
 BOARD_INPUTS = ("SW0", "SW1", "BTN0", "BTN1", "BTN2", "BTN3")

@@ -54,8 +54,9 @@ module mini_fpga #(
     output wire       configured   // 1 once a non-zero config has been loaded
 );
 
-    // clb_pkg::CLB_CFG_W, from software/bob/device.py via bob_params.vh (71 for K=6).
-    localparam integer CFG_W = `BOB_CLB_CFG_W;
+    // clb_pkg::CLB_CFG_W: the one-element clb.sv (71 bits for K=6). Since M21 bob_params.vh's
+    // BOB_CLB_CFG_W is the whole cluster's, so the M4 width is derived here from K.
+    localparam integer CFG_W = (1 << `BOB_LUT_K) + 7;
 
     wire                bsr_capture, bsr_shift, bsr_update, bsr_mode;
     wire                bsr_si, bsr_so, tlr;

@@ -187,6 +187,7 @@ def cluster_verilog(dev):
     e(f"// cfg: element e at [{ew}e +: {ew}] (fields as bob_params.vh BOB_ELE_*, then input j's")
     e(f"// crossbar select at BOB_ELE_XBAR_LO + {xw}j).")
     e("// -----------------------------------------------------------------------------")
+    e("/* verilator lint_off DECLFILENAME */")
     e("module bob_clb (")
     e("    input  wire              clk, gce, gsr, gwe, ce, sr, cin,")
     e(f"    input  wire [{ni - 1}:0]       i,")
@@ -212,5 +213,6 @@ def cluster_verilog(dev):
           f".i(x{el}), .cin(cy[{el}]), .cfg(cfg[{base} +: {ew}]), .o(o[{2 * el}]), "
           f".o2(o[{2 * el + 1}]), .cout(cy[{el + 1}]));")
     e("endmodule")
+    e("/* verilator lint_on DECLFILENAME */")
     e("")
     return L
