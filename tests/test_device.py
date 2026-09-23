@@ -59,7 +59,7 @@ def test_chain_fields_chain_round_trip(k):
 
 
 SIZES = {"grid": (13, 11, 40), "blocks": {"io": 40, "clb": 81, "bram": 2, "dsp": 2},
-         "cluster": (4, 16, "full"), "chain": {6: 56448, 4: 46080}}
+         "cluster": (4, 16, "full"), "chain": {6: 56448, 4: 35840}}
 
 
 @pytest.mark.parametrize("k", [6, 4])
@@ -71,8 +71,8 @@ def test_sizes(k):
     M16: 12x10 core, 100 CLBs, 44 pads: 18560 bits = 145 frames (K=4: 12800 = 100).
     M21: 9x7 core, 49 CLBs of 4 elements behind a full crossbar = 196 LUTs, 257 frames
     (software/bob/sweep.py, docs/reports/M21/cluster_sweep.md).
-    M22: 11x9 core, 81 CLBs (324 LUTs), LUT contents and crossbar in CFGLUT5: 441 frames,
-    243 of them L-frames (no flip-flops); each CLB tile frame aligned.
+    M22: 11x9 core, 81 CLBs (324 LUTs), LUT contents and crossbar in CFGLUT5: 441 frames;
+    each CLB tile frame aligned: selects + flags, 2 INIT frames, the remaining selects.
     The 8x8 profile (48 CLBs, 9400 bits) is frozen in release/M7_8x8."""
     dev = DEVICES[k]
     assert (dev.width, dev.height, dev.arch["chan_width"]) == SIZES["grid"]
@@ -82,7 +82,10 @@ def test_sizes(k):
     # M22: the L-frames (INITs, crossbar selects, each frame padded), then 12 flags per element
     lay = dev.lutram_layout()
     assert lay["frames"] * device.FRAME_BITS >= c["n"] * ((1 << k) + k * dev.xbar_width())
-    assert dev.tile_types["clb"].width == lay["frames"] * device.FRAME_BITS + c["n"] * 12
+    # M22: frame 0 (selects + flags), the INIT frames, then the remaining selects; the tile
+    # ends in its last L-frame (the routing muxes fill the rest)
+    w = dev.tile_types["clb"].width
+    assert (lay["frames"] - 1) * device.FRAME_BITS < w <= lay["frames"] * device.FRAME_BITS
     # M20: clk_mode 1 + clk_div 5 + reserved 2 + clk_period 16 + clk_gap 16
     assert dev.tile_types["ctrl"].width == 8 + 2 * device.PERIOD_W == 40
     assert dev.tile_types["bram"].width == 8 and dev.tile_types["dsp"].width == 16
@@ -395,8 +398,8 @@ def test_frames_tile_the_memory(k):
 
 @pytest.mark.parametrize("k", [6, 4])
 def test_every_clb_starts_its_own_l_frames(k):
-    """A CLB tile is frame aligned; its first LF_N frames are its L-frames, and they hold
-    exactly its INIT and crossbar fields (the expander and the CE compare rely on it)."""
+    """A CLB tile is frame aligned; its L-frames are its first frames (frame 0: selects then
+    flags, the INIT frames, the remaining selects), and no L field straddles a frame."""
     from device import FRAME_BITS
     dev = DEVICES[k]
     lay = dev.lutram_layout()
@@ -405,20 +408,33 @@ def test_every_clb_starts_its_own_l_frames(k):
     for blk in dev.by_type["clb"]:
         assert blk.chain_lo % FRAME_BITS == 0, blk.name
         f0 = blk.chain_lo // FRAME_BITS
-        for i in range(lay["frames"]):
-            assert owner[f0 + i]["clb"] == blk.name
+        for i, kind in enumerate(lay["kinds"]):
+            assert owner[f0 + i]["clb"] == blk.name and owner[f0 + i]["kind"] == kind
     tt = dev.tile_types["clb"]
     for f in tt.fields:
-        inside = f.offset < lay["flags_lo"]
-        assert dev.is_lfield(f) == inside, f.name
-        if inside:                                   # never straddles a frame
+        if dev.is_lfield(f):
             assert f.offset // FRAME_BITS == (f.offset + f.width - 1) // FRAME_BITS, f.name
 
 
 @pytest.mark.parametrize("k", [6, 4])
+def test_a_load_sets_the_flags_before_any_crossbar_select(k):
+    """Frames are written in ascending order and a frame's flip-flops load at the write, so
+    every flag must sit in a frame no later than every crossbar select's: otherwise a load
+    passes through states where the crossbar feeds an element's output back through its
+    own LUT with the flip-flop still off (M22 hung tb_synth that way)."""
+    from device import FRAME_BITS
+    dev = DEVICES[k]
+    tt = dev.tile_types["clb"]
+    flags = [tt.field(f"e{e}.{n}").offset // FRAME_BITS for e in range(dev.cluster["n"])
+             for n, *_r in dev.ELEMENT_FIELDS]
+    sels = [tt.field(f"e{e}.x{j}").offset // FRAME_BITS for e in range(dev.cluster["n"]) for j in range(k)]
+    assert max(flags) <= min(sels)
+
+
+@pytest.mark.parametrize("k", [6, 4])
 def test_l_frame_slots_are_the_same_in_every_clb(k):
-    """INIT e sits in INIT frame e // per at slot e % per; crossbar select s = e*K + j in
-    crossbar frame s // per_x at slot s % per_x - fabric_gen.py and lut_expand.v assume it."""
+    """INIT e: tile frame 1 + e // per, slot e % per; crossbar select s = e*K + j at slot t,
+    bit t * xbar_width, of its frame - fabric_gen.py and lut_expand.v assume it."""
     from device import FRAME_BITS
     dev = DEVICES[k]
     lay = dev.lutram_layout()
@@ -426,16 +442,26 @@ def test_l_frame_slots_are_the_same_in_every_clb(k):
     xw = dev.xbar_width()
     for e in range(dev.cluster["n"]):
         f, slot = divmod(e, lay["init_per_frame"])
-        assert tt.field(f"e{e}.init").offset == f * FRAME_BITS + slot * (1 << k)
+        assert tt.field(f"e{e}.init").offset == (1 + f) * FRAME_BITS + slot * (1 << k)
         for j in range(k):
-            fx, t = divmod(e * k + j, lay["xbar_per_frame"])
-            assert tt.field(f"e{e}.x{j}").offset == (lay["init_frames"] + fx) * FRAME_BITS + t * xw
+            fx, t = dev.xbar_slot(e * k + j)
+            assert lay["kinds"][fx] == "xbar"
+            assert tt.field(f"e{e}.x{j}").offset == fx * FRAME_BITS + t * xw
 
 
-def test_the_lframe_mask_names_the_l_frames():
+def test_the_lbit_mask_names_the_l_bits():
     vh = open(os.path.join(ROOT, "hw", "src", "generated", "bob_params.vh")).read()
-    m = re.search(r"`define BOB_LFRAME_MASK\s+(\d+)'h([0-9a-f]+)", vh)
+    m = re.search(r"`define BOB_LBIT_MASK\s+(\d+)'h([0-9a-f]+)", vh)
     assert m
     dev = DEVICES[6]
-    assert int(m.group(1)) == dev.nframes
-    assert int(m.group(2), 16) == sum(1 << lf["frame"] for lf in dev.lframes)
+    assert int(m.group(1)) == dev.chain_width < 65536        # iverilog's widest constant
+    assert int(m.group(2), 16) == dev.lbits
+    # every L bit is inside an L-frame, and every CLB's INIT and crossbar bits are L bits
+    from device import FRAME_BITS
+    lf = {x["frame"] for x in dev.lframes}
+    assert all((b // FRAME_BITS) in lf for b in range(dev.chain_width) if (dev.lbits >> b) & 1)
+    for blk in dev.by_type["clb"]:
+        lo, w = dev.block_field(blk, "e3.init")
+        assert (dev.lbits >> lo) & ((1 << w) - 1) == (1 << w) - 1
+        lo, w = dev.block_field(blk, "e3.ff_en")
+        assert not (dev.lbits >> lo) & 1

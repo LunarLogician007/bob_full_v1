@@ -137,7 +137,7 @@ def fabric_verilog(dev):
         e(f"    bob_clb u_clb_x{b.x}y{b.y} (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), "
           f".ce({P(b.name, 'ce[0]')}), .sr({P(b.name, 'sr[0]')}), .cin({P(b.name, 'cin[0]')}),")
         e(f"        .i({ins}),")
-        e(f"        .cfg(cfg[{lo + lay['flags_lo']} +: {flags_w}]),   // frames {f0}..{f0 + lay['frames'] - 1}: L-frames")
+        e(f"        .cfg(cfg[{lo + lay['flags_lo']} +: {flags_w}]),   // L-frames {f0}..{f0 + lay['frames'] - 1}")
         e(f"        .lck(lck_{t}), .lce(lce_{t}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),")
         e(f"        .o({_vec(outs)}), .cout({P(b.name, 'cout[0]')}));")
         first = dev.elements[[el["clb"] for el in dev.elements].index(b.name)]["index"]
@@ -224,9 +224,8 @@ def cluster_verilog(dev):
     e(f"// bob_clb - the cluster: {n} logic elements (LUT{k}, fracturable, 2 FFs), {ni} inputs,")
     e(f"// {2 * n} outputs, a {c['xbar']} crossbar of {ns}:1 muxes per element input.")
     e(f"// M22: LUT contents and crossbar in CFGLUT5 ({2 * n + n * k * nl} per CLB), loaded by")
-    e(f"// hw/src/core/lut_loader.v from the CLB's L-frames: lce[f] shifts frame f")
-    e(f"// (INIT frames 0..{lay['init_frames'] - 1}, crossbar frames {lay['init_frames']}..{lay['frames'] - 1}), "
-      "lcdi_* are the shared expander's")
+    e(f"// hw/src/core/lut_loader.v as the tile's frames are written: lce[f] shifts tile frame f")
+    e(f"// ({', '.join(f'{i} {kd}' for i, kd in enumerate(lay['kinds']))}), lcdi_* are the shared expander's")
     e(f"// bits (lut_expand.v). cfg: the element flags, element e at [{ew}e +: {ew}] (BOB_ELE_*).")
     e("// -----------------------------------------------------------------------------")
     e("/* verilator lint_off DECLFILENAME */")
@@ -249,15 +248,16 @@ def cluster_verilog(dev):
     e(f"    assign cout  = cy[{n}];")
     for el in range(n):
         f_init, slot = divmod(el, lay["init_per_frame"])
-        e(f"    // element {el}: INIT in L-frame {f_init} slot {slot}")
+        f_init += 1                                        # tile frame 0 holds selects + flags
+        e(f"    // element {el}: INIT in tile frame {f_init} slot {slot}")
         e(f"    wire [{k - 1}:0] x{el};")
         for j in range(k):
             srcs = dev.xbar_sources(el, j)
             vec = "{" + ", ".join(f"i[{p[2:-1]}]" if p.startswith("I") else f"o[{p[2:-1]}]"
                                   for p in reversed(srcs)) + "}"
-            fx, t = divmod(el * k + j, lay["xbar_per_frame"])
+            fx, t = dev.xbar_slot(el * k + j)
             e(f"    lxmux #(.S({len(srcs)})) m{el}_{j} (.in({vec}), .lck(lck), "
-              f".lce(lce[{lay['init_frames'] + fx}]), .lcdi(lcdi_x[{t * nl} +: {nl}]), .o(x{el}[{j}]));")
+              f".lce(lce[{fx}]), .lcdi(lcdi_x[{t * nl} +: {nl}]), .o(x{el}[{j}]));")
         e(f"    ble u_e{el} (.clk(clk), .gce(gce), .ce(ce), .sr(sr), .gsr(gsr), .gwe(gwe), "
           f".i(x{el}), .cin(cy[{el}]), .cfg(cfg[{el * ew} +: {ew}]),")
         e(f"        .lck(lck), .lce(lce[{f_init}]), .lcdi(lcdi_init[{2 * slot} +: 2]),")

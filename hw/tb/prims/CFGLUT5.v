@@ -6,7 +6,7 @@
 // flow reads it. Behaviour as UG953 and yosys' cells_sim.v: a 32-bit shift register, CDI
 // into bit 0 on CLK while CE, CDO = bit 31; O6 = bit {I4..I0}, O5 = bit {0, I3..I0}.
 //
-// One liberty, for the simulator only: O5/O6 show the contents as they stand when CE is
+// Two liberties, for the simulator only (see also the output delay below): O5/O6 show the contents as they stand when CE is
 // low, and hold them while a table is being shifted. On silicon a half-shifted table is
 // visible, but bob only shifts with the fabric frozen (GWE low or the clock held), so
 // nothing ever samples it; in a zero-delay simulator the same transient could wire an
@@ -52,8 +52,15 @@ module CFGLUT5 #(
             lut_read = bad ? 1'bx : val;
         end
     endfunction
-    assign O5  = lut_read(v, {1'b0, I3, I2, I1, I0});
-    assign O6  = lut_read(v, {I4, I3, I2, I1, I0});
+    // 10 ps, far below a real LUT (~100 ps) and the benches' sampling waits, but not zero: a
+    // configuration load passes through states where one CLB's crossbar and the routing are
+    // live before another CLB's flags arrive, which can close a loop through LUTs (harmless
+    // on silicon: GWE is low and the pads held). With zero delay such a transient ring
+    // oscillator spins the simulator in one time step forever (M22's tb_synth, blinky); with
+    // a delay it oscillates in simulated time and dies when the load completes. Every loop
+    // that can oscillate inverts somewhere, i.e. passes through a LUT, i.e. through here.
+    assign #0.01 O5 = lut_read(v, {1'b0, I3, I2, I1, I0});
+    assign #0.01 O6 = lut_read(v, {I4, I3, I2, I1, I0});
     always @(posedge clk) if (CE) r <= {r[30:0], CDI};
     /* verilator lint_off LATCH */
     always @(r or CE) if (!CE) v = r;                // a latch on purpose (see above)

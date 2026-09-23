@@ -451,11 +451,21 @@ while CE, first bit ending at bit 31), the way ZUMA keeps an overlay's LUTs in h
 (Brant & Lemieux, FCCM 2012). Nothing on the wire changes: the same fields, the same
 frames, the same CRC, the same FASM.
 
-- **Layout.** A CLB tile starts on a frame boundary. Its first frames are its
-  **L-frames**: the N truth tables (2^K bits each, 128 / 2^K per frame), then the N·K
-  crossbar selects (5 bits each, 25 per frame, the rest of the frame padding). The element
-  flags follow, then the tile's routing muxes as before. At K = 6, N = 4: 3 L-frames per CLB
-  (2 of INITs, 1 of selects), 243 of the 441 frames. `device.json` lists them (`lframes`),
+- **Layout.** A CLB tile starts on a frame boundary. Frame 0 holds the first 16 crossbar
+  selects (5 bits each, slot t at bit 5t) and then the 48 element-flag bits; the next two
+  frames hold the truth tables (2^K bits each, 128 / 2^K per frame); the last frame holds
+  the remaining 8 selects (again slot t at bit 5t), after which the tile's routing muxes
+  follow as before. At K = 6, N = 4: 4 frames per CLB carry CFGLUT5 bits (2 of them mixed
+  with flip-flop bits), 30,456 of the 56,448 bits; `BOB_LBIT_MASK` names them bit by bit.
+- **Why this order.** Frames are written in ascending order, and a frame's flip-flop bits
+  load at the write, before its CFGLUT5s start shifting - so a load sets the flags, then
+  the truth tables, then the crossbar. A first layout wrote the crossbar before the flags:
+  for 128 TCK cycles a new crossbar could feed an element's output back through its own
+  LUT with its flip-flop still off (a counter's `q -> +1 -> q` became a ring oscillator).
+  Harmless on silicon (GWE low, pads held), but it hung `tb_synth`. A second layout gave
+  the flags a frame of their own and pushed the chain past 65,536 bits, iverilog's widest
+  constant. `tests/test_device.py` now requires every flag frame to come no later than
+  every select frame. `device.json` lists them (`lframes`),
   `bob_params.vh` carries `BOB_LFRAME_MASK`.
 - **The element's LUT** is two CFGLUT5: lo = INIT[2^(K-1)-1:0], hi = the upper half, both
   over i[K-2:0]; O6 = (i[K-1] | frac) ? hi : lo (a MUXF7), O5 = lo - UG474's LUT6_2 fracture.

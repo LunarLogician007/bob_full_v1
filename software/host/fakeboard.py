@@ -41,9 +41,15 @@ import packets  # noqa: E402
 IR = {v: k for k, v in cfgplane.IR.items()}
 
 
-LFRAME_MASK = 0
-for _f, *_rest in B.DEVICE.get("lframes", {}).get("list", []):
-    LFRAME_MASK |= ((1 << packets.FB) - 1) << (packets.FB * _f)
+# M22: the chain bits held only in CFGLUT5s: every CLB's truth tables and crossbar selects
+LBIT_MASK = 0
+_TMASK = 0
+for _f in B.DEVICE["tile_types"]["clb"]["fields"]:
+    if _f["kind"] == "lut_init" or _f["group"] in ("xbar", "lutram"):
+        _TMASK |= ((1 << _f["width"]) - 1) << _f["offset"]
+for _b in B.DEVICE["blocks"]:
+    if _b["type"] == "clb":
+        LBIT_MASK |= _TMASK << _b["chain_lo"]
 
 
 class FakeBob:
@@ -51,7 +57,7 @@ class FakeBob:
 
     def _fabric_word(self, word):
         """what the fabric runs: the configuration, less the L-frames on a broken loader"""
-        return word & ~LFRAME_MASK if self.lose_lframes else word
+        return word & ~LBIT_MASK if self.lose_lframes else word
 
     def __init__(self, corrupt_capture=False, corrupt_sample=False, rate_scale=1.0, switches=lambda t: 0,
                  ignore_freeze=False, wipe_on_partial=False, lose_clocks=0, max_hz=None,

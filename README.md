@@ -58,9 +58,9 @@ Generated from `software/bob/device.json` by `software/bob/devtable.py`; `tests/
 | DSP | 2 × DSP48E1-style slices (column x = 8, 4 rows tall), PCOUT→PCIN cascade |
 | I/O | 40 pads; board switches, buttons and LEDs on fixed pads, LD3 = DONE |
 | Routing | L4 unidirectional, W = 40, Wilton Fs = 3 (from OpenFPGA's k6_frac_N10 tileable arch); 4934 muxes |
-| Configuration | 56448 bits = 441 frames of 4 × 32 (243 of them held only in CFGLUT5s); UG470-style packets on CFG_IN/CFG_OUT (CRC-32C, IDCODE, partial reconfiguration, BRAM content frames) or the streamed chain on CHAIN_IN/CHAIN_OUT; GSR → GTS → GWE → DONE startup |
+| Configuration | 56448 bits = 441 frames of 4 × 32 (324 of them held only in CFGLUT5s); UG470-style packets on CFG_IN/CFG_OUT (CRC-32C, IDCODE, partial reconfiguration, BRAM content frames) or the streamed chain on CHAIN_IN/CHAIN_OUT; GSR → GTS → GWE → DONE startup |
 | User clock | one sysclk enable at a time, spaced by each design's own timing (clk_gap from software/bob/timing.py, never under 2 cycles = 62.5 MHz); unset, at least 2**9 = 512 cycles apart (a word is loaded only if its critical path fits its spacing), at most 244 kHz |
-| JTAG | 6-bit AMD 7-series IR, IDCODE `0x0B021093` (M21) |
+| JTAG | 6-bit AMD 7-series IR, IDCODE `0x0B022093` (M22) |
 
 <!-- device:end -->
 

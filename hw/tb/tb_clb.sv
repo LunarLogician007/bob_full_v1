@@ -68,13 +68,17 @@ module tb_clb;
     // A new configuration: the crossbar goes dark first (every select const0, as JPROGRAM
     // leaves it), then the flags, the truth tables and the crossbar. No step between two
     // configurations can then close a combinational loop through the feedback.
+    reg [LFN*FB-1:0] cpad;
     task automatic load(input [W-1:0] c_new);
         begin
-            for (lf = `BOB_LF_INIT; lf < LFN; lf = lf + 1)
-                shift_frame(lf, '0);
+            cpad = '0;
+            cpad[W-1:0] = c_new;                      // the tile's last frame goes on into routing
+            shift_frame(0, '0);                       // crossbar frames: tile frame 0 ...
+            for (lf = 1 + `BOB_LF_INIT; lf < LFN; lf = lf + 1)
+                shift_frame(lf, '0);                  // ... and the tail frames
             cfg = c_new;
             for (lf = 0; lf < LFN; lf = lf + 1)
-                shift_frame(lf, c_new[lf*FB +: FB]);
+                shift_frame(lf, cpad[lf*FB +: FB]);
             loaded = c_new;
             ever = 1'b1;
         end

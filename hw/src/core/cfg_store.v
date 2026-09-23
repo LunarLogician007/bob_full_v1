@@ -38,9 +38,10 @@
 //   next one; CHAIN_OUT reads frame idx+1, where idx rests at all-ones between DR scans
 //   (set at Update-DR), so frame 0 is waiting at Capture-DR.
 //
-// M22: L-frames (LMASK) keep no flip-flops: their bits live in the fabric's CFGLUT5s,
-// which lut_loader.v fills from the same write (wr / wr_idx / wr_data, the falling edge
-// that writes the shadow). Their `cfg` bits read 0 and nothing uses them.
+// M22: the bits in LBITS keep no flip-flops: they live in the fabric's CFGLUT5s, which
+// lut_loader.v fills from the same write (wr / wr_idx / wr_data, the falling edge that
+// writes the shadow). Their `cfg` bits read 0 (a frame's other bits load as before, so a
+// mixed frame's flags are in place before its CFGLUT5s start shifting).
 //
 // History:
 //   M13 v1 wrote cfg[frame_idx*FB +: FB] <= frame_data over the whole memory: a
@@ -61,7 +62,7 @@ module cfg_store #(
     parameter integer NFRAMES = 4,
     parameter integer FIDX_W  = 8,
     parameter integer W       = FB * NFRAMES,
-    parameter [NFRAMES-1:0] LMASK = {NFRAMES{1'b0}}     // M22: frames held only in CFGLUT5s
+    parameter [W-1:0] LBITS = {W{1'b0}}                 // M22: bits held only in CFGLUT5s
 )(
     input  wire              tck,
     // chain
@@ -174,13 +175,14 @@ module cfg_store #(
     genvar f;
     generate
         for (f = 0; f < NFRAMES; f = f + 1) begin : g_frame
-            if (!LMASK[f]) begin : g_ff
+            localparam [FB-1:0] KEEP = ~LBITS[f*FB +: FB];   // the frame's flip-flop bits
+            if (KEEP != {FB{1'b0}}) begin : g_ff
                 wire we = (cwe && cidx == f[FIDX_W-1:0]) || (frame_we && frame_idx == f[FIDX_W-1:0]);
                 always @(negedge tck) begin
                     if (clear)
                         cfg[f*FB +: FB] <= {FB{1'b0}};
                     else if (we)
-                        cfg[f*FB +: FB] <= buf_q;
+                        cfg[f*FB +: FB] <= buf_q & KEEP;       // L bits: constant 0, removed
                 end
             end
         end
@@ -198,8 +200,8 @@ module cfg_store #(
     always @(negedge tck)
         if (clear)
             sim_lmem <= {W{1'b0}};
-        else if (swe && wok && LMASK[waddr])
-            sim_lmem[waddr*FB +: FB] <= buf_q;
+        else if (swe && wok)
+            sim_lmem[waddr*FB +: FB] <= buf_q & LBITS[waddr*FB +: FB];
 `endif
 
     initial cfg = {W{1'b0}};

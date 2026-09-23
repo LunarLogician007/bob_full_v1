@@ -25,13 +25,16 @@ LUTRAM they would cap the fabric at ~48 CLBs).
 
 ### Layout (software/bob/device.py)
 - A CLB tile starts on a frame boundary (the column is padded before it) and is:
+  0. frame 0: the first crossbar selects (slot t at bit t*xw), then the element flags at the
+     end of the frame (flip-flops, which load at the write: so a load sets them before any
+     crossbar content - see bitstream-format section 15)
   1. INIT frames: the N element truth tables, 2^K bits each, FB / 2^K per frame
-  2. crossbar frames: the N*K crossbar selects, xw bits each, floor(FB / xw) per frame
-  3. the element flags (N x 12 bits), then the tile's routing muxes as before
-- "L-frames" = 1 + 2: their bits live only in CFGLUT5s. device.json lists them
-  (`lframes`), bob_params.vh carries `BOB_LFRAME_MASK`.
-- ARCH_M22: nx 11, ny 9 (CLB columns 1,2,4..7,9..11), BRAM x=3 and DSP x=8, height 3
-  (3 of each), W = 40 (re-checked by VPR on every example).
+  2. tail frames: the remaining selects, slot t at bit t*xw; the routing muxes follow
+- The CFGLUT5-held bits (INITs, selects, their padding) keep no flip-flops, bit by bit
+  (`BOB_LBIT_MASK`); device.json lists the frames that carry them (`lframes`).
+- ARCH_M22: nx 11, ny 9 (CLB columns 1,2,4..7,9..11), BRAM x=3 and DSP x=8, height 4
+  (2 of each, as at M21: dsp_jtag.v's register holds two slices), W = 40 (re-checked by VPR
+  on every example).
 
 ### Hardware
 - `ble.sv`: the LUT is two CFGLUT5 (lo = INIT[2^(K-1)-1:0], hi = the upper half, both over

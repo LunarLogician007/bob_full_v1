@@ -5,7 +5,60 @@ This file is the live state: what is finished, what is in flight, and exactly wh
 
 ---
 
-## 0. Next agent: start here (2026-09-23, end of session)
+## 0. Next agent: start here (2026-09-24, M22 code done; Vivado build pending)
+
+### Where things are
+- **Three checkouts.**
+  - `/Users/sk/work/bob/bob_full_v1` - the user's folder, `main`, which now has **M21**
+    (merged 2026-09-23; the board runs M21). Uncommitted and the user's: `docs/bob_full_v1_report.tex`
+    (never commit it), `docs/hwtest/results.log`, `docs/reports/M20/`, and `docs/reports/M21/`
+    (`timing.rpt`, `util.rpt`, `bob_top.bit` of the final M21 build).
+  - `/Users/sk/work/bob/bob_full_v1_m21` - branch `m21`, merged; keep for reference. Its
+    `docs/hwtest/results.log` holds the M21 board run (66/66).
+  - `/Users/sk/work/bob/bob_full_v1_m22` - branch `m22`: **all M22 work.**
+- **M21 is done** except the tag: timing closed (sysclk +0.570 ns, tck +4990 ns), hwtest 66/66
+  on the second build (same RTL; the third build only changed the XDC), every mutant killed.
+  Still wanted from the user: the rest of `bob_vivado\out\M21\` (`sysclk_1cycle.txt` - which
+  `tests/test_reports.py` requires - `delay_paths.rpt`, DRC), then commit `docs/reports/M21/`,
+  fold the delays, and tag `m21` (after a hwtest rerun on the final bitstream, or on the
+  user's say-so that the second build's pass counts).
+
+### M22 as built (branch `m22`, approved 2026-09-23: approach B, 9 x 9, measure first)
+- **What:** each element's truth table and each crossbar mux in AMD CFGLUT5 (ZUMA-style);
+  81 CLBs (9 x 9) = 324 LUTs; 441 frames (56,448 bits), 30,456 bits held only in CFGLUT5s;
+  each CLB tile: frame 0 = 16 selects + the flags, 2 INIT frames, 8 selects + routing. Spec:
+  `docs/superpowers/specs/2026-09-23-m22-lutram-design.md`; the design in
+  `docs/bitstream-format.md` section 15; checklist `docs/hwtest/M22.md`.
+- **Verified:** `make check`-equivalent runs (see the commit log): tb_clb 4032, tb_bob 671
+  (with CFGLUT5 contents against an independent model and the JPROGRAM sweep), cfg, K=4,
+  frames, cosim, synth; lint clean; pytest 501 + the device table; every example re-routed by
+  VPR and legal; M22 mutants killed (see below).
+- **Size (yosys, whole design):** 36,980 logic LUTs + 12,312 CFGLUT5 = 49.3k (M21 58.5k),
+  25.4k FFs (M21 36.0k), 5.1 GB peak. **Vivado projection 35-42k LUTs (66-79%)** - the two
+  M21 calibrations disagree - and SLICEM ~71%. My grid table for the user said ~28k; it
+  undercounted the routing each extra CLB brings. At the high end slices would be near 100%
+  (M21: 68.5% LUTs was 90.9% of slices). **If placement or routing fails, step down:**
+  `ARCH_M22` `ny` 9 -> 8 (72 CLBs) in `software/bob/device.py`, then `make rrgraph`,
+  `make device`, `make vpr`, the pinned sizes in `tests/test_device.py`, `make check`.
+- **Simulation-only pieces** (never in Vivado): `hw/tb/prims/CFGLUT5.v` (from
+  `sim/hwfiles.sh --sim`: X-resolving reads as UNISIM, outputs held while shifting, and a
+  10 ps output delay so a transient loop during a load - one CLB's crossbar and the routing
+  live before another CLB's flags - oscillates in simulated time instead of spinning the
+  simulator; it hung tb_synth on blinky), `cfg_store.sim_lmem`, and per-CLB gated shift
+  clocks in `bob_fabric.v` under `ifdef SIMULATION` (without them tb_bob never finished: 12k
+  CFGLUT5 processes woke on every TCK edge).
+- **Layout lesson:** a CLB tile writes its flags before any crossbar content (frame 0 =
+  16 selects + flags; a frame's flip-flops load at the write, before its CFGLUT5s shift).
+  `tests/test_device.py::test_a_load_sets_the_flags_before_any_crossbar_select` holds it.
+
+### Then
+1. The user builds M22 in Vivado (`docs/hwtest/M22.md`); watch the two `place_report:` lines.
+2. Copy the whole `out\M22\` to `docs/reports/M22/`, `delays.py fold`, `make check`.
+3. `make hwtest M=M22` from the m22 worktree; merge `m22` into `main`, tag `m22`.
+
+---
+
+## 0b. The M21 session (2026-09-23), kept for reference
 
 ### Where things are
 - **Two checkouts.**
