@@ -18,6 +18,7 @@ SRC=(); while read -r l; do [[ "$l" == *cfg_ctrl.v ]] || SRC+=("$l"); done < <(s
 survivors=0
 run() {
     local name=$1 expr=$2
+    skip "$name" && return
     sed -E "$expr" hw/src/core/cfg_ctrl.v > "$WORK/cfg_ctrl_$name.v"
     if cmp -s hw/src/core/cfg_ctrl.v "$WORK/cfg_ctrl_$name.v"; then
         echo "  ERROR   $name: mutation did not apply (update the pattern)"; survivors=$((survivors+1)); return

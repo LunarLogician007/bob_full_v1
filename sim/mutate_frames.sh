@@ -37,6 +37,7 @@ run_one() {                      # run <name> <file under hw/> <perl expression>
 # parallel (MUTATE_JOBS, default 4); each writes its verdict to $WORK/<name>.out
 JOBS=${MUTATE_JOBS:-4}
 run() {
+    skip "$1" && return
     while [[ $(jobs -rp | wc -l) -ge $JOBS ]]; do sleep 2; done
     ( survivors=0; run_one "$@"; echo "$survivors" > "$WORK/$1.n" ) > "$WORK/$1.out" 2>&1 &
 }
