@@ -98,7 +98,7 @@ Every arrow is checked: yosys against the source, FASM against `device.json`, th
 
 | term | meaning in bob |
 |---|---|
-| **CLB** | configurable logic block: one LUT6 (fracturable into two LUT5s), carry logic, one flip-flop, 71 configuration bits |
+| **CLB** | configurable logic block: from M21 a cluster of 4 logic elements (each a LUT6 fracturable into two LUT5s, carry, two flip-flops) behind a full crossbar, 424 configuration bits |
 | **BLE** | basic logic element: the LUT + flip-flop pair. bob has one per CLB (commercial FPGAs pack 8–10) |
 | **tile** | one grid position: its block (CLB/BRAM/DSP/IO) plus the routing muxes that live there |
 | **rr graph** | routing-resource graph: VPR's description of every wire (CHANX/CHANY), block pin (IPIN/OPIN) and the edges between them. bob's fabric *is* this graph turned into Verilog |
@@ -107,7 +107,7 @@ Every arrow is checked: yosys against the source, FASM against `device.json`, th
 | **channel width (W)** | how many wires run in each routing channel; 24 here |
 | **Fs** | how many wires a switch box connects to each incoming wire (Wilton pattern, Fs = 3) |
 | **fc_in / fc_out** | what fraction of the channel a block input/output can reach (0.15 / 0.10) |
-| **configuration memory** | the flip-flops holding every configuration bit — 18 560 of them at M16 |
+| **configuration memory** | the flip-flops holding every configuration bit - 32 896 of them at M21 (M22 moves the truth tables into CFGLUT5s) |
 | **chain** | the configuration memory seen as one long shift register (`CHAIN_IN`/`CHAIN_OUT`) |
 | **frame** | 4 × 32-bit words = 128 bits of that memory, the unit AMD-style packets address |
 | **FAR** | frame address register: which frame the next write or read touches |
@@ -185,27 +185,34 @@ After any of these, the committed rr graph is stale on purpose: every tool refus
 
 **Tests.** `tb_bob` section [22] routes four random netlists and compares every CLB output with `model.py` after every clock; `tests/test_device.py` checks every mux encoding and that every block pin is an rr node.
 
-### 3.4 The CLB (`hw/src/clb/clb.sv`, `lutk.sv`)
+### 3.4 The CLB: a cluster of logic elements (`hw/src/clb/ble.sv`, `bob_clb` in `bob_fabric.v`)
 
-**What it is.** One BLE: a fracturable LUT (`lutk.sv`, parameterised by K — O6 is the full function, O5 the K−1 sub-function), carry logic in the AMD style (MUXCY/XORCY), and one flip-flop with FDRE/FDSE semantics, routable clock-enable and set/reset. 71 configuration bits at K = 6: 64 INIT plus 7 flags (`ff_en`, `ff_rstval`, `ff_ce_en`, `ff_sr_en`, `cy_en`, `cy_di_sel`, `ff_d_sel`).
+**What it is.** From M21 a CLB is a **cluster**, as in OpenFPGA's k6_frac_N10: N = 4 logic elements behind a full crossbar, with 16 inputs from the routing and 8 outputs to it. Each element (`ble.sv`) has:
+- a fracturable LUT6 (O6 the full function; with `frac`, two LUT5s over five shared inputs)
+- the AMD-style carry (MUXCY/XORCY), running through the four elements and then up to the CLB above
+- two flip-flops with FDRE/FDSE semantics, one on O6 and one on O5, sharing the CLB's routable CE and SR
 
-**Why this way.** It is UG474's CLB with everything bob does not need removed. One BLE per CLB instead of 8–10 is a deliberate trade: every extra BLE multiplies the configuration memory, and configuration memory is what limits how big bob can be on a mid-range host chip.
+Each element input comes from a **crossbar** mux: any of the 16 CLB inputs, any of the 8 element outputs (feedback), const0 or const1. Per element that is 64 INIT bits, 12 flags and 6 × 5 crossbar select bits, 106 bits in all.
 
-**How to use it.** From Python, a hand-built design places LUTs directly:
+**Why this way.** A one-LUT CLB (M4–M20, `clb.sv`, kept for the M0 bring-up fabric) spends a whole switch box and connection box on every LUT. A cluster lets neighbouring logic talk through the crossbar instead of the routing, so designs pack tighter and run faster (`big`: 64.5 → 23.5 ns critical path at N = 10). The size was measured, not guessed: `software/bob/sweep.py` built N = 4/6/8/10 with full and half crossbars (`docs/reports/M21/cluster_sweep.md`). Host LUTs per guest LUT grow with N because every crossbar mux is host logic, and a half crossbar needed far wider channels. N = 4 with a full crossbar won.
+
+**How to use it.** From Python, a hand-built design places LUTs directly; `e` is the element:
 
 ```python
 d = Design(); a, b = d.input(0), d.input(1)
-d.output(0, d.lut(1, 1, LUT.and2(), [a, b]))       # AND of the two switches on LD0
+d.output(0, d.lut(1, 1, LUT.and2(), [a, b], e=0))  # AND of the two switches on LD0, element 0 of clb(1,1)
 ```
 
-From Verilog, you never touch it: yosys and the placer do.
+From Verilog you never touch it: yosys, then VPR (which packs clusters itself) or bob's packer (`pnr/pack.py`, AAPack-style) do.
 
 **How to tweak it.**
-- **LUT size K:** `software/bob/device.py --lut-k 4`, or the `lut_k` default. Everything derives from it, and `make check` runs the whole fabric at K = 4 as well. The hardware build stays K = 6.
-- **More BLEs per CLB:** a real change — `clb.sv`, the pb_type in `vpr_arch.py`, the field list in `device.py`, `model.py`, the packer in `pnr/pack.py`.
-- **Flip-flop behaviour** (e.g. an asynchronous reset): `clb.sv` plus `model.py`, and a new field if it is configurable.
+- **N, the crossbar, the inputs:** `CLUSTER_N4` in `device.py` (`n`, `i`, `xbar` full or half, `frac`); `make rrgraph`, `make device`, `make vpr`. Run `sweep.py` first to measure.
+- **LUT size K:** `software/bob/device.py --lut-k 4`. `make check` runs the cluster and the whole fabric at K = 4 as well. The hardware build stays K = 6.
+- **Flip-flop behaviour** (e.g. an asynchronous reset): `ble.sv` plus `model.py`, and a new field if it is configurable.
 
-**Tests.** `hw/tb/tb_clb.sv` sweeps 128 flag combinations against `model.py` (7040 checks at each of K = 6 and K = 4); `tests/test_lutk.py` proves `lutk(6)` equals the hardware-proven `lut6.sv`.
+**Tests.** `hw/tb/tb_clb.sv` drives one cluster with random configurations against `model.py`: every flag, the three LUT modes, every crossbar select value, the carry through all elements, both flip-flops (4032 checks at K = 6 and again at K = 4).
+
+**M22 (branch `m22`).** The truth tables and crossbar muxes move into AMD CFGLUT5 primitives: LUT5s whose table is shifted in, loaded by `lut_loader.v` as their frame is written. That takes a CLB from 469 host LUTs and 424 configuration flip-flops to 193 LUTs and 48 flip-flops (yosys), and the grid to 9 × 9.
 
 ### 3.5 The BRAM tile
 
@@ -265,7 +272,7 @@ raw  = fpga.sample(p)                        # the real switches and LEDs, at on
 **Why this way.** Three reasons, in order of importance:
 1. **Timing.** A clock enable keeps the whole fabric on one real clock; a generated or gated clock would need clock resources the host does not have to spare, and UG949 recommends enables.
 2. **Determinism.** One clock per JTAG scan makes cycle-exact checks possible: the board and the model can be compared after every single user clock.
-3. **Honest constraints.** Because the RTL *guarantees* the 512-cycle spacing, the 512-cycle multicycle in the XDC is a fact, not an assumption. That is what closed M7's timing failure. It also has to be *big enough*: at M16 the grid grew to 12 × 10, the static path through the unconfigured routing muxes reached about 2500 ns, and the old 256 cycles (2048 ns) left implementation 465 ns short — `phys_opt_design` burned 1 h 15 min on it and the router abandoned timing. The fix is one number in two places, not a placement or routing effort setting. **At M21 that stopped working:** the cluster fabric missed by 133 ns against 512 cycles and by 290 ns against 1024, so the "path" grew with the budget. Where Vivado cuts the empty mesh's loops sets it, not the fabric. So the XDC's multicycle became 16 384 cycles, a "don't optimise this" rather than a budget, and the guarantee moved into software. `timing.contract()` refuses to build or load any design whose own critical path, with the guard band, is longer than its gce spacing.
+3. **Honest constraints.** Through M20 the RTL *guaranteed* the gce spacing, so the XDC's multicycle of the same number was a fact, not an assumption. That is what closed M7's timing failure, and at M16 it had to grow with the grid (256 → 512 cycles, the static path through the unconfigured routing muxes having reached ~2500 ns). **At M21 that stopped working**, and the build report showed why: Vivado times the fabric unconfigured, a mesh of loops it cuts wherever it likes, and the worst path was a TCK one (the instruction register through 6349 levels of empty fabric into the DSP JTAG register, 5463 ns against a 5000 ns half period). So the XDC now relaxes the fabric's sysclk and TCK paths far past any path, and the guarantee moved into software: `timing.contract()` refuses any design whose own critical path does not fit its spacing (§3.26).
 
 **How to use it.** Per design, from the `.bit`:
 
@@ -299,7 +306,7 @@ print(cfgplane.ir_status(p))          # {'done': 1, 'init_b': 1, 'committed': 1,
 
 ### 3.10 The configuration memory (`cfg_store.v`)
 
-**What it is.** The flip-flops the fabric reads — 18 560 of them at M16 — plus **one 128-bit frame buffer** through which every write passes, and one frame-wide read mux shared by chain readback and frame readback. Both paths write the same memory:
+**What it is.** The flip-flops the fabric reads (32 896 of them at M21) plus **one 128-bit frame buffer** through which every write passes, and, from M21, a **BRAM shadow** that readback reads. Both write paths fill the same memory:
 
 | path | instruction | how a write happens |
 |---|---|---|
@@ -308,9 +315,11 @@ print(cfgplane.ir_status(p))          # {'done': 1, 'init_b': 1, 'committed': 1,
 
 **Why this way.** The obvious implementations are both traps, and bob hit both:
 - Writing `cfg[frame_idx*128 +: 128] <= data` is a **barrel shifter over the whole memory**: ~12 000 LUTs and 1.7 GB in yosys, and Vivado ran out of memory. *Never* use a computed part-select over the configuration memory.
-- Keeping a full-width shift register beside the memory (the M13 design, and the classic scan-chain textbook answer) costs W flip-flops *and* W LUTs — half of M13's logic. Streaming through one frame buffer removed 3.6k LUTs and 4.8k flip-flops, which is what paid for the 36-CLB and then the 100-CLB grid.
+- Keeping a full-width shift register beside the memory (the M13 design, and the classic scan-chain textbook answer) costs W flip-flops *and* W LUTs. Streaming through one frame buffer removed 3.6k LUTs and 4.8k flip-flops, which paid for the 36-CLB and then the 100-CLB grid.
 
-The price is a semantic change, taken deliberately to match AMD: a chain load with a bad CRC now leaves the new bits in memory but never starts (COMMITTED stays 0, JSTART refuses), instead of leaving the old design untouched. A running design is still never written.
+**Readback from a BRAM shadow (M21).** Until M20 readback was a 256:1 × 128-bit mux over the flip-flops: about a third of the whole design. Now every frame written is also written, on the same edge and from the same buffer, into a block RAM, and CHAIN_OUT and FDRO read that. A per-frame valid bit makes an unwritten frame read zero after JPROGRAM. The trade: readback proves what was **written**, not what the cells **hold**; CAPTURE and the model checks cover the cells.
+
+The price of streaming is a semantic change, taken deliberately to match AMD: a chain load with a bad CRC leaves the new bits in memory but never starts (COMMITTED stays 0, JSTART refuses). A running design is never written.
 
 **How to use it.** Indirectly: `bob load` (frames) or `bob load --mode chain`. Directly, for experiments:
 
@@ -320,9 +329,9 @@ cfgplane.cfg_out(p, B.CHAIN_W)             # chain readback (never writes)
 cfgplane.measure_chain(p, B.CHAIN_W + 256) # measure the chain length on the board
 ```
 
-**How to tweak it.** The frame size is `FRAME_WORDS` in `device.py` (4 words = 128 bits). Bigger frames mean fewer frames and a coarser partial-reconfiguration grain; smaller frames mean more FAR traffic. Both the RTL and `packets.py` read the number from `device.json`, so it is one edit plus `make device`.
+**How to tweak it.** The frame size is `FRAME_WORDS` in `device.py` (4 words = 128 bits). Bigger frames mean fewer frames and a coarser partial-reconfiguration grain. Both the RTL and `packets.py` read the number from `device.json`.
 
-**Tests.** `tb_bob` sections [2]–[4] (commit, readback, corrupt chain), `tb_frames` [1]–[12], and three mutants (`chain-write-dropped`, `chain-out-no-reload`, `chain-writes-live`).
+**Tests.** `tb_bob` sections [2]–[4] (commit, readback, corrupt chain), `tb_frames` (including the shadow after JPROGRAM and after a partial write), and mutants `chain-write-dropped`, `chain-out-no-reload`, `chain-writes-live`, `shadow-no-rewrite`, `shadow-wrong-frame`, `shadow-not-cleared`, `shadow-frames-only`.
 
 ### 3.11 Chain control: CRC and startup (`cfg_ctrl.v`)
 
@@ -641,6 +650,26 @@ skipped. The real board has no such problem.
 
 ---
 
+### 3.26 Timing a configured design (`software/bob/timing.py`, `delays.py`) and the timing contract
+
+**What it is.** Static timing of one configured design, from its configuration word alone. Each selected mux input, each LUT input the truth table depends on, the carry and the hard blocks' register paths get a delay, measured on the Vivado build by `hw/scripts/extract_delays.tcl` (`delays.py fold` turns the report into `delays.json`) with a guard band of 1.25× (2× while provisional). The result is the design's critical path and the gce spacing it needs.
+
+**Why this way.** Vivado can only time the fabric **unconfigured**: every mux open, a mesh of combinational loops it cuts arbitrarily. That path has nothing to do with any real design (M21: 6349 logic levels; §17.5 of the report). Overlays sign off per configuration instead (ZUMA; ARC 2021), and so does bob.
+
+**The contract (M21).** The XDC relaxes the fabric's sysclk and TCK paths far beyond any path. What keeps that honest is `timing.contract()`: the flow's timing stage fails a build, and `cli.load` refuses a `.bit`, whose critical path × guard band exceeds its gce spacing (`clk_gap`, or 512 cycles when unset), in both clock modes. A combinational loop is refused too. `tests/test_timing.py` holds every hand-written board design to it. Only the board's clock-margin sweep may over-clock, on purpose, to measure the margin (4.5× at M21).
+
+**How to use it.**
+
+```sh
+./bob build design.v --hz auto                    # the fastest clock the design's own path allows
+./bob build design.v --sdc clocks.sdc             # create_clock -period 20 [get_ports clk]; fails on negative slack
+software/bob/timing.py build/bit/design.bit       # critical path and Fmax of any .bit
+```
+
+**How to tweak it.** The guard bands are `MARGIN_MEASURED` / `MARGIN_PROVISIONAL` in `timing.py`. The default spacing for untimed designs is `GCE_MIN_GAP_SHIFT` in `device.py`; the XDC numbers are `XDC_SYSCLK_MULTICYCLE` and `XDC_TCK_MULTICYCLE`, checked by `tests/test_layout.py`.
+
+**Tests.** `tests/test_timing.py` (chains of known length, loops, the contract on builds and loads, every hand design), `tests/test_layout.py` (the XDC against `device.py`), and on the board clock-rate, clock-fmax, clock-margin.
+
 ## 4. Cookbook
 
 Each recipe is the whole change, in order. All of them end the same way: `make check` green, then (if the hardware changed) a Vivado build and `make hwtest`.
@@ -668,11 +697,13 @@ Each recipe is the whole change, in order. All of them end the same way: `make c
    CLB count = (nx − number of hard columns) × ny. Hard blocks per column = ny / height.
 2. `colima start && make rrgraph` — VPR rebuilds the routing graph (Docker), then the device files.
 3. `make vpr` — re-route every example on the new graph. `make pnr` for the comparison report.
-4. `software/bob/synth_estimate.sh $PWD $PWD/build/est` — **the size gate**. Compare with the last build that Vivado actually finished, and tell the user the numbers.
+4. `software/bob/synth_estimate.sh $PWD $PWD/build/est` — **the size gate**. Compare with the last build that Vivado actually finished, and tell the user the numbers. (M21: Vivado landed at 0.62 × yosys's LUT count.)
 5. `make check`. Expect to fix: pinned sizes in `tests/test_device.py`, anything in the testbenches that assumed the old widths, and mutants pinned to a grid position (`carry-direct-cut` follows the last CLB column).
 6. `hw/build.cfg`: new `tag`, `idcode` nibble, `usercode`. Write `docs/hwtest/Mx.md`.
 7. Add a board check only the new grid can pass (M16 added `work/examples/big/big.v`, 56 CLBs), with stand-in cases first.
-8. `make hw`, hand `hw/` to Vivado, copy `out/<tag>/` back, `make check`, `make hwtest M=Mx`.
+8. `make hw`, hand `hw/` to Vivado, copy the **whole** `out/<tag>/` back, `software/bob/delays.py fold docs/reports/<tag>/delay_paths.rpt`, `make check`, `make hwtest M=Mx`.
+
+Since M21 a bigger grid no longer means a slower default clock: the XDC relaxes the empty fabric by far more than any path (`XDC_SYSCLK_MULTICYCLE`), and each design is timed from its own bits (§3.26). Watch the two `place_report:` lines in `runme.log` after placement; if a clock is hundreds of ns negative, stop the run.
 
 ### 4.3 Change the LUT size K
 
@@ -767,16 +798,16 @@ bob is a student-scale project that deliberately reuses the methods of much larg
 4. **Partial reconfiguration that provably keeps state.** AGHIGH freezes the user clock, only changed frames are written, LFRM releases after a CRC match, and the testbench proves a free-running counter holds its value and then continues. ZUMA and Aegis do not do this; OpenFPGA supports frame-based protocols but bob's freeze-and-prove loop is unusually concrete for a project this size.
 5. **Verification depth per line of code.** 28 744 testbench checks whose expectations come from independent Python models, golden co-simulation (source ∥ golden netlist ∥ fabric RTL, 5 220 checks), 59 mutants that must all be caught, and a stand-in board so every hardware check is tested — passing *and* failing — before the board sees it.
 6. **The tool chain is small enough to read.** Synthesis is a yosys script; place and route is ~1 500 lines of Python you can modify in an afternoon; the bitstream is text (FASM) before it is bits. For learning, that is worth more than a production flow.
-7. **Honest constraints.** Every timing exception is backed by an RTL guarantee (the 256-cycle `gce` gap) or a host limit (TCK ≤ 100 kHz), and `tests/test_reports.py` fails the build if the reports do not show timing closing.
+7. **Honest constraints.** Every timing exception is backed by an RTL guarantee, a host limit (TCK ≤ 100 kHz) or, from M21, the timing contract that refuses any design not fitting its clock, and `tests/test_reports.py` fails the build if the reports do not show timing closing.
 
 ### 5.3 Where bob is weaker — plainly
 
 | | bob | the others |
 |---|---|---|
-| **Architecture coverage** | one fabric shape: 1 BLE per CLB, one BRAM and one DSP type, L4 unidirectional routing, W = 24 | OpenFPGA covers fracturable LUTs, multi-BLE clusters, many segment types, memory banks, and generates them all |
+| **Architecture coverage** | one fabric shape: a 4-element cluster with a full crossbar, one BRAM and one DSP type, L4 unidirectional routing, W = 40 | OpenFPGA covers many cluster shapes, many segment types, memory banks, and generates them all |
 | **Targets** | one board (PYNQ-Z2, XC7Z020) | OpenFPGA targets silicon (SPICE, layout, PDKs); prjxray targets real Xilinx parts |
 | **Timing** | VPR's numbers come from the reference 40 nm architecture and are *not* the emulated fabric's real speed; bob's own PnR is not timing-driven at all | OpenFPGA produces delay models from SPICE; VPR's timing-driven flow is used properly there |
-| **Scale** | 100 CLBs; a design of 56 CLBs is "big" | a real overlay (ZUMA) or a taped-out OpenFPGA fabric is orders of magnitude larger |
+| **Scale** | 196 LUTs at M21 (324 at M22); fir16 at 147 LUTs is the biggest design | a real overlay (ZUMA) or a taped-out OpenFPGA fabric is orders of magnitude larger |
 | **Area efficiency** | configuration in flip-flops: ~186 bits per CLB-equivalent; the memory alone is ~18.5k flip-flops | ZUMA's whole point is LUTRAM configuration, which is far denser on a commercial host |
 | **Design support** | one clock domain, no asynchronous resets or latches, no true tristate, no clock enables inferred from arbitrary logic | commercial and open flows handle all of this |
 | **Bitstream realism** | bob's format is 7-series *shaped*, deliberately simplified (no encryption, compression, ECC, multiboot, bus-width detection) | prjxray documents the real thing, bit for bit |

@@ -19,12 +19,13 @@ so it works with no hardware attached.
 
 For the working plan, conventions, gotchas and every milestone, read [`PLAN.md`](PLAN.md); the live state and next steps are in [`HANDOFF.md`](HANDOFF.md); the short agent rules are in [`CLAUDE.md`](CLAUDE.md).
 
-## Where it stands (2026-09-23)
+## Where it stands (2026-09-24)
 
-M0–M16 passed on the board; M18–M20 ran on the board on 2026-09-23, 57 of 58 checks green
-(`bob-fir` failed on a stepping race, fixed in M21 below). **M21 (the cluster CLB: 49 CLBs of
-4 logic elements = 196 LUTs, readback from a BRAM shadow) is built and simulated**; the
-Vivado build and `make hwtest M=M21` are pending (`docs/hwtest/M21.md`, `HANDOFF.md`).
+**M0–M21 passed on the board.** The board runs **M21**: the cluster CLB (49 CLBs × 4 logic
+elements = 196 LUTs), readback from a BRAM shadow, per-design timing, IDCODE `0x0B021093`;
+66/66 checks, WNS +0.570 ns, 35 882 LUTs. **M22** (LUT contents in CFGLUT5, 9 × 9 = 81 CLBs)
+is built and simulated on branch `m22`; its Vivado build and board test are in progress
+(`HANDOFF.md`).
 
 | Milestone | What | Status |
 |---|---|---|
@@ -40,9 +41,10 @@ Vivado build and `make hwtest M=M21` are pending (`docs/hwtest/M21.md`, `HANDOFF
 | M15 | BRAM contents as frames: one CRC-covered stream for the whole design | **passed on the board 2026-09-17** (48/48, WNS +0.585 ns, 10 411 LUTs) |
 | M16 | the 10 × 10 CLB grid: 100 CLBs, 145 frames, new 56-CLB example | **passed on the board 2026-09-18** |
 | M18–M20 | studio projects and block designs, the desktop app and waveform viewer, the per-design user clock | on the board 2026-09-23: 57/58 (`bob-fir`: autostep race, fixed in M21); Vivado WNS −0.919 ns in `clock_ctrl.v` (fixed in M21) |
-| **M21** | **the cluster CLB** (N = 4 elements, full crossbar, measured against N = 6/8/10), **BRAM-shadow readback**, fir16 | built and simulated 2026-09-23; **Vivado build + board test pending** |
+| **M21** | **the cluster CLB** (N = 4 elements, full crossbar, measured against N = 6/8/10), **BRAM-shadow readback**, fir16, the timing contract | **passed on the board 2026-09-23** (66/66; WNS +0.570 ns, 35 882 LUTs) |
+| M22 | LUT contents and the crossbar in CFGLUT5 (ZUMA-style), 9 × 9 = 81 CLBs = 324 LUTs | code and simulation done on branch `m22`; Vivado build and board test in progress |
 
-After M7 the Vivado bitstream stayed the same through M11: those milestones only load new configuration chains over JTAG. M12a (Python PnR) needed no rebuild either. M15 (IDCODE `0xEBEEF093`), carrying M12b, M14 and M15, is on the board.
+After M7 the Vivado bitstream stayed the same through M11: those milestones only load new configuration chains over JTAG. M12a (Python PnR) needed no rebuild either. The board now runs M21 (IDCODE `0x0B021093`).
 
 ## The device
 
@@ -61,6 +63,7 @@ Generated from `software/bob/device.json` by `software/bob/devtable.py`; `tests/
 | Configuration | 32896 bits = 257 frames of 4 × 32; UG470-style packets on CFG_IN/CFG_OUT (CRC-32C, IDCODE, partial reconfiguration, BRAM content frames) or the streamed chain on CHAIN_IN/CHAIN_OUT; GSR → GTS → GWE → DONE startup |
 | User clock | one sysclk enable at a time, spaced by each design's own timing (clk_gap from software/bob/timing.py, never under 2 cycles = 62.5 MHz); unset, at least 2**9 = 512 cycles apart (a word is loaded only if its critical path fits its spacing), at most 244 kHz |
 | JTAG | 6-bit AMD 7-series IR, IDCODE `0x0B021093` (M21) |
+| Host utilisation (Vivado, M21) | 35 882 LUTs (67.45%), 36 307 FFs (34.12%), 2 RAMB18, 2 DSP48E1, WNS +0.57 ns |
 
 <!-- device:end -->
 

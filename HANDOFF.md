@@ -5,7 +5,21 @@ This file is the live state: what is finished, what is in flight, and exactly wh
 
 ---
 
-## 0. Next agent: start here (2026-09-23, end of session)
+## 0. Next agent: start here (2026-09-24)
+
+- **`main` (this folder) is M21, which the board runs** (66/66, WNS +0.570 ns). Every M21
+  mutant is killed. Documents refreshed 2026-09-24: `docs/project/REPORT.md` + `project.html`,
+  `GUIDE.md` + `guide.html`, `arch.html`, README, PLAN, CLAUDE.md.
+- **M22 is in `../bob_full_v1_m22` (branch `m22`)** - its own `HANDOFF.md` is the live state:
+  CFGLUT5 truth tables, 9 × 9 CLBs; code, simulation and `make check` green; the Vivado build
+  is running. Merge `m22` into `main` only after `make hwtest M=M22` passes.
+- **M21 loose ends:** the rest of `bob_vivado\out\M21\` (`sysclk_1cycle.txt`,
+  `delay_paths.rpt`, DRC) - then commit `docs/reports/M21/`, `delays.py fold`, tag `m21` (the
+  user decides whether the second build's 66/66 counts or a rerun on the final bitstream is
+  wanted). Tags for `m18`-`m20` are still the user's call.
+- `docs/hwtest/results.log` now holds every board run including M21's (committed 2026-09-24).
+
+## 0b. The M21 session (2026-09-23), kept for reference
 
 ### Where things are
 - **Two checkouts.**

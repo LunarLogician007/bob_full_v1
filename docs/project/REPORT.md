@@ -38,32 +38,38 @@ Interactive companion: [`project.html`](../../project.html) (timeline, architect
 ## 1. Summary
 
 bob is a complete, programmable FPGA written in Verilog and running inside the programmable logic of a **PYNQ-Z2 (Zynq XC7Z020)**. It has its own:
-- logic cells, BRAMs, DSP slices, routing and I/O pads
+- logic cells (clusters of fracturable LUT6 elements), BRAMs, DSP slices, routing and I/O pads
 - configuration memory and JTAG configuration controller
-- tool chain: yosys synthesis, VPR or bob's own place and route, FASM, bitgen
+- tool chain: yosys synthesis, VPR or bob's own place and route, FASM, bitgen, static timing
+- desktop EDA tool, **bob studio**: projects, block designs, a device view, a pin planner and a waveform viewer
 
 A Mac configures it over JTAG through a Raspberry Pi Pico running DirtyJTAG.
 
-A user design goes from Verilog to LEDs with two commands, `./bob build design.v` and `./bob load design.bit`. It is checked at every step against the source Verilog, a golden netlist and a cycle model.
+A user design goes from Verilog to LEDs with two commands, `./bob build design.v` and `./bob load design.bit`. It is checked at every step against the source Verilog, a golden netlist and a cycle model, and since M20 timed from its own configuration bits.
 
 | | |
 |---|---|
-| Guest device (on the board, M15) | 36 CLBs (LUT6 + carry + FF), 2 × 1024×18 BRAM, 2 DSP48E1-style slices, 28 pads, L4 routing W = 24, 1723 routing muxes |
-| Configuration memory | 8320 bits = 65 frames × 4 × 32-bit words |
+| Guest device (on the board, M21) | 49 CLBs × 4 logic elements = **196 LUT6** (fracturable, carry, 2 FFs each) behind a full crossbar; 2 × 1024×18 BRAM; 2 DSP48E1-style slices; 32 pads; L4 routing W = 40, 3396 routing muxes |
+| Configuration memory | 32 896 bits = 257 frames × 4 × 32-bit words; readback from a BRAM shadow |
 | Configuration paths | UG470-style packets (CFG_IN/CFG_OUT: CRC, IDCODE, FAR/FDRI/FDRO, STAT, **partial reconfiguration**, **BRAM content frames**), and a streamed scan chain (CHAIN_IN/CHAIN_OUT + CRC) |
-| On the board | M15 bitstream (36 CLBs, frames, partial reconfiguration, BRAM content frames): **48/48**, WNS +0.585 ns, 10 411 LUT / 11 097 FF |
-| Hardware test runs logged | 57 runs; every milestone M0–M15 ended in a full pass (M15: 48/48) |
-| Simulation (last `make check`) | 28 744 testbench checks in 11 testbenches + 183 pytest tests; 59 mutants, all killed |
-| Code (hand-written) | Python 13.5k lines, Verilog/SV 6.7k, Tcl 0.9k, shell 0.6k, docs 3.2k + generated fabric (2.3k lines of Verilog from VPR's routing graph) |
+| User clock | a clock enable on the 125 MHz system clock, spaced by each design's own critical path (up to 62.5 MHz), stepped over JTAG or free-running |
+| On the board | M21 bitstream (IDCODE `0x0B021093`): **66/66**, WNS +0.570 ns, 35 882 LUT / 36 307 FF (67% of the chip's LUTs) |
+| Hardware test runs logged | 75 runs; every milestone M0–M21 ended in a full pass |
+| Simulation (last `make check`) | 23 000+ testbench checks in 13 benches + ~500 pytest tests; every mutant of three mutation suites killed |
+| In progress | **M22** (branch `m22`): LUT contents in AMD CFGLUT5 primitives, 9 × 9 = 81 CLBs, 324 LUTs; code and simulation done, Vivado build running |
 
 The main results:
 1. **An OpenFPGA-style fabric generated from VPR's own routing-resource graph** (M7). Every rr node with fan-in is a mux in the RTL, so VPR routes on exactly the hardware that exists.
 2. **The full guest flow** (M8–M11): yosys → VPR → FASM → bitgen → load. Every example design runs on the board, cycle-exact against its source and golden netlist.
 3. **bob's own pack/place/route** (M12a) produces 0.93× VPR's wirelength on the same netlists and graph.
-4. **AMD 7-series-style frame configuration** (M13): sync word, type-1/2 packets, CRC-32C over `{register, data}`, FAR auto-increment, readback. The chain is kept beside it. M7's −1102 ns timing failure was analysed and closed.
+4. **AMD 7-series-style frame configuration** (M13): sync word, type-1/2 packets, CRC-32C over `{register, data}`, FAR auto-increment, readback. The chain is kept beside it.
 5. **Partial reconfiguration of a running design** (M14). AGHIGH freezes the user clock, only the changed frames are written, and LFRM releases after the CRC matches. Every register keeps its state.
 6. **BRAM contents inside the configuration stream** (M15), under the same CRC.
-7. **The 16 → 36 CLB grid** (M12b) was paid for by streaming the chain through one frame buffer instead of a full-width shift register. On Vivado the whole design is even smaller than M13 (10 411 vs 11 607 LUTs).
+7. **Growing the grid** from 16 to 36 (M12b) and 100 CLBs (M16), each step paid for by removing configuration overhead rather than adding chip.
+8. **bob studio** (M17–M19): the same flow as a desktop EDA tool, with projects, block designs and a waveform viewer over boundary scan.
+9. **A per-design user clock with sign-off from the design's own bits** (M20): `timing.py` times the configured design with delays measured on the Vivado build; a `.sdc` `create_clock` fails the build on negative slack. On silicon the computed clock had a 4.5× margin.
+10. **The cluster CLB** (M21): 4 fracturable elements behind a full crossbar per CLB, sized by a measured sweep of N and crossbar population; readback moved to a BRAM shadow, freeing a third of the design.
+11. **A timing contract instead of timing the impossible** (M21): Vivado cannot time an unconfigured fabric (a mesh of loops), so its fabric paths are relaxed and every build and load is refused unless its own critical path fits its clock spacing.
 
 ---
 
@@ -128,7 +134,7 @@ Later requests added:
 
 ## 4. Timeline and status of every milestone
 
-M0–M6 were built on 2026-09-14 and M7–M15 on 2026-09-16/17.
+M0–M6 were built on 2026-09-14, M7–M15 on 2026-09-16/17, M16–M17 on 2026-09-18 and M18–M21 by 2026-09-23.
 
 | M | what was built | hardware result | host bitstream |
 |---|---|---|---|
@@ -149,6 +155,13 @@ M0–M6 were built on 2026-09-14 and M7–M15 on 2026-09-16/17.
 | M12b | Chain streamed through one frame buffer (−3.6k LUT, −4.8k FF); 8×6 core, 36 CLBs; `wide` example (31 CLBs) | **48/48 in the M15 build**: bob-wide, pnr-wide (31 CLBs) | (C, in M15) |
 | M14 | Partial reconfiguration: AGHIGH/GHIGH_B freeze, changed frames only, LFRM after CRC; `bob load --partial` | **48/48 in the M15 build**: partial-swap, partial-live, partial-bad-crc, partial-guest | (D, in M15) |
 | M15 | BRAM contents as FAR block type 001 frames, one CRC-covered stream | **48/48**: frames-bram-load, frames-bram-live-refused, ram-readback-frames + full regression; 10 411 LUT / 11 097 FF / 2 RAMB18 / 2 DSP48E1; **WNS +0.585 ns**, WHS +0.065 ns; synthesis 5.1 min at 2.0 GB | `0xEBEEF093` |
+| M16 | 12 × 10 core, 100 CLBs, 145 frames; gce gap 256 → 512 cycles; `general.maxThreads 1` for the router | **50/50**; 20 498 LUT / 21 511 FF; WNS +0.667 ns (first attempt WNS −465.7 ns) | `0xFBEEF093` |
+| M17 | bob studio: the flow as timed stages (`flow.py`), a browser EDA tool, the stand-in board as a module | no rebuild (tag `m17`) | M16 |
+| M18 | studio projects and block designs (14 IP cores, board pins) | on the board 2026-09-23 with M20 | M16 |
+| M19 | studio as a desktop app; waveform viewer over boundary scan | on the board 2026-09-23 with M20 | M16 |
+| M20 | per-design user clock (`clk_period` / `clk_gap`), `timing.py`, measured delays, `.sdc` constraints; IDCODE scheme `0x0B0<MM>093` | **58/59**: `bob-fir` failed on a stepping race (fixed at M21); build WNS −0.919 ns on the new clock arithmetic (fixed at M21) | `0x0B020093` |
+| M21 | the cluster CLB (49 × 4 elements, full crossbar), BRAM-shadow readback, fir16, the timing contract | **66/66**; 35 882 LUT / 36 307 FF; WNS +0.570 ns (first two attempts missed on the empty fabric, §17.5) | `0x0B021093` |
+| M22 | LUT contents and crossbar in CFGLUT5; 9 × 9 = 81 CLBs | in progress (branch `m22`) | `0x0B022093` |
 
 ---
 
@@ -156,38 +169,43 @@ M0–M6 were built on 2026-09-14 and M7–M15 on 2026-09-16/17.
 
 ### 5.1 Grid and blocks
 
-The architecture is written once in `software/bob/device.py` (`ARCH_8X6` from M12b; `ARCH_6X4` for M7–M13).
+The architecture is written once in `software/bob/device.py` (`ARCH_M21` now; `ARCH_12X10` for M16, `ARCH_8X6` from M12b, `ARCH_6X4` for M7–M13).
 - `vpr_arch.py` turns it into a VPR architecture XML.
 - VPR (OpenFPGA's Docker image) builds the **tileable routing-resource graph**, which is committed with a sha256 stamp.
 - `device.py` + `fabric_gen.py` then generate everything else from that graph: `bob_fabric.v`, `bob_params.vh`, `device.json` (every field, mux and frame), and the models.
 
-| | M7–M13 (`ARCH_6X4`) | M12b onward (`ARCH_8X6`) |
-|---|---|---|
-| VPR grid (with I/O ring) | 8 × 6 | 10 × 8 |
-| CLBs | 16 (x = 1, 2, 4, 5) | 36 (x = 1, 2, 4, 5, 7, 8) |
-| BRAM | 2 × 1024×18, x = 3, height 2 | 2, x = 3, height 3 |
-| DSP | 2 slices, x = 6, height 2, PCOUT→PCIN | 2, x = 6, height 3 |
-| Pads | 20 | 28 |
-| Routing | L4 unidirectional, W = 24, Wilton Fs = 3, fc_in 0.15 / fc_out 0.10 | same |
-| Routing muxes | 1095 | 1723 |
-| Configuration bits | 4216 (M7–M12) → 4992 = 39 frames (M13) | 8320 = 65 frames |
-| Boundary cells | 40 | 56 |
+| | M7–M13 (`ARCH_6X4`) | M12b–M15 (`ARCH_8X6`) | M21 (`ARCH_M21`) |
+|---|---|---|---|
+| VPR grid (with I/O ring) | 8 × 6 | 10 × 8 | 11 × 9 |
+| CLBs | 16 (x = 1, 2, 4, 5) | 36 (x = 1, 2, 4, 5, 7, 8) | 49 × 4 elements = 196 LUTs |
+| BRAM | 2 × 1024×18, x = 3, height 2 | 2, x = 3, height 3 | 2, x = 3, height 3 |
+| DSP | 2 slices, x = 6, height 2, PCOUT→PCIN | 2, x = 6, height 3 | 2, x = 6, height 3 |
+| Pads | 20 | 28 | 32 |
+| Routing | L4 unidirectional, W = 24, Wilton Fs = 3, fc_in 0.15 / fc_out 0.10 | same | W = 40 |
+| Routing muxes | 1095 | 1723 | 3396 (+ 1176 crossbar muxes) |
+| Configuration bits | 4216 (M7–M12) → 4992 = 39 frames (M13) | 8320 = 65 frames | 32 896 = 257 frames |
+| Boundary cells | 40 | 56 | 64 |
 
 The 8×8 profile (48 CLBs, 9400 bits) built at M7 is frozen in `release/M7_8x8/`. Its synthesis took over 30 minutes with the XDC in synthesis, the setting later found to crash Vivado.
 
-### 5.2 CLB (UG474)
+### 5.2 CLB (UG474, OpenFPGA k6_frac_N10)
 
-One BLE per CLB, **71 configuration bits** at K = 6:
-- **INIT (64 bits):** a LUT6_2-style fracturable LUT (`lutk.sv`). O6 is the full function; O5 is the K−1 subtree.
-- **Carry:** MUXCY/XORCY (`cy_en`, `cy_di_sel`), with a carry direct up each column.
-- **Flip-flop:** FDRE/FDSE semantics (`ff_en`, `ff_rstval`); routable CE and SR (`ff_ce_en`, `ff_sr_en`); synchronous SR beats CE; `ff_d_sel` chooses O5/O6.
+From M21 a CLB is a **cluster**: N = 4 logic elements behind a full crossbar, with 16 CLB inputs and 8 outputs. Until M20 it was one element per CLB.
+
+Each **element** (`ble.sv`) has 106 configuration bits at K = 6:
+- **INIT (64 bits):** a LUT6_2-style fracturable LUT. O6 is the full function; with `frac` set it is two LUT5s over five shared inputs, O6 the upper and O5 the lower.
+- **Carry:** MUXCY/XORCY (`cy_en`, `cy_di_sel`). The carry runs through the four elements, then up to the CLB above.
+- **Two flip-flops:** FDRE/FDSE semantics (`ff_en`, `ff_rstval`, and the same for FF2 on O5); routable CE and SR shared by the CLB (`ff_ce_en`, `ff_sr_en`); synchronous SR beats CE; `ff_d_sel` chooses O5/O6.
+- **Crossbar (6 × 5 bits):** each element input picks any of the 16 CLB inputs, any of the 8 element outputs (feedback), const0 or const1.
 - **Global gating:** GSR sets the INIT value; GWE and **gce** (the user clock enable) gate every change.
 
-The LUT size K is a parameter throughout. `make check` also runs the fabric testbench at K = 4 (23 CLB bits, 6016 configuration bits).
+**Why N = 4 and a full crossbar.** `software/bob/sweep.py` built N = 4/6/8/10 with full and half crossbars, routed every example in VPR and synthesised each fabric in yosys (`docs/reports/M21/cluster_sweep.md`). A half crossbar needs far wider channels, and host LUTs per guest LUT grow with N (289 at N = 4, 421 at N = 10), because every crossbar mux is host logic. N = 4 on 7 × 7 CLBs fits the chip; 8 × 8 would be ~86%.
 
-VPR sees the CLB as a `clb` pb_type with two modes, as OpenFPGA's fle has:
-- `logic`: `.names` LUT → `bob_ff`
-- `arithmetic`: `bob_add` → `bob_ff`, with pack patterns `ble` and `chain`
+The LUT size K is a parameter throughout. `make check` also runs the cluster bench and the complete FPGA at K = 4.
+
+VPR packs the cluster itself (the reference's fle modes: `n1_lut6`, `n2_lut5`, `arithmetic`); bob's own packer (`pnr/pack.py`) follows AAPack. In the host tools the crossbar is more routing muxes over synthetic nodes, so the model, router and timing reuse their code.
+
+**M22 (in progress, branch `m22`)** moves each element's truth table and each crossbar mux into AMD CFGLUT5 primitives, a LUT5 whose table is shifted in (ZUMA's trick): 469 → 193 host LUTs and 424 → 48 configuration flip-flops per CLB in yosys, which buys a 9 × 9 grid.
 
 ### 5.3 BRAM (UG473 subset)
 
@@ -388,9 +406,9 @@ UG470 carries BRAM initial contents in the bitstream as their own block type. Fr
 - JSTART advances one phase per TCK in Run-Test/Idle (the host clocks 12), only after a committed chain or an accepted START: GSR ← 0 → GTS ← 0 → GWE ← 1 → DONE ← 1 (LD3)
 
 **User clock (`clock_ctrl.v`).** The fabric runs on the 125 MHz sysclk with **gce** as the user clock (UG949 prefers an enable over a derived clock).
-- **Modes:** `clk_mode` 0 is one step per TCK edge while USER1 ce (plus step/autostep, used for cycle-exact INTEST checks); `clk_mode` 1 is free-running, one enable every 2^(div+8) cycles.
+- **Modes:** `clk_mode` 0 is one step per TCK edge while USER1 ce (plus step/autostep, used for cycle-exact INTEST checks; from M21 the autostep fires one TCK after the boundary update); `clk_mode` 1 is free-running, one enable every `clk_period` × 2^`clk_div` cycles (M20), or 2^(div+9) when `clk_period` is 0.
 - **Synchronisers:** every TCK-domain control reaches it through two-flop ASYNC_REG synchronisers.
-- **Gap guard (M13):** gce pulses are at least 256 sysclk cycles apart in both modes, which is what makes the fabric's 256-cycle multicycle true.
+- **Gap guard (M13, M20):** gce pulses are never closer than the design's own `clk_gap` (at least 2 cycles = 62.5 MHz), or 512 cycles when it is unset. Until M20 this spacing was what made the fabric's sysclk multicycle true; from M21 the XDC relaxes the empty fabric by far more, and `timing.contract()` refuses any design whose critical path does not fit its spacing (§17.5).
 - **Freeze (M14):** the handshake described in §9.
 
 **CAPTURE (USER3)** snapshots every CLB output, and for a flip-flop CLB that is the register. M10 compares every register with the golden netlist after every user clock. **SAMPLE** takes pins and LEDs in one Capture-DR, which the live checks use.
@@ -549,45 +567,48 @@ it skipped. The real board has no such problem.
                             └─ PYNQ-Z2: make hwtest M=Mx, full regression + new checks, logged
 ```
 
-### 15.2 Simulation counts (last `make check`, current RTL)
+### 15.2 Simulation counts (last `make check` on M21)
 
 | testbench | checks | what |
 |---|---|---|
-| `tb_clb` K = 6 | 7 040 | 128 flag combinations × vectors vs `model.py` |
-| `tb_clb` K = 4 | 7 040 | same at K = 4 |
+| `tb_clb` K = 6 | 4 032 | the cluster: every element flag, the three LUT modes, every crossbar select value, the carry through all elements, both flip-flops, vs `model.py` |
+| `tb_clb` K = 4 | 4 032 | same at K = 4 |
 | `tb_bram` | 5 292 | write modes × DOx_REG × both ports vs `model.py` |
 | `tb_dsp` | 1 344 | every opmode × pre-adder, 2-slice cascade |
-| `tb_bob` (36 CLBs) | 852 | complete FPGA: IR, chain CRC/readback/length/GTS, 12 routed designs, corrupt chain, boundary, CAPTURE, GSR/GWE, CE/SR, counters, free-running clock, BRAM over USER4, DSP, pad→LUT→FF→BRAM→DSP→pad, 4 random netlists vs the model every clock |
-| `tb_bob` K = 4 | 722 | same at K = 4 |
+| `tb_bob` (49 CLBs) | 661 | complete FPGA: IR, chain CRC/readback/length/GTS, routed designs, corrupt chain, boundary, CAPTURE, GSR/GWE, CE/SR, counters (one through every element of a CLB and across the carry direct), free-running clock, BRAM over USER4, DSP, pad→LUT→FF→BRAM→DSP→pad, random netlists vs the model every clock, the autostep race |
+| `tb_bob` K = 4 | 531 | same at K = 4 |
 | `tb_cfg` | 180 | M2 configuration plane |
 | `tb_synth` | 972 | 12 synthesised designs (hand-placed and VPR) vs source traces |
-| `tb_cosim` | 5 220 | every example through VPR **and** bob's PnR: LEDs == source == golden before and after every edge, CAPTURE == golden registers |
-| `tb_frames` | 71 | frames load/readback, split streams, every error, chain after frames, **partial reconfiguration** [13]–[17], **BRAM frames** [18]–[19] |
-| `tb_clock_gap` | 11 | gce spacing in both modes, **freeze** |
-| **total** | **28 744** | plus pytest **183** tests (device, layout, Tcl build script against a Vivado stub, LUT, model, CRC, synth, VPR, bitgen, PnR, reports, stand-in board) and verilator lint |
+| `tb_cosim` | 7 026 | every example through VPR **and** bob's PnR: LEDs == source == golden before and after every edge, CAPTURE == golden registers |
+| `tb_frames` | 73 | frames load/readback, split streams, every error, chain after frames, partial reconfiguration, BRAM frames, the BRAM shadow after JPROGRAM and partial writes |
+| `tb_clock_gap` | 17 + 17 | gce spacing in both modes, freeze, the M20 period and gap, at GAP = 4 and at the board's gap |
+| **total** | **about 24 000** | plus pytest (~500 tests: device, layout and the timing contract, the Tcl build script against a Vivado stub, model, CRC, synth, VPR, bitgen, PnR, timing, reports, studio, the stand-in board) and verilator lint |
 
 ### 15.3 Mutation testing
 
 | suite | mutants | examples |
 |---|---|---|
 | `mutate_cfg.sh` | 5 | CRC polynomial, CRC guard, length guard, write key, start without commit |
-| `mutate_fabric.sh` | 25 | no GSR, no GWE freeze, gce ignored, CE not routed, step ignores CE, divider off by one, … |
-| `mutate_frames.sh` | 29 | CRC never fails, CRC over data only, IDCODE unchecked, FDRI ignores GWE/WCFG, FAR not incrementing, START without CRC, type-2 without type-1, FDRO without RCFG, wrong sync, LSB-first readback, chain writes while running, frame write/load dropped, chain write dropped, chain readback without reload, gce gap ignored, pending step lost, **freeze ignored, LFRM ignores CRC, frames without the acknowledgement, AGHIGH without IDCODE, GHIGH_B stuck**, **BRAM frames while running, FAR not crossing BRAMs, readback word order, no prefetch, write address** |
+| `mutate_fabric.sh` | 33 | no GSR, no GWE freeze, gce ignored, CE not routed, the crossbar select off by one, crossbar feedback cut, LUT5 halves swapped, FF2 = FF1, the carry cut between elements and between CLBs, autostep on the same edge, BRAM/DSP guards, … |
+| `mutate_frames.sh` | 38 | CRC never fails, IDCODE unchecked, FDRI ignores GWE/WCFG, FAR not incrementing, START without CRC, chain writes while running, gce gap ignored, freeze ignored, LFRM ignores CRC, BRAM frames while running, the M20 period/gap guards, **the BRAM shadow: not rewritten, wrong frame, not cleared, frames only** |
 
-Every mutant is killed. Two guards survived their first mutation run and got new scenarios:
+Every mutant is killed (M21, 2026-09-23). Each simulation runs under a watchdog (`sim/mutate_lib.sh`): a mutant that wires the fabric into a zero-delay loop (the crossbar select off by one, the mux inputs shifted) never finishes, and counts as killed after 45 minutes, reported as a hang. Guards that survived a first run and got new scenarios:
 - **M13:** "no CRC write" and "FDRO without RCFG" (FAR pointed at a non-zero frame).
 - **M14:** "LFRM without a CRC" (a bad CRC stops the parser before LFRM is read) and "frames before the acknowledgement".
+- **M21:** `carry-direct-cut` cut a column the counter no longer used after the grid changed (it now takes the column from `device.json`), and `xbar-no-feedback`'s pattern no longer matched. The same run showed that `make -k mutate` skips the frames suite once another suite fails.
 
 `tb_cosim` itself was mutation-checked at M10: a wrong golden net, a CRC-valid routing change, a missing source clock, unswapped pins, dropped BRAM contents and a wrong golden LUT all fail it.
 
 ### 15.4 Hardware checks
 
-`software/host/hwtest.py` holds 15 milestone lists. **M15** runs the M13 regression and then its own checks:
-- **M13 regression:** idcode, bypass, selftest; the M7 fabric checks through the chain (usercode, chain-length, IR status, CRC reject while live, GTS, GSR/GWE, CAPTURE vs USER1, JPROGRAM, CE/SR, counters, BRAM init/locked/ROM/modes/select, DSP modes/multiplier/accumulator, pipeline, 8-bit counter); five frame checks; the guest designs through frames; ram-readback; blinky-rate
-- **M12b:** bob-wide, pnr-wide
-- **M14:** partial-swap, partial-live, partial-bad-crc, partial-guest
-- **M15:** frames-bram-load, frames-bram-live-refused, ram-readback-frames
+`software/host/hwtest.py` holds a list per milestone; each runs the previous list and then its own checks. **M21** runs 66:
+- **The M13–M16 regression:** identity, the chain, CRC and GTS, GSR/GWE, CAPTURE, CE/SR, counters, BRAM and DSP modes, the pipeline, frames and their errors, every guest design through frames, both PnRs, partial reconfiguration, BRAM frames
+- **M18–M19:** the block-design example (built, routed by bob, live), the waveform viewer stepped and live
+- **M20:** clock-rate, clock-fmax (VPR and bob's PnR), clock-margin (sweeps the clock up until the self-checking design fails: the margin on silicon)
+- **M21:** shadow-readback, partial-cluster (rewriting one element of a CLB while its neighbours keep counting), fir16 stepped, through bob's PnR, live and at its fastest safe clock, fmax-cluster
 - pipeline-live last
+
+Every check has a passing and a failing case against the stand-in board (`software/host/fakeboard.py`) in `tests/test_hwtest_fake.py` before it reaches the board.
 
 ---
 
@@ -595,7 +616,7 @@ Every mutant is killed. Two guards survived their first mutation run and got new
 
 ### 16.1 Board runs
 
-`docs/hwtest/results.log` holds **57 runs** (514 passing check results); 20 runs passed completely and 37 had a failure. Every milestone M0–M15 ended with its checks passing on the board (M5's through the M6 run; M12b, M14 and M15 in the one M15 run, 48/48, first try). The failing runs, in order:
+`docs/hwtest/results.log` holds **75 runs** (797 passing check results). Every milestone M0–M21 ended with its checks passing on the board (M5's through the M6 run; M12b, M14 and M15 in the one M15 run, 48/48; M18–M19 in the M20 runs; M20's one failure, `bob-fir`, was fixed and passed in M21's 66/66). The failing runs, in order:
 
 | when | what failed | cause | fix |
 |---|---|---|---|
@@ -604,6 +625,9 @@ Every mutant is killed. Two guards survived their first mutation run and got new
 | M5, 7 runs | bram-rom | the check crashed formatting `'%03b'` (not a Python %-format), after a correct comparison | f-strings; a crash is reported as FAIL with the exception |
 | M5–M7, 16 runs | idcode mismatch / 0x00000000 / 0xFFFFFFFF | tests run before programming the new bitstream | hwtest prints the expected IDCODE; build tag per milestone |
 | M11, 4 runs | ram-readback; bob-fir once; USB disconnect once | BRAM contents survive JPROGRAM and `bob load` wrote only up to the last non-zero word; live checks too short | write all 1024 words of every used BRAM; guided live checks |
+| M16, 2 runs | pnr-big once, bob-fir once | a PnR seed that missed, a transient DSP read | passed on rerun (50/50) |
+| M20, 3 runs | nearly everything | run from the main checkout while it held M21's work-in-progress tools (`KeyError: 'cluster'`) | milestone work moved to its own git worktree |
+| M20, 1 run | bob-fir at clock 16 | INTEST autostep clocked the fabric ~30 ns after the new pad values, shorter than fir's button → DSP → adder path | M21: the step fires one TCK later (`tb_bob` measures 112 ns) |
 
 ### 16.2 Vivado builds
 
@@ -616,8 +640,11 @@ Every mutant is killed. Two guards survived their first mutation run and got new
 | M7 | bob_top (16 CLB) | 7 670 | 10 362 | 2 | 2 | **−1102.283** | +0.031 | 1858 |
 | M13 | bob_top (16 CLB, frames) | 11 607 | 12 287 | 2 | 2 | **+0.877** | +0.030 | 0 |
 | M15 | bob_top (36 CLB, partial, BRAM frames) | 10 411 | 11 097 | 2 | 2 | **+0.585** | +0.065 | 0 |
+| M16 | bob_top (100 CLB) | 20 498 | 21 511 | 1 | 2 | **+0.667** | +0.112 | 0 |
+| M20 | bob_top (100 CLB, per-design clock) | — | — | — | — | −0.919 | — | 98 (all `clock_ctrl.v` period arithmetic) |
+| M21 | bob_top (49 × 4 cluster, BRAM shadow) | 35 882 | 36 307 | 3 | 2 | **+0.570** | +0.057 | 0 |
 
-M5 and M6 reports were not copied into `docs/reports`. Their board tests passed, and `tests/test_reports.py` required RAMB18/DSP48E1 from them on.
+M20's full report set stayed on the Windows machine (only its timing summary came back). M5 and M6 reports were not copied into `docs/reports`. Their board tests passed, and `tests/test_reports.py` required RAMB18/DSP48E1 from them on.
 
 ---
 
@@ -695,6 +722,23 @@ Grow the fabric and `GCE_MIN_GAP_SHIFT` grows with it, in `device.py` and the XD
 The M15 RTL estimates at 15 941 LUT / 11 069 FF / 1.36 GB, against M13's 15 358 / 12 220 / 1.04 GB.
 
 ---
+
+### 17.5 M21: Vivado cannot time an empty fabric, so it stops trying
+
+The first M21 implementation placed at WNS −133 ns on fabric paths, and raising the gce gap to 1024 cycles made it −290 ns. phys_opt spent hours on both.
+
+The report of the build that did finish (2026-09-23) named the real failure:
+- **sysclk met.** With the sysclk multicycle at 16 384 cycles it closed at +0.868 ns.
+- **TCK failed at −463 ns.** The worst path ran from the instruction register (updated on the falling edge) through **6349 logic levels** of unconfigured fabric and DSP into the DSP JTAG capture register: 5463 ns against the 5000 ns half period.
+
+The cause is the same for both clocks. Vivado can only time the fabric **unconfigured**: every routing mux open, a mesh of combinational loops that the timer cuts wherever it likes. Configuration bits and the boundary cells are TCK registers that drive that mesh, and CAPTURE, the boundary and the DSP JTAG register sample it. No configured design has such a path; real ones are tens of ns.
+
+The fix has three parts:
+- **XDC:** sysclk → sysclk gets 16 384 cycles and TCK → TCK 16 periods. These aren't budgets any more, only "don't optimise this". The one-cycle exceptions on `u_clk` and `u_bram_jtag` still win (UG903: a multicycle, not a false path).
+- **The promise the old multicycle carried moves into software.** `timing.contract()` refuses to build or load any word whose own critical path × guard band exceeds its gce spacing (`clk_gap`, or 512 when unset). `tests/test_timing.py` holds every hand-written board design to it. Only the board's clock-margin sweep may over-clock, on purpose.
+- **Visibility:** `hw/scripts/place_report.tcl` prints each clock's worst path right after placement, so a failing build names its clock in minutes.
+
+The third build closed: sysclk +0.570 ns, TCK +4990 ns.
 
 ## 18. Area: where the logic went, and the 36-CLB grid (M12b)
 
@@ -778,17 +822,17 @@ The saved logic bought the 8×6 core with **36 CLBs (2.25×)**. The whole-design
 
 | area | follows | diverges (and why) |
 |---|---|---|
-| CLB | UG474 LUT6_2 fracture, CARRY4 MUXCY/XORCY, FDRE/FDSE priority, routable CE/SR | 1 BLE per CLB (N10 is too many config flops for an XC7Z020); carry south→north |
+| CLB | UG474 LUT6_2 fracture, CARRY4 MUXCY/XORCY, FDRE/FDSE priority, routable CE/SR; OpenFPGA k6_frac_N10's cluster (fle modes, full crossbar with feedback) | N = 4, not 10 (measured: host LUTs per guest LUT grow with N); carry south→north through the elements; M22: truth tables and crossbar in CFGLUT5 (ZUMA) |
 | BRAM | UG473 synchronous read, write modes, DOx_REG, contents separate from config | only 1K×18; no per-byte WE; one RST |
 | DSP | UG479 A25/B18/D25, pre-adder, 25×18, P48, register options, cascade | static opmodes (4), add-only ALU, no pattern detect / CARRYIN / 30-bit A |
 | Routing | OpenFPGA `k6_frac_N10_tileable_adder_chain_dpram8K_dsp36`: tileable, L4 unidirectional, Wilton Fs 3, fc 0.15/0.10 | bob's BRAM/DSP pb_types and heights; custom pin locations |
 | JTAG | 7-series instruction codes, Capture-IR DONE/INIT_B | private INTEST, DSP, CHAIN_IN/CHAIN_OUT codes |
 | Chain | OpenFPGA `scan_chain`, Aegis shift + shadow; CRC before startup | M12b: streamed through one frame buffer |
-| Frames | UG470 sync, packets, registers, CMD codes, FAR, CRC over {reg, data}, STAT positions, readback | frame written on its 4th word (no pad frame); frames of 4 words; no encryption/compression/COR/ECC/multiboot; parser error until JPROGRAM |
+| Frames | UG470 sync, packets, registers, CMD codes, FAR, CRC over {reg, data}, STAT positions, readback | frame written on its 4th word (no pad frame); frames of 4 words; no encryption/compression/COR/ECC/multiboot; parser error until JPROGRAM; readback from a BRAM shadow of the frames written (M21), not the cells |
 | Partial | UG470 AGHIGH, DGHIGH/LFRM, GHIGH_B; UG909 flow | freeze = user clock held (no interconnect contention in a mux fabric); release needs a CRC match; no region protection |
 | BRAM frames | UG470 FAR block type 001 | frame = 4 addresses; no FAR crossing from type 0 to 1 |
 | Startup | UG470 GSR → GTS → GWE → DONE, JSTART with 12 TCK | GTS forces 0 (no true tristate) |
-| Timing | UG949 enables over derived clocks; UG903 exception precedence | multicycles justified by RTL guarantees |
+| Timing | UG949 enables over derived clocks; UG903 exception precedence; overlay sign-off from the configured design (ZUMA; "Timing Optimization for Virtual FPGA Configurations", ARC 2021) | the fabric's sysclk and TCK paths are relaxed far past any path, because Vivado can only see the unconfigured mesh; each design is signed off from its own bits with measured delays (`timing.py`, M20–M21) |
 
 ---
 
@@ -851,65 +895,42 @@ python3 docs/project/collect.py && python3 docs/project/build.py   # this report
 
 ## 23. Open items and what comes next
 
-**Done:** every milestone **M0–M16** passed on the PYNQ-Z2. M16 is the 12 × 10 core:
-100 CLBs, 145 frames, 18 560 configuration bits, IDCODE `0xFBEEF093`, built at 20 498 LUTs
-(38.5% of the XC7Z020) and 21 511 FFs (20.2%), WNS +0.667 ns, 50/50 on the board.
+**Done:** every milestone **M0–M21** passed on the PYNQ-Z2. M21 is the cluster fabric:
+49 CLBs × 4 elements = 196 LUTs, 257 frames, 32 896 configuration bits, IDCODE `0x0B021093`,
+built at 35 882 LUTs (67%) and 36 307 FFs, WNS +0.570 ns, 66/66 on the board.
+
+**In progress: M22** (branch `m22`, worktree `../bob_full_v1_m22`). Each element's truth table
+and each crossbar mux move into AMD CFGLUT5 primitives (UG953: a LUT5 whose table is
+shifted in), as ZUMA keeps an overlay's LUTs in host LUTRAM:
+- In yosys a CLB goes from 469 host LUTs and 424 configuration flip-flops to 193 LUTs and
+  48 flip-flops, which buys a **9 × 9 grid, 81 CLBs, 324 LUTs**.
+- `lut_loader.v` shifts each frame into the CFGLUT5s that own it as it is written, and a
+  shared expander turns the compact 5-bit crossbar selects into tree contents. Nothing on
+  the wire changes.
+- A CLB tile writes its flags first (frame 0: 16 selects, then the flags), so no load
+  passes through a combinational loop.
+- Simulation and `make check` are green, and the Vivado build is running. The
+  whole-design estimate projects 66–79% of the chip's LUTs (SLICEM ~71%). If placement
+  fails, the fallback is 9 × 8.
 
 **Known limits:**
-- **Guest clock:** at most 244 kHz free-running, and the ceiling is a function of the grid,
-  not a constant — see below.
-- **Timing-driven PnR:** VPR's timing uses the reference 40 nm delays, not the emulated fabric.
+- **Timing-driven PnR:** VPR's timing uses the reference 40 nm delays, not the emulated fabric (bob signs off each design afterwards with its own measured delays).
 - **Partial reconfiguration:** no region protection, no BRAM writes while frozen, pads not held during the write.
 - **FAR:** does not cross from configuration frames into BRAM frames.
 - **I/O:** no true tristate or per-pad options.
 - **CAPTURE:** covers CLB registers only (not BRAM/DSP internal registers).
 - **Synthesis:** one clock domain for guest designs; no async resets or latches.
-- **IDCODE:** `0xF` was the last free version nibble. M17 needs a new numbering scheme.
+- **DSP JTAG register:** holds two slices, which caps the DSP column at two.
+- **Readback** returns the frames written (the BRAM shadow), not what the configuration cells hold; CAPTURE and the model checks cover the cells.
 
-**What M16 taught, and what it makes urgent.** The gce gap had to go from 256 to 512 cycles
-because the 12 × 10 fabric's static path through the unconfigured routing muxes reached
-about 2500 ns. That halved the free-running guest clock, 488 → 244 kHz, and the next grid
-step halves it again. Both M16 implementation failures (§17.4) trace to the same place: the size of the routing
-mesh the timer has to cut — one strongly connected component of 2146 wires with 11 270
-independent cycles, against M15's 1018 and 4130. The second needed
-`general.maxThreads 1` to route at all.
-
-So the next steps are ordered by that, not by feature appeal:
-
-1. **Shrink the frame readback mux.** `cfg_store.v` builds readback as a flat
-   `2**FIDX_W = 256`-entry × 128-bit array indexed at run time. Measured with yosys on
-   `cfg_store` alone, with a control run that replaces the mux with a constant:
-
-   | `cfg_store` | LUTs |
-   |---|---|
-   | NFRAMES = 65 (M15) | 5 726 |
-   | NFRAMES = 145 (M16) | 12 402 |
-   | NFRAMES = 145, readback mux removed | **599** |
-
-   The mux is ~11 800 of 12 402 LUTs — **95% of `cfg_store` and about a third of the whole
-   design** — it scales linearly with the grid, and it serves only JTAG readback, which has
-   no timing requirement at all. The coding style must stay (a computed part-select over the
-   configuration memory is what ran Vivado out of memory at M13, §17); the fix is to mirror
-   the write path's hierarchical FAR decode — a small per-column mux feeding a ~15-way
-   column mux, O(Σ columns) instead of O(2⁸), with nothing on the wire changing.
-2. **Case-analysis timing sign-off.** Constrain the configuration bits so the timer never
-   walks a path that exists only in an unconfigured fabric. This is what breaks the "every
-   grid step halves the guest clock" trade permanently, and it should also shrink the
-   component that took the timing engine down.
-3. **ZUMA-style LUTRAM configuration memory.** Configuration is 21 511 flip-flops, ~86% of
-   every FF in the design, and that fraction grows with the grid (it was ~75% at M15).
-4. **More than one BLE per CLB.** 100 CLBs is 100 LUT6s of user logic behind 3391 routing
-   muxes; clustering (OpenFPGA's reference architecture uses 10) amortises the routing.
-5. **Timing-driven placement** in bob's PnR with a delay model of the emulated fabric.
-6. **Readback CRC / SEU scan:** a background CRC over the configuration memory reporting
-   through STAT, as AMD's readback CRC does.
-7. **Region-protected partial bitstreams:** `bob build --partial --region`, with PnR
-   constrained to a column range and a host check that a partial touches only its region.
-8. **A substantial demo design.** The largest example is `work/examples/big/big.v` — 21 lines,
-   56 CLBs. A UART or a small CPU would exercise far more, and bob studio wants something
-   worth opening.
-9. **CI.** The Mac-only half of `make check` (device, simulations, lint, pytest — no Docker)
-   would run on a hosted runner today. There is no `.github/` at all.
+**Next, after M22:**
+1. **Configuration from the ARM (Zynq PS) over AXI** instead of JTAG: loads in microseconds, `bob.load()` from Python on the PYNQ.
+2. **Per-board delay characterisation:** the clock-margin sweep showed a 4.5× margin on silicon; measuring each mux and LUT class on this board would let designs run near it, and feed timing-driven placement.
+3. **Timing-driven placement** in bob's PnR with the measured delay model.
+4. **Readback CRC / SEU scan:** a background CRC over the configuration memory reporting through STAT, as AMD's readback CRC does.
+5. **Region-protected partial bitstreams:** `bob build --partial --region`, with PnR constrained to a column range.
+6. **A substantial demo design:** fir16 (147 LUTs) is the largest; a UART or a small CPU would exercise far more.
+7. **CI:** the Mac-only half of `make check` (device, simulations, lint, pytest - no Docker) would run on a hosted runner; there is no `.github/` at all.
 
 ---
 
