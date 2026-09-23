@@ -4274,6 +4274,1546 @@
      "SW1..0 = 00/01/10/11 should light LD0 / LD1 / LD2 / all three"
     ]
    ]
+  },
+  {
+   "date": "2026-09-23",
+   "time": "05:36:33",
+   "milestone": "M20",
+   "tag": "M20",
+   "pass": 3,
+   "fail": 56,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x0B020093, build.cfg expects 0x0B020093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "FAIL",
+     "selftest",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "PASS",
+     "usercode",
+     "0x00000014, build.cfg expects 0x00000014"
+    ],
+    [
+     "FAIL",
+     "chain-length",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "ir-status",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "crc-reject-live",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "gts",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "gsr-gwe",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "capture-user1",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "jprogram",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "showcase-live",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "ce-sr",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "counter-step",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "counter-run",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "bram-init",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "bram-locked",
+     "err=0 gwe=0"
+    ],
+    [
+     "FAIL",
+     "bram-rom",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "bram-modes",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "dsp-modes",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "dsp-mult",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "dsp-accum",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "bram-select",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "pipeline",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "counter8",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "frames-load",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "frames-crc-reject",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "frames-idcode-reject",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "frames-live-refused",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "frames-vs-chain",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "bob-gates",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "bob-counter",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "bob-ram",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "bob-mult",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "bob-fir",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "pnr-switches",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "ram-readback",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "blinky-rate",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "bob-wide",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "pnr-wide",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "partial-swap",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "partial-live",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "partial-bad-crc",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "partial-guest",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "frames-bram-load",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "frames-bram-live-refused",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "ram-readback-frames",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "bob-big",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "pnr-big",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "bob-bd_demo",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "pnr-bd_demo",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "live-bd_demo",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "wave-step",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "wave-live",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "clock-rate",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "clock-fmax",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "clock-fmax-py",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "clock-margin",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "pipeline-live",
+     "KeyError: 'cluster'"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-23",
+   "time": "05:36:39",
+   "milestone": "M19",
+   "tag": "M20",
+   "pass": 3,
+   "fail": 52,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x0B020093, build.cfg expects 0x0B020093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "FAIL",
+     "selftest",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "PASS",
+     "usercode",
+     "0x00000014, build.cfg expects 0x00000014"
+    ],
+    [
+     "FAIL",
+     "chain-length",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "ir-status",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "crc-reject-live",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "gts",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "gsr-gwe",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "capture-user1",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "jprogram",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "showcase-live",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "ce-sr",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "counter-step",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "counter-run",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "bram-init",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "bram-locked",
+     "err=0 gwe=0"
+    ],
+    [
+     "FAIL",
+     "bram-rom",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "bram-modes",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "dsp-modes",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "dsp-mult",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "dsp-accum",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "bram-select",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "pipeline",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "counter8",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "frames-load",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "frames-crc-reject",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "frames-idcode-reject",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "frames-live-refused",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "frames-vs-chain",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "bob-gates",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "bob-counter",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "bob-ram",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "bob-mult",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "bob-fir",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "pnr-switches",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "ram-readback",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "blinky-rate",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "bob-wide",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "pnr-wide",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "partial-swap",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "partial-live",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "partial-bad-crc",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "partial-guest",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "frames-bram-load",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "frames-bram-live-refused",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "ram-readback-frames",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "bob-big",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "pnr-big",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "bob-bd_demo",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "pnr-bd_demo",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "live-bd_demo",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "wave-step",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "wave-live",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "pipeline-live",
+     "KeyError: 'cluster'"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-23",
+   "time": "05:36:44",
+   "milestone": "M20",
+   "tag": "M20",
+   "pass": 3,
+   "fail": 56,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x0B020093, build.cfg expects 0x0B020093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "FAIL",
+     "selftest",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "PASS",
+     "usercode",
+     "0x00000014, build.cfg expects 0x00000014"
+    ],
+    [
+     "FAIL",
+     "chain-length",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "ir-status",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "crc-reject-live",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "gts",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "gsr-gwe",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "capture-user1",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "jprogram",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "showcase-live",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "ce-sr",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "counter-step",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "counter-run",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "bram-init",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "bram-locked",
+     "err=0 gwe=0"
+    ],
+    [
+     "FAIL",
+     "bram-rom",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "bram-modes",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "dsp-modes",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "dsp-mult",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "dsp-accum",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "bram-select",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "pipeline",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "counter8",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "frames-load",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "frames-crc-reject",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "frames-idcode-reject",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "frames-live-refused",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "frames-vs-chain",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "bob-gates",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "bob-counter",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "bob-ram",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "bob-mult",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "bob-fir",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "pnr-switches",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "ram-readback",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "blinky-rate",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "bob-wide",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "pnr-wide",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "partial-swap",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "partial-live",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "partial-bad-crc",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "partial-guest",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "frames-bram-load",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "frames-bram-live-refused",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "ram-readback-frames",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "bob-big",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "pnr-big",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "bob-bd_demo",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "pnr-bd_demo",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "live-bd_demo",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "wave-step",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "wave-live",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "clock-rate",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "clock-fmax",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "clock-fmax-py",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "clock-margin",
+     "KeyError: 'cluster'"
+    ],
+    [
+     "FAIL",
+     "pipeline-live",
+     "KeyError: 'cluster'"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-23",
+   "time": "08:24:59",
+   "milestone": "M20",
+   "tag": "M20",
+   "pass": 58,
+   "fail": 1,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x0B020093, build.cfg expects 0x0B020093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "selftest",
+     "12/12 designs match the model"
+    ],
+    [
+     "PASS",
+     "usercode",
+     "0x00000014, build.cfg expects 0x00000014"
+    ],
+    [
+     "PASS",
+     "chain-length",
+     "18560 bits, design intact after the marker scan"
+    ],
+    [
+     "PASS",
+     "ir-status",
+     "{'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}"
+    ],
+    [
+     "PASS",
+     "crc-reject-live",
+     "crc_err=1 DONE=1 config kept=True showcase vectors wrong=0"
+    ],
+    [
+     "PASS",
+     "gts",
+     "outputs before JSTART=000, after=011, model=011"
+    ],
+    [
+     "PASS",
+     "gsr-gwe",
+     "q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1"
+    ],
+    [
+     "PASS",
+     "capture-user1",
+     "CAPTURE=0x0801 USER1[19:4]=0x0801 (switches must not move during the check)"
+    ],
+    [
+     "PASS",
+     "jprogram",
+     "DONE=0 GTS=1 chain zero=True outputs=000"
+    ],
+    [
+     "PASS",
+     "showcase-live",
+     "pad_i=000011 LD2..0=011 model=011"
+    ],
+    [
+     "PASS",
+     "ce-sr",
+     "CE loads, SR clears (beats CE), both low holds - 7 steps match model.py"
+    ],
+    [
+     "PASS",
+     "counter-step",
+     "counts [15, 8, 1, 10, 3, 12] (steps [9, 9, 9, 9, 9], want 9 each); ce off: [3, 3, 3] (want constant)"
+    ],
+    [
+     "PASS",
+     "counter-run",
+     "11 counts in 3.03 s = 3.63/s (expected 3.73)"
+    ],
+    [
+     "PASS",
+     "bram-init",
+     "64/64 words read back"
+    ],
+    [
+     "PASS",
+     "bram-locked",
+     "err=1 gwe=1"
+    ],
+    [
+     "PASS",
+     "bram-rom",
+     "LEDs ['111', '111', '110', '010'] contents ['111', '111', '110', '010']"
+    ],
+    [
+     "PASS",
+     "bram-modes",
+     "72/72 stepped operations match model.py"
+    ],
+    [
+     "PASS",
+     "dsp-modes",
+     "60/60 stepped operations match model.py "
+    ],
+    [
+     "PASS",
+     "dsp-mult",
+     "LEDs ['000', '011', '110', '001'] expected ['000', '011', '110', '001']"
+    ],
+    [
+     "PASS",
+     "dsp-accum",
+     "P0 0 -> 12 in 3.02 s = 3.97/s (expected 3.73)"
+    ],
+    [
+     "PASS",
+     "bram-select",
+     "16 words each read back from bram0 and bram1; SELECT 9 ignored (target 0)"
+    ],
+    [
+     "PASS",
+     "pipeline",
+     "LEDs ['110', '110', '111', '101', '110', '110', '101', '111'] model ['110', '110', '111', '101', '110', '110', '101', '111']"
+    ],
+    [
+     "PASS",
+     "counter8",
+     "counts [15, 120, 225, 330, 435, 540, 645, 750, 855, 960, 41, 146] (steps [105, 105, 105, 105, 105, 105, 105, 105, 105, 105, 105], want 105 each)"
+    ],
+    [
+     "PASS",
+     "frames-load",
+     "loaded 145 frames (580 words) through CFG_IN, CRC 0776BEDF, FDRO readback verified; CHAIN_OUT == word: True; DONE=1; 4/4 vectors == model"
+    ],
+    [
+     "PASS",
+     "frames-crc-reject",
+     "CRC_ERROR=1 START_OK=0 DONE=0 INIT_B=0"
+    ],
+    [
+     "PASS",
+     "frames-idcode-reject",
+     "ID_ERROR=1 memory empty=True"
+    ],
+    [
+     "PASS",
+     "frames-live-refused",
+     "frames: WR_ERROR=1 memory kept=True; chain while running kept=True; DONE=1; showcase 4/4 vectors == model"
+    ],
+    [
+     "PASS",
+     "frames-vs-chain",
+     "chain load -> FDRO == word: True; frame load -> CHAIN_OUT == word: True"
+    ],
+    [
+     "PASS",
+     "bob-gates",
+     "loaded 145 frames (580 words) through CFG_IN, CRC 1CBC10EF, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 0 CAPTUREs x 0 registers == golden"
+    ],
+    [
+     "PASS",
+     "bob-counter",
+     "loaded 145 frames (580 words) through CFG_IN, CRC D703B4E9, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 6 registers == golden"
+    ],
+    [
+     "PASS",
+     "bob-ram",
+     "loaded 145 frames (580 words) through CFG_IN + 256 BRAM content frames (1 BRAM, all 1024 words), CRC BA518257, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 0 CAPTUREs x 0 registers == golden"
+    ],
+    [
+     "PASS",
+     "bob-mult",
+     "loaded 145 frames (580 words) through CFG_IN, CRC 9A8F6D49, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 7 registers == golden"
+    ],
+    [
+     "FAIL",
+     "bob-fir",
+     "5 wrong, first ['clock 16: CAPTURE bit 36 = 1, golden n9 = 0', 'clock 16: CAPTURE bit 46 = 0, golden n10 = 1', 'clock 16: LEDs 001 vs source 010']"
+    ],
+    [
+     "PASS",
+     "pnr-switches",
+     "loaded 145 frames (580 words) through CFG_IN, CRC AB402FB1, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 3 registers == golden"
+    ],
+    [
+     "PASS",
+     "ram-readback",
+     "64 clocks (50 with BTN0 write), bram0[0..15] = [2, 2, 4, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] read back after JPROGRAM == model (all 1024 words were written at load, so no earlier design's words remain); chain readback"
+    ],
+    [
+     "PASS",
+     "blinky-rate",
+     "31 counts in 4.09 s = 7.57 Hz (expected 7.45)"
+    ],
+    [
+     "PASS",
+     "bob-wide",
+     "loaded 145 frames (580 words) through CFG_IN, CRC BF6EED7B, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 20 registers == golden"
+    ],
+    [
+     "PASS",
+     "pnr-wide",
+     "loaded 145 frames (580 words) through CFG_IN, CRC 5C260818, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 20 registers == golden"
+    ],
+    [
+     "PASS",
+     "partial-swap",
+     "1 of 145 frames rewritten; counter 5 -> 5 across the partial -> 8 after 3 clocks; LD1 A (AND) [0, 0, 0, 1] (model [0, 0, 0, 1]), B (OR) [0, 1, 1, 1] (model [0, 1, 1, 1]); DONE=1"
+    ],
+    [
+     "PASS",
+     "partial-live",
+     "before: counting=True; frozen (GHIGH_B=0): 3 -> 3 over 1.2 s; 1 frame(s) written; released (GHIGH_B=1): 3 -> 5; LD1 [0, 1, 1, 1] (OR model [0, 1, 1, 1])"
+    ],
+    [
+     "PASS",
+     "partial-bad-crc",
+     "refused=True CRC_ERROR=1 GHIGH_B=0; frozen counter 0 -> 0; DONE=1; JPROGRAM + full load counts again=True"
+    ],
+    [
+     "PASS",
+     "partial-guest",
+     "partial: 27 of 145 frames rewritten with the design running, released; LEDs [0, 2, 3, 5] == gates_swapped model [0, 2, 3, 5]: True (27 frames differ)"
+    ],
+    [
+     "PASS",
+     "frames-bram-load",
+     "loaded 145 frames (580 words) through CFG_IN + 512 BRAM content frames (2 BRAMs, all 1024 words), CRC 7FBDC950, FDRO readback verified; USER4 reads the same words: True; ROM LEDs [2, 4, 2, 7] == mem[SW] [2, 4, 2, 7]"
+    ],
+    [
+     "PASS",
+     "frames-bram-live-refused",
+     "WR_ERROR=1; bram0[0..31] after JPROGRAM unchanged=True"
+    ],
+    [
+     "PASS",
+     "ram-readback-frames",
+     "bram0[0..15] = [2, 2, 4, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] over FDRO block type 1 after JPROGRAM == model, == USER4"
+    ],
+    [
+     "PASS",
+     "bob-big",
+     "loaded 145 frames (580 words) through CFG_IN, CRC 2A3DFA24, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 40 registers == golden"
+    ],
+    [
+     "PASS",
+     "pnr-big",
+     "loaded 145 frames (580 words) through CFG_IN, CRC 3DC14EF3, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 40 registers == golden"
+    ],
+    [
+     "PASS",
+     "bob-bd_demo",
+     "loaded 145 frames (580 words) through CFG_IN, CRC 255B0483, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 5 registers == golden"
+    ],
+    [
+     "PASS",
+     "pnr-bd_demo",
+     "loaded 145 frames (580 words) through CFG_IN, CRC 56040D0B, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 5 registers == golden"
+    ],
+    [
+     "PASS",
+     "live-bd_demo",
+     "360 live samples LEDs == model(registers, pins), 16 input vectors, 14 register states, 32 bursts skipped (moving); all goals reached; readback while running == .bit"
+    ],
+    [
+     "PASS",
+     "wave-step",
+     "120 clocks captured == source Verilog (5 LED values, 204.0 samples/s), VCD 9 time steps"
+    ],
+    [
+     "PASS",
+     "wave-live",
+     "2000 live samples, LD0 == SW0 xor SW1 in all, 4 switch settings"
+    ],
+    [
+     "PASS",
+     "clock-rate",
+     "clk_period 47 x 2**16: 166 counts in 4.09 s = 40.61 Hz (expected 40.58)"
+    ],
+    [
+     "PASS",
+     "clock-fmax",
+     "critical path 120.21 ns -> every 31 sysclk cycles = 4.032 MHz: 1 s with no error, registers moving"
+    ],
+    [
+     "PASS",
+     "clock-fmax-py",
+     "critical path 115.6 ns -> every 29 sysclk cycles = 4.310 MHz: 1 s with no error, registers moving"
+    ],
+    [
+     "PASS",
+     "clock-margin",
+     "computed 31 cycles (4.032 MHz); first failure at 6 (20.833 MHz): margin 5.17x on silicon"
+    ],
+    [
+     "PASS",
+     "pipeline-live",
+     "SW1..0 = 00/01/10/11 should light LD0 / LD1 / LD2 / all three"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-23",
+   "time": "20:22:03",
+   "milestone": "M21",
+   "tag": "M21",
+   "pass": 66,
+   "fail": 0,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x0B021093, build.cfg expects 0x0B021093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "selftest",
+     "12/12 designs match the model"
+    ],
+    [
+     "PASS",
+     "usercode",
+     "0x00000015, build.cfg expects 0x00000015"
+    ],
+    [
+     "PASS",
+     "chain-length",
+     "32896 bits, design intact after the marker scan"
+    ],
+    [
+     "PASS",
+     "ir-status",
+     "{'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}"
+    ],
+    [
+     "PASS",
+     "crc-reject-live",
+     "crc_err=1 DONE=1 config kept=True showcase vectors wrong=0"
+    ],
+    [
+     "PASS",
+     "gts",
+     "outputs before JSTART=000, after=011, model=011"
+    ],
+    [
+     "PASS",
+     "gsr-gwe",
+     "q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1"
+    ],
+    [
+     "PASS",
+     "capture-user1",
+     "CAPTURE=0x0000 USER1[19:4]=0x0000 (switches must not move during the check)"
+    ],
+    [
+     "PASS",
+     "jprogram",
+     "DONE=0 GTS=1 chain zero=True outputs=000"
+    ],
+    [
+     "PASS",
+     "showcase-live",
+     "pad_i=000000 LD2..0=000 model=000"
+    ],
+    [
+     "PASS",
+     "ce-sr",
+     "CE loads, SR clears (beats CE), both low holds - 7 steps match model.py"
+    ],
+    [
+     "PASS",
+     "counter-step",
+     "counts [15, 12, 9, 6, 3, 0] (steps [13, 13, 13, 13, 13], want 13 each); ce off: [11, 11, 11] (want constant)"
+    ],
+    [
+     "PASS",
+     "counter-run",
+     "10 counts in 3.00 s = 3.33/s (expected 3.73)"
+    ],
+    [
+     "PASS",
+     "bram-init",
+     "64/64 words read back"
+    ],
+    [
+     "PASS",
+     "bram-locked",
+     "err=1 gwe=1"
+    ],
+    [
+     "PASS",
+     "bram-rom",
+     "LEDs ['110', '110', '100', '010'] contents ['110', '110', '100', '010']"
+    ],
+    [
+     "PASS",
+     "bram-modes",
+     "72/72 stepped operations match model.py"
+    ],
+    [
+     "PASS",
+     "dsp-modes",
+     "60/60 stepped operations match model.py "
+    ],
+    [
+     "PASS",
+     "dsp-mult",
+     "LEDs ['000', '011', '110', '001'] expected ['000', '011', '110', '001']"
+    ],
+    [
+     "PASS",
+     "dsp-accum",
+     "P0 0 -> 11 in 3.03 s = 3.63/s (expected 3.73)"
+    ],
+    [
+     "PASS",
+     "bram-select",
+     "16 words each read back from bram0 and bram1; SELECT 9 ignored (target 0)"
+    ],
+    [
+     "PASS",
+     "pipeline",
+     "LEDs ['010', '000', '011', '110', '000', '010', '110', '011'] model ['010', '000', '011', '110', '000', '010', '110', '011']"
+    ],
+    [
+     "PASS",
+     "counter8",
+     "counts [15, 28, 41, 54, 3, 16, 29, 42, 55, 4, 17, 30] (steps [13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13], want 13 each)"
+    ],
+    [
+     "PASS",
+     "frames-load",
+     "loaded 257 frames (1028 words) through CFG_IN, CRC AC0D0CE5, FDRO readback verified; CHAIN_OUT == word: True; DONE=1; 4/4 vectors == model"
+    ],
+    [
+     "PASS",
+     "frames-crc-reject",
+     "CRC_ERROR=1 START_OK=0 DONE=0 INIT_B=0"
+    ],
+    [
+     "PASS",
+     "frames-idcode-reject",
+     "ID_ERROR=1 memory empty=True"
+    ],
+    [
+     "PASS",
+     "frames-live-refused",
+     "frames: WR_ERROR=1 memory kept=True; chain while running kept=True; DONE=1; showcase 4/4 vectors == model"
+    ],
+    [
+     "PASS",
+     "frames-vs-chain",
+     "chain load -> FDRO == word: True; frame load -> CHAIN_OUT == word: True"
+    ],
+    [
+     "PASS",
+     "bob-gates",
+     "loaded 257 frames (1028 words) through CFG_IN, CRC F004290E, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 0 CAPTUREs x 0 registers == golden"
+    ],
+    [
+     "PASS",
+     "bob-counter",
+     "loaded 257 frames (1028 words) through CFG_IN, CRC 2EFC7584, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 6 registers == golden"
+    ],
+    [
+     "PASS",
+     "bob-ram",
+     "loaded 257 frames (1028 words) through CFG_IN + 256 BRAM content frames (1 BRAM, all 1024 words), CRC 30AC154F, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 0 CAPTUREs x 0 registers == golden"
+    ],
+    [
+     "PASS",
+     "bob-mult",
+     "loaded 257 frames (1028 words) through CFG_IN, CRC 6F4B3DE9, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 7 registers == golden"
+    ],
+    [
+     "PASS",
+     "bob-fir",
+     "loaded 257 frames (1028 words) through CFG_IN, CRC 5ED7A017, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 7 registers == golden"
+    ],
+    [
+     "PASS",
+     "pnr-switches",
+     "loaded 257 frames (1028 words) through CFG_IN, CRC 86489712, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 3 registers == golden"
+    ],
+    [
+     "PASS",
+     "ram-readback",
+     "64 clocks (50 with BTN0 write), bram0[0..15] = [2, 2, 4, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] read back after JPROGRAM == model (all 1024 words were written at load, so no earlier design's words remain); chain readback"
+    ],
+    [
+     "PASS",
+     "blinky-rate",
+     "31 counts in 4.15 s = 7.47 Hz (expected 7.45)"
+    ],
+    [
+     "PASS",
+     "bob-wide",
+     "loaded 257 frames (1028 words) through CFG_IN, CRC 5F1BD9F4, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 20 registers == golden"
+    ],
+    [
+     "PASS",
+     "pnr-wide",
+     "loaded 257 frames (1028 words) through CFG_IN, CRC 92EDF3A3, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 20 registers == golden"
+    ],
+    [
+     "PASS",
+     "partial-swap",
+     "1 of 257 frames rewritten; counter 5 -> 5 across the partial -> 8 after 3 clocks; LD1 A (AND) [0, 0, 0, 1] (model [0, 0, 0, 1]), B (OR) [0, 1, 1, 1] (model [0, 1, 1, 1]); DONE=1"
+    ],
+    [
+     "PASS",
+     "partial-live",
+     "before: counting=True; frozen (GHIGH_B=0): 2 -> 2 over 1.2 s; 1 frame(s) written; released (GHIGH_B=1): 2 -> 4; LD1 [0, 1, 1, 1] (OR model [0, 1, 1, 1])"
+    ],
+    [
+     "PASS",
+     "partial-bad-crc",
+     "refused=True CRC_ERROR=1 GHIGH_B=0; frozen counter 0 -> 0; DONE=1; JPROGRAM + full load counts again=True"
+    ],
+    [
+     "PASS",
+     "partial-guest",
+     "partial: 12 of 257 frames rewritten with the design running, released; LEDs [0, 2, 3, 5] == gates_swapped model [0, 2, 3, 5]: True (12 frames differ)"
+    ],
+    [
+     "PASS",
+     "frames-bram-load",
+     "loaded 257 frames (1028 words) through CFG_IN + 512 BRAM content frames (2 BRAMs, all 1024 words), CRC A8BB323F, FDRO readback verified; USER4 reads the same words: True; ROM LEDs [4, 4, 2, 3] == mem[SW] [4, 4, 2, 3]"
+    ],
+    [
+     "PASS",
+     "frames-bram-live-refused",
+     "WR_ERROR=1; bram0[0..31] after JPROGRAM unchanged=True"
+    ],
+    [
+     "PASS",
+     "ram-readback-frames",
+     "bram0[0..15] = [2, 2, 4, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] over FDRO block type 1 after JPROGRAM == model, == USER4"
+    ],
+    [
+     "PASS",
+     "bob-big",
+     "loaded 257 frames (1028 words) through CFG_IN, CRC 4CB65A8C, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 40 registers == golden"
+    ],
+    [
+     "PASS",
+     "pnr-big",
+     "loaded 257 frames (1028 words) through CFG_IN, CRC 0FA5890D, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 40 registers == golden"
+    ],
+    [
+     "PASS",
+     "bob-bd_demo",
+     "loaded 257 frames (1028 words) through CFG_IN, CRC D7676020, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 5 registers == golden"
+    ],
+    [
+     "PASS",
+     "pnr-bd_demo",
+     "loaded 257 frames (1028 words) through CFG_IN, CRC 55DECA10, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 5 registers == golden"
+    ],
+    [
+     "PASS",
+     "live-bd_demo",
+     "1172 live samples LEDs == model(registers, pins), 38 input vectors, 18 register states, 111 bursts skipped (moving); all goals reached; readback while running == .bit"
+    ],
+    [
+     "PASS",
+     "wave-step",
+     "120 clocks captured == source Verilog (5 LED values, 230.1 samples/s), VCD 9 time steps"
+    ],
+    [
+     "PASS",
+     "wave-live",
+     "2000 live samples, LD0 == SW0 xor SW1 in all, 4 switch settings"
+    ],
+    [
+     "PASS",
+     "clock-rate",
+     "clk_period 47 x 2**16: 168 counts in 4.14 s = 40.55 Hz (expected 40.58)"
+    ],
+    [
+     "PASS",
+     "clock-fmax",
+     "critical path 68.984 ns -> every 18 sysclk cycles = 6.944 MHz: 1 s with no error, registers moving"
+    ],
+    [
+     "PASS",
+     "clock-fmax-py",
+     "critical path 80.482 ns -> every 21 sysclk cycles = 5.952 MHz: 1 s with no error, registers moving"
+    ],
+    [
+     "PASS",
+     "clock-margin",
+     "computed 18 cycles (6.944 MHz); first failure at 4 (31.250 MHz): margin 4.50x on silicon"
+    ],
+    [
+     "PASS",
+     "shadow-readback",
+     "frames: FDRO == showcase; JPROGRAM: FDRO and CHAIN_OUT all zeros; chain load: CHAIN_OUT == FDRO == the counter (257 frames)"
+    ],
+    [
+     "PASS",
+     "partial-cluster",
+     "2 of 257 frames rewritten inside clb(1,1); counter 5 -> 5 -> 7; LD1 AND [0, 0, 0, 1] (model [0, 0, 0, 1]), OR [0, 1, 1, 1] (model [0, 1, 1, 1]); FDRO == B: True; DONE=1"
+    ],
+    [
+     "PASS",
+     "bob-fir16",
+     "loaded 257 frames (1028 words) through CFG_IN, CRC 40B13B37, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 58 registers == golden"
+    ],
+    [
+     "PASS",
+     "pnr-fir16",
+     "loaded 257 frames (1028 words) through CFG_IN, CRC A243BFA0, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 58 registers == golden"
+    ],
+    [
+     "PASS",
+     "live-fir16",
+     "1243 live samples LEDs == model(registers, pins), 50 input vectors, 23 register states, 15 bursts skipped (moving); all goals reached; readback while running == .bit"
+    ],
+    [
+     "PASS",
+     "fast-fir16",
+     "307 live samples LEDs == model(registers, pins), 15 input vectors, 3 register states, 2 bursts skipped (moving); all goals reached; readback while running == .bit"
+    ],
+    [
+     "PASS",
+     "fmax-cluster",
+     "critical path 68.984 ns -> every 18 sysclk cycles = 6.944 MHz: 1 s with no error, registers moving"
+    ],
+    [
+     "PASS",
+     "pipeline-live",
+     "SW1..0 = 00/01/10/11 should light LD0 / LD1 / LD2 / all three"
+    ]
+   ]
   }
  ],
  "vivado": {
@@ -4402,19 +5942,19 @@
   }
  },
  "device": {
-  "chain_width": 18560,
-  "frames": 145,
+  "chain_width": 56448,
+  "frames": 441,
   "frame_bits": 128,
   "grid": [
-   14,
-   12
+   13,
+   11
   ],
-  "chan_width": 24,
+  "chan_width": 40,
   "lut_k": 6,
-  "muxes": 3391,
+  "muxes": 6878,
   "blocks": {
-   "io": 44,
-   "clb": 100,
+   "io": 40,
+   "clb": 81,
    "bram": 2,
    "dsp": 2
   }
@@ -4423,67 +5963,72 @@
   "vpr": [
    {
     "name": "adder",
-    "wirelength": 109,
+    "wirelength": 88,
     "critical_ns": null
    },
    {
     "name": "atspeed",
-    "wirelength": 900,
+    "wirelength": 292,
     "critical_ns": null
    },
    {
     "name": "bd_demo_bd_wrapper",
-    "wirelength": 245,
+    "wirelength": 125,
     "critical_ns": null
    },
    {
     "name": "big",
-    "wirelength": 1560,
+    "wirelength": 422,
     "critical_ns": null
    },
    {
     "name": "blinky",
-    "wirelength": 117,
+    "wirelength": 21,
     "critical_ns": null
    },
    {
     "name": "counter",
-    "wirelength": 198,
+    "wirelength": 81,
     "critical_ns": null
    },
    {
     "name": "fir",
-    "wirelength": 324,
+    "wirelength": 237,
+    "critical_ns": null
+   },
+   {
+    "name": "fir16",
+    "wirelength": 2710,
     "critical_ns": null
    },
    {
     "name": "gates",
-    "wirelength": 167,
+    "wirelength": 90,
     "critical_ns": null
    },
    {
     "name": "gates_swapped",
-    "wirelength": 169,
+    "wirelength": 94,
     "critical_ns": null
    },
    {
     "name": "mult",
-    "wirelength": 203,
+    "wirelength": 199,
     "critical_ns": null
    },
    {
     "name": "ram",
-    "wirelength": 119,
+    "wirelength": 103,
     "critical_ns": null
    },
    {
     "name": "switches",
-    "wirelength": 190,
+    "wirelength": 92,
     "critical_ns": null
    },
    {
     "name": "wide",
-    "wirelength": 861,
+    "wirelength": 229,
     "critical_ns": null
    }
   ],
@@ -4616,18 +6161,18 @@
  },
  "code": {
   "lines": {
-   "other": 13835,
-   "Markdown": 6168,
-   "Python": 32813,
-   "JavaScript": 4361,
-   "Tcl": 1017,
-   "SystemVerilog": 385,
-   "XDC": 131,
-   "Verilog": 6759,
-   "shell": 640
+   "other": 14322,
+   "Markdown": 10450,
+   "Python": 35174,
+   "JavaScript": 4418,
+   "Tcl": 1040,
+   "SystemVerilog": 566,
+   "XDC": 156,
+   "Verilog": 7276,
+   "shell": 766
   },
-  "generated_fabric_lines": 4416,
-  "commits": 36,
+  "generated_fabric_lines": 7011,
+  "commits": 63,
   "tags": [
    "m10",
    "m11",
@@ -4712,12 +6257,6 @@
     0
    ],
    [
-    "io_x12y0",
-    "io",
-    12,
-    0
-   ],
-   [
     "io_x0y1",
     "io",
     0,
@@ -4790,15 +6329,9 @@
     1
    ],
    [
-    "clb_x12y1",
-    "clb",
-    12,
-    1
-   ],
-   [
-    "io_x13y1",
+    "io_x12y1",
     "io",
-    13,
+    12,
     1
    ],
    [
@@ -4862,15 +6395,9 @@
     2
    ],
    [
-    "clb_x12y2",
-    "clb",
-    12,
-    2
-   ],
-   [
-    "io_x13y2",
+    "io_x12y2",
     "io",
-    13,
+    12,
     2
    ],
    [
@@ -4934,15 +6461,9 @@
     3
    ],
    [
-    "clb_x12y3",
-    "clb",
-    12,
-    3
-   ],
-   [
-    "io_x13y3",
+    "io_x12y3",
     "io",
-    13,
+    12,
     3
    ],
    [
@@ -5006,15 +6527,9 @@
     4
    ],
    [
-    "clb_x12y4",
-    "clb",
-    12,
-    4
-   ],
-   [
-    "io_x13y4",
+    "io_x12y4",
     "io",
-    13,
+    12,
     4
    ],
    [
@@ -5033,6 +6548,12 @@
     "clb_x2y5",
     "clb",
     2,
+    5
+   ],
+   [
+    "bram1",
+    "bram",
+    3,
     5
    ],
    [
@@ -5060,6 +6581,12 @@
     5
    ],
    [
+    "dsp1",
+    "dsp",
+    8,
+    5
+   ],
+   [
     "clb_x9y5",
     "clb",
     9,
@@ -5078,15 +6605,9 @@
     5
    ],
    [
-    "clb_x12y5",
-    "clb",
-    12,
-    5
-   ],
-   [
-    "io_x13y5",
+    "io_x12y5",
     "io",
-    13,
+    12,
     5
    ],
    [
@@ -5105,12 +6626,6 @@
     "clb_x2y6",
     "clb",
     2,
-    6
-   ],
-   [
-    "bram1",
-    "bram",
-    3,
     6
    ],
    [
@@ -5138,12 +6653,6 @@
     6
    ],
    [
-    "dsp1",
-    "dsp",
-    8,
-    6
-   ],
-   [
     "clb_x9y6",
     "clb",
     9,
@@ -5162,15 +6671,9 @@
     6
    ],
    [
-    "clb_x12y6",
-    "clb",
-    12,
-    6
-   ],
-   [
-    "io_x13y6",
+    "io_x12y6",
     "io",
-    13,
+    12,
     6
    ],
    [
@@ -5234,15 +6737,9 @@
     7
    ],
    [
-    "clb_x12y7",
-    "clb",
-    12,
-    7
-   ],
-   [
-    "io_x13y7",
+    "io_x12y7",
     "io",
-    13,
+    12,
     7
    ],
    [
@@ -5306,15 +6803,9 @@
     8
    ],
    [
-    "clb_x12y8",
-    "clb",
-    12,
-    8
-   ],
-   [
-    "io_x13y8",
+    "io_x12y8",
     "io",
-    13,
+    12,
     8
    ],
    [
@@ -5378,160 +6869,76 @@
     9
    ],
    [
-    "clb_x12y9",
-    "clb",
+    "io_x12y9",
+    "io",
     12,
     9
    ],
    [
-    "io_x13y9",
+    "io_x1y10",
     "io",
-    13,
-    9
-   ],
-   [
-    "io_x0y10",
-    "io",
-    0,
-    10
-   ],
-   [
-    "clb_x1y10",
-    "clb",
     1,
     10
    ],
    [
-    "clb_x2y10",
-    "clb",
+    "io_x2y10",
+    "io",
     2,
     10
    ],
    [
-    "clb_x4y10",
-    "clb",
-    4,
-    10
-   ],
-   [
-    "clb_x5y10",
-    "clb",
-    5,
-    10
-   ],
-   [
-    "clb_x6y10",
-    "clb",
-    6,
-    10
-   ],
-   [
-    "clb_x7y10",
-    "clb",
-    7,
-    10
-   ],
-   [
-    "clb_x9y10",
-    "clb",
-    9,
-    10
-   ],
-   [
-    "clb_x10y10",
-    "clb",
-    10,
-    10
-   ],
-   [
-    "clb_x11y10",
-    "clb",
-    11,
-    10
-   ],
-   [
-    "clb_x12y10",
-    "clb",
-    12,
-    10
-   ],
-   [
-    "io_x13y10",
-    "io",
-    13,
-    10
-   ],
-   [
-    "io_x1y11",
-    "io",
-    1,
-    11
-   ],
-   [
-    "io_x2y11",
-    "io",
-    2,
-    11
-   ],
-   [
-    "io_x3y11",
+    "io_x3y10",
     "io",
     3,
-    11
+    10
    ],
    [
-    "io_x4y11",
+    "io_x4y10",
     "io",
     4,
-    11
+    10
    ],
    [
-    "io_x5y11",
+    "io_x5y10",
     "io",
     5,
-    11
+    10
    ],
    [
-    "io_x6y11",
+    "io_x6y10",
     "io",
     6,
-    11
+    10
    ],
    [
-    "io_x7y11",
+    "io_x7y10",
     "io",
     7,
-    11
+    10
    ],
    [
-    "io_x8y11",
+    "io_x8y10",
     "io",
     8,
-    11
+    10
    ],
    [
-    "io_x9y11",
+    "io_x9y10",
     "io",
     9,
-    11
+    10
    ],
    [
-    "io_x10y11",
+    "io_x10y10",
     "io",
     10,
-    11
+    10
    ],
    [
-    "io_x11y11",
+    "io_x11y10",
     "io",
     11,
-    11
-   ],
-   [
-    "io_x12y11",
-    "io",
-    12,
-    11
+    10
    ]
   ],
   "pads": [
@@ -5603,206 +7010,182 @@
    },
    {
     "pad": 11,
-    "x": 12,
-    "y": 0,
-    "name": null
-   },
-   {
-    "pad": 12,
     "x": 0,
     "y": 1,
     "name": "SW0"
    },
    {
-    "pad": 13,
-    "x": 13,
+    "pad": 12,
+    "x": 12,
     "y": 1,
     "name": "LD0"
    },
    {
-    "pad": 14,
+    "pad": 13,
     "x": 0,
     "y": 2,
     "name": "SW1"
    },
    {
-    "pad": 15,
-    "x": 13,
+    "pad": 14,
+    "x": 12,
     "y": 2,
     "name": "LD1"
    },
    {
-    "pad": 16,
+    "pad": 15,
     "x": 0,
     "y": 3,
     "name": "BTN0"
    },
    {
-    "pad": 17,
-    "x": 13,
+    "pad": 16,
+    "x": 12,
     "y": 3,
     "name": "LD2"
    },
    {
-    "pad": 18,
+    "pad": 17,
     "x": 0,
     "y": 4,
     "name": "BTN1"
    },
    {
-    "pad": 19,
-    "x": 13,
+    "pad": 18,
+    "x": 12,
     "y": 4,
     "name": null
    },
    {
-    "pad": 20,
+    "pad": 19,
     "x": 0,
     "y": 5,
     "name": "BTN2"
    },
    {
-    "pad": 21,
-    "x": 13,
+    "pad": 20,
+    "x": 12,
     "y": 5,
     "name": null
    },
    {
-    "pad": 22,
+    "pad": 21,
     "x": 0,
     "y": 6,
     "name": "BTN3"
    },
    {
-    "pad": 23,
-    "x": 13,
+    "pad": 22,
+    "x": 12,
     "y": 6,
     "name": null
    },
    {
-    "pad": 24,
+    "pad": 23,
     "x": 0,
+    "y": 7,
+    "name": null
+   },
+   {
+    "pad": 24,
+    "x": 12,
     "y": 7,
     "name": null
    },
    {
     "pad": 25,
-    "x": 13,
-    "y": 7,
+    "x": 0,
+    "y": 8,
     "name": null
    },
    {
     "pad": 26,
-    "x": 0,
+    "x": 12,
     "y": 8,
     "name": null
    },
    {
     "pad": 27,
-    "x": 13,
-    "y": 8,
+    "x": 0,
+    "y": 9,
     "name": null
    },
    {
     "pad": 28,
-    "x": 0,
+    "x": 12,
     "y": 9,
     "name": null
    },
    {
     "pad": 29,
-    "x": 13,
-    "y": 9,
+    "x": 1,
+    "y": 10,
     "name": null
    },
    {
     "pad": 30,
-    "x": 0,
+    "x": 2,
     "y": 10,
     "name": null
    },
    {
     "pad": 31,
-    "x": 13,
+    "x": 3,
     "y": 10,
     "name": null
    },
    {
     "pad": 32,
-    "x": 1,
-    "y": 11,
+    "x": 4,
+    "y": 10,
     "name": null
    },
    {
     "pad": 33,
-    "x": 2,
-    "y": 11,
+    "x": 5,
+    "y": 10,
     "name": null
    },
    {
     "pad": 34,
-    "x": 3,
-    "y": 11,
+    "x": 6,
+    "y": 10,
     "name": null
    },
    {
     "pad": 35,
-    "x": 4,
-    "y": 11,
+    "x": 7,
+    "y": 10,
     "name": null
    },
    {
     "pad": 36,
-    "x": 5,
-    "y": 11,
+    "x": 8,
+    "y": 10,
     "name": null
    },
    {
     "pad": 37,
-    "x": 6,
-    "y": 11,
+    "x": 9,
+    "y": 10,
     "name": null
    },
    {
     "pad": 38,
-    "x": 7,
-    "y": 11,
+    "x": 10,
+    "y": 10,
     "name": null
    },
    {
     "pad": 39,
-    "x": 8,
-    "y": 11,
-    "name": null
-   },
-   {
-    "pad": 40,
-    "x": 9,
-    "y": 11,
-    "name": null
-   },
-   {
-    "pad": 41,
-    "x": 10,
-    "y": 11,
-    "name": null
-   },
-   {
-    "pad": 42,
     "x": 11,
-    "y": 11,
-    "name": null
-   },
-   {
-    "pad": 43,
-    "x": 12,
-    "y": 11,
+    "y": 10,
     "name": null
    }
   ],
   "heights": {
-   "bram": 5,
-   "dsp": 5
+   "bram": 4,
+   "dsp": 4
   },
   "frame_columns": [
    {
@@ -5815,84 +7198,78 @@
     "far_col": 1,
     "x": 0,
     "base": 1,
-    "count": 2
+    "count": 3
    },
    {
     "far_col": 2,
     "x": 1,
-    "base": 3,
-    "count": 13
+    "base": 4,
+    "count": 46
    },
    {
     "far_col": 3,
     "x": 2,
-    "base": 16,
-    "count": 13
+    "base": 50,
+    "count": 46
    },
    {
     "far_col": 4,
     "x": 3,
-    "base": 29,
-    "count": 6
+    "base": 96,
+    "count": 9
    },
    {
     "far_col": 5,
     "x": 4,
-    "base": 35,
-    "count": 13
+    "base": 105,
+    "count": 46
    },
    {
     "far_col": 6,
     "x": 5,
-    "base": 48,
-    "count": 12
+    "base": 151,
+    "count": 46
    },
    {
     "far_col": 7,
     "x": 6,
-    "base": 60,
-    "count": 12
+    "base": 197,
+    "count": 46
    },
    {
     "far_col": 8,
     "x": 7,
-    "base": 72,
-    "count": 13
+    "base": 243,
+    "count": 46
    },
    {
     "far_col": 9,
     "x": 8,
-    "base": 85,
-    "count": 9
+    "base": 289,
+    "count": 13
    },
    {
     "far_col": 10,
     "x": 9,
-    "base": 94,
-    "count": 13
+    "base": 302,
+    "count": 46
    },
    {
     "far_col": 11,
     "x": 10,
-    "base": 107,
-    "count": 12
+    "base": 348,
+    "count": 46
    },
    {
     "far_col": 12,
     "x": 11,
-    "base": 119,
-    "count": 12
+    "base": 394,
+    "count": 46
    },
    {
     "far_col": 13,
     "x": 12,
-    "base": 131,
-    "count": 13
-   },
-   {
-    "far_col": 14,
-    "x": 13,
-    "base": 144,
+    "base": 440,
     "count": 1
    }
   ]
@@ -5932,7 +7309,7 @@
     "type-1 WRITE IDCODE count 1"
    ],
    [
-    "0B020093",
+    "0B022093",
     "IDCODE data"
    ],
    [
@@ -5960,8 +7337,8 @@
     "type-1 WRITE FDRI count 0"
    ],
    [
-    "50000244",
-    "type-2 count 580"
+    "500006E4",
+    "type-2 count 1764"
    ],
    [
     "00000000",
@@ -5980,16 +7357,16 @@
     "FDRI data"
    ],
    [
-    "20000008",
+    "00000010",
     "FDRI data"
    ],
    [
-    "80000300",
+    "10000000",
     "FDRI data"
    ],
    [
     "\u2026",
-    "1600 more words"
+    "2784 more words"
    ],
    [
     "0003D09E",
@@ -6004,7 +7381,7 @@
     "type-1 WRITE CRC count 1"
    ],
    [
-    "2E2F0665",
+    "9C02BF5E",
     "CRC data"
    ],
    [
@@ -6040,7 +7417,7 @@
     "dummy"
    ]
   ],
-  "load_words": 1634,
+  "load_words": 2818,
   "partial_freeze": [
    [
     "FFFFFFFF",
@@ -6075,7 +7452,7 @@
     "type-1 WRITE IDCODE count 1"
    ],
    [
-    "0B020093",
+    "0B022093",
     "IDCODE data"
    ],
    [
@@ -6109,7 +7486,7 @@
     "type-1 WRITE FAR count 1"
    ],
    [
-    "00000280",
+    "00000282",
     "FAR data"
    ],
    [
@@ -6117,19 +7494,19 @@
     "type-1 WRITE FDRI count 4"
    ],
    [
-    "77000000",
+    "EEEEEEEE",
     "FDRI data"
    ],
    [
-    "77777777",
+    "EEEEEEEE",
     "FDRI data"
    ],
    [
-    "40777777",
+    "00000000",
     "FDRI data"
    ],
    [
-    "0001A000",
+    "00000000",
     "FDRI data"
    ],
    [
@@ -6137,7 +7514,7 @@
     "type-1 WRITE CRC count 1"
    ],
    [
-    "CEB1E90E",
+    "2D589F27",
     "CRC data"
    ],
    [
@@ -6200,8 +7577,8 @@
     "type-1 READ FDRO count 0"
    ],
    [
-    "48000244",
-    "type-2 count 580"
+    "480006E4",
+    "type-2 count 1764"
    ],
    [
     "30008001",

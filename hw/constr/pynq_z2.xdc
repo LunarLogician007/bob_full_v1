@@ -115,9 +115,9 @@ set_multicycle_path -hold  15 -from [get_clocks tck] -to [get_clocks tck]
 # longest path Vivado found through the UNCONFIGURED fabric: every routing mux open, one
 # mesh of combinational loops, cut wherever the timer chose. That stopped working at M21.
 # The cluster fabric placed at WNS -133 ns against 512 cycles (4096 ns), and at -290 ns
-# against 1024 (8192 ns): the path grew with the budget, because the loop cutting, not the
-# fabric, decides it. phys_opt then ground on it for hours. (M16: 256 -> 512 was enough;
-# M7: 1202 logic levels, 1110 ns.)
+# against 1024 (8192 ns), phys_opt grinding for hours; the build that finished showed the
+# failing clock was TCK (below) - no configured design has such a path. (M16: 256 -> 512
+# was enough; M7: 1202 logic levels, 1110 ns.)
 #
 # From M21 the sign-off is per design, in software: software/bob/timing.py times the
 # configured design with delays measured on this build (extract_delays.tcl), and

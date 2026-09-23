@@ -107,9 +107,14 @@ or rebuild M20. I recommended tagging; the user has not answered.
     `test_build_tcl::...measures_the_fabric_delays` had stale `delay_samples.txt`; it was
     regenerated, and `tests/test_timing.py::test_delay_samples_name_this_device` now guards it.
   - The whole-design yosys estimate is 58,535 LUT / 35,995 FF, with the shadow as 2 × RAMB36.
-- **Mutation suites:** every simulation now runs under a watchdog (`sim/mutate_lib.sh`,
-  `MUTATE_TIMEOUT`, default 2700 s; a normal tb_bob is 443 s). A mutant that spins in a zero-delay loop counts as killed
-  and is reported as `(hang: ...)`. Results of the rerun: MUTATE_RESULTS
+- **Mutation suites: every mutant killed (2026-09-23).** `mutate_cfg` 6/6; `mutate_fabric`
+  all, `xbar-sel-off-by-one` and `mux-inputs-shifted` as hangs (the watchdog,
+  `sim/mutate_lib.sh`, `MUTATE_TIMEOUT` 2700 s; a normal tb_bob is 443 s);
+  `mutate_frames` 38/38. The first full run found two stale mutants - `carry-direct-cut` cut
+  column 8's carry while the counter runs up column 9 (it survived), `xbar-no-feedback`
+  expected `o[19]` - and that `make -k mutate` skips `mutate_frames.sh` once a suite fails.
+  Both patterns fixed (the column now comes from `designs.FULL_COL_X`); `MUTATE_ONLY="a b"`
+  reruns named mutants.
 
 ### The Vivado timing blocker, and the fix (2026-09-23, implemented, awaiting a Vivado run)
 The user's log: `/Users/sk/work/bob/bob_full_v1/runme.log` (copied from
