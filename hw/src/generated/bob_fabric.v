@@ -5832,490 +5832,1057 @@ module bob_fabric (
 
     // --- CLBs (row-major); clb_o bit 2i+o = element i's out[o] = CAPTURE order ----
     // M22: lce[f] = the loader is shifting the CLB's L-frame f (or sweeping, JPROGRAM)
+    wire [2:0] lce_x1y1 = {l_busy & (l_clr | (l_idx == 7)), l_busy & (l_clr | (l_idx == 6)), l_busy & (l_clr | (l_idx == 5))};
+    wire lck_x1y1;
+`ifdef SIMULATION
+    assign lck_x1y1 = lck & |lce_x1y1;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x1y1 = lck;
+`endif
     bob_clb u_clb_x1y1 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r89), .sr(r79), .cin(r84),
         .i({r83, r78, r74, r88, r82, r77, r73, r87, r81, r76, r72, r86, r80, r75, r71, r85}),
         .cfg(cfg[1024 +: 48]),   // frames 5..7: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 7)), l_busy & (l_clr | (l_idx == 6)), l_busy & (l_clr | (l_idx == 5))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x1y1), .lce(lce_x1y1), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r63, r70, r68, r66, r62, r69, r67, r65}), .cout(r64));
     assign clb_o[0 +: 8] = {r63, r70, r68, r66, r62, r69, r67, r65};
+    wire [2:0] lce_x2y1 = {l_busy & (l_clr | (l_idx == 53)), l_busy & (l_clr | (l_idx == 52)), l_busy & (l_clr | (l_idx == 51))};
+    wire lck_x2y1;
+`ifdef SIMULATION
+    assign lck_x2y1 = lck & |lce_x2y1;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x2y1 = lck;
+`endif
     bob_clb u_clb_x2y1 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r132), .sr(r122), .cin(r127),
         .i({r126, r121, r117, r131, r125, r120, r116, r130, r124, r119, r115, r129, r123, r118, r114, r128}),
         .cfg(cfg[6912 +: 48]),   // frames 51..53: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 53)), l_busy & (l_clr | (l_idx == 52)), l_busy & (l_clr | (l_idx == 51))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x2y1), .lce(lce_x2y1), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r106, r113, r111, r109, r105, r112, r110, r108}), .cout(r107));
     assign clb_o[8 +: 8] = {r106, r113, r111, r109, r105, r112, r110, r108};
+    wire [2:0] lce_x4y1 = {l_busy & (l_clr | (l_idx == 108)), l_busy & (l_clr | (l_idx == 107)), l_busy & (l_clr | (l_idx == 106))};
+    wire lck_x4y1;
+`ifdef SIMULATION
+    assign lck_x4y1 = lck & |lce_x4y1;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x4y1 = lck;
+`endif
     bob_clb u_clb_x4y1 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r377), .sr(r367), .cin(r372),
         .i({r371, r366, r362, r376, r370, r365, r361, r375, r369, r364, r360, r374, r368, r363, r359, r373}),
         .cfg(cfg[13952 +: 48]),   // frames 106..108: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 108)), l_busy & (l_clr | (l_idx == 107)), l_busy & (l_clr | (l_idx == 106))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x4y1), .lce(lce_x4y1), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r351, r358, r356, r354, r350, r357, r355, r353}), .cout(r352));
     assign clb_o[16 +: 8] = {r351, r358, r356, r354, r350, r357, r355, r353};
+    wire [2:0] lce_x5y1 = {l_busy & (l_clr | (l_idx == 154)), l_busy & (l_clr | (l_idx == 153)), l_busy & (l_clr | (l_idx == 152))};
+    wire lck_x5y1;
+`ifdef SIMULATION
+    assign lck_x5y1 = lck & |lce_x5y1;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x5y1 = lck;
+`endif
     bob_clb u_clb_x5y1 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r420), .sr(r410), .cin(r415),
         .i({r414, r409, r405, r419, r413, r408, r404, r418, r412, r407, r403, r417, r411, r406, r402, r416}),
         .cfg(cfg[19840 +: 48]),   // frames 152..154: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 154)), l_busy & (l_clr | (l_idx == 153)), l_busy & (l_clr | (l_idx == 152))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x5y1), .lce(lce_x5y1), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r394, r401, r399, r397, r393, r400, r398, r396}), .cout(r395));
     assign clb_o[24 +: 8] = {r394, r401, r399, r397, r393, r400, r398, r396};
+    wire [2:0] lce_x6y1 = {l_busy & (l_clr | (l_idx == 200)), l_busy & (l_clr | (l_idx == 199)), l_busy & (l_clr | (l_idx == 198))};
+    wire lck_x6y1;
+`ifdef SIMULATION
+    assign lck_x6y1 = lck & |lce_x6y1;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x6y1 = lck;
+`endif
     bob_clb u_clb_x6y1 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r463), .sr(r453), .cin(r458),
         .i({r457, r452, r448, r462, r456, r451, r447, r461, r455, r450, r446, r460, r454, r449, r445, r459}),
         .cfg(cfg[25728 +: 48]),   // frames 198..200: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 200)), l_busy & (l_clr | (l_idx == 199)), l_busy & (l_clr | (l_idx == 198))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x6y1), .lce(lce_x6y1), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r437, r444, r442, r440, r436, r443, r441, r439}), .cout(r438));
     assign clb_o[32 +: 8] = {r437, r444, r442, r440, r436, r443, r441, r439};
+    wire [2:0] lce_x7y1 = {l_busy & (l_clr | (l_idx == 246)), l_busy & (l_clr | (l_idx == 245)), l_busy & (l_clr | (l_idx == 244))};
+    wire lck_x7y1;
+`ifdef SIMULATION
+    assign lck_x7y1 = lck & |lce_x7y1;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x7y1 = lck;
+`endif
     bob_clb u_clb_x7y1 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r506), .sr(r496), .cin(r501),
         .i({r500, r495, r491, r505, r499, r494, r490, r504, r498, r493, r489, r503, r497, r492, r488, r502}),
         .cfg(cfg[31616 +: 48]),   // frames 244..246: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 246)), l_busy & (l_clr | (l_idx == 245)), l_busy & (l_clr | (l_idx == 244))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x7y1), .lce(lce_x7y1), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r480, r487, r485, r483, r479, r486, r484, r482}), .cout(r481));
     assign clb_o[40 +: 8] = {r480, r487, r485, r483, r479, r486, r484, r482};
+    wire [2:0] lce_x9y1 = {l_busy & (l_clr | (l_idx == 305)), l_busy & (l_clr | (l_idx == 304)), l_busy & (l_clr | (l_idx == 303))};
+    wire lck_x9y1;
+`ifdef SIMULATION
+    assign lck_x9y1 = lck & |lce_x9y1;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x9y1 = lck;
+`endif
     bob_clb u_clb_x9y1 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r1087), .sr(r1077), .cin(r1082),
         .i({r1081, r1076, r1072, r1086, r1080, r1075, r1071, r1085, r1079, r1074, r1070, r1084, r1078, r1073, r1069, r1083}),
         .cfg(cfg[39168 +: 48]),   // frames 303..305: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 305)), l_busy & (l_clr | (l_idx == 304)), l_busy & (l_clr | (l_idx == 303))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x9y1), .lce(lce_x9y1), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r1061, r1068, r1066, r1064, r1060, r1067, r1065, r1063}), .cout(r1062));
     assign clb_o[48 +: 8] = {r1061, r1068, r1066, r1064, r1060, r1067, r1065, r1063};
+    wire [2:0] lce_x10y1 = {l_busy & (l_clr | (l_idx == 351)), l_busy & (l_clr | (l_idx == 350)), l_busy & (l_clr | (l_idx == 349))};
+    wire lck_x10y1;
+`ifdef SIMULATION
+    assign lck_x10y1 = lck & |lce_x10y1;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x10y1 = lck;
+`endif
     bob_clb u_clb_x10y1 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r1130), .sr(r1120), .cin(r1125),
         .i({r1124, r1119, r1115, r1129, r1123, r1118, r1114, r1128, r1122, r1117, r1113, r1127, r1121, r1116, r1112, r1126}),
         .cfg(cfg[45056 +: 48]),   // frames 349..351: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 351)), l_busy & (l_clr | (l_idx == 350)), l_busy & (l_clr | (l_idx == 349))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x10y1), .lce(lce_x10y1), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r1104, r1111, r1109, r1107, r1103, r1110, r1108, r1106}), .cout(r1105));
     assign clb_o[56 +: 8] = {r1104, r1111, r1109, r1107, r1103, r1110, r1108, r1106};
+    wire [2:0] lce_x11y1 = {l_busy & (l_clr | (l_idx == 397)), l_busy & (l_clr | (l_idx == 396)), l_busy & (l_clr | (l_idx == 395))};
+    wire lck_x11y1;
+`ifdef SIMULATION
+    assign lck_x11y1 = lck & |lce_x11y1;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x11y1 = lck;
+`endif
     bob_clb u_clb_x11y1 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r1173), .sr(r1163), .cin(r1168),
         .i({r1167, r1162, r1158, r1172, r1166, r1161, r1157, r1171, r1165, r1160, r1156, r1170, r1164, r1159, r1155, r1169}),
         .cfg(cfg[50944 +: 48]),   // frames 395..397: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 397)), l_busy & (l_clr | (l_idx == 396)), l_busy & (l_clr | (l_idx == 395))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x11y1), .lce(lce_x11y1), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r1147, r1154, r1152, r1150, r1146, r1153, r1151, r1149}), .cout(r1148));
     assign clb_o[64 +: 8] = {r1147, r1154, r1152, r1150, r1146, r1153, r1151, r1149};
+    wire [2:0] lce_x1y2 = {l_busy & (l_clr | (l_idx == 12)), l_busy & (l_clr | (l_idx == 11)), l_busy & (l_clr | (l_idx == 10))};
+    wire lck_x1y2;
+`ifdef SIMULATION
+    assign lck_x1y2 = lck & |lce_x1y2;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x1y2 = lck;
+`endif
     bob_clb u_clb_x1y2 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r1224), .sr(r1214), .cin(r1219),
         .i({r1218, r1213, r1209, r1223, r1217, r1212, r1208, r1222, r1216, r1211, r1207, r1221, r1215, r1210, r1206, r1220}),
         .cfg(cfg[1664 +: 48]),   // frames 10..12: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 12)), l_busy & (l_clr | (l_idx == 11)), l_busy & (l_clr | (l_idx == 10))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x1y2), .lce(lce_x1y2), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r1198, r1205, r1203, r1201, r1197, r1204, r1202, r1200}), .cout(r1199));
     assign clb_o[72 +: 8] = {r1198, r1205, r1203, r1201, r1197, r1204, r1202, r1200};
+    wire [2:0] lce_x2y2 = {l_busy & (l_clr | (l_idx == 58)), l_busy & (l_clr | (l_idx == 57)), l_busy & (l_clr | (l_idx == 56))};
+    wire lck_x2y2;
+`ifdef SIMULATION
+    assign lck_x2y2 = lck & |lce_x2y2;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x2y2 = lck;
+`endif
     bob_clb u_clb_x2y2 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r1267), .sr(r1257), .cin(r1262),
         .i({r1261, r1256, r1252, r1266, r1260, r1255, r1251, r1265, r1259, r1254, r1250, r1264, r1258, r1253, r1249, r1263}),
         .cfg(cfg[7552 +: 48]),   // frames 56..58: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 58)), l_busy & (l_clr | (l_idx == 57)), l_busy & (l_clr | (l_idx == 56))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x2y2), .lce(lce_x2y2), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r1241, r1248, r1246, r1244, r1240, r1247, r1245, r1243}), .cout(r1242));
     assign clb_o[80 +: 8] = {r1241, r1248, r1246, r1244, r1240, r1247, r1245, r1243};
+    wire [2:0] lce_x4y2 = {l_busy & (l_clr | (l_idx == 113)), l_busy & (l_clr | (l_idx == 112)), l_busy & (l_clr | (l_idx == 111))};
+    wire lck_x4y2;
+`ifdef SIMULATION
+    assign lck_x4y2 = lck & |lce_x4y2;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x4y2 = lck;
+`endif
     bob_clb u_clb_x4y2 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r1310), .sr(r1300), .cin(r1305),
         .i({r1304, r1299, r1295, r1309, r1303, r1298, r1294, r1308, r1302, r1297, r1293, r1307, r1301, r1296, r1292, r1306}),
         .cfg(cfg[14592 +: 48]),   // frames 111..113: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 113)), l_busy & (l_clr | (l_idx == 112)), l_busy & (l_clr | (l_idx == 111))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x4y2), .lce(lce_x4y2), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r1284, r1291, r1289, r1287, r1283, r1290, r1288, r1286}), .cout(r1285));
     assign clb_o[88 +: 8] = {r1284, r1291, r1289, r1287, r1283, r1290, r1288, r1286};
+    wire [2:0] lce_x5y2 = {l_busy & (l_clr | (l_idx == 159)), l_busy & (l_clr | (l_idx == 158)), l_busy & (l_clr | (l_idx == 157))};
+    wire lck_x5y2;
+`ifdef SIMULATION
+    assign lck_x5y2 = lck & |lce_x5y2;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x5y2 = lck;
+`endif
     bob_clb u_clb_x5y2 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r1353), .sr(r1343), .cin(r1348),
         .i({r1347, r1342, r1338, r1352, r1346, r1341, r1337, r1351, r1345, r1340, r1336, r1350, r1344, r1339, r1335, r1349}),
         .cfg(cfg[20480 +: 48]),   // frames 157..159: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 159)), l_busy & (l_clr | (l_idx == 158)), l_busy & (l_clr | (l_idx == 157))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x5y2), .lce(lce_x5y2), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r1327, r1334, r1332, r1330, r1326, r1333, r1331, r1329}), .cout(r1328));
     assign clb_o[96 +: 8] = {r1327, r1334, r1332, r1330, r1326, r1333, r1331, r1329};
+    wire [2:0] lce_x6y2 = {l_busy & (l_clr | (l_idx == 205)), l_busy & (l_clr | (l_idx == 204)), l_busy & (l_clr | (l_idx == 203))};
+    wire lck_x6y2;
+`ifdef SIMULATION
+    assign lck_x6y2 = lck & |lce_x6y2;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x6y2 = lck;
+`endif
     bob_clb u_clb_x6y2 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r1396), .sr(r1386), .cin(r1391),
         .i({r1390, r1385, r1381, r1395, r1389, r1384, r1380, r1394, r1388, r1383, r1379, r1393, r1387, r1382, r1378, r1392}),
         .cfg(cfg[26368 +: 48]),   // frames 203..205: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 205)), l_busy & (l_clr | (l_idx == 204)), l_busy & (l_clr | (l_idx == 203))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x6y2), .lce(lce_x6y2), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r1370, r1377, r1375, r1373, r1369, r1376, r1374, r1372}), .cout(r1371));
     assign clb_o[104 +: 8] = {r1370, r1377, r1375, r1373, r1369, r1376, r1374, r1372};
+    wire [2:0] lce_x7y2 = {l_busy & (l_clr | (l_idx == 251)), l_busy & (l_clr | (l_idx == 250)), l_busy & (l_clr | (l_idx == 249))};
+    wire lck_x7y2;
+`ifdef SIMULATION
+    assign lck_x7y2 = lck & |lce_x7y2;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x7y2 = lck;
+`endif
     bob_clb u_clb_x7y2 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r1439), .sr(r1429), .cin(r1434),
         .i({r1433, r1428, r1424, r1438, r1432, r1427, r1423, r1437, r1431, r1426, r1422, r1436, r1430, r1425, r1421, r1435}),
         .cfg(cfg[32256 +: 48]),   // frames 249..251: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 251)), l_busy & (l_clr | (l_idx == 250)), l_busy & (l_clr | (l_idx == 249))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x7y2), .lce(lce_x7y2), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r1413, r1420, r1418, r1416, r1412, r1419, r1417, r1415}), .cout(r1414));
     assign clb_o[112 +: 8] = {r1413, r1420, r1418, r1416, r1412, r1419, r1417, r1415};
+    wire [2:0] lce_x9y2 = {l_busy & (l_clr | (l_idx == 310)), l_busy & (l_clr | (l_idx == 309)), l_busy & (l_clr | (l_idx == 308))};
+    wire lck_x9y2;
+`ifdef SIMULATION
+    assign lck_x9y2 = lck & |lce_x9y2;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x9y2 = lck;
+`endif
     bob_clb u_clb_x9y2 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r1482), .sr(r1472), .cin(r1477),
         .i({r1476, r1471, r1467, r1481, r1475, r1470, r1466, r1480, r1474, r1469, r1465, r1479, r1473, r1468, r1464, r1478}),
         .cfg(cfg[39808 +: 48]),   // frames 308..310: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 310)), l_busy & (l_clr | (l_idx == 309)), l_busy & (l_clr | (l_idx == 308))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x9y2), .lce(lce_x9y2), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r1456, r1463, r1461, r1459, r1455, r1462, r1460, r1458}), .cout(r1457));
     assign clb_o[120 +: 8] = {r1456, r1463, r1461, r1459, r1455, r1462, r1460, r1458};
+    wire [2:0] lce_x10y2 = {l_busy & (l_clr | (l_idx == 356)), l_busy & (l_clr | (l_idx == 355)), l_busy & (l_clr | (l_idx == 354))};
+    wire lck_x10y2;
+`ifdef SIMULATION
+    assign lck_x10y2 = lck & |lce_x10y2;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x10y2 = lck;
+`endif
     bob_clb u_clb_x10y2 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r1525), .sr(r1515), .cin(r1520),
         .i({r1519, r1514, r1510, r1524, r1518, r1513, r1509, r1523, r1517, r1512, r1508, r1522, r1516, r1511, r1507, r1521}),
         .cfg(cfg[45696 +: 48]),   // frames 354..356: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 356)), l_busy & (l_clr | (l_idx == 355)), l_busy & (l_clr | (l_idx == 354))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x10y2), .lce(lce_x10y2), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r1499, r1506, r1504, r1502, r1498, r1505, r1503, r1501}), .cout(r1500));
     assign clb_o[128 +: 8] = {r1499, r1506, r1504, r1502, r1498, r1505, r1503, r1501};
+    wire [2:0] lce_x11y2 = {l_busy & (l_clr | (l_idx == 402)), l_busy & (l_clr | (l_idx == 401)), l_busy & (l_clr | (l_idx == 400))};
+    wire lck_x11y2;
+`ifdef SIMULATION
+    assign lck_x11y2 = lck & |lce_x11y2;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x11y2 = lck;
+`endif
     bob_clb u_clb_x11y2 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r1568), .sr(r1558), .cin(r1563),
         .i({r1562, r1557, r1553, r1567, r1561, r1556, r1552, r1566, r1560, r1555, r1551, r1565, r1559, r1554, r1550, r1564}),
         .cfg(cfg[51584 +: 48]),   // frames 400..402: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 402)), l_busy & (l_clr | (l_idx == 401)), l_busy & (l_clr | (l_idx == 400))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x11y2), .lce(lce_x11y2), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r1542, r1549, r1547, r1545, r1541, r1548, r1546, r1544}), .cout(r1543));
     assign clb_o[136 +: 8] = {r1542, r1549, r1547, r1545, r1541, r1548, r1546, r1544};
+    wire [2:0] lce_x1y3 = {l_busy & (l_clr | (l_idx == 17)), l_busy & (l_clr | (l_idx == 16)), l_busy & (l_clr | (l_idx == 15))};
+    wire lck_x1y3;
+`ifdef SIMULATION
+    assign lck_x1y3 = lck & |lce_x1y3;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x1y3 = lck;
+`endif
     bob_clb u_clb_x1y3 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r1619), .sr(r1609), .cin(r1614),
         .i({r1613, r1608, r1604, r1618, r1612, r1607, r1603, r1617, r1611, r1606, r1602, r1616, r1610, r1605, r1601, r1615}),
         .cfg(cfg[2304 +: 48]),   // frames 15..17: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 17)), l_busy & (l_clr | (l_idx == 16)), l_busy & (l_clr | (l_idx == 15))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x1y3), .lce(lce_x1y3), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r1593, r1600, r1598, r1596, r1592, r1599, r1597, r1595}), .cout(r1594));
     assign clb_o[144 +: 8] = {r1593, r1600, r1598, r1596, r1592, r1599, r1597, r1595};
+    wire [2:0] lce_x2y3 = {l_busy & (l_clr | (l_idx == 63)), l_busy & (l_clr | (l_idx == 62)), l_busy & (l_clr | (l_idx == 61))};
+    wire lck_x2y3;
+`ifdef SIMULATION
+    assign lck_x2y3 = lck & |lce_x2y3;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x2y3 = lck;
+`endif
     bob_clb u_clb_x2y3 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r1662), .sr(r1652), .cin(r1657),
         .i({r1656, r1651, r1647, r1661, r1655, r1650, r1646, r1660, r1654, r1649, r1645, r1659, r1653, r1648, r1644, r1658}),
         .cfg(cfg[8192 +: 48]),   // frames 61..63: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 63)), l_busy & (l_clr | (l_idx == 62)), l_busy & (l_clr | (l_idx == 61))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x2y3), .lce(lce_x2y3), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r1636, r1643, r1641, r1639, r1635, r1642, r1640, r1638}), .cout(r1637));
     assign clb_o[152 +: 8] = {r1636, r1643, r1641, r1639, r1635, r1642, r1640, r1638};
+    wire [2:0] lce_x4y3 = {l_busy & (l_clr | (l_idx == 118)), l_busy & (l_clr | (l_idx == 117)), l_busy & (l_clr | (l_idx == 116))};
+    wire lck_x4y3;
+`ifdef SIMULATION
+    assign lck_x4y3 = lck & |lce_x4y3;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x4y3 = lck;
+`endif
     bob_clb u_clb_x4y3 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r1705), .sr(r1695), .cin(r1700),
         .i({r1699, r1694, r1690, r1704, r1698, r1693, r1689, r1703, r1697, r1692, r1688, r1702, r1696, r1691, r1687, r1701}),
         .cfg(cfg[15232 +: 48]),   // frames 116..118: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 118)), l_busy & (l_clr | (l_idx == 117)), l_busy & (l_clr | (l_idx == 116))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x4y3), .lce(lce_x4y3), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r1679, r1686, r1684, r1682, r1678, r1685, r1683, r1681}), .cout(r1680));
     assign clb_o[160 +: 8] = {r1679, r1686, r1684, r1682, r1678, r1685, r1683, r1681};
+    wire [2:0] lce_x5y3 = {l_busy & (l_clr | (l_idx == 164)), l_busy & (l_clr | (l_idx == 163)), l_busy & (l_clr | (l_idx == 162))};
+    wire lck_x5y3;
+`ifdef SIMULATION
+    assign lck_x5y3 = lck & |lce_x5y3;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x5y3 = lck;
+`endif
     bob_clb u_clb_x5y3 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r1748), .sr(r1738), .cin(r1743),
         .i({r1742, r1737, r1733, r1747, r1741, r1736, r1732, r1746, r1740, r1735, r1731, r1745, r1739, r1734, r1730, r1744}),
         .cfg(cfg[21120 +: 48]),   // frames 162..164: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 164)), l_busy & (l_clr | (l_idx == 163)), l_busy & (l_clr | (l_idx == 162))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x5y3), .lce(lce_x5y3), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r1722, r1729, r1727, r1725, r1721, r1728, r1726, r1724}), .cout(r1723));
     assign clb_o[168 +: 8] = {r1722, r1729, r1727, r1725, r1721, r1728, r1726, r1724};
+    wire [2:0] lce_x6y3 = {l_busy & (l_clr | (l_idx == 210)), l_busy & (l_clr | (l_idx == 209)), l_busy & (l_clr | (l_idx == 208))};
+    wire lck_x6y3;
+`ifdef SIMULATION
+    assign lck_x6y3 = lck & |lce_x6y3;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x6y3 = lck;
+`endif
     bob_clb u_clb_x6y3 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r1791), .sr(r1781), .cin(r1786),
         .i({r1785, r1780, r1776, r1790, r1784, r1779, r1775, r1789, r1783, r1778, r1774, r1788, r1782, r1777, r1773, r1787}),
         .cfg(cfg[27008 +: 48]),   // frames 208..210: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 210)), l_busy & (l_clr | (l_idx == 209)), l_busy & (l_clr | (l_idx == 208))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x6y3), .lce(lce_x6y3), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r1765, r1772, r1770, r1768, r1764, r1771, r1769, r1767}), .cout(r1766));
     assign clb_o[176 +: 8] = {r1765, r1772, r1770, r1768, r1764, r1771, r1769, r1767};
+    wire [2:0] lce_x7y3 = {l_busy & (l_clr | (l_idx == 256)), l_busy & (l_clr | (l_idx == 255)), l_busy & (l_clr | (l_idx == 254))};
+    wire lck_x7y3;
+`ifdef SIMULATION
+    assign lck_x7y3 = lck & |lce_x7y3;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x7y3 = lck;
+`endif
     bob_clb u_clb_x7y3 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r1834), .sr(r1824), .cin(r1829),
         .i({r1828, r1823, r1819, r1833, r1827, r1822, r1818, r1832, r1826, r1821, r1817, r1831, r1825, r1820, r1816, r1830}),
         .cfg(cfg[32896 +: 48]),   // frames 254..256: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 256)), l_busy & (l_clr | (l_idx == 255)), l_busy & (l_clr | (l_idx == 254))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x7y3), .lce(lce_x7y3), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r1808, r1815, r1813, r1811, r1807, r1814, r1812, r1810}), .cout(r1809));
     assign clb_o[184 +: 8] = {r1808, r1815, r1813, r1811, r1807, r1814, r1812, r1810};
+    wire [2:0] lce_x9y3 = {l_busy & (l_clr | (l_idx == 315)), l_busy & (l_clr | (l_idx == 314)), l_busy & (l_clr | (l_idx == 313))};
+    wire lck_x9y3;
+`ifdef SIMULATION
+    assign lck_x9y3 = lck & |lce_x9y3;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x9y3 = lck;
+`endif
     bob_clb u_clb_x9y3 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r1877), .sr(r1867), .cin(r1872),
         .i({r1871, r1866, r1862, r1876, r1870, r1865, r1861, r1875, r1869, r1864, r1860, r1874, r1868, r1863, r1859, r1873}),
         .cfg(cfg[40448 +: 48]),   // frames 313..315: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 315)), l_busy & (l_clr | (l_idx == 314)), l_busy & (l_clr | (l_idx == 313))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x9y3), .lce(lce_x9y3), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r1851, r1858, r1856, r1854, r1850, r1857, r1855, r1853}), .cout(r1852));
     assign clb_o[192 +: 8] = {r1851, r1858, r1856, r1854, r1850, r1857, r1855, r1853};
+    wire [2:0] lce_x10y3 = {l_busy & (l_clr | (l_idx == 361)), l_busy & (l_clr | (l_idx == 360)), l_busy & (l_clr | (l_idx == 359))};
+    wire lck_x10y3;
+`ifdef SIMULATION
+    assign lck_x10y3 = lck & |lce_x10y3;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x10y3 = lck;
+`endif
     bob_clb u_clb_x10y3 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r1920), .sr(r1910), .cin(r1915),
         .i({r1914, r1909, r1905, r1919, r1913, r1908, r1904, r1918, r1912, r1907, r1903, r1917, r1911, r1906, r1902, r1916}),
         .cfg(cfg[46336 +: 48]),   // frames 359..361: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 361)), l_busy & (l_clr | (l_idx == 360)), l_busy & (l_clr | (l_idx == 359))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x10y3), .lce(lce_x10y3), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r1894, r1901, r1899, r1897, r1893, r1900, r1898, r1896}), .cout(r1895));
     assign clb_o[200 +: 8] = {r1894, r1901, r1899, r1897, r1893, r1900, r1898, r1896};
+    wire [2:0] lce_x11y3 = {l_busy & (l_clr | (l_idx == 407)), l_busy & (l_clr | (l_idx == 406)), l_busy & (l_clr | (l_idx == 405))};
+    wire lck_x11y3;
+`ifdef SIMULATION
+    assign lck_x11y3 = lck & |lce_x11y3;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x11y3 = lck;
+`endif
     bob_clb u_clb_x11y3 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r1963), .sr(r1953), .cin(r1958),
         .i({r1957, r1952, r1948, r1962, r1956, r1951, r1947, r1961, r1955, r1950, r1946, r1960, r1954, r1949, r1945, r1959}),
         .cfg(cfg[52224 +: 48]),   // frames 405..407: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 407)), l_busy & (l_clr | (l_idx == 406)), l_busy & (l_clr | (l_idx == 405))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x11y3), .lce(lce_x11y3), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r1937, r1944, r1942, r1940, r1936, r1943, r1941, r1939}), .cout(r1938));
     assign clb_o[208 +: 8] = {r1937, r1944, r1942, r1940, r1936, r1943, r1941, r1939};
+    wire [2:0] lce_x1y4 = {l_busy & (l_clr | (l_idx == 22)), l_busy & (l_clr | (l_idx == 21)), l_busy & (l_clr | (l_idx == 20))};
+    wire lck_x1y4;
+`ifdef SIMULATION
+    assign lck_x1y4 = lck & |lce_x1y4;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x1y4 = lck;
+`endif
     bob_clb u_clb_x1y4 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r2014), .sr(r2004), .cin(r2009),
         .i({r2008, r2003, r1999, r2013, r2007, r2002, r1998, r2012, r2006, r2001, r1997, r2011, r2005, r2000, r1996, r2010}),
         .cfg(cfg[2944 +: 48]),   // frames 20..22: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 22)), l_busy & (l_clr | (l_idx == 21)), l_busy & (l_clr | (l_idx == 20))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x1y4), .lce(lce_x1y4), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r1988, r1995, r1993, r1991, r1987, r1994, r1992, r1990}), .cout(r1989));
     assign clb_o[216 +: 8] = {r1988, r1995, r1993, r1991, r1987, r1994, r1992, r1990};
+    wire [2:0] lce_x2y4 = {l_busy & (l_clr | (l_idx == 68)), l_busy & (l_clr | (l_idx == 67)), l_busy & (l_clr | (l_idx == 66))};
+    wire lck_x2y4;
+`ifdef SIMULATION
+    assign lck_x2y4 = lck & |lce_x2y4;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x2y4 = lck;
+`endif
     bob_clb u_clb_x2y4 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r2057), .sr(r2047), .cin(r2052),
         .i({r2051, r2046, r2042, r2056, r2050, r2045, r2041, r2055, r2049, r2044, r2040, r2054, r2048, r2043, r2039, r2053}),
         .cfg(cfg[8832 +: 48]),   // frames 66..68: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 68)), l_busy & (l_clr | (l_idx == 67)), l_busy & (l_clr | (l_idx == 66))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x2y4), .lce(lce_x2y4), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r2031, r2038, r2036, r2034, r2030, r2037, r2035, r2033}), .cout(r2032));
     assign clb_o[224 +: 8] = {r2031, r2038, r2036, r2034, r2030, r2037, r2035, r2033};
+    wire [2:0] lce_x4y4 = {l_busy & (l_clr | (l_idx == 123)), l_busy & (l_clr | (l_idx == 122)), l_busy & (l_clr | (l_idx == 121))};
+    wire lck_x4y4;
+`ifdef SIMULATION
+    assign lck_x4y4 = lck & |lce_x4y4;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x4y4 = lck;
+`endif
     bob_clb u_clb_x4y4 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r2100), .sr(r2090), .cin(r2095),
         .i({r2094, r2089, r2085, r2099, r2093, r2088, r2084, r2098, r2092, r2087, r2083, r2097, r2091, r2086, r2082, r2096}),
         .cfg(cfg[15872 +: 48]),   // frames 121..123: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 123)), l_busy & (l_clr | (l_idx == 122)), l_busy & (l_clr | (l_idx == 121))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x4y4), .lce(lce_x4y4), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r2074, r2081, r2079, r2077, r2073, r2080, r2078, r2076}), .cout(r2075));
     assign clb_o[232 +: 8] = {r2074, r2081, r2079, r2077, r2073, r2080, r2078, r2076};
+    wire [2:0] lce_x5y4 = {l_busy & (l_clr | (l_idx == 169)), l_busy & (l_clr | (l_idx == 168)), l_busy & (l_clr | (l_idx == 167))};
+    wire lck_x5y4;
+`ifdef SIMULATION
+    assign lck_x5y4 = lck & |lce_x5y4;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x5y4 = lck;
+`endif
     bob_clb u_clb_x5y4 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r2143), .sr(r2133), .cin(r2138),
         .i({r2137, r2132, r2128, r2142, r2136, r2131, r2127, r2141, r2135, r2130, r2126, r2140, r2134, r2129, r2125, r2139}),
         .cfg(cfg[21760 +: 48]),   // frames 167..169: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 169)), l_busy & (l_clr | (l_idx == 168)), l_busy & (l_clr | (l_idx == 167))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x5y4), .lce(lce_x5y4), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r2117, r2124, r2122, r2120, r2116, r2123, r2121, r2119}), .cout(r2118));
     assign clb_o[240 +: 8] = {r2117, r2124, r2122, r2120, r2116, r2123, r2121, r2119};
+    wire [2:0] lce_x6y4 = {l_busy & (l_clr | (l_idx == 215)), l_busy & (l_clr | (l_idx == 214)), l_busy & (l_clr | (l_idx == 213))};
+    wire lck_x6y4;
+`ifdef SIMULATION
+    assign lck_x6y4 = lck & |lce_x6y4;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x6y4 = lck;
+`endif
     bob_clb u_clb_x6y4 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r2186), .sr(r2176), .cin(r2181),
         .i({r2180, r2175, r2171, r2185, r2179, r2174, r2170, r2184, r2178, r2173, r2169, r2183, r2177, r2172, r2168, r2182}),
         .cfg(cfg[27648 +: 48]),   // frames 213..215: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 215)), l_busy & (l_clr | (l_idx == 214)), l_busy & (l_clr | (l_idx == 213))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x6y4), .lce(lce_x6y4), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r2160, r2167, r2165, r2163, r2159, r2166, r2164, r2162}), .cout(r2161));
     assign clb_o[248 +: 8] = {r2160, r2167, r2165, r2163, r2159, r2166, r2164, r2162};
+    wire [2:0] lce_x7y4 = {l_busy & (l_clr | (l_idx == 261)), l_busy & (l_clr | (l_idx == 260)), l_busy & (l_clr | (l_idx == 259))};
+    wire lck_x7y4;
+`ifdef SIMULATION
+    assign lck_x7y4 = lck & |lce_x7y4;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x7y4 = lck;
+`endif
     bob_clb u_clb_x7y4 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r2229), .sr(r2219), .cin(r2224),
         .i({r2223, r2218, r2214, r2228, r2222, r2217, r2213, r2227, r2221, r2216, r2212, r2226, r2220, r2215, r2211, r2225}),
         .cfg(cfg[33536 +: 48]),   // frames 259..261: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 261)), l_busy & (l_clr | (l_idx == 260)), l_busy & (l_clr | (l_idx == 259))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x7y4), .lce(lce_x7y4), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r2203, r2210, r2208, r2206, r2202, r2209, r2207, r2205}), .cout(r2204));
     assign clb_o[256 +: 8] = {r2203, r2210, r2208, r2206, r2202, r2209, r2207, r2205};
+    wire [2:0] lce_x9y4 = {l_busy & (l_clr | (l_idx == 320)), l_busy & (l_clr | (l_idx == 319)), l_busy & (l_clr | (l_idx == 318))};
+    wire lck_x9y4;
+`ifdef SIMULATION
+    assign lck_x9y4 = lck & |lce_x9y4;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x9y4 = lck;
+`endif
     bob_clb u_clb_x9y4 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r2272), .sr(r2262), .cin(r2267),
         .i({r2266, r2261, r2257, r2271, r2265, r2260, r2256, r2270, r2264, r2259, r2255, r2269, r2263, r2258, r2254, r2268}),
         .cfg(cfg[41088 +: 48]),   // frames 318..320: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 320)), l_busy & (l_clr | (l_idx == 319)), l_busy & (l_clr | (l_idx == 318))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x9y4), .lce(lce_x9y4), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r2246, r2253, r2251, r2249, r2245, r2252, r2250, r2248}), .cout(r2247));
     assign clb_o[264 +: 8] = {r2246, r2253, r2251, r2249, r2245, r2252, r2250, r2248};
+    wire [2:0] lce_x10y4 = {l_busy & (l_clr | (l_idx == 366)), l_busy & (l_clr | (l_idx == 365)), l_busy & (l_clr | (l_idx == 364))};
+    wire lck_x10y4;
+`ifdef SIMULATION
+    assign lck_x10y4 = lck & |lce_x10y4;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x10y4 = lck;
+`endif
     bob_clb u_clb_x10y4 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r2315), .sr(r2305), .cin(r2310),
         .i({r2309, r2304, r2300, r2314, r2308, r2303, r2299, r2313, r2307, r2302, r2298, r2312, r2306, r2301, r2297, r2311}),
         .cfg(cfg[46976 +: 48]),   // frames 364..366: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 366)), l_busy & (l_clr | (l_idx == 365)), l_busy & (l_clr | (l_idx == 364))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x10y4), .lce(lce_x10y4), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r2289, r2296, r2294, r2292, r2288, r2295, r2293, r2291}), .cout(r2290));
     assign clb_o[272 +: 8] = {r2289, r2296, r2294, r2292, r2288, r2295, r2293, r2291};
+    wire [2:0] lce_x11y4 = {l_busy & (l_clr | (l_idx == 412)), l_busy & (l_clr | (l_idx == 411)), l_busy & (l_clr | (l_idx == 410))};
+    wire lck_x11y4;
+`ifdef SIMULATION
+    assign lck_x11y4 = lck & |lce_x11y4;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x11y4 = lck;
+`endif
     bob_clb u_clb_x11y4 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r2358), .sr(r2348), .cin(r2353),
         .i({r2352, r2347, r2343, r2357, r2351, r2346, r2342, r2356, r2350, r2345, r2341, r2355, r2349, r2344, r2340, r2354}),
         .cfg(cfg[52864 +: 48]),   // frames 410..412: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 412)), l_busy & (l_clr | (l_idx == 411)), l_busy & (l_clr | (l_idx == 410))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x11y4), .lce(lce_x11y4), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r2332, r2339, r2337, r2335, r2331, r2338, r2336, r2334}), .cout(r2333));
     assign clb_o[280 +: 8] = {r2332, r2339, r2337, r2335, r2331, r2338, r2336, r2334};
+    wire [2:0] lce_x1y5 = {l_busy & (l_clr | (l_idx == 27)), l_busy & (l_clr | (l_idx == 26)), l_busy & (l_clr | (l_idx == 25))};
+    wire lck_x1y5;
+`ifdef SIMULATION
+    assign lck_x1y5 = lck & |lce_x1y5;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x1y5 = lck;
+`endif
     bob_clb u_clb_x1y5 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r2409), .sr(r2399), .cin(r2404),
         .i({r2403, r2398, r2394, r2408, r2402, r2397, r2393, r2407, r2401, r2396, r2392, r2406, r2400, r2395, r2391, r2405}),
         .cfg(cfg[3584 +: 48]),   // frames 25..27: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 27)), l_busy & (l_clr | (l_idx == 26)), l_busy & (l_clr | (l_idx == 25))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x1y5), .lce(lce_x1y5), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r2383, r2390, r2388, r2386, r2382, r2389, r2387, r2385}), .cout(r2384));
     assign clb_o[288 +: 8] = {r2383, r2390, r2388, r2386, r2382, r2389, r2387, r2385};
+    wire [2:0] lce_x2y5 = {l_busy & (l_clr | (l_idx == 73)), l_busy & (l_clr | (l_idx == 72)), l_busy & (l_clr | (l_idx == 71))};
+    wire lck_x2y5;
+`ifdef SIMULATION
+    assign lck_x2y5 = lck & |lce_x2y5;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x2y5 = lck;
+`endif
     bob_clb u_clb_x2y5 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r2452), .sr(r2442), .cin(r2447),
         .i({r2446, r2441, r2437, r2451, r2445, r2440, r2436, r2450, r2444, r2439, r2435, r2449, r2443, r2438, r2434, r2448}),
         .cfg(cfg[9472 +: 48]),   // frames 71..73: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 73)), l_busy & (l_clr | (l_idx == 72)), l_busy & (l_clr | (l_idx == 71))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x2y5), .lce(lce_x2y5), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r2426, r2433, r2431, r2429, r2425, r2432, r2430, r2428}), .cout(r2427));
     assign clb_o[296 +: 8] = {r2426, r2433, r2431, r2429, r2425, r2432, r2430, r2428};
+    wire [2:0] lce_x4y5 = {l_busy & (l_clr | (l_idx == 128)), l_busy & (l_clr | (l_idx == 127)), l_busy & (l_clr | (l_idx == 126))};
+    wire lck_x4y5;
+`ifdef SIMULATION
+    assign lck_x4y5 = lck & |lce_x4y5;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x4y5 = lck;
+`endif
     bob_clb u_clb_x4y5 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r2697), .sr(r2687), .cin(r2692),
         .i({r2691, r2686, r2682, r2696, r2690, r2685, r2681, r2695, r2689, r2684, r2680, r2694, r2688, r2683, r2679, r2693}),
         .cfg(cfg[16512 +: 48]),   // frames 126..128: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 128)), l_busy & (l_clr | (l_idx == 127)), l_busy & (l_clr | (l_idx == 126))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x4y5), .lce(lce_x4y5), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r2671, r2678, r2676, r2674, r2670, r2677, r2675, r2673}), .cout(r2672));
     assign clb_o[304 +: 8] = {r2671, r2678, r2676, r2674, r2670, r2677, r2675, r2673};
+    wire [2:0] lce_x5y5 = {l_busy & (l_clr | (l_idx == 174)), l_busy & (l_clr | (l_idx == 173)), l_busy & (l_clr | (l_idx == 172))};
+    wire lck_x5y5;
+`ifdef SIMULATION
+    assign lck_x5y5 = lck & |lce_x5y5;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x5y5 = lck;
+`endif
     bob_clb u_clb_x5y5 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r2740), .sr(r2730), .cin(r2735),
         .i({r2734, r2729, r2725, r2739, r2733, r2728, r2724, r2738, r2732, r2727, r2723, r2737, r2731, r2726, r2722, r2736}),
         .cfg(cfg[22400 +: 48]),   // frames 172..174: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 174)), l_busy & (l_clr | (l_idx == 173)), l_busy & (l_clr | (l_idx == 172))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x5y5), .lce(lce_x5y5), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r2714, r2721, r2719, r2717, r2713, r2720, r2718, r2716}), .cout(r2715));
     assign clb_o[312 +: 8] = {r2714, r2721, r2719, r2717, r2713, r2720, r2718, r2716};
+    wire [2:0] lce_x6y5 = {l_busy & (l_clr | (l_idx == 220)), l_busy & (l_clr | (l_idx == 219)), l_busy & (l_clr | (l_idx == 218))};
+    wire lck_x6y5;
+`ifdef SIMULATION
+    assign lck_x6y5 = lck & |lce_x6y5;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x6y5 = lck;
+`endif
     bob_clb u_clb_x6y5 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r2783), .sr(r2773), .cin(r2778),
         .i({r2777, r2772, r2768, r2782, r2776, r2771, r2767, r2781, r2775, r2770, r2766, r2780, r2774, r2769, r2765, r2779}),
         .cfg(cfg[28288 +: 48]),   // frames 218..220: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 220)), l_busy & (l_clr | (l_idx == 219)), l_busy & (l_clr | (l_idx == 218))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x6y5), .lce(lce_x6y5), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r2757, r2764, r2762, r2760, r2756, r2763, r2761, r2759}), .cout(r2758));
     assign clb_o[320 +: 8] = {r2757, r2764, r2762, r2760, r2756, r2763, r2761, r2759};
+    wire [2:0] lce_x7y5 = {l_busy & (l_clr | (l_idx == 266)), l_busy & (l_clr | (l_idx == 265)), l_busy & (l_clr | (l_idx == 264))};
+    wire lck_x7y5;
+`ifdef SIMULATION
+    assign lck_x7y5 = lck & |lce_x7y5;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x7y5 = lck;
+`endif
     bob_clb u_clb_x7y5 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r2826), .sr(r2816), .cin(r2821),
         .i({r2820, r2815, r2811, r2825, r2819, r2814, r2810, r2824, r2818, r2813, r2809, r2823, r2817, r2812, r2808, r2822}),
         .cfg(cfg[34176 +: 48]),   // frames 264..266: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 266)), l_busy & (l_clr | (l_idx == 265)), l_busy & (l_clr | (l_idx == 264))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x7y5), .lce(lce_x7y5), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r2800, r2807, r2805, r2803, r2799, r2806, r2804, r2802}), .cout(r2801));
     assign clb_o[328 +: 8] = {r2800, r2807, r2805, r2803, r2799, r2806, r2804, r2802};
+    wire [2:0] lce_x9y5 = {l_busy & (l_clr | (l_idx == 325)), l_busy & (l_clr | (l_idx == 324)), l_busy & (l_clr | (l_idx == 323))};
+    wire lck_x9y5;
+`ifdef SIMULATION
+    assign lck_x9y5 = lck & |lce_x9y5;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x9y5 = lck;
+`endif
     bob_clb u_clb_x9y5 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r3407), .sr(r3397), .cin(r3402),
         .i({r3401, r3396, r3392, r3406, r3400, r3395, r3391, r3405, r3399, r3394, r3390, r3404, r3398, r3393, r3389, r3403}),
         .cfg(cfg[41728 +: 48]),   // frames 323..325: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 325)), l_busy & (l_clr | (l_idx == 324)), l_busy & (l_clr | (l_idx == 323))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x9y5), .lce(lce_x9y5), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r3381, r3388, r3386, r3384, r3380, r3387, r3385, r3383}), .cout(r3382));
     assign clb_o[336 +: 8] = {r3381, r3388, r3386, r3384, r3380, r3387, r3385, r3383};
+    wire [2:0] lce_x10y5 = {l_busy & (l_clr | (l_idx == 371)), l_busy & (l_clr | (l_idx == 370)), l_busy & (l_clr | (l_idx == 369))};
+    wire lck_x10y5;
+`ifdef SIMULATION
+    assign lck_x10y5 = lck & |lce_x10y5;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x10y5 = lck;
+`endif
     bob_clb u_clb_x10y5 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r3450), .sr(r3440), .cin(r3445),
         .i({r3444, r3439, r3435, r3449, r3443, r3438, r3434, r3448, r3442, r3437, r3433, r3447, r3441, r3436, r3432, r3446}),
         .cfg(cfg[47616 +: 48]),   // frames 369..371: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 371)), l_busy & (l_clr | (l_idx == 370)), l_busy & (l_clr | (l_idx == 369))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x10y5), .lce(lce_x10y5), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r3424, r3431, r3429, r3427, r3423, r3430, r3428, r3426}), .cout(r3425));
     assign clb_o[344 +: 8] = {r3424, r3431, r3429, r3427, r3423, r3430, r3428, r3426};
+    wire [2:0] lce_x11y5 = {l_busy & (l_clr | (l_idx == 417)), l_busy & (l_clr | (l_idx == 416)), l_busy & (l_clr | (l_idx == 415))};
+    wire lck_x11y5;
+`ifdef SIMULATION
+    assign lck_x11y5 = lck & |lce_x11y5;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x11y5 = lck;
+`endif
     bob_clb u_clb_x11y5 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r3493), .sr(r3483), .cin(r3488),
         .i({r3487, r3482, r3478, r3492, r3486, r3481, r3477, r3491, r3485, r3480, r3476, r3490, r3484, r3479, r3475, r3489}),
         .cfg(cfg[53504 +: 48]),   // frames 415..417: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 417)), l_busy & (l_clr | (l_idx == 416)), l_busy & (l_clr | (l_idx == 415))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x11y5), .lce(lce_x11y5), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r3467, r3474, r3472, r3470, r3466, r3473, r3471, r3469}), .cout(r3468));
     assign clb_o[352 +: 8] = {r3467, r3474, r3472, r3470, r3466, r3473, r3471, r3469};
+    wire [2:0] lce_x1y6 = {l_busy & (l_clr | (l_idx == 32)), l_busy & (l_clr | (l_idx == 31)), l_busy & (l_clr | (l_idx == 30))};
+    wire lck_x1y6;
+`ifdef SIMULATION
+    assign lck_x1y6 = lck & |lce_x1y6;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x1y6 = lck;
+`endif
     bob_clb u_clb_x1y6 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r3544), .sr(r3534), .cin(r3539),
         .i({r3538, r3533, r3529, r3543, r3537, r3532, r3528, r3542, r3536, r3531, r3527, r3541, r3535, r3530, r3526, r3540}),
         .cfg(cfg[4224 +: 48]),   // frames 30..32: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 32)), l_busy & (l_clr | (l_idx == 31)), l_busy & (l_clr | (l_idx == 30))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x1y6), .lce(lce_x1y6), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r3518, r3525, r3523, r3521, r3517, r3524, r3522, r3520}), .cout(r3519));
     assign clb_o[360 +: 8] = {r3518, r3525, r3523, r3521, r3517, r3524, r3522, r3520};
+    wire [2:0] lce_x2y6 = {l_busy & (l_clr | (l_idx == 78)), l_busy & (l_clr | (l_idx == 77)), l_busy & (l_clr | (l_idx == 76))};
+    wire lck_x2y6;
+`ifdef SIMULATION
+    assign lck_x2y6 = lck & |lce_x2y6;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x2y6 = lck;
+`endif
     bob_clb u_clb_x2y6 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r3587), .sr(r3577), .cin(r3582),
         .i({r3581, r3576, r3572, r3586, r3580, r3575, r3571, r3585, r3579, r3574, r3570, r3584, r3578, r3573, r3569, r3583}),
         .cfg(cfg[10112 +: 48]),   // frames 76..78: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 78)), l_busy & (l_clr | (l_idx == 77)), l_busy & (l_clr | (l_idx == 76))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x2y6), .lce(lce_x2y6), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r3561, r3568, r3566, r3564, r3560, r3567, r3565, r3563}), .cout(r3562));
     assign clb_o[368 +: 8] = {r3561, r3568, r3566, r3564, r3560, r3567, r3565, r3563};
+    wire [2:0] lce_x4y6 = {l_busy & (l_clr | (l_idx == 133)), l_busy & (l_clr | (l_idx == 132)), l_busy & (l_clr | (l_idx == 131))};
+    wire lck_x4y6;
+`ifdef SIMULATION
+    assign lck_x4y6 = lck & |lce_x4y6;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x4y6 = lck;
+`endif
     bob_clb u_clb_x4y6 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r3630), .sr(r3620), .cin(r3625),
         .i({r3624, r3619, r3615, r3629, r3623, r3618, r3614, r3628, r3622, r3617, r3613, r3627, r3621, r3616, r3612, r3626}),
         .cfg(cfg[17152 +: 48]),   // frames 131..133: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 133)), l_busy & (l_clr | (l_idx == 132)), l_busy & (l_clr | (l_idx == 131))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x4y6), .lce(lce_x4y6), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r3604, r3611, r3609, r3607, r3603, r3610, r3608, r3606}), .cout(r3605));
     assign clb_o[376 +: 8] = {r3604, r3611, r3609, r3607, r3603, r3610, r3608, r3606};
+    wire [2:0] lce_x5y6 = {l_busy & (l_clr | (l_idx == 179)), l_busy & (l_clr | (l_idx == 178)), l_busy & (l_clr | (l_idx == 177))};
+    wire lck_x5y6;
+`ifdef SIMULATION
+    assign lck_x5y6 = lck & |lce_x5y6;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x5y6 = lck;
+`endif
     bob_clb u_clb_x5y6 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r3673), .sr(r3663), .cin(r3668),
         .i({r3667, r3662, r3658, r3672, r3666, r3661, r3657, r3671, r3665, r3660, r3656, r3670, r3664, r3659, r3655, r3669}),
         .cfg(cfg[23040 +: 48]),   // frames 177..179: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 179)), l_busy & (l_clr | (l_idx == 178)), l_busy & (l_clr | (l_idx == 177))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x5y6), .lce(lce_x5y6), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r3647, r3654, r3652, r3650, r3646, r3653, r3651, r3649}), .cout(r3648));
     assign clb_o[384 +: 8] = {r3647, r3654, r3652, r3650, r3646, r3653, r3651, r3649};
+    wire [2:0] lce_x6y6 = {l_busy & (l_clr | (l_idx == 225)), l_busy & (l_clr | (l_idx == 224)), l_busy & (l_clr | (l_idx == 223))};
+    wire lck_x6y6;
+`ifdef SIMULATION
+    assign lck_x6y6 = lck & |lce_x6y6;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x6y6 = lck;
+`endif
     bob_clb u_clb_x6y6 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r3716), .sr(r3706), .cin(r3711),
         .i({r3710, r3705, r3701, r3715, r3709, r3704, r3700, r3714, r3708, r3703, r3699, r3713, r3707, r3702, r3698, r3712}),
         .cfg(cfg[28928 +: 48]),   // frames 223..225: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 225)), l_busy & (l_clr | (l_idx == 224)), l_busy & (l_clr | (l_idx == 223))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x6y6), .lce(lce_x6y6), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r3690, r3697, r3695, r3693, r3689, r3696, r3694, r3692}), .cout(r3691));
     assign clb_o[392 +: 8] = {r3690, r3697, r3695, r3693, r3689, r3696, r3694, r3692};
+    wire [2:0] lce_x7y6 = {l_busy & (l_clr | (l_idx == 271)), l_busy & (l_clr | (l_idx == 270)), l_busy & (l_clr | (l_idx == 269))};
+    wire lck_x7y6;
+`ifdef SIMULATION
+    assign lck_x7y6 = lck & |lce_x7y6;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x7y6 = lck;
+`endif
     bob_clb u_clb_x7y6 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r3759), .sr(r3749), .cin(r3754),
         .i({r3753, r3748, r3744, r3758, r3752, r3747, r3743, r3757, r3751, r3746, r3742, r3756, r3750, r3745, r3741, r3755}),
         .cfg(cfg[34816 +: 48]),   // frames 269..271: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 271)), l_busy & (l_clr | (l_idx == 270)), l_busy & (l_clr | (l_idx == 269))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x7y6), .lce(lce_x7y6), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r3733, r3740, r3738, r3736, r3732, r3739, r3737, r3735}), .cout(r3734));
     assign clb_o[400 +: 8] = {r3733, r3740, r3738, r3736, r3732, r3739, r3737, r3735};
+    wire [2:0] lce_x9y6 = {l_busy & (l_clr | (l_idx == 330)), l_busy & (l_clr | (l_idx == 329)), l_busy & (l_clr | (l_idx == 328))};
+    wire lck_x9y6;
+`ifdef SIMULATION
+    assign lck_x9y6 = lck & |lce_x9y6;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x9y6 = lck;
+`endif
     bob_clb u_clb_x9y6 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r3802), .sr(r3792), .cin(r3797),
         .i({r3796, r3791, r3787, r3801, r3795, r3790, r3786, r3800, r3794, r3789, r3785, r3799, r3793, r3788, r3784, r3798}),
         .cfg(cfg[42368 +: 48]),   // frames 328..330: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 330)), l_busy & (l_clr | (l_idx == 329)), l_busy & (l_clr | (l_idx == 328))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x9y6), .lce(lce_x9y6), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r3776, r3783, r3781, r3779, r3775, r3782, r3780, r3778}), .cout(r3777));
     assign clb_o[408 +: 8] = {r3776, r3783, r3781, r3779, r3775, r3782, r3780, r3778};
+    wire [2:0] lce_x10y6 = {l_busy & (l_clr | (l_idx == 376)), l_busy & (l_clr | (l_idx == 375)), l_busy & (l_clr | (l_idx == 374))};
+    wire lck_x10y6;
+`ifdef SIMULATION
+    assign lck_x10y6 = lck & |lce_x10y6;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x10y6 = lck;
+`endif
     bob_clb u_clb_x10y6 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r3845), .sr(r3835), .cin(r3840),
         .i({r3839, r3834, r3830, r3844, r3838, r3833, r3829, r3843, r3837, r3832, r3828, r3842, r3836, r3831, r3827, r3841}),
         .cfg(cfg[48256 +: 48]),   // frames 374..376: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 376)), l_busy & (l_clr | (l_idx == 375)), l_busy & (l_clr | (l_idx == 374))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x10y6), .lce(lce_x10y6), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r3819, r3826, r3824, r3822, r3818, r3825, r3823, r3821}), .cout(r3820));
     assign clb_o[416 +: 8] = {r3819, r3826, r3824, r3822, r3818, r3825, r3823, r3821};
+    wire [2:0] lce_x11y6 = {l_busy & (l_clr | (l_idx == 422)), l_busy & (l_clr | (l_idx == 421)), l_busy & (l_clr | (l_idx == 420))};
+    wire lck_x11y6;
+`ifdef SIMULATION
+    assign lck_x11y6 = lck & |lce_x11y6;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x11y6 = lck;
+`endif
     bob_clb u_clb_x11y6 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r3888), .sr(r3878), .cin(r3883),
         .i({r3882, r3877, r3873, r3887, r3881, r3876, r3872, r3886, r3880, r3875, r3871, r3885, r3879, r3874, r3870, r3884}),
         .cfg(cfg[54144 +: 48]),   // frames 420..422: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 422)), l_busy & (l_clr | (l_idx == 421)), l_busy & (l_clr | (l_idx == 420))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x11y6), .lce(lce_x11y6), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r3862, r3869, r3867, r3865, r3861, r3868, r3866, r3864}), .cout(r3863));
     assign clb_o[424 +: 8] = {r3862, r3869, r3867, r3865, r3861, r3868, r3866, r3864};
+    wire [2:0] lce_x1y7 = {l_busy & (l_clr | (l_idx == 37)), l_busy & (l_clr | (l_idx == 36)), l_busy & (l_clr | (l_idx == 35))};
+    wire lck_x1y7;
+`ifdef SIMULATION
+    assign lck_x1y7 = lck & |lce_x1y7;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x1y7 = lck;
+`endif
     bob_clb u_clb_x1y7 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r3939), .sr(r3929), .cin(r3934),
         .i({r3933, r3928, r3924, r3938, r3932, r3927, r3923, r3937, r3931, r3926, r3922, r3936, r3930, r3925, r3921, r3935}),
         .cfg(cfg[4864 +: 48]),   // frames 35..37: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 37)), l_busy & (l_clr | (l_idx == 36)), l_busy & (l_clr | (l_idx == 35))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x1y7), .lce(lce_x1y7), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r3913, r3920, r3918, r3916, r3912, r3919, r3917, r3915}), .cout(r3914));
     assign clb_o[432 +: 8] = {r3913, r3920, r3918, r3916, r3912, r3919, r3917, r3915};
+    wire [2:0] lce_x2y7 = {l_busy & (l_clr | (l_idx == 83)), l_busy & (l_clr | (l_idx == 82)), l_busy & (l_clr | (l_idx == 81))};
+    wire lck_x2y7;
+`ifdef SIMULATION
+    assign lck_x2y7 = lck & |lce_x2y7;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x2y7 = lck;
+`endif
     bob_clb u_clb_x2y7 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r3982), .sr(r3972), .cin(r3977),
         .i({r3976, r3971, r3967, r3981, r3975, r3970, r3966, r3980, r3974, r3969, r3965, r3979, r3973, r3968, r3964, r3978}),
         .cfg(cfg[10752 +: 48]),   // frames 81..83: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 83)), l_busy & (l_clr | (l_idx == 82)), l_busy & (l_clr | (l_idx == 81))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x2y7), .lce(lce_x2y7), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r3956, r3963, r3961, r3959, r3955, r3962, r3960, r3958}), .cout(r3957));
     assign clb_o[440 +: 8] = {r3956, r3963, r3961, r3959, r3955, r3962, r3960, r3958};
+    wire [2:0] lce_x4y7 = {l_busy & (l_clr | (l_idx == 138)), l_busy & (l_clr | (l_idx == 137)), l_busy & (l_clr | (l_idx == 136))};
+    wire lck_x4y7;
+`ifdef SIMULATION
+    assign lck_x4y7 = lck & |lce_x4y7;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x4y7 = lck;
+`endif
     bob_clb u_clb_x4y7 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r4025), .sr(r4015), .cin(r4020),
         .i({r4019, r4014, r4010, r4024, r4018, r4013, r4009, r4023, r4017, r4012, r4008, r4022, r4016, r4011, r4007, r4021}),
         .cfg(cfg[17792 +: 48]),   // frames 136..138: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 138)), l_busy & (l_clr | (l_idx == 137)), l_busy & (l_clr | (l_idx == 136))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x4y7), .lce(lce_x4y7), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r3999, r4006, r4004, r4002, r3998, r4005, r4003, r4001}), .cout(r4000));
     assign clb_o[448 +: 8] = {r3999, r4006, r4004, r4002, r3998, r4005, r4003, r4001};
+    wire [2:0] lce_x5y7 = {l_busy & (l_clr | (l_idx == 184)), l_busy & (l_clr | (l_idx == 183)), l_busy & (l_clr | (l_idx == 182))};
+    wire lck_x5y7;
+`ifdef SIMULATION
+    assign lck_x5y7 = lck & |lce_x5y7;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x5y7 = lck;
+`endif
     bob_clb u_clb_x5y7 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r4068), .sr(r4058), .cin(r4063),
         .i({r4062, r4057, r4053, r4067, r4061, r4056, r4052, r4066, r4060, r4055, r4051, r4065, r4059, r4054, r4050, r4064}),
         .cfg(cfg[23680 +: 48]),   // frames 182..184: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 184)), l_busy & (l_clr | (l_idx == 183)), l_busy & (l_clr | (l_idx == 182))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x5y7), .lce(lce_x5y7), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r4042, r4049, r4047, r4045, r4041, r4048, r4046, r4044}), .cout(r4043));
     assign clb_o[456 +: 8] = {r4042, r4049, r4047, r4045, r4041, r4048, r4046, r4044};
+    wire [2:0] lce_x6y7 = {l_busy & (l_clr | (l_idx == 230)), l_busy & (l_clr | (l_idx == 229)), l_busy & (l_clr | (l_idx == 228))};
+    wire lck_x6y7;
+`ifdef SIMULATION
+    assign lck_x6y7 = lck & |lce_x6y7;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x6y7 = lck;
+`endif
     bob_clb u_clb_x6y7 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r4111), .sr(r4101), .cin(r4106),
         .i({r4105, r4100, r4096, r4110, r4104, r4099, r4095, r4109, r4103, r4098, r4094, r4108, r4102, r4097, r4093, r4107}),
         .cfg(cfg[29568 +: 48]),   // frames 228..230: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 230)), l_busy & (l_clr | (l_idx == 229)), l_busy & (l_clr | (l_idx == 228))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x6y7), .lce(lce_x6y7), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r4085, r4092, r4090, r4088, r4084, r4091, r4089, r4087}), .cout(r4086));
     assign clb_o[464 +: 8] = {r4085, r4092, r4090, r4088, r4084, r4091, r4089, r4087};
+    wire [2:0] lce_x7y7 = {l_busy & (l_clr | (l_idx == 276)), l_busy & (l_clr | (l_idx == 275)), l_busy & (l_clr | (l_idx == 274))};
+    wire lck_x7y7;
+`ifdef SIMULATION
+    assign lck_x7y7 = lck & |lce_x7y7;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x7y7 = lck;
+`endif
     bob_clb u_clb_x7y7 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r4154), .sr(r4144), .cin(r4149),
         .i({r4148, r4143, r4139, r4153, r4147, r4142, r4138, r4152, r4146, r4141, r4137, r4151, r4145, r4140, r4136, r4150}),
         .cfg(cfg[35456 +: 48]),   // frames 274..276: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 276)), l_busy & (l_clr | (l_idx == 275)), l_busy & (l_clr | (l_idx == 274))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x7y7), .lce(lce_x7y7), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r4128, r4135, r4133, r4131, r4127, r4134, r4132, r4130}), .cout(r4129));
     assign clb_o[472 +: 8] = {r4128, r4135, r4133, r4131, r4127, r4134, r4132, r4130};
+    wire [2:0] lce_x9y7 = {l_busy & (l_clr | (l_idx == 335)), l_busy & (l_clr | (l_idx == 334)), l_busy & (l_clr | (l_idx == 333))};
+    wire lck_x9y7;
+`ifdef SIMULATION
+    assign lck_x9y7 = lck & |lce_x9y7;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x9y7 = lck;
+`endif
     bob_clb u_clb_x9y7 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r4197), .sr(r4187), .cin(r4192),
         .i({r4191, r4186, r4182, r4196, r4190, r4185, r4181, r4195, r4189, r4184, r4180, r4194, r4188, r4183, r4179, r4193}),
         .cfg(cfg[43008 +: 48]),   // frames 333..335: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 335)), l_busy & (l_clr | (l_idx == 334)), l_busy & (l_clr | (l_idx == 333))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x9y7), .lce(lce_x9y7), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r4171, r4178, r4176, r4174, r4170, r4177, r4175, r4173}), .cout(r4172));
     assign clb_o[480 +: 8] = {r4171, r4178, r4176, r4174, r4170, r4177, r4175, r4173};
+    wire [2:0] lce_x10y7 = {l_busy & (l_clr | (l_idx == 381)), l_busy & (l_clr | (l_idx == 380)), l_busy & (l_clr | (l_idx == 379))};
+    wire lck_x10y7;
+`ifdef SIMULATION
+    assign lck_x10y7 = lck & |lce_x10y7;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x10y7 = lck;
+`endif
     bob_clb u_clb_x10y7 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r4240), .sr(r4230), .cin(r4235),
         .i({r4234, r4229, r4225, r4239, r4233, r4228, r4224, r4238, r4232, r4227, r4223, r4237, r4231, r4226, r4222, r4236}),
         .cfg(cfg[48896 +: 48]),   // frames 379..381: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 381)), l_busy & (l_clr | (l_idx == 380)), l_busy & (l_clr | (l_idx == 379))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x10y7), .lce(lce_x10y7), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r4214, r4221, r4219, r4217, r4213, r4220, r4218, r4216}), .cout(r4215));
     assign clb_o[488 +: 8] = {r4214, r4221, r4219, r4217, r4213, r4220, r4218, r4216};
+    wire [2:0] lce_x11y7 = {l_busy & (l_clr | (l_idx == 427)), l_busy & (l_clr | (l_idx == 426)), l_busy & (l_clr | (l_idx == 425))};
+    wire lck_x11y7;
+`ifdef SIMULATION
+    assign lck_x11y7 = lck & |lce_x11y7;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x11y7 = lck;
+`endif
     bob_clb u_clb_x11y7 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r4283), .sr(r4273), .cin(r4278),
         .i({r4277, r4272, r4268, r4282, r4276, r4271, r4267, r4281, r4275, r4270, r4266, r4280, r4274, r4269, r4265, r4279}),
         .cfg(cfg[54784 +: 48]),   // frames 425..427: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 427)), l_busy & (l_clr | (l_idx == 426)), l_busy & (l_clr | (l_idx == 425))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x11y7), .lce(lce_x11y7), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r4257, r4264, r4262, r4260, r4256, r4263, r4261, r4259}), .cout(r4258));
     assign clb_o[496 +: 8] = {r4257, r4264, r4262, r4260, r4256, r4263, r4261, r4259};
+    wire [2:0] lce_x1y8 = {l_busy & (l_clr | (l_idx == 42)), l_busy & (l_clr | (l_idx == 41)), l_busy & (l_clr | (l_idx == 40))};
+    wire lck_x1y8;
+`ifdef SIMULATION
+    assign lck_x1y8 = lck & |lce_x1y8;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x1y8 = lck;
+`endif
     bob_clb u_clb_x1y8 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r4334), .sr(r4324), .cin(r4329),
         .i({r4328, r4323, r4319, r4333, r4327, r4322, r4318, r4332, r4326, r4321, r4317, r4331, r4325, r4320, r4316, r4330}),
         .cfg(cfg[5504 +: 48]),   // frames 40..42: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 42)), l_busy & (l_clr | (l_idx == 41)), l_busy & (l_clr | (l_idx == 40))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x1y8), .lce(lce_x1y8), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r4308, r4315, r4313, r4311, r4307, r4314, r4312, r4310}), .cout(r4309));
     assign clb_o[504 +: 8] = {r4308, r4315, r4313, r4311, r4307, r4314, r4312, r4310};
+    wire [2:0] lce_x2y8 = {l_busy & (l_clr | (l_idx == 88)), l_busy & (l_clr | (l_idx == 87)), l_busy & (l_clr | (l_idx == 86))};
+    wire lck_x2y8;
+`ifdef SIMULATION
+    assign lck_x2y8 = lck & |lce_x2y8;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x2y8 = lck;
+`endif
     bob_clb u_clb_x2y8 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r4377), .sr(r4367), .cin(r4372),
         .i({r4371, r4366, r4362, r4376, r4370, r4365, r4361, r4375, r4369, r4364, r4360, r4374, r4368, r4363, r4359, r4373}),
         .cfg(cfg[11392 +: 48]),   // frames 86..88: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 88)), l_busy & (l_clr | (l_idx == 87)), l_busy & (l_clr | (l_idx == 86))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x2y8), .lce(lce_x2y8), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r4351, r4358, r4356, r4354, r4350, r4357, r4355, r4353}), .cout(r4352));
     assign clb_o[512 +: 8] = {r4351, r4358, r4356, r4354, r4350, r4357, r4355, r4353};
+    wire [2:0] lce_x4y8 = {l_busy & (l_clr | (l_idx == 143)), l_busy & (l_clr | (l_idx == 142)), l_busy & (l_clr | (l_idx == 141))};
+    wire lck_x4y8;
+`ifdef SIMULATION
+    assign lck_x4y8 = lck & |lce_x4y8;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x4y8 = lck;
+`endif
     bob_clb u_clb_x4y8 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r4420), .sr(r4410), .cin(r4415),
         .i({r4414, r4409, r4405, r4419, r4413, r4408, r4404, r4418, r4412, r4407, r4403, r4417, r4411, r4406, r4402, r4416}),
         .cfg(cfg[18432 +: 48]),   // frames 141..143: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 143)), l_busy & (l_clr | (l_idx == 142)), l_busy & (l_clr | (l_idx == 141))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x4y8), .lce(lce_x4y8), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r4394, r4401, r4399, r4397, r4393, r4400, r4398, r4396}), .cout(r4395));
     assign clb_o[520 +: 8] = {r4394, r4401, r4399, r4397, r4393, r4400, r4398, r4396};
+    wire [2:0] lce_x5y8 = {l_busy & (l_clr | (l_idx == 189)), l_busy & (l_clr | (l_idx == 188)), l_busy & (l_clr | (l_idx == 187))};
+    wire lck_x5y8;
+`ifdef SIMULATION
+    assign lck_x5y8 = lck & |lce_x5y8;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x5y8 = lck;
+`endif
     bob_clb u_clb_x5y8 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r4463), .sr(r4453), .cin(r4458),
         .i({r4457, r4452, r4448, r4462, r4456, r4451, r4447, r4461, r4455, r4450, r4446, r4460, r4454, r4449, r4445, r4459}),
         .cfg(cfg[24320 +: 48]),   // frames 187..189: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 189)), l_busy & (l_clr | (l_idx == 188)), l_busy & (l_clr | (l_idx == 187))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x5y8), .lce(lce_x5y8), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r4437, r4444, r4442, r4440, r4436, r4443, r4441, r4439}), .cout(r4438));
     assign clb_o[528 +: 8] = {r4437, r4444, r4442, r4440, r4436, r4443, r4441, r4439};
+    wire [2:0] lce_x6y8 = {l_busy & (l_clr | (l_idx == 235)), l_busy & (l_clr | (l_idx == 234)), l_busy & (l_clr | (l_idx == 233))};
+    wire lck_x6y8;
+`ifdef SIMULATION
+    assign lck_x6y8 = lck & |lce_x6y8;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x6y8 = lck;
+`endif
     bob_clb u_clb_x6y8 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r4506), .sr(r4496), .cin(r4501),
         .i({r4500, r4495, r4491, r4505, r4499, r4494, r4490, r4504, r4498, r4493, r4489, r4503, r4497, r4492, r4488, r4502}),
         .cfg(cfg[30208 +: 48]),   // frames 233..235: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 235)), l_busy & (l_clr | (l_idx == 234)), l_busy & (l_clr | (l_idx == 233))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x6y8), .lce(lce_x6y8), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r4480, r4487, r4485, r4483, r4479, r4486, r4484, r4482}), .cout(r4481));
     assign clb_o[536 +: 8] = {r4480, r4487, r4485, r4483, r4479, r4486, r4484, r4482};
+    wire [2:0] lce_x7y8 = {l_busy & (l_clr | (l_idx == 281)), l_busy & (l_clr | (l_idx == 280)), l_busy & (l_clr | (l_idx == 279))};
+    wire lck_x7y8;
+`ifdef SIMULATION
+    assign lck_x7y8 = lck & |lce_x7y8;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x7y8 = lck;
+`endif
     bob_clb u_clb_x7y8 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r4549), .sr(r4539), .cin(r4544),
         .i({r4543, r4538, r4534, r4548, r4542, r4537, r4533, r4547, r4541, r4536, r4532, r4546, r4540, r4535, r4531, r4545}),
         .cfg(cfg[36096 +: 48]),   // frames 279..281: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 281)), l_busy & (l_clr | (l_idx == 280)), l_busy & (l_clr | (l_idx == 279))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x7y8), .lce(lce_x7y8), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r4523, r4530, r4528, r4526, r4522, r4529, r4527, r4525}), .cout(r4524));
     assign clb_o[544 +: 8] = {r4523, r4530, r4528, r4526, r4522, r4529, r4527, r4525};
+    wire [2:0] lce_x9y8 = {l_busy & (l_clr | (l_idx == 340)), l_busy & (l_clr | (l_idx == 339)), l_busy & (l_clr | (l_idx == 338))};
+    wire lck_x9y8;
+`ifdef SIMULATION
+    assign lck_x9y8 = lck & |lce_x9y8;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x9y8 = lck;
+`endif
     bob_clb u_clb_x9y8 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r4592), .sr(r4582), .cin(r4587),
         .i({r4586, r4581, r4577, r4591, r4585, r4580, r4576, r4590, r4584, r4579, r4575, r4589, r4583, r4578, r4574, r4588}),
         .cfg(cfg[43648 +: 48]),   // frames 338..340: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 340)), l_busy & (l_clr | (l_idx == 339)), l_busy & (l_clr | (l_idx == 338))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x9y8), .lce(lce_x9y8), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r4566, r4573, r4571, r4569, r4565, r4572, r4570, r4568}), .cout(r4567));
     assign clb_o[552 +: 8] = {r4566, r4573, r4571, r4569, r4565, r4572, r4570, r4568};
+    wire [2:0] lce_x10y8 = {l_busy & (l_clr | (l_idx == 386)), l_busy & (l_clr | (l_idx == 385)), l_busy & (l_clr | (l_idx == 384))};
+    wire lck_x10y8;
+`ifdef SIMULATION
+    assign lck_x10y8 = lck & |lce_x10y8;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x10y8 = lck;
+`endif
     bob_clb u_clb_x10y8 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r4635), .sr(r4625), .cin(r4630),
         .i({r4629, r4624, r4620, r4634, r4628, r4623, r4619, r4633, r4627, r4622, r4618, r4632, r4626, r4621, r4617, r4631}),
         .cfg(cfg[49536 +: 48]),   // frames 384..386: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 386)), l_busy & (l_clr | (l_idx == 385)), l_busy & (l_clr | (l_idx == 384))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x10y8), .lce(lce_x10y8), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r4609, r4616, r4614, r4612, r4608, r4615, r4613, r4611}), .cout(r4610));
     assign clb_o[560 +: 8] = {r4609, r4616, r4614, r4612, r4608, r4615, r4613, r4611};
+    wire [2:0] lce_x11y8 = {l_busy & (l_clr | (l_idx == 432)), l_busy & (l_clr | (l_idx == 431)), l_busy & (l_clr | (l_idx == 430))};
+    wire lck_x11y8;
+`ifdef SIMULATION
+    assign lck_x11y8 = lck & |lce_x11y8;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x11y8 = lck;
+`endif
     bob_clb u_clb_x11y8 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r4678), .sr(r4668), .cin(r4673),
         .i({r4672, r4667, r4663, r4677, r4671, r4666, r4662, r4676, r4670, r4665, r4661, r4675, r4669, r4664, r4660, r4674}),
         .cfg(cfg[55424 +: 48]),   // frames 430..432: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 432)), l_busy & (l_clr | (l_idx == 431)), l_busy & (l_clr | (l_idx == 430))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x11y8), .lce(lce_x11y8), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r4652, r4659, r4657, r4655, r4651, r4658, r4656, r4654}), .cout(r4653));
     assign clb_o[568 +: 8] = {r4652, r4659, r4657, r4655, r4651, r4658, r4656, r4654};
+    wire [2:0] lce_x1y9 = {l_busy & (l_clr | (l_idx == 47)), l_busy & (l_clr | (l_idx == 46)), l_busy & (l_clr | (l_idx == 45))};
+    wire lck_x1y9;
+`ifdef SIMULATION
+    assign lck_x1y9 = lck & |lce_x1y9;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x1y9 = lck;
+`endif
     bob_clb u_clb_x1y9 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r4729), .sr(r4719), .cin(r4724),
         .i({r4723, r4718, r4714, r4728, r4722, r4717, r4713, r4727, r4721, r4716, r4712, r4726, r4720, r4715, r4711, r4725}),
         .cfg(cfg[6144 +: 48]),   // frames 45..47: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 47)), l_busy & (l_clr | (l_idx == 46)), l_busy & (l_clr | (l_idx == 45))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x1y9), .lce(lce_x1y9), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r4703, r4710, r4708, r4706, r4702, r4709, r4707, r4705}), .cout(r4704));
     assign clb_o[576 +: 8] = {r4703, r4710, r4708, r4706, r4702, r4709, r4707, r4705};
+    wire [2:0] lce_x2y9 = {l_busy & (l_clr | (l_idx == 93)), l_busy & (l_clr | (l_idx == 92)), l_busy & (l_clr | (l_idx == 91))};
+    wire lck_x2y9;
+`ifdef SIMULATION
+    assign lck_x2y9 = lck & |lce_x2y9;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x2y9 = lck;
+`endif
     bob_clb u_clb_x2y9 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r4772), .sr(r4762), .cin(r4767),
         .i({r4766, r4761, r4757, r4771, r4765, r4760, r4756, r4770, r4764, r4759, r4755, r4769, r4763, r4758, r4754, r4768}),
         .cfg(cfg[12032 +: 48]),   // frames 91..93: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 93)), l_busy & (l_clr | (l_idx == 92)), l_busy & (l_clr | (l_idx == 91))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x2y9), .lce(lce_x2y9), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r4746, r4753, r4751, r4749, r4745, r4752, r4750, r4748}), .cout(r4747));
     assign clb_o[584 +: 8] = {r4746, r4753, r4751, r4749, r4745, r4752, r4750, r4748};
+    wire [2:0] lce_x4y9 = {l_busy & (l_clr | (l_idx == 148)), l_busy & (l_clr | (l_idx == 147)), l_busy & (l_clr | (l_idx == 146))};
+    wire lck_x4y9;
+`ifdef SIMULATION
+    assign lck_x4y9 = lck & |lce_x4y9;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x4y9 = lck;
+`endif
     bob_clb u_clb_x4y9 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r4815), .sr(r4805), .cin(r4810),
         .i({r4809, r4804, r4800, r4814, r4808, r4803, r4799, r4813, r4807, r4802, r4798, r4812, r4806, r4801, r4797, r4811}),
         .cfg(cfg[19072 +: 48]),   // frames 146..148: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 148)), l_busy & (l_clr | (l_idx == 147)), l_busy & (l_clr | (l_idx == 146))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x4y9), .lce(lce_x4y9), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r4789, r4796, r4794, r4792, r4788, r4795, r4793, r4791}), .cout(r4790));
     assign clb_o[592 +: 8] = {r4789, r4796, r4794, r4792, r4788, r4795, r4793, r4791};
+    wire [2:0] lce_x5y9 = {l_busy & (l_clr | (l_idx == 194)), l_busy & (l_clr | (l_idx == 193)), l_busy & (l_clr | (l_idx == 192))};
+    wire lck_x5y9;
+`ifdef SIMULATION
+    assign lck_x5y9 = lck & |lce_x5y9;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x5y9 = lck;
+`endif
     bob_clb u_clb_x5y9 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r4858), .sr(r4848), .cin(r4853),
         .i({r4852, r4847, r4843, r4857, r4851, r4846, r4842, r4856, r4850, r4845, r4841, r4855, r4849, r4844, r4840, r4854}),
         .cfg(cfg[24960 +: 48]),   // frames 192..194: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 194)), l_busy & (l_clr | (l_idx == 193)), l_busy & (l_clr | (l_idx == 192))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x5y9), .lce(lce_x5y9), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r4832, r4839, r4837, r4835, r4831, r4838, r4836, r4834}), .cout(r4833));
     assign clb_o[600 +: 8] = {r4832, r4839, r4837, r4835, r4831, r4838, r4836, r4834};
+    wire [2:0] lce_x6y9 = {l_busy & (l_clr | (l_idx == 240)), l_busy & (l_clr | (l_idx == 239)), l_busy & (l_clr | (l_idx == 238))};
+    wire lck_x6y9;
+`ifdef SIMULATION
+    assign lck_x6y9 = lck & |lce_x6y9;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x6y9 = lck;
+`endif
     bob_clb u_clb_x6y9 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r4901), .sr(r4891), .cin(r4896),
         .i({r4895, r4890, r4886, r4900, r4894, r4889, r4885, r4899, r4893, r4888, r4884, r4898, r4892, r4887, r4883, r4897}),
         .cfg(cfg[30848 +: 48]),   // frames 238..240: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 240)), l_busy & (l_clr | (l_idx == 239)), l_busy & (l_clr | (l_idx == 238))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x6y9), .lce(lce_x6y9), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r4875, r4882, r4880, r4878, r4874, r4881, r4879, r4877}), .cout(r4876));
     assign clb_o[608 +: 8] = {r4875, r4882, r4880, r4878, r4874, r4881, r4879, r4877};
+    wire [2:0] lce_x7y9 = {l_busy & (l_clr | (l_idx == 286)), l_busy & (l_clr | (l_idx == 285)), l_busy & (l_clr | (l_idx == 284))};
+    wire lck_x7y9;
+`ifdef SIMULATION
+    assign lck_x7y9 = lck & |lce_x7y9;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x7y9 = lck;
+`endif
     bob_clb u_clb_x7y9 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r4944), .sr(r4934), .cin(r4939),
         .i({r4938, r4933, r4929, r4943, r4937, r4932, r4928, r4942, r4936, r4931, r4927, r4941, r4935, r4930, r4926, r4940}),
         .cfg(cfg[36736 +: 48]),   // frames 284..286: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 286)), l_busy & (l_clr | (l_idx == 285)), l_busy & (l_clr | (l_idx == 284))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x7y9), .lce(lce_x7y9), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r4918, r4925, r4923, r4921, r4917, r4924, r4922, r4920}), .cout(r4919));
     assign clb_o[616 +: 8] = {r4918, r4925, r4923, r4921, r4917, r4924, r4922, r4920};
+    wire [2:0] lce_x9y9 = {l_busy & (l_clr | (l_idx == 345)), l_busy & (l_clr | (l_idx == 344)), l_busy & (l_clr | (l_idx == 343))};
+    wire lck_x9y9;
+`ifdef SIMULATION
+    assign lck_x9y9 = lck & |lce_x9y9;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x9y9 = lck;
+`endif
     bob_clb u_clb_x9y9 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r4987), .sr(r4977), .cin(r4982),
         .i({r4981, r4976, r4972, r4986, r4980, r4975, r4971, r4985, r4979, r4974, r4970, r4984, r4978, r4973, r4969, r4983}),
         .cfg(cfg[44288 +: 48]),   // frames 343..345: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 345)), l_busy & (l_clr | (l_idx == 344)), l_busy & (l_clr | (l_idx == 343))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x9y9), .lce(lce_x9y9), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r4961, r4968, r4966, r4964, r4960, r4967, r4965, r4963}), .cout(r4962));
     assign clb_o[624 +: 8] = {r4961, r4968, r4966, r4964, r4960, r4967, r4965, r4963};
+    wire [2:0] lce_x10y9 = {l_busy & (l_clr | (l_idx == 391)), l_busy & (l_clr | (l_idx == 390)), l_busy & (l_clr | (l_idx == 389))};
+    wire lck_x10y9;
+`ifdef SIMULATION
+    assign lck_x10y9 = lck & |lce_x10y9;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x10y9 = lck;
+`endif
     bob_clb u_clb_x10y9 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r5030), .sr(r5020), .cin(r5025),
         .i({r5024, r5019, r5015, r5029, r5023, r5018, r5014, r5028, r5022, r5017, r5013, r5027, r5021, r5016, r5012, r5026}),
         .cfg(cfg[50176 +: 48]),   // frames 389..391: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 391)), l_busy & (l_clr | (l_idx == 390)), l_busy & (l_clr | (l_idx == 389))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x10y9), .lce(lce_x10y9), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r5004, r5011, r5009, r5007, r5003, r5010, r5008, r5006}), .cout(r5005));
     assign clb_o[632 +: 8] = {r5004, r5011, r5009, r5007, r5003, r5010, r5008, r5006};
+    wire [2:0] lce_x11y9 = {l_busy & (l_clr | (l_idx == 437)), l_busy & (l_clr | (l_idx == 436)), l_busy & (l_clr | (l_idx == 435))};
+    wire lck_x11y9;
+`ifdef SIMULATION
+    assign lck_x11y9 = lck & |lce_x11y9;   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)
+`else
+    assign lck_x11y9 = lck;
+`endif
     bob_clb u_clb_x11y9 (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), .ce(r5073), .sr(r5063), .cin(r5068),
         .i({r5067, r5062, r5058, r5072, r5066, r5061, r5057, r5071, r5065, r5060, r5056, r5070, r5064, r5059, r5055, r5069}),
         .cfg(cfg[56064 +: 48]),   // frames 435..437: L-frames
-        .lck(lck), .lce({l_busy & (l_clr | (l_idx == 437)), l_busy & (l_clr | (l_idx == 436)), l_busy & (l_clr | (l_idx == 435))}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
+        .lck(lck_x11y9), .lce(lce_x11y9), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),
         .o({r5047, r5054, r5052, r5050, r5046, r5053, r5051, r5049}), .cout(r5048));
     assign clb_o[640 +: 8] = {r5047, r5054, r5052, r5050, r5046, r5053, r5051, r5049};
 

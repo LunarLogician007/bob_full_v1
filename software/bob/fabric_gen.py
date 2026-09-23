@@ -126,11 +126,19 @@ def fabric_verilog(dev):
         ins = _vec([dev.pin_node[(b.name, f"I[{j}]")] for j in range(c["i"])])
         outs = [dev.pin_node[(b.name, f"O[{m}]")] for m in range(2 * c["n"])]
         lce = "{" + ", ".join(f"l_busy & (l_clr | (l_idx == {f0 + f}))" for f in reversed(range(lay["frames"]))) + "}"
+        t = f"x{b.x}y{b.y}"
+        e(f"    wire [{lay['frames'] - 1}:0] lce_{t} = {lce};")
+        e(f"    wire lck_{t};")
+        e("`ifdef SIMULATION")
+        e(f"    assign lck_{t} = lck & |lce_{t};   // simulation only: edges while this CLB loads (CFGLUT5s ignore the rest)")
+        e("`else")
+        e(f"    assign lck_{t} = lck;")
+        e("`endif")
         e(f"    bob_clb u_clb_x{b.x}y{b.y} (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), "
           f".ce({P(b.name, 'ce[0]')}), .sr({P(b.name, 'sr[0]')}), .cin({P(b.name, 'cin[0]')}),")
         e(f"        .i({ins}),")
         e(f"        .cfg(cfg[{lo + lay['flags_lo']} +: {flags_w}]),   // frames {f0}..{f0 + lay['frames'] - 1}: L-frames")
-        e(f"        .lck(lck), .lce({lce}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),")
+        e(f"        .lck(lck_{t}), .lce(lce_{t}), .lcdi_init(l_cdi_init), .lcdi_x(l_cdi_x),")
         e(f"        .o({_vec(outs)}), .cout({P(b.name, 'cout[0]')}));")
         first = dev.elements[[el["clb"] for el in dev.elements].index(b.name)]["index"]
         e(f"    assign clb_o[{2 * first} +: {2 * c['n']}] = {_vec(outs)};")

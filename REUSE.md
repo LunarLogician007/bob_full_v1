@@ -302,3 +302,20 @@ Status: **same** = byte-identical to `bob/`, **moved** = same content at a new p
 | XDC sysclk multicycle | `hw/constr/pynq_z2.xdc`, `software/bob/device.py` `XDC_SYSCLK_MULTICYCLE` | modified: 16384/16383, decoupled from the gap (back to 512); `tests/test_layout.py` holds the XDC to device.py and to ≥ the gap, and requires the flow and `cli.load` to call the contract |
 | TCK multicycle, post-place report | `hw/constr/pynq_z2.xdc`, `device.py` `XDC_TCK_MULTICYCLE`, `hw/scripts/place_report.tcl` (place_design TCL.POST, hooked in `build.tcl` beside `drc_waiver.tcl`) | modified / **new**: TCK → TCK 16/15; each clock's worst path in `runme.log` after placement |
 | mutation watchdog | `sim/mutate_lib.sh` | **new**, sourced by the three `sim/mutate_*.sh`: each simulation under a background-kill timeout (`MUTATE_TIMEOUT`); a mutant that hangs in a zero-delay loop counts as killed and is reported as a hang |
+
+
+## M22: LUT contents and the crossbar in CFGLUT5, 9 × 9 CLBs (2026-09-23)
+
+| what | where | reused / new |
+|---|---|---|
+| element LUT | `hw/src/clb/ble.sv` | modified: the `lutk` truth table + INIT flip-flops become two AMD CFGLUT5 (UG953) and a MUXF7; the fracture, carry and both flip-flops unchanged |
+| crossbar mux | `hw/src/clb/lxmux.v` | **new**: a CFGLUT5 tree in place of `bob_mux` inside the cluster (ZUMA, Brant & Lemieux FCCM 2012: routing in host LUTRAM) |
+| loader | `hw/src/core/lut_loader.v` | **new**; hooks `cfg_store.v`'s one frame-buffer write (M12b/M13), so chain, FDRI and partial writes all reach it |
+| expander | `hw/src/core/lut_expand.v` | **new**, shared by every CLB |
+| configuration memory | `hw/src/core/cfg_store.v` | modified: `LMASK` (no flip-flops for L-frames), the write exposed to the loader, a simulation-only record of the L-frames written |
+| layout | `software/bob/device.py` `lutram_layout`, `_clb_type`, `ARCH_M22` | modified: CLB tiles frame aligned, L-frames first; 11 × 9 core |
+| cluster generator | `software/bob/fabric_gen.py` | modified: lxmux trees, CE compares per CLB, the expander instance |
+| CFGLUT5 simulation model | `hw/tb/prims/CFGLUT5.v`, `sim/hwfiles.sh --sim` | **new** (behaviour as UG953 and yosys' cells_sim.v) |
+| board check | `software/host/hwtest.py` `check_lutram_snake`, `designs.d_snake`, `FakeBob(lose_lframes=True)` | **new** check on the existing INTEST sweep; a new fault switch beside the others |
+| mutant fixes | `sim/mutate_fabric.sh`, `sim/mutate_lib.sh` (`MUTATE_ONLY`) | modified |
+

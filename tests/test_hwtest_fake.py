@@ -397,3 +397,22 @@ def test_m21_list_is_the_m20_regression_plus_the_cluster():
               "fmax-cluster"):
         assert n in names
     assert names[-1] == "pipeline-live"
+
+
+# --- M22: CFGLUT5 ---------------------------------------------------------------------------
+
+def test_m22_lutram_snake_passes_on_a_good_board():
+    ok, msg = hwtest.check_lutram_snake(FakeBob(), {})
+    assert ok, msg
+    assert "324 elements" in msg
+
+
+def test_m22_lutram_snake_fails_when_the_loader_misses_the_tables():
+    ok, msg = hwtest.check_lutram_snake(FakeBob(lose_lframes=True), {})
+    assert not ok, msg
+
+
+def test_m22_runs_the_full_m21_list_first():
+    names = [n for n, _f in hwtest.MILESTONE["M22"]]
+    assert names[:len(hwtest.MILESTONE["M21"]) - 1] == [n for n, _f in hwtest.MILESTONE["M21"]][:-1]
+    assert "lutram-snake" in names

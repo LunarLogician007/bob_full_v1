@@ -188,6 +188,20 @@ module cfg_store #(
 
     assign so = buf_q[0];
 
+`ifdef SIMULATION
+    // M22, simulation only: what was written into the L-frames (whose bits have no
+    // flip-flops here). Testbenches compare `cfg | sim_lmem` with whole configuration words,
+    // as they compared `cfg` before; the CFGLUT5 contents themselves are checked directly.
+    /* verilator lint_off UNUSEDSIGNAL */
+    reg [W-1:0] sim_lmem = {W{1'b0}};             // read by the testbenches
+    /* verilator lint_on UNUSEDSIGNAL */
+    always @(negedge tck)
+        if (clear)
+            sim_lmem <= {W{1'b0}};
+        else if (swe && wok && LMASK[waddr])
+            sim_lmem[waddr*FB +: FB] <= buf_q;
+`endif
+
     initial cfg = {W{1'b0}};
 
 endmodule

@@ -60,7 +60,9 @@ module lut_expand #(
             wire          src = (v32 >= 32'd2) && (v32 < S + 2);
             wire [31:0]   i32 = v32 - 32'd2;
             wire [31:0]   lf  = i32 / 5;          // the leaf holding source i
-            wire [31:0]   bt  = i32 % 5;          // its address bit there
+            /* verilator lint_off UNUSEDSIGNAL */
+            wire [31:0]   bt  = i32 % 5;          // its address bit there (0..4)
+            /* verilator lint_on UNUSEDSIGNAL */
             if (L > 1) begin : g_tree
                 for (g = 0; g < L; g = g + 1) begin : g_leaf
                     assign cdi_x[t*NL + g] = src && (lf == g) && a[bt[2:0]];

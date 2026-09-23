@@ -48,6 +48,36 @@ def crc(v):
     return f"32'h{crc32c_bits(v, W):08x}"
 
 
+def lutram_expect(name, word):
+    """M22: what CLB (1,1)'s CFGLUT5s must hold after `word` is loaded, computed here from
+    the configuration word alone (an independent model of lut_expand.v + lut_loader.v):
+    element 0's truth table halves and the leaves and root of its input-0 crossbar mux.
+    A CFGLUT5 holds content(a) at bit a (the first bit shifted in ends at bit 31)."""
+    blk = B.BLOCKS["clb_x1y1"]
+    get = lambda f: (word >> (blk["chain_lo"] + B.FIELD[f][0])) & ((1 << B.FIELD[f][1]) - 1)  # noqa: E731
+    init = get("e0.init")
+    half = 1 << (B.LUT_K - 1)
+    lo, hi = init & ((1 << half) - 1), init >> half
+    s = len(B.XBAR_SOURCES[0][0])
+    # the first crossbar mux that passes a real source, preferring one past leaf 0
+    cands = [(e, j) for e in range(B.CLB_N) for j in range(B.LUT_K) if 2 <= get(f"e{e}.x{j}") < s + 2]
+    cands.sort(key=lambda ej: (get(f"e{ej[0]}.x{ej[1]}") - 2) // 5 == 0)
+    e, j = cands[0]
+    v = get(f"e{e}.x{j}")
+    leaves = (s + 4) // 5
+    table = lambda fn: sum(fn(a) << a for a in range(32))                                    # noqa: E731
+    out = [f"`define {name}_E0_LO 32'h{lo:08x}", f"`define {name}_E0_HI 32'h{hi:08x}"]
+    src = 2 <= v < s + 2
+    i = v - 2
+    for g in range(leaves):
+        out.append(f"`define {name}_X0_LEAF{g} 32'h{table(lambda a: int(src and i // 5 == g and (a >> (i % 5)) & 1)):08x}")
+    root = 0xFFFFFFFF if v == 1 else table(lambda a: int(src and (a >> (i // 5)) & 1))
+    out.append(f"`define {name}_X0_ROOT 32'h{root:08x}")
+    out.append(f"`define {name}_X0_SEL {v}")
+    out.append(f"`define {name}_X0_MUX m{e}_{j}")
+    return out
+
+
 def define(name, word):
     return [f"`define {name}_WORD {hexw(word)}", f"`define {name}_CRC {crc(word)}"]
 
@@ -70,6 +100,11 @@ def loop_free_random_chain(rng):
         lim = base + len(ins)
         val = rng.randrange(lim, 1 << w) if lim < (1 << w) else 0
         word = (word & ~(((1 << w) - 1) << lo)) | (val << lo)
+    # M22: one crossbar select passes a real source, so tb_bob can check a loaded CFGLUT5
+    # tree: clb(1,1) e0 input 0 <- CLB input I[7] (leaf 1). The routing into I[7] reads 0,
+    # so no loop can form.
+    lo, w = B.BLOCKS["clb_x1y1"]["chain_lo"] + B.FIELD["e0.x0"][0], B.FIELD["e0.x0"][1]
+    word = (word & ~(((1 << w) - 1) << lo)) | ((2 + B.XBAR_SOURCES[0][0].index("I[7]")) << lo)
     return word
 
 
@@ -135,7 +170,9 @@ def main():
     cntr_bs = d_counter("run", 0).build()
     other = BY_KEY["three"][1]().build().to_int()
 
-    out += define("RT", loop_free_random_chain(random.Random(0xF00D)))
+    rt = loop_free_random_chain(random.Random(0xF00D))
+    out += define("RT", rt)
+    out += lutram_expect("RT", rt)
     out += ["// one registered CLB, INIT 1, D 0 (designs.d_gsr_probe)"]
     out += define("GSR", d_gsr_probe().build().to_int())
     out += ["// showcase, and a corrupted 'three' chain carrying its true CRC"]

@@ -35,7 +35,9 @@ module CFGLUT5 #(
     function lut_read(input [31:0] t, input [4:0] a);
         integer k, b;
         reg seen, val, bad, match;
-        begin
+        if (^a !== 1'bx)
+            lut_read = t[a];                           // the usual case: a known address
+        else begin
             seen = 1'b0; val = 1'b0; bad = 1'b0;
             for (k = 0; k < 32; k = k + 1) begin
                 match = 1'b1;
@@ -53,6 +55,8 @@ module CFGLUT5 #(
     assign O5  = lut_read(v, {1'b0, I3, I2, I1, I0});
     assign O6  = lut_read(v, {I4, I3, I2, I1, I0});
     always @(posedge clk) if (CE) r <= {r[30:0], CDI};
-    always @(r or CE) if (!CE) v = r;
+    /* verilator lint_off LATCH */
+    always @(r or CE) if (!CE) v = r;                // a latch on purpose (see above)
+    /* verilator lint_on LATCH */
 endmodule
 `endif

@@ -31,7 +31,8 @@ run_one() {
     # M21: the element and the crossbar have the cluster unit bench (tb_clb, every mode,
     # every crossbar select, both flip-flops): seconds, where tb_bob takes minutes, so first
     local v
-    if [[ "$file" == src/clb/ble.sv || "$file" == src/generated/bob_fabric.v ]]; then
+    if [[ "$file" == src/clb/ble.sv || "$file" == src/generated/bob_fabric.v ||
+          "$file" == src/clb/lxmux.v || "$file" == src/core/lut_expand.v ]]; then   # M22 too
         if iverilog -g2012 -DSIMULATION -Ihw/src/generated -Ihw/tb -s tb_clb -o "$WORK/$name-clb.vvp" \
                 "${SRC[@]}" hw/tb/tb_clb.sv 2>/dev/null; then
             v=$(vvp_verdict "$WORK" "$name-clb.vvp")
@@ -86,7 +87,7 @@ run lut5-halves-swapped src/clb/ble.sv    's/wire \[K-1:0\] li = \{i\[K-1\] \| f
 run carry-broken-e1     src/generated/bob_fabric.v 's/u_e1 (.*)\.cin\(cy\[1\]\)/u_e1 \1.cin(1'"'"'b0)/'
 run ff2-ce-ignored      src/clb/ble.sv    's/else if \(!ff2_ce_en \|\| ce\)      q2 <= comb2;/else if (1'"'"'b1)      q2 <= comb2;/'
 run ff2-is-ff1          src/clb/ble.sv    's/assign o2 = ff2_en \? q2 : comb2;/assign o2 = ff2_en ? q : comb2;/'
-run xbar-no-feedback    src/generated/bob_fabric.v 's/m0_0 \(\.sel\(cfg\[([0-9]+) \+: ([0-9]+)\]\), \.in\(\{o\[7\]/m0_0 (.sel(cfg[\1 +: \2]), .in({1'"'"'b0/'   # o[2N-1] (M21: N = 4)
+run xbar-no-feedback    src/generated/bob_fabric.v 's/m0_0 \(\.in\(\{o\[7\]/m0_0 (.in({1'"'"'b0/'   # o[2N-1] (N = 4; M22: lxmux)
 run step-ignores-ce src/core/clock_ctrl.v 's/else           req = \(tck_rise & ce_m\[1\]\) \| step_rise;/else           req = tck_rise | step_rise;/'
 run divider-off-by-1 src/core/clock_ctrl.v 's/cnt >= last/cnt > last/g'
 # M5 BRAM
@@ -113,6 +114,14 @@ run carry-direct-cut    src/generated/bob_fabric.v "s/= r[0-9]+;   \/\/ clb_x${F
 run bram-select-ignored src/tiles/bram_jtag.v 's/assign tgt_onehot\[gi\] = \(tgt_q == IDX\);/assign tgt_onehot[gi] = (IDX == 4'"'"'d0);/'
 run bram-port-a-no-jtag src/tiles/bram_block.v 's/cfg\[6\] \? drive\[31:0\]  : pin\[31:0\]/pin[31:0]/'
 run dsp-b-no-jtag       src/tiles/dsp_block.v 's/cfg\[11\] \? drive\[42:25\]   : b/b/'
+
+# M22: the CFGLUT5s and their loader (tb_clb loads through lut_expand.v; tb_bob through
+# lut_loader.v over JTAG and checks CLB (1,1)'s tables and the JPROGRAM sweep)
+run expand-bit-order    src/core/lut_expand.v   's/wire \[4:0\] a = ~cnt;/wire [4:0] a = cnt;/'
+run lxmux-root-no-ce    src/clb/lxmux.v         's/\.CDI\(lcdi\[L\]\), \.CE\(lce\)/.CDI(lcdi[L]), .CE(1'"'"'b0)/'
+run lut-halves-swapped  src/clb/ble.sv          's/\? hi6 : lo6;/? lo6 : hi6;/'
+run loader-31-shifts    src/core/lut_loader.v   's/if \(cnt == 5.d31\) begin/if (cnt == 5'"'"'d30) begin/'
+run loader-no-sweep     src/core/lut_loader.v   's/clr  <= 1.b1;/clr  <= 1'"'"'b0;/'
 
 wait
 cat "$WORK"/*.out

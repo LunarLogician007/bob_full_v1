@@ -52,13 +52,13 @@ Generated from `software/bob/device.json` by `software/bob/devtable.py`; `tests/
 
 | | |
 |---|---|
-| VPR grid | 11 × 9 (9 × 7 core inside an I/O ring, corners empty) |
-| CLBs | 49 × 4 logic elements = 196 LUTs (columns x = 1, 2, 4, 5, 7, 8, 9); each element LUT6 (or two LUT5), MUXCY/XORCY carry, two FDRE/FDSE; 16 inputs and a full crossbar per CLB |
-| BRAM | 2 × 1024×18 true dual port (column x = 3, 3 rows tall); contents as frames (FAR type 001) or over USER4 |
-| DSP | 2 × DSP48E1-style slices (column x = 6, 3 rows tall), PCOUT→PCIN cascade |
-| I/O | 32 pads; board switches, buttons and LEDs on fixed pads, LD3 = DONE |
-| Routing | L4 unidirectional, W = 40, Wilton Fs = 3 (from OpenFPGA's k6_frac_N10 tileable arch); 3396 muxes |
-| Configuration | 32896 bits = 257 frames of 4 × 32; UG470-style packets on CFG_IN/CFG_OUT (CRC-32C, IDCODE, partial reconfiguration, BRAM content frames) or the streamed chain on CHAIN_IN/CHAIN_OUT; GSR → GTS → GWE → DONE startup |
+| VPR grid | 13 × 11 (11 × 9 core inside an I/O ring, corners empty) |
+| CLBs | 81 × 4 logic elements = 324 LUTs (columns x = 1, 2, 4, 5, 6, 7, 9, 10, 11); each element LUT6 (or two LUT5), MUXCY/XORCY carry, two FDRE/FDSE; 16 inputs and a full crossbar per CLB; LUT contents and crossbar in CFGLUT5 (M22) |
+| BRAM | 2 × 1024×18 true dual port (column x = 3, 4 rows tall); contents as frames (FAR type 001) or over USER4 |
+| DSP | 2 × DSP48E1-style slices (column x = 8, 4 rows tall), PCOUT→PCIN cascade |
+| I/O | 40 pads; board switches, buttons and LEDs on fixed pads, LD3 = DONE |
+| Routing | L4 unidirectional, W = 40, Wilton Fs = 3 (from OpenFPGA's k6_frac_N10 tileable arch); 4934 muxes |
+| Configuration | 56448 bits = 441 frames of 4 × 32 (243 of them held only in CFGLUT5s); UG470-style packets on CFG_IN/CFG_OUT (CRC-32C, IDCODE, partial reconfiguration, BRAM content frames) or the streamed chain on CHAIN_IN/CHAIN_OUT; GSR → GTS → GWE → DONE startup |
 | User clock | one sysclk enable at a time, spaced by each design's own timing (clk_gap from software/bob/timing.py, never under 2 cycles = 62.5 MHz); unset, at least 2**9 = 512 cycles apart (a word is loaded only if its critical path fits its spacing), at most 244 kHz |
 | JTAG | 6-bit AMD 7-series IR, IDCODE `0x0B021093` (M21) |
 

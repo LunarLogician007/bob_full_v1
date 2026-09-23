@@ -41,12 +41,21 @@ import packets  # noqa: E402
 IR = {v: k for k, v in cfgplane.IR.items()}
 
 
+LFRAME_MASK = 0
+for _f, *_rest in B.DEVICE.get("lframes", {}).get("list", []):
+    LFRAME_MASK |= ((1 << packets.FB) - 1) << (packets.FB * _f)
+
+
 class FakeBob:
     BUDGET = None                                   # seconds of simulation per scan; None: no bound
 
+    def _fabric_word(self, word):
+        """what the fabric runs: the configuration, less the L-frames on a broken loader"""
+        return word & ~LFRAME_MASK if self.lose_lframes else word
+
     def __init__(self, corrupt_capture=False, corrupt_sample=False, rate_scale=1.0, switches=lambda t: 0,
                  ignore_freeze=False, wipe_on_partial=False, lose_clocks=0, max_hz=None,
-                 budget=None, stale_shadow=False):
+                 budget=None, stale_shadow=False, lose_lframes=False):
         self.ir = "IDCODE"
         self.chain = 0
         self.expected = 0
@@ -71,6 +80,9 @@ class FakeBob:
         # broken board: JPROGRAM clears the memory but not the shadow
         self.shadow = 0
         self.stale_shadow = stale_shadow
+        # M22: the LUT contents and crossbar selects live in CFGLUT5s that lut_loader.v
+        # fills; broken board: the loader never shifts, so every L-frame reads zero
+        self.lose_lframes = lose_lframes
         # One simulated edge is a model.settle() - a Python fixed point over every mux,
         # about a millisecond at 100 CLBs - so a fast free-running clock asks for more
         # edges than this can run and the backlog grows without end. With a budget (in
@@ -152,7 +164,7 @@ class FakeBob:
     def pulse(self, tms=0, tdi=0):
         if self.ir == "JSTART" and (self.committed or self.frames.flags["start_ok"]) and not self.done:
             self.done = 1
-            self.fab = model.Fabric(B.Bitstream(self.chain))
+            self.fab = model.Fabric(B.Bitstream(self._fabric_word(self.chain)))
             self.fab.clock(gsr=1)
             for b, words in self.brams.items():
                 self.fab.brams[b].mem = list(words)
@@ -185,7 +197,7 @@ class FakeBob:
                         self.fab.brams[b].mem = list(self.frames.brams[b])
             if self.done and self.frames.mem != self.chain:     # M14: partial while running
                 old = self.fab
-                self.fab = model.Fabric(B.Bitstream(self.frames.mem))
+                self.fab = model.Fabric(B.Bitstream(self._fabric_word(self.frames.mem)))
                 if not self.wipe_on_partial:
                     self.fab.q, self.fab.brams, self.fab.dsp = old.q, old.brams, old.dsp
                     self.fab.bram_drive, self.fab.dsp_drive = old.bram_drive, old.dsp_drive
