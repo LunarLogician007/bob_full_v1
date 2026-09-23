@@ -431,13 +431,13 @@ def test_readback_notices_a_different_bitstream(srv):
     assert not r["ok"] and r["differing_bits"] > 0
 
 
-def test_capture_reads_every_clb_register(srv):
+def test_capture_reads_every_element_output(srv):
     ev = build(srv, {"files": ["work/examples/counter/counter.v"]})
     post(srv, "/api/target", {"kind": "fake"})
     post(srv, "/api/program", {"bit": ev["stages"][-1]["stats"]["path"]})
     c = post(srv, "/api/capture", {})
     assert c["ok"], c["message"]
-    assert c["nclb"] == B.NCLB and len(c["bits"]) == B.NCLB
+    assert c["nclb"] == B.NCAP and len(c["bits"]) == B.NCAP        # M21: 2 per logic element
     assert all(b in (0, 1) for b in c["bits"])
 
 

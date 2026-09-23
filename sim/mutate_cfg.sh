@@ -7,6 +7,7 @@
 #   sim/mutate_cfg.sh        exit 0 only if every mutant is killed
 set -uo pipefail
 cd "$(dirname "$0")/.."
+source sim/mutate_lib.sh          # vvp_verdict: every simulation under a watchdog (M21)
 
 WORK=$(mktemp -d)
 trap 'rm -rf "$WORK"' EXIT
@@ -25,10 +26,11 @@ run() {
             "${SRC[@]}" "$WORK/cfg_ctrl_$name.v" hw/tb/tb_cfg.v 2>"$WORK/$name.err"; then
         echo "  ERROR   $name: does not compile"; survivors=$((survivors+1)); return
     fi
-    if (cd "$WORK" && vvp "$name.vvp" 2>&1 | grep -q 'ALL TESTS PASSED'); then
+    local v; v=$(vvp_verdict "$WORK" "$name.vvp")
+    if [[ $v == pass ]]; then
         echo "  SURVIVED $name"; survivors=$((survivors+1))
     else
-        echo "  killed  $name"
+        echo "  killed  $name$(killed_note "$v")"
     fi
 }
 

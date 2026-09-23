@@ -21,6 +21,7 @@ sys.path.insert(0, os.path.join(ROOT, "software", "host"))
 
 import cli  # noqa: E402
 import flow  # noqa: E402
+import bitstream as B  # noqa: E402
 
 pytestmark = pytest.mark.skipif(shutil.which("yosys") is None or shutil.which("iverilog") is None,
                                 reason="needs yosys and iverilog")
@@ -68,7 +69,7 @@ def test_the_same_bit_with_a_free_running_clock(tmp_path):
     assert res.ok, res.error
     assert _sha(a) == _sha(b)
     bits = [s for s in res.stages if s.name == "bits"][0]
-    assert bits.stats["hz"] == pytest.approx(125e6 / 2 ** (4 + 9))
+    assert bits.stats["hz"] == pytest.approx(125e6 / 2 ** (4 + B.DIV_MIN_SHIFT))     # 10 from M21
 
 
 def test_the_same_bit_through_the_python_pnr(tmp_path):

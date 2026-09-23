@@ -93,7 +93,8 @@ def test_python_pnr_result(name, tmp_path):
 
 
 def test_every_sink_reached(tmp_path):
-    """the routed nets reach exactly the packed sinks (LUT inputs on some I pin of their CLB)"""
+    """the routed nets reach exactly the packed sinks (M21: a CLB's outside inputs on some
+    I pin of it - the crossbar is full)"""
     work, _st = pnr_run.run("fir", 1, None, "fir", work=str(tmp_path / "f"))
     eblif, _side, _fixed = vpr_run.prepare("fir")
     packed = pack.pack(netlist.parse_eblif(eblif, "fir"))
@@ -105,7 +106,7 @@ def test_every_sink_reached(tmp_path):
         reached = {node_pin[node] for node, kind in routes[net][0] if kind == "IPIN"}
         for c, p in n["sinks"]:
             blk = block_at[placed[c]]
-            if packed.clusters[c].mode == "logic" and p.startswith("I["):
+            if p == "I":
                 assert any(r.startswith(f"{blk}.I[") for r in reached), (net, c, p)
             else:
                 assert f"{blk}.{p}" in reached, (net, c, p, reached)

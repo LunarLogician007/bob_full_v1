@@ -20,17 +20,13 @@
 .cname $auto$alumacc.cc:548:replace_alu$34.slice[6].add
 .subckt bob_add b=n17 cin=cy9 cout=cy10 sumout=n56
 .cname $auto$alumacc.cc:548:replace_alu$34.slice[7].add
-.subckt bob_add cin=cy10 sumout=cy12
-.cname bob_tap11
-.subckt bob_add a=cy12 b=cy12 cout=cy14
-.cname bob_gen13
-.subckt bob_add b=n15 cin=cy14 cout=cy15 sumout=n58
+.subckt bob_add b=n15 cin=cy10 cout=cy11 sumout=n58
 .cname $auto$alumacc.cc:548:replace_alu$34.slice[8].add
-.subckt bob_add b=n19 cin=cy15 cout=cy16 sumout=n59
+.subckt bob_add b=n19 cin=cy11 cout=cy12 sumout=n59
 .cname $auto$alumacc.cc:548:replace_alu$34.slice[9].add
-.subckt bob_add b=n13 cin=cy16 cout=cy17 sumout=n40
+.subckt bob_add b=n13 cin=cy12 cout=cy13 sumout=n40
 .cname $auto$alumacc.cc:548:replace_alu$34.slice[10].add
-.subckt bob_add b=n14 cin=cy17 sumout=n42
+.subckt bob_add b=n14 cin=cy13 sumout=n42
 .cname $auto$alumacc.cc:548:replace_alu$34.slice[11].add
 .names n12 n13 n14 n15 led[2]
 1000 1
@@ -105,19 +101,19 @@
 0111 1
 .subckt bob_ff D=n35 C=clk Q=n30 CE=btn[0] SR=btn[1]
 .cname $auto$ff.cc:337:slice$112
-.subckt bob_ff D=ffd18 C=clk Q=n31 CE=btn[0] SR=btn[1]
+.subckt bob_ff D=ffd14 C=clk Q=n31 CE=btn[0] SR=btn[1]
 .cname $auto$ff.cc:337:slice$113
-.subckt bob_ff D=ffd19 C=clk Q=n28 CE=btn[0] SR=btn[1]
+.subckt bob_ff D=ffd15 C=clk Q=n28 CE=btn[0] SR=btn[1]
 .cname $auto$ff.cc:337:slice$114
-.subckt bob_ff D=ffd20 C=clk Q=n29 CE=btn[0] SR=btn[1]
+.subckt bob_ff D=ffd16 C=clk Q=n29 CE=btn[0] SR=btn[1]
 .cname $auto$ff.cc:337:slice$115
-.subckt bob_ff D=ffd21 C=clk Q=n33 CE=btn[0] SR=btn[1]
+.subckt bob_ff D=ffd17 C=clk Q=n33 CE=btn[0] SR=btn[1]
 .cname $auto$ff.cc:337:slice$116
-.subckt bob_ff D=ffd22 C=clk Q=n34 CE=btn[0] SR=btn[1]
+.subckt bob_ff D=ffd18 C=clk Q=n34 CE=btn[0] SR=btn[1]
 .cname $auto$ff.cc:337:slice$117
-.subckt bob_ff D=ffd23 C=clk Q=n32 CE=btn[0] SR=btn[1]
+.subckt bob_ff D=ffd19 C=clk Q=n32 CE=btn[0] SR=btn[1]
 .cname $auto$ff.cc:337:slice$118
-.subckt bob_ff D=ffd24 C=clk Q=n18 CE=btn[0] SR=btn[1]
+.subckt bob_ff D=ffd20 C=clk Q=n18 CE=btn[0] SR=btn[1]
 .cname $auto$ff.cc:337:slice$119
 .subckt bob_ff D=n37 C=clk Q=n26 CE=btn[0] SR=btn[1]
 .cname $auto$ff.cc:337:slice$120
@@ -143,18 +139,18 @@
 .cname $auto$ff.cc:337:slice$130
 .subckt bob_ff D=n42 C=clk Q=n14 CE=btn[0] SR=btn[1]
 .cname $auto$ff.cc:337:slice$131
-.names n30 ffd18
+.names n30 ffd14
 1 1
-.names n31 ffd19
+.names n31 ffd15
 1 1
-.names n28 ffd20
+.names n28 ffd16
 1 1
-.names n29 ffd21
+.names n29 ffd17
 1 1
-.names n33 ffd22
+.names n33 ffd18
 1 1
-.names n34 ffd23
+.names n34 ffd19
 1 1
-.names n32 ffd24
+.names n32 ffd20
 1 1
 .end

@@ -92,36 +92,61 @@ set_output_delay -clock tck -min  0.000 -clock_fall [get_ports tdo]
 # ASYNC_REG synchronisers.
 set_clock_groups -asynchronous -group [get_clocks tck] -group [get_clocks sysclk]
 
+# M21: TCK -> TCK through the fabric gets the same treatment as sysclk. Configuration
+# bits (cfg_reg) and the boundary / IR update cells are TCK registers that drive the
+# fabric, and CAPTURE, the boundary capture and the DSP JTAG capture are TCK registers
+# fed by it, so Vivado times TCK paths through the UNCONFIGURED mesh too (M7: 1650 ns,
+# failed a 1 MHz TCK by 657 ns). The M21 build with sysclk relaxed routed with sysclk
+# met (+0.868 ns) and TCK at WNS -463 ns: u_tap/ir_reg[2] (updated on the falling edge)
+# -> 6349 logic levels of empty fabric and DSP -> u_dsp_jtag/sr_reg[91], 5463 ns against
+# the 5000 ns fall -> rise half period (docs/reports/M21/timing.rpt). A configured design's pad and capture paths are tens of ns
+# (software/bob/timing.py), and a configuration bit never changes while the fabric is
+# captured (GWE = 0). So TCK -> TCK gets 16 periods (160 us, past any path through the
+# ~4800 fabric muxes). Hold stays at the same edge (-hold 15), so the TAP and shift
+# registers' own hold checks are unchanged; their setup paths are a few ns against 10 us
+# either way. XDC_TCK_MULTICYCLE in software/bob/device.py, tests/test_layout.py.
+set_multicycle_path -setup 16 -from [get_clocks tck] -to [get_clocks tck]
+set_multicycle_path -hold  15 -from [get_clocks tck] -to [get_clocks tck]
+
 # Every fabric register (CLB flip-flops, BRAM and DSP state) changes only on a gce
-# pulse, and clock_ctrl.v guarantees gce pulses >= 2**GAP_SHIFT sysclk cycles apart in
-# both clock modes (tb_clock_gap.v). A path from fabric register to fabric register -
-# however many unconfigured routing muxes the static analysis walks through (M7:
-# 1202 logic levels, 1110 ns) - therefore has 2**GAP_SHIFT cycles.
+# pulse, and clock_ctrl.v spaces gce pulses in both clock modes (tb_clock_gap.v).
 #
-# M16: GAP_SHIFT is 9, so 512 cycles = 4096 ns. It was 8 (256 cycles, 2048 ns) through
-# M15, where the 8x6 fabric just fitted; the 12x10 fabric does not. Implementation
-# reported WNS -465 ns on fabric flop -> flop paths (phys_opt then spent 1h15 chasing
-# it and the router gave up on timing), so the 12x10 static path is about 2500 ns.
-# This number and GCE_MIN_GAP_SHIFT / DIV_MIN_SHIFT in tools/bob/device.py must agree -
-# that agreement is the whole reason the exception is true rather than assumed.
+# Through M20 this multicycle was that spacing (2**GAP_SHIFT cycles) and had to cover the
+# longest path Vivado found through the UNCONFIGURED fabric: every routing mux open, one
+# mesh of combinational loops, cut wherever the timer chose. That stopped working at M21.
+# The cluster fabric placed at WNS -133 ns against 512 cycles (4096 ns), and at -290 ns
+# against 1024 (8192 ns): the path grew with the budget, because the loop cutting, not the
+# fabric, decides it. phys_opt then ground on it for hours. (M16: 256 -> 512 was enough;
+# M7: 1202 logic levels, 1110 ns.)
+#
+# From M21 the sign-off is per design, in software: software/bob/timing.py times the
+# configured design with delays measured on this build (extract_delays.tcl), and
+# timing.contract() refuses to build or load (flow.py, cli.load) any word whose critical
+# path x guard band is longer than the gce spacing it runs at - its clk_gap, or the
+# default 2**GCE_MIN_GAP_SHIFT. The board's clock-margin check proves the guard band.
+# So this multicycle only tells Vivado not to optimise paths that no configuration
+# has: 16384 cycles (131 us), past any simple path through the ~4800 fabric muxes.
+# It equals XDC_SYSCLK_MULTICYCLE in software/bob/device.py (tests/test_layout.py).
 #
 # The fabric is flattened (keeping its hierarchy crashed Vivado on the routing
 # loops), and M7 showed flattening renames its registers, so the relaxation is by
-# clock: every sysclk -> sysclk path gets 512 cycles. The only sysclk logic outside
+# clock: every sysclk -> sysclk path gets 16384 cycles. A clock-level set_false_path
+# would do the same but override the cell exceptions below (UG903: a false path beats
+# any multicycle), so it is a multicycle. The only sysclk logic outside
 # the fabric is u_clk (clock_ctrl.v: gce, dividers, synchronisers) and the sysclk
 # half of u_bram_jtag (BRAM INIT/readback strobes). Cell-based exceptions take
 # precedence over clock-based ones (UG903), so every path starting or ending there
 # is held back to one cycle. Their hierarchy is flattened (keep_hierarchy anywhere
 # crashed Vivado), so build.tcl writes the cells these filters caught to
 # sysclk_1cycle.txt and tests/test_reports.py requires gce and the BRAM strobes in it.
-set_multicycle_path -setup 512 -from [get_clocks sysclk] -to [get_clocks sysclk]
-set_multicycle_path -hold  511 -from [get_clocks sysclk] -to [get_clocks sysclk]
+set_multicycle_path -setup 16384 -from [get_clocks sysclk] -to [get_clocks sysclk]
+set_multicycle_path -hold  16383 -from [get_clocks sysclk] -to [get_clocks sysclk]
 set_multicycle_path -setup 1 -from [get_cells -hier -filter {IS_SEQUENTIAL && (NAME =~ *u_bram_jtag/* || (NAME =~ *u_clk/* && NAME !~ *u_clk/cin_m_reg*))}]
 set_multicycle_path -hold  0 -from [get_cells -hier -filter {IS_SEQUENTIAL && (NAME =~ *u_bram_jtag/* || (NAME =~ *u_clk/* && NAME !~ *u_clk/cin_m_reg*))}]
 set_multicycle_path -setup 1 -to   [get_cells -hier -filter {IS_SEQUENTIAL && (NAME =~ *u_bram_jtag/* || NAME =~ *u_clk/*)}]
 set_multicycle_path -hold  0 -to   [get_cells -hier -filter {IS_SEQUENTIAL && (NAME =~ *u_bram_jtag/* || NAME =~ *u_clk/*)}]
 # USER1 cin (u_clk/cin_m_reg) enters the carry chains and changes only by JTAG, so
-# its paths into the fabric keep the 512 cycles.
+# its paths into the fabric keep the 16384 cycles.
 
 # The switches, buttons and LEDs are the fabric's pads, asynchronous to TCK.
 set_false_path -to   [get_ports {led[*]}]

@@ -247,7 +247,7 @@ Status: **same** = byte-identical to `bob/`, **moved** = same content at a new p
 | studio backend | `software/host/studio.py` | **new**; stdlib `http.server` + Server-Sent Events only, so the project gains no dependency (pyusb was already required). Every route drives `flow.py` or `software/host/cfgplane.py` |
 | studio page | `software/studio/`, `studio.html` | **new**, assembled by `software/studio/build.py` exactly as `docs/arch/build.py` assembles `arch.html`, reusing that page's tokens and SVG primitives. No external libraries |
 | device table | `software/bob/devtable.py` | **new**; the table was hand-copied into six documents and drifted (README described the 36-CLB M12b profile after M16 put 100 CLBs on the board). Generated from `device.json` between markers, checked by `tests/test_device_table.py` and `make check` |
-| timing-contract guards | `tests/test_layout.py` | **new** checks over existing files: the XDC's sysclk multicycle must equal `2**GCE_MIN_GAP_SHIFT`, hold must be setup − 1, and the RTL must take the gap from that macro. Each one was mutation-tested |
+| timing-contract guards | `tests/test_layout.py` | **new** checks over existing files: the XDC's sysclk multicycle must equal `2**GCE_MIN_GAP_SHIFT` (M21: `XDC_SYSCLK_MULTICYCLE`, ≥ the gap), hold must be setup − 1, and the RTL must take the gap from that macro. Each one was mutation-tested |
 | the gap in simulation | `hw/tb/tb_clock_gap.v`, `sim/run_frames_sim.sh` | the existing testbench, parameterised: it ran only at GAP = 4, and now also runs at the board's `BOB_GCE_MIN_GAP_SHIFT` |
 
 ## M18: projects and block designs (2026-09-22)
@@ -282,3 +282,23 @@ Status: **same** = byte-identical to `bob/`, **moved** = same content at a new p
 | at-speed example | `work/examples/atspeed/atspeed.v` | **new**, the classic self-checking counter (a == last a + 1, sticky error) |
 | board checks | `software/host/hwtest.py` `check_clock_*` | reuse `_build`, `cli.load`, CAPTURE and SAMPLE; `check_clock_rate` is `check_blinky_rate` with an integer period |
 
+
+## M21: the cluster CLB and the BRAM-shadow readback (2026-09-23)
+
+| what | where | reused / new |
+|---|---|---|
+| logic element | `hw/src/clb/ble.sv` | from `clb.sv` (M4–M20): the same LUT, carry and flip-flop; **new**: the `frac` flag (UG474 LUT6_2 with A6 high) and a second flip-flop on O5. `clb.sv` stays for the M0 fabric |
+| cluster | `bob_clb` in `hw/src/generated/bob_fabric.v` (`software/bob/fabric_gen.py`) | **new**, OpenFPGA/VTR k6_frac_N10's clb: elements behind a complete crossbar with feedback, the adder chain through the elements; crossbar muxes are `bob_mux` |
+| VPR architecture | `software/bob/vpr_arch.py` | the reference's fle modes (n1_lut6 / n2_lut5 / arithmetic) and crossbar, bob's cells |
+| crossbar in the host tools | `software/bob/device.py` (EIN / ECY nodes) | **new**: the crossbar is more routing muxes, so `model.py`, `bitstream.Design`'s router and `timing.py` reuse their mux code unchanged |
+| cluster packer | `software/bob/pnr/pack.py` | **new**, after VPR's AAPack (seed + attraction, legality by pins and CE/SR), with LUT pairing for fractured elements |
+| crossbar from VPR | `software/bob/fasm_from_vpr.py` | **new**: reads the `.net` packing and the route's IPINs (the router may use any equivalent CLB pin) |
+| BRAM shadow | `hw/src/core/cfg_store.v` | the write path unchanged; the 256:1 readback mux replaced by an inferred block RAM and per-frame valid bits |
+| sizing | `software/bob/sweep.py` | **new**: VPR (binary-search W), exact bits from the rr graph, yosys host LUTs, per configuration |
+| autostep | `hw/src/core/jtag_tap6.v` | one register more: the step fires a TCK after the pad update (M20 `bob-fir`) |
+| clock controller | `hw/src/core/clock_ctrl.v` | `last` / `min_gap` registered (M20 WNS) |
+| example | `work/examples/fir16/fir16.v` | **new** |
+| timing contract | `software/bob/timing.py` `spacing` / `contract` / `check_contract`, called by `flow.py` (timing stage) and `cli.load` / `load_partial` | **new**, over the existing `analyse()`: the per-design sign-off of M20 becomes the guarantee the XDC's sysclk multicycle rests on (PLAN §8's case analysis, done in software rather than as 32 896 `set_case_analysis` pins) |
+| XDC sysclk multicycle | `hw/constr/pynq_z2.xdc`, `software/bob/device.py` `XDC_SYSCLK_MULTICYCLE` | modified: 16384/16383, decoupled from the gap (back to 512); `tests/test_layout.py` holds the XDC to device.py and to ≥ the gap, and requires the flow and `cli.load` to call the contract |
+| TCK multicycle, post-place report | `hw/constr/pynq_z2.xdc`, `device.py` `XDC_TCK_MULTICYCLE`, `hw/scripts/place_report.tcl` (place_design TCL.POST, hooked in `build.tcl` beside `drc_waiver.tcl`) | modified / **new**: TCK → TCK 16/15; each clock's worst path in `runme.log` after placement |
+| mutation watchdog | `sim/mutate_lib.sh` | **new**, sourced by the three `sim/mutate_*.sh`: each simulation under a background-kill timeout (`MUTATE_TIMEOUT`); a mutant that hangs in a zero-delay loop counts as killed and is reported as a hang |

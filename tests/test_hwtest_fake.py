@@ -199,7 +199,7 @@ def test_m14_bad_crc_fails_when_the_freeze_does_not_hold():
 @pytest.mark.parametrize("check", ["check_frames_bram_load", "check_frames_bram_live_refused",
                                    "check_ram_readback_frames"])
 def test_m15_bram_frame_checks_pass_on_a_good_board(check):
-    ok, msg = getattr(hwtest, check)(FakeBob(rate_scale=1e-4), {})     # the ROM runs free at div 0
+    ok, msg = getattr(hwtest, check)(FakeBob(rate_scale=2e-4), {})     # the ROM runs free at div 0 (M21: the default rate halved)
     assert ok, msg
 
 
@@ -329,3 +329,71 @@ def test_m20_clock_margin_finds_the_edge_above_the_computed_clock(quick_atspeed)
 def test_m20_clock_margin_fails_when_the_computed_clock_is_unsafe(quick_atspeed):
     ok, msg = hwtest.check_clock_margin(FakeBob(rate_scale=2e-5, budget=0.05, max_hz=_atspeed_fmax() * 0.7), {})
     assert not ok and "fails at the computed clock" in msg, msg
+
+
+# --- M21: the cluster CLB and the BRAM-shadow readback --------------------------------
+
+def test_m21_shadow_readback_passes_on_a_good_board():
+    ok, msg = hwtest.check_shadow_readback(FakeBob(), {})
+    assert ok and "all zeros" in msg, msg
+
+
+def test_m21_shadow_readback_fails_when_jprogram_leaves_the_shadow():
+    ok, msg = hwtest.check_shadow_readback(FakeBob(stale_shadow=True), {})
+    assert not ok and "after JPROGRAM" in msg, msg
+
+
+def test_m21_partial_cluster_passes_on_a_good_board():
+    ok, msg = hwtest.check_partial_cluster(FakeBob(), {})
+    assert ok and "FDRO == B: True" in msg, msg
+
+
+def test_m21_partial_cluster_fails_when_the_clb_loses_its_state():
+    ok, msg = hwtest.check_partial_cluster(FakeBob(wipe_on_partial=True), {})
+    assert not ok, msg
+
+
+@pytest.mark.parametrize("pnr", ["vpr", "python"])
+def test_m21_fir16_passes_on_a_good_board(pnr):
+    ok, msg = hwtest._bob_check("fir16", pnr=pnr)(FakeBob(), {})
+    assert ok, msg
+
+
+def test_m21_fir16_fails_when_capture_is_wrong():
+    ok, msg = hwtest._bob_check("fir16")(FakeBob(corrupt_capture=True), {})
+    assert not ok and "CAPTURE" in msg, msg
+
+
+def test_m21_fir16_live_passes_on_a_good_board(quick):
+    ok, msg = hwtest._live_check("fir16")(FakeBob(switches=_wiggle), {})
+    assert ok, msg
+
+
+def test_m21_fir16_fast_passes_on_a_fast_enough_fabric(quick):
+    ok, msg = hwtest._live_check("fir16", fast=True)(FakeBob(switches=_wiggle, rate_scale=2e-5, budget=0.05), {})
+    assert ok, msg
+
+
+def test_m21_fir16_fast_fails_when_the_leds_disagree_with_the_model(quick):
+    """A live check compares the LEDs with model.py given the captured registers, so it
+    catches wrong logic at speed but not a register that missed an edge (the state it shows
+    is still consistent): that is atspeed's job (fmax-cluster)."""
+    ok, msg = hwtest._live_check("fir16", fast=True)(
+        FakeBob(switches=_wiggle, rate_scale=2e-5, budget=0.05, corrupt_sample=True), {})
+    assert not ok, msg
+
+
+def test_m21_fmax_cluster_passes_and_fails(quick_atspeed):
+    ok, msg = hwtest.check_fmax_cluster(FakeBob(rate_scale=2e-5, budget=0.05), {})
+    assert ok and "no error" in msg, msg
+    ok, msg = hwtest.check_fmax_cluster(FakeBob(rate_scale=2e-5, budget=0.05, max_hz=_atspeed_fmax() / 2), {})
+    assert not ok and "too fast" in msg, msg
+
+
+def test_m21_list_is_the_m20_regression_plus_the_cluster():
+    names = [n for n, _c in hwtest.MILESTONE["M21"]]
+    assert names[:len(hwtest.MILESTONE["M20"]) - 1] == [n for n, _c in hwtest.MILESTONE["M20"][:-1]]
+    for n in ("shadow-readback", "partial-cluster", "bob-fir16", "pnr-fir16", "live-fir16", "fast-fir16",
+              "fmax-cluster"):
+        assert n in names
+    assert names[-1] == "pipeline-live"

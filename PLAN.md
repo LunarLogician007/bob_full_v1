@@ -54,6 +54,8 @@ The 8×8 profile (48 CLBs, 9400 bits, `0x9BEEF093`) is frozen in `release/M7_8x8
 | M19 | bob studio as a desktop app (`./bob studio`, pywebview), all software under `software/` (the studio page moved to `software/studio/`), zoom and pan on the block design, Device view and waveform, board pins (SW0..BTN3, LD0..LD2) as block-design ports, the **waveform viewer**: a logic analyser on the pads through boundary scan (`software/host/padwave.py`; step = INTEST autostep, one sample per user clock; live = SAMPLE), with triggers and VCD export | **software done; hardware test pending** (`make hwtest M=M19`, no Vivado rebuild). Checklist `docs/hwtest/M19.md` |
 | M20 | a per-design user clock: `clock_ctrl.v` `clk_period` (any integer rate, `clk_div` prescales) and `clk_gap` (the design's own gce spacing, floor 2 cycles = 62.5 MHz, 0 = the safe 512); `software/bob/timing.py` (static timing of the configured bits), `software/bob/delays.py` + `hw/scripts/extract_delays.tcl` (per-element delays measured on the build), clock constraints as in Vivado: a `.sdc` `create_clock` (project `constrs/`, `--sdc`), slack reported, **negative slack fails the build (no `.bit`)**; `--hz auto` for the fastest safe clock; new IDCODE scheme `0x0B020093`. (A tree readback mux was measured and left out: +310 LUTs in the whole design) | **software done; Vivado build and hardware test pending** (`make hwtest M=M20`: clock-rate, clock-fmax, clock-fmax-py, clock-margin). Checklist `docs/hwtest/M20.md` |
 
+| M21 | the cluster CLB: 49 CLBs × 4 logic elements (fracturable LUT6, carry, 2 FFs) behind a full crossbar = 196 LUTs, N and the crossbar measured first (`docs/reports/M21/cluster_sweep.md`); readback from a BRAM shadow (the 256:1 readback mux removed); autostep a TCK after the pad update (M20 `bob-fir`), `clock_ctrl` period/gap registered (M20 WNS −0.919 ns); fir16, bob's cluster packer; the XDC stops timing the empty fabric (sysclk multicycle 16384, gap back to 512) and `timing.contract()` refuses any build or load whose critical path exceeds its gce spacing; IDCODE `0x0B021093` | **software done, simulated; first Vivado build did not close (fabric WNS −133 / −290 ns); rebuild with the timing contract and hardware test pending** (`make hwtest M=M21`). Checklist `docs/hwtest/M21.md` |
+
 Hardware results are in `docs/hwtest/results.log`; Vivado reports are in `docs/reports/Mx/`; per-design guest reports in `docs/reports/M11/designs.md`.
 
 ### After M16: the timing contract is checked, and there is a GUI
@@ -110,6 +112,62 @@ per 4 bits (about 4,600). A balanced binary tree beat the flat array on `cfg_sto
 FDRO's word select, and the tree stops that. `cfg_store.v` keeps M16's code. Room for M21 has
 to come from a different memory (a BRAM shadow for readback, or ZUMA-style LUTRAM), not a
 different mux.
+
+### M21: the cluster CLB, sized by measurement
+
+The plan was OpenFPGA's k6_frac_N10 at N = 10. `software/bob/sweep.py` measured N = 4/6/8/10,
+full and half crossbars, on grids of about 350 and 200 LUTs: VPR's channel width,
+configuration bits exactly (from the rr graph), wirelength and critical path with bob's
+delays, and host LUTs in yosys.
+
+- A half crossbar needs far wider channels: VPR can no longer treat the CLB inputs as
+  equivalent.
+- Bits per LUT hardly move with N.
+- **Host LUTs per guest LUT grow with N** (N=4 289, N=10 421; M16's CLB 226), because every
+  crossbar mux is host logic. The chip affords about 200 cluster LUTs.
+
+The user chose **N = 4 on 7 × 7 CLBs** (196 LUTs; 8 × 8 would be about 86% of the device).
+Clusters make designs faster: carry chains and neighbouring logic skip the routing
+(M20 → cluster: counter 25 → 14 ns, big 65 → 24 ns at N = 10).
+
+**The BRAM shadow** (`cfg_store.v`, `docs/bitstream-format.md` §14) replaces the readback mux.
+Readback now proves the frames written, not the flip-flops; CAPTURE and the model checks keep
+covering the flip-flops.
+
+**M20's board findings, fixed here:**
+- **The autostep race.** The step came ~30 ns after the new pad values. That was too short
+  for fir's button → DSP → adder path.
+- **`clock_ctrl.v`'s combinational period/gap arithmetic** (WNS −0.919 ns).
+
+**Vivado does not time the fabric any more; the per-design contract does (PLAN §8's case
+analysis, done in software).** The first two M21 implementations missed on fabric paths:
+WNS −133 ns against the 512-cycle multicycle, −290 ns against 1024, and phys_opt ground
+on for hours. Vivado can only time the fabric unconfigured, a mesh of loops it cuts
+wherever it likes, and the path it keeps grew with the budget. Raising the gap again would
+not have converged, and each doubling halves the default guest clock.
+- The XDC's sysclk → sysclk multicycle is `XDC_SYSCLK_MULTICYCLE` = 16384 (131 µs),
+  beyond any simple path through the ~4800 fabric muxes. It is a clock-level multicycle,
+  not a false path, so the one-cycle cell exceptions on `u_clk` / `u_bram_jtag` still win
+  (UG903).
+- The gap is back to 512 (M16–M20, board-proven).
+- TCK → TCK gets a 16-period multicycle (160 µs) for the same reason. Configuration bits and
+  the boundary/IR update cells drive the empty mesh, and TCK registers capture it (CAPTURE,
+  boundary, DSP JTAG). The second build, with sysclk relaxed, routed with sysclk met
+  (+0.868 ns) and TCK at −463 ns: IR update → 6349 levels of empty fabric → DSP JTAG
+  capture, 5463 ns against the 5000 ns fall → rise half period. `place_report.tcl` now prints each
+  clock's worst path right after placement.
+- `timing.contract()` holds every word to its own gce spacing (`clk_gap`, or the default
+  when it is 0), stepped or free-running: the flow's timing stage fails the build and
+  `cli.load` / `load_partial` refuse before sending anything. The one exception is the board's `clock-margin` sweep, which over-clocks
+  atspeed on purpose to prove the guard band (`over_clock=`, loops still refused). The delays are measured on
+  this build (`extract_delays.tcl`), and `clock-margin` checks the guard band on the board.
+- `tests/test_timing.py` holds every hand design in `designs.py` (loaded straight through
+  `cfgplane` by the board checks) to the same rule. `tests/test_layout.py` holds the XDC to
+  device.py and requires the flow and `cli.load` to call the contract; each guard was
+  mutation-tested by hand.
+- `sim/mutate_lib.sh`: every mutation simulation runs under a watchdog, so mutants that wire
+  the fabric into a zero-delay loop (`xbar-sel-off-by-one`, `mux-inputs-shifted`) count as
+  killed (reported as a hang) instead of spinning forever.
 
 ### M18: projects and block designs
 
@@ -280,7 +338,7 @@ What `build.tcl` guarantees (tested on the Mac with the stub): the project lives
 | Vivado GUI Run Tcl Script | can't pass `-tclargs` | `set bob_args {…}` before `source` |
 | OpenFPGA Docker | no arm64 manifest; Colima shares only `$HOME`; the image user can't write a mount | `--platform linux/amd64`, `-u root`, work dirs under `build/` |
 | Fabric combinational loops | LUTLP-1 DRC and Synth 8-295 by construction | Downgraded for fabric tops in `drc_waiver.tcl`; UNOPTFLAT waived in lint |
-| Timing on the fabric (M7) | WNS −1102 ns: static paths through unconfigured routing loops | Hardware still correct; fixes (KEEP_HIERARCHY, commit only while GWE=0, TCK ceiling, case-analysis sign-off) are planned for the next rebuild |
+| Timing on the fabric (M7) | WNS −1102 ns: static paths through unconfigured routing loops | Hardware still correct; fixes (KEEP_HIERARCHY, commit only while GWE=0, TCK ceiling, case-analysis sign-off) are planned for the next rebuild. M21: the case-analysis sign-off is done in software (`timing.contract()`) |
 | Vivado synthesis of 48 CLBs (M7) | 30+ min and still running on the build machine | Board runs the 16-CLB profile; 8×8 frozen in `release/M7_8x8/` |
 | VPR `pinlocations spread` on tall blocks (M7) | pins inside a tall block where there is no channel: `SINK has no fanin` | custom pin locations in `device.py` |
 | rr graph `ptc` (M7) | tileable CHAN nodes carry one track id per position | `rrgraph.py` parses ptc as a tuple |

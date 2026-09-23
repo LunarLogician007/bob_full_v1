@@ -20,7 +20,7 @@ rrgraph:
 
 # M9/M10: examples (+ pin variants) -> yosys -> VPR on the committed rr graph (Docker) -> software/bob/vpr/<name>/ (committed)
 vpr:
-	for t in gates adder counter blinky ram mult switches fir wide big atspeed; do software/bob/equiv.py work/examples/$$t/$$t.v || exit 1; done
+	for t in gates adder counter blinky ram mult switches fir wide big atspeed fir16; do software/bob/equiv.py work/examples/$$t/$$t.v || exit 1; done
 	software/bob/vpr_run.py --repeat
 	# M18: the block-design example, a project (its sources are listed in its .bobproj)
 	software/bob/cli.py build --project work/examples/bd_demo/bd_demo.bobproj --pnr python -o build/bit/bd_demo_py.bit
@@ -80,7 +80,7 @@ hw:
 	@echo "  4. make hwtest M=$(M)"
 
 hwtest:
-	cd host && ./hwtest.py --milestone $(M) $(if $(ONLY),--only $(ONLY))
+	cd software/host && ./hwtest.py --milestone $(M) $(if $(ONLY),--only $(ONLY))
 
 clean:
 	rm -f sim/*.vvp sim/*.vcd

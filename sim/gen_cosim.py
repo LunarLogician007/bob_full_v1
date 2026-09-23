@@ -93,14 +93,14 @@ def main():
             return "{" + ", ".join(reversed(bits)) + "}"
 
         cmap = FV.capture_map(name, work)
-        cap = ["1'b0"] * B.NCLB
+        cap = ["1'b0"] * B.NCAP
         mask = 0
         for idx, nbit in cmap:
             cap[idx] = f"u_gold_{k}.n{nbit}"
             mask |= 1 << idx
         mux.append(f"            {k}: begin exp_led = {board_leds(f's_led_{k}')}; "
                    f"gld_led = {board_leds(f'g_led_{k}')};")
-        mux.append(f"                cap_exp = {{{', '.join(reversed(cap))}}}; cap_mask = {B.NCLB}'h{mask:x}; end")
+        mux.append(f"                cap_exp = {{{', '.join(reversed(cap))}}}; cap_mask = {B.NCAP}'h{mask:x}; end")
         clk_on.append(f"            {k}: clk_{k} = v;")
 
         # stimulus: source view and board view of the same vector

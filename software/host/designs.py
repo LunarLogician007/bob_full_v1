@@ -5,22 +5,30 @@ sim/gen_vectors.py turns these into simulation vectors and software/host/fpga.py
 the same ones onto the board, so what runs on hardware is exactly what the
 testbench verified.
 
-M7: coordinates are VPR's (x East, y North). CLBs are at x in {1,2,4,5,7,8},
-y in 1..8; the BRAM column is x=3 (bram0 rows 1-4, bram1 rows 5-8), the DSP
-column x=6 (dsp0 rows 1-4, dsp1 rows 5-8). Board inputs SW0, SW1, BTN0..3 are
+M7: coordinates are VPR's (x East, y North), from device.json. M21: a CLB is a
+cluster of N elements; Design.lut(x, y, ..., e=k) places a LUT in element k (default
+0), and the carry runs through a CLB's elements before it reaches the CLB above. Board inputs SW0, SW1, BTN0..3 are
 West-edge pads, LD0..LD2 East-edge pads, so every design routes across the grid.
 
 Each entry is (key, description, builder, input_sweep). The builder returns a
 Design; the sweep is the set of pad_i values worth checking.
 """
 
-from bitstream import BRAM_PINS, CLB_AT, DSP_CTRL_NAMES, Cell, Design, LUT, LUT_K
+from bitstream import BRAM_PINS, CLB_AT, CLB_N, DSP_CTRL_NAMES, Cell, Design, LUT, LUT_K
 
 # the grid's extent, so designs follow device.py's ARCH (6x4 core now, 8x8 later)
 CLB_COLS = sorted({x for x, _y in CLB_AT})
 CLB_ROWS = sorted({y for _x, y in CLB_AT})
 FAR_X, FAR_Y = CLB_COLS[-1], CLB_ROWS[-1]
-FULL_COL_X, FULL_COL_BITS = FAR_X, len(CLB_ROWS)   # a counter up the whole last CLB column
+# a counter through every element of the last column's bottom CLB and on across the carry
+# direct into the next (M21: it wraps within a simulation, so every carry link is used)
+FULL_COL_X, FULL_COL_BITS = FAR_X, CLB_N + 2
+
+
+def counter_cells(x, bits):
+    """(x, y, e) of counter bit r: the carry runs through the N elements of a CLB, then
+    on to the CLB above (M21; until M20 one CLB per bit, up the column)"""
+    return [(x, 1 + r // CLB_N, r % CLB_N) for r in range(bits)]
 
 
 def d_and():
@@ -177,40 +185,61 @@ COUNTER_X = 1
 
 
 def d_counter(mode="jtag", div=0, x=COUNTER_X, bits=4):
-    """A counter up column x on the carry chain: q0 at clb(x,1) .. q[bits-1] at
-    clb(x,bits). Each CLB: LUT = buf(own q) = propagate, XORCY sum = D, MUXCY
-    carries to the CLB above (a VPR direct); USER1 cin = 1 makes it count.
-    LD0..LD2 = q1..q3.
+    """A counter on the carry chain of CLB column x: q0 in element 0 of clb(x,1), q1 in
+    element 1, ... (counter_cells). Each element: LUT = buf(own q) = propagate, XORCY sum
+    = D, MUXCY carries to the next element (and from element N-1 to the CLB above, a
+    VPR direct); USER1 cin = 1 makes it count. LD0..LD2 = q1..q3.
 
     mode 'jtag': one count per TCK edge while USER1 ce. mode 'run': free-running,
     one count every 2**(div+DIV_MIN_SHIFT) sysclk cycles (div 17 -> 1.9 counts/s from M16,
     LD0 ~0.5 Hz)."""
     d = Design()
     d.set_clock(mode, div)
-    for r in range(bits):
-        d.lut(x, 1 + r, LUT.buf(0), [Cell(x, 1 + r, "o")], ff_en=1, cy_en=1)
+    cells = counter_cells(x, bits)
+    for cx, cy, e in cells:
+        d.lut(cx, cy, LUT.buf(0), [Cell(cx, cy, "o", e)], ff_en=1, cy_en=1, e=e)
     for k in range(3):
-        d.output(k, Cell(x, 2 + k, "o"))
+        d.output(k, Cell(*cells[1 + k][:2], "o", cells[1 + k][2]))
     return d
 
 
 def d_partial(gate="and", mode="jtag", div=0):
-    """M14 partial reconfiguration pair: a 4-bit counter up column 1 (as d_counter) and
-    one gate of the two switches at clb(4,1). gate 'and' / 'or' differ only in that
-    LUT's INIT, so a partial reload rewrites one frame and the counter keeps counting.
-    LD0 = q3, LD1 = the gate, LD2 = q2."""
+    """M14 partial reconfiguration pair: a 4-bit counter in elements 0..3 of clb(1,1) (as
+    d_counter) and one gate of the two switches at clb(4,1). gate 'and' / 'or' differ only
+    in that LUT's INIT, so a partial reload rewrites one frame and the counter keeps
+    counting. LD0 = q3, LD1 = the gate, LD2 = q2."""
     d = Design()
     d.set_clock(mode, div)
-    for r in range(4):
-        d.lut(1, 1 + r, LUT.buf(0), [Cell(1, 1 + r, "o")], ff_en=1, cy_en=1)
+    for x, y, e in PARTIAL_Q:
+        d.lut(x, y, LUT.buf(0), [Cell(x, y, "o", e)], ff_en=1, cy_en=1, e=e)
     a, b = d.input(0), d.input(1)
-    d.output(0, Cell(1, 4, "o"))
+    d.output(0, Cell(1, 1, "o", 3))
     d.output(1, d.lut(4, 1, {"and": LUT.and2(), "or": LUT.or2()}[gate], [a, b]))
-    d.output(2, Cell(1, 3, "o"))
+    d.output(2, Cell(1, 1, "o", 2))
     return d
 
 
-PARTIAL_Q = [(1, 1), (1, 2), (1, 3), (1, 4)]          # counter bits 0..3
+PARTIAL_Q = [(1, 1, 0), (1, 1, 1), (1, 1, 2), (1, 1, 3)]          # counter bits 0..3
+# M21: partial reconfiguration inside ONE CLB - a counter in elements 0..N-2 and the gate
+# in the last element of clb(1,1)
+PARTIAL_GATE_E = CLB_N - 1
+PARTIAL_CLUSTER_Q = [(1, 1, e) for e in range(CLB_N - 1)]
+
+
+def d_partial_cluster(gate="and", mode="jtag", div=0):
+    """M21 partial reconfiguration INSIDE one CLB: a counter in elements 0..N-2 of clb(1,1)
+    and the gate in its last element, the gate's inputs through the CLB's crossbar. AND ->
+    OR rewrites the frame(s) holding that element's INIT; the frozen counter beside it in
+    the same CLB must keep its state. LD0 = the counter's top bit, LD1 = the gate, LD2 = q0."""
+    d = Design()
+    d.set_clock(mode, div)
+    for x, y, e in PARTIAL_CLUSTER_Q:
+        d.lut(x, y, LUT.buf(0), [Cell(x, y, "o", e)], ff_en=1, cy_en=1, e=e)
+    a, b = d.input(0), d.input(1)
+    d.output(0, Cell(*PARTIAL_CLUSTER_Q[-1][:2], "o", PARTIAL_CLUSTER_Q[-1][2]))
+    d.output(1, d.lut(1, 1, {"and": LUT.and2(), "or": LUT.or2()}[gate], [a, b], e=PARTIAL_GATE_E))
+    d.output(2, Cell(1, 1, "o", 0))
+    return d
 
 
 # --- M5: BRAM ---------------------------------------------------------------------------

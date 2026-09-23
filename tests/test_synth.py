@@ -39,19 +39,20 @@ def test_example_flow(top):
     assert len(tr["trace"]) == 200
 
 
-def test_long_chain_crosses_columns():
-    """The M8 placer must split a carry chain that is longer than a CLB column.
-    blinky's 12 cells fitted two columns while columns were 4 and 8 rows; from M16 the
-    columns are 10 rows, so `wide` (a 12-bit counter plus an 8-bit LFSR) is the design
-    that has to be split."""
+def test_long_chain_runs_through_the_elements():
+    """The M8 placer puts a carry chain on consecutive element slots of a CLB column
+    (M21: e0..e<N-1> of a CLB, then on across the carry direct into the CLB above), and
+    a chain longer than a column is split into the next. blinky's chain crossed columns
+    while CLBs held one element; `wide` (a 12-bit counter plus an 8-bit LFSR) now spans
+    two CLBs of one column."""
     import bitstream as B
-    rows = len({y for (x, y) in B.CLB_XY_INDEX})
     d, bs, contents, tr = place.flow("wide", cycles=50)
-    cols = {x for (x, y) in d.cells}
-    assert len(cols) >= 2, f"a design of {len(d.cells)} cells cannot fit one {rows}-row column"
-    for x in cols:                                     # each piece is a contiguous run of rows
-        ys = sorted(y for (cx, y) in d.cells if cx == x)
-        assert ys == list(range(ys[0], ys[0] + len(ys)))
+    slots = {x: place.column(x) for x in place.CLB_COLS}
+    carry = sorted((x, y, e) for (x, y, e) in d.cells if B.Bitstream(bs.to_int()).get_field(x, y, "cy_en", e))
+    assert len({(x, y) for x, y, _e in carry}) >= 2, "the chain should cross a CLB boundary"
+    for x in {x for x, _y, _e in carry}:              # each piece is a contiguous run of slots
+        idx = sorted(slots[x].index(c) for c in carry if c[0] == x)
+        assert idx == list(range(idx[0], idx[0] + len(idx)))
 
 
 def test_non_bob_cell_is_rejected(tmp_path):

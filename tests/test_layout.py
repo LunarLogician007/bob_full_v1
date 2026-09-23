@@ -86,24 +86,63 @@ def test_nothing_outside_hw_is_needed_by_vivado():
 
 # --- the timing contract ------------------------------------------------------
 #
-# The fabric's sysclk -> sysclk multicycle is true only because clock_ctrl.v
-# guarantees gce pulses at least 2**GCE_MIN_GAP_SHIFT cycles apart. Those are two
-# numbers in two files, and the XDC says so itself: "that agreement is the whole
-# reason the exception is true rather than assumed". Until M16 nothing checked it,
-# and M16's first implementation ran 3 h 25 min and failed at WNS -465 ns because
-# 256 cycles no longer covered the 12x10 fabric. These tests are that check.
+# Through M20 the fabric's sysclk -> sysclk multicycle was true only because clock_ctrl.v
+# guaranteed gce pulses at least 2**GCE_MIN_GAP_SHIFT cycles apart, and it had to cover
+# the longest path Vivado found through the unconfigured fabric. Until M16 nothing checked
+# that agreement, and M16's first implementation ran 3 h 25 min and failed at WNS -465 ns.
+# M21 showed the unconfigured path is not a property of the fabric (it grew with the
+# budget), so the XDC's number is now XDC_SYSCLK_MULTICYCLE, far beyond any path, and the
+# promise is kept per design by timing.contract() (tests/test_timing.py). These tests
+# hold the XDC to device.py and the RTL to the generated header.
 
 
-def test_the_sysclk_multicycle_matches_the_gce_gap():
-    gap = _device()["clock"]["gce_min_gap_shift"]
-    want = 1 << gap
+def test_the_sysclk_multicycle_is_the_one_device_py_names():
+    c = _device()["clock"]
+    want = c["xdc_multicycle"]
     m = re.search(r"^set_multicycle_path\s+-setup\s+(\d+)\s+-from\s+\[get_clocks sysclk\]"
                   r"\s+-to\s+\[get_clocks sysclk\]", _xdc(), re.M)
     assert m, "no sysclk -> sysclk setup multicycle in the XDC"
     assert int(m.group(1)) == want, (
-        f"XDC relaxes sysclk by {m.group(1)} cycles but clock_ctrl.v only guarantees "
-        f"{want} (GCE_MIN_GAP_SHIFT = {gap} in software/bob/device.py). "
-        "Raise the gap or lower the exception - they must be the same number.")
+        f"XDC relaxes sysclk by {m.group(1)} cycles but XDC_SYSCLK_MULTICYCLE in "
+        f"software/bob/device.py is {want}: change them together")
+
+
+def test_the_tck_multicycle_is_the_one_device_py_names():
+    """M21: TCK paths through the empty fabric passed the 10 us period (WNS -228 ns), so
+    TCK -> TCK is relaxed like sysclk, with hold at the same edge."""
+    want = _device()["clock"]["xdc_tck_multicycle"]
+    x = _xdc()
+    setup = re.search(r"^set_multicycle_path\s+-setup\s+(\d+)\s+-from\s+\[get_clocks tck\]"
+                      r"\s+-to\s+\[get_clocks tck\]", x, re.M)
+    hold = re.search(r"^set_multicycle_path\s+-hold\s+(\d+)\s+-from\s+\[get_clocks tck\]"
+                     r"\s+-to\s+\[get_clocks tck\]", x, re.M)
+    assert setup and hold, "no tck -> tck multicycle pair in the XDC"
+    assert int(setup.group(1)) == want, f"XDC tck multicycle {setup.group(1)}, device.py {want}"
+    assert int(hold.group(1)) == want - 1, f"tck setup {want} needs hold {want - 1}"
+
+
+def test_the_sysclk_multicycle_is_no_tighter_than_the_default_gap():
+    """The multicycle only has to keep Vivado off the unconfigured fabric, but it must never
+    be the tighter promise: every word timing.contract() accepts runs at least the default
+    gap apart when clk_gap is 0, and the XDC must not claim less room than that."""
+    c = _device()["clock"]
+    assert c["xdc_multicycle"] >= 1 << c["gce_min_gap_shift"], (
+        f"XDC multicycle {c['xdc_multicycle']} < the default gap 2**{c['gce_min_gap_shift']}")
+
+
+def test_loads_are_held_to_the_timing_contract():
+    """The XDC's relaxation is safe only because nothing reaches the fabric untimed: the
+    flow's timing stage and cli.load must both call timing.contract()."""
+    fl = open(os.path.join(ROOT, "software", "bob", "flow.py")).read()
+    cl = open(os.path.join(ROOT, "software", "bob", "cli.py")).read()
+    assert "T.contract(t, word)" in fl, "flow.py's timing stage no longer checks the contract"
+    for fn in ("def load(", "def load_partial("):
+        body = cl[cl.index(fn):].split("\ndef ", 1)[0]
+        assert "contract(" in body, f"cli.py {fn[4:-1]} loads without the timing contract"
+    # only the clock-margin sweep may over-clock, and only below the computed period
+    hw = open(os.path.join(ROOT, "software", "host", "hwtest.py")).read()
+    assert hw.count("over_clock=") == 1 and "over_clock=period < gap" in hw, (
+        "over_clock is for check_clock_margin's sweep below the computed period only")
 
 
 def test_the_sysclk_hold_multicycle_is_one_less_than_setup():

@@ -21,6 +21,38 @@
 "n": 6,
 "tt": 4683743612465315840
 },
+"ffd27": {
+"n": 1,
+"tt": 2
+},
+"ffd28": {
+"n": 1,
+"tt": 2
+},
+"ffd29": {
+"n": 1,
+"tt": 2
+},
+"ffd30": {
+"n": 1,
+"tt": 2
+},
+"ffd31": {
+"n": 1,
+"tt": 2
+},
+"ffd32": {
+"n": 1,
+"tt": 2
+},
+"ffd33": {
+"n": 1,
+"tt": 2
+},
+"ffd34": {
+"n": 1,
+"tt": 2
+},
 "ffd35": {
 "n": 1,
 "tt": 2
@@ -34,38 +66,6 @@
 "tt": 2
 },
 "ffd38": {
-"n": 1,
-"tt": 2
-},
-"ffd39": {
-"n": 1,
-"tt": 2
-},
-"ffd40": {
-"n": 1,
-"tt": 2
-},
-"ffd41": {
-"n": 1,
-"tt": 2
-},
-"ffd42": {
-"n": 1,
-"tt": 2
-},
-"ffd43": {
-"n": 1,
-"tt": 2
-},
-"ffd44": {
-"n": 1,
-"tt": 2
-},
-"ffd45": {
-"n": 1,
-"tt": 2
-},
-"ffd46": {
 "n": 1,
 "tt": 2
 }
@@ -98,12 +98,6 @@
 "$auto$alumacc.cc:548:replace_alu$28.slice[7].add": {
 "inv": 0
 },
-"bob_tap11": {
-"inv": 0
-},
-"bob_gen13": {
-"inv": 0
-},
 "$auto$alumacc.cc:548:replace_alu$28.slice[8].add": {
 "inv": 0
 },
@@ -116,7 +110,7 @@
 "$auto$alumacc.cc:548:replace_alu$28.slice[11].add": {
 "inv": 0
 },
-"bob_gen18": {
+"bob_gen14": {
 "inv": 0
 },
 "$auto$alumacc.cc:548:replace_alu$31.slice[0].add": {
@@ -141,12 +135,6 @@
 "inv": 0
 },
 "$auto$alumacc.cc:548:replace_alu$31.slice[7].add": {
-"inv": 0
-},
-"bob_tap28": {
-"inv": 0
-},
-"bob_gen30": {
 "inv": 0
 },
 "$auto$alumacc.cc:548:replace_alu$31.slice[8].add": {
@@ -332,7 +320,7 @@
 "$auto$alumacc.cc:548:replace_alu$28.slice[11].add": {
 "a": 0
 },
-"bob_gen18": {
+"bob_gen14": {
 "a": 0,
 "b": 0
 },
@@ -382,20 +370,18 @@
 "btn[2]": 7,
 "btn[3]": 8,
 "clk": 2,
-"cy12": 59,
-"cy29": 82,
-"ffd35": 34,
-"ffd36": 14,
-"ffd37": 32,
-"ffd38": 30,
-"ffd39": 27,
-"ffd40": 25,
-"ffd41": 23,
-"ffd42": 38,
-"ffd43": 19,
-"ffd44": 12,
-"ffd45": 10,
-"ffd46": 11,
+"ffd27": 34,
+"ffd28": 14,
+"ffd29": 32,
+"ffd30": 30,
+"ffd31": 27,
+"ffd32": 25,
+"ffd33": 23,
+"ffd34": 38,
+"ffd35": 19,
+"ffd36": 12,
+"ffd37": 10,
+"ffd38": 11,
 "led[0]": 9,
 "led[1]": 10,
 "led[2]": 11,
@@ -455,10 +441,10 @@
 },
 "pins": {
 "clk": 0,
-"btn[1]": 18,
-"out:led[0]": 13,
-"out:led[1]": 15,
-"out:led[2]": 17
+"btn[1]": 15,
+"out:led[0]": 10,
+"out:led[1]": 12,
+"out:led[2]": 14
 },
 "pcf": null
 }

@@ -23,15 +23,20 @@ import vpr_run  # noqa: E402
 def _random_features(rng):
     F = {}
     for node, (_lo, _w, base, ins) in B.MUX.items():
+        if B.NODE[node][1] == "EIN":                 # the crossbar: CLB fields, below
+            continue
         r = rng.random()
         if r < 0.2:
             F[f"rr{node}"] = base + rng.randrange(len(ins))
         elif r < 0.25 and B.NODE[node][1] == "IPIN":
             F[f"rr{node}"] = 1
     for c in B.CLBS:
-        F[f"{c}.init"] = rng.getrandbits(B.LUT_INIT_W)
-        for flag in B.FLAG_NAMES:
-            F[f"{c}.{flag}"] = rng.getrandbits(1)
+        for e in range(B.CLB_N):
+            F[f"{c}.e{e}.init"] = rng.getrandbits(B.LUT_INIT_W)
+            for flag in B.FLAG_NAMES:
+                F[f"{c}.e{e}.{flag}"] = rng.getrandbits(1)
+            for j in range(B.LUT_K):                 # const0, const1 or any crossbar source
+                F[f"{c}.e{e}.x{j}"] = rng.randrange(2 + len(B.XBAR_SOURCES[e][j]))
     for name, (_off, w) in B.BRAM_FIELD.items():
         F[f"bram1.{name}"] = rng.getrandbits(w) % 3 if name.startswith("wmode") else rng.getrandbits(w)
     F["ctrl.clk_mode"] = 1
@@ -58,11 +63,13 @@ def test_reserved_bits_and_bad_fasm_are_refused():
     with pytest.raises(FV.FasmError):
         bitgen.features_from_word(1 << (B.CHAIN_W - 1))              # tail padding
     clb = B.CLBS[0]
-    for text in (f"{clb}.init = 8'h1",                                # wrong width
-                 f"{clb}.nothing = 1'h1",                              # no such field
+    xw = B.FIELD["e0.x0"][1]
+    for text in (f"{clb}.e0.init = 8'h1",                             # wrong width
+                 f"{clb}.e0.nothing = 1'h1",                           # no such field
                  "rr999999 = 1'h1",                                    # no such mux
-                 f"{clb}.ff_en = 1'h1\n{clb}.ff_en = 1'h1",            # twice
-                 f"{clb}.ff_en 1"):                                    # syntax
+                 f"{clb}.e0.ff_en = 1'h1\n{clb}.e0.ff_en = 1'h1",      # twice
+                 f"{clb}.e0.ff_en 1",                                  # syntax
+                 f"{clb}.e0.x0 = {xw}'h{(1 << xw) - 1:x}"):            # M21: past the crossbar's sources
         with pytest.raises(FV.FasmError):
             bitgen.parse_fasm(text)
 

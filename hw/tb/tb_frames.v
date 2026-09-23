@@ -43,7 +43,7 @@ module tb_frames;
 
     localparam [5:0] IR_PKT_IN  = 6'b000101;     // CFG_IN
     localparam [5:0] IR_PKT_OUT = 6'b000100;     // CFG_OUT
-    localparam integer SW = 40960;
+    localparam integer SW = `TB_SW;             // from frame_vectors.vh: a whole load fits
 
     reg [SW-1:0]     big;
     reg [31:0]       statw;
@@ -263,6 +263,14 @@ module tb_frames;
 
         $display("[13] M14: partial reconfiguration of a running design");
         jprogram;
+        // M21: readback comes from the BRAM shadow, which JPROGRAM cannot zero - its per-frame
+        // valid bits must make every frame read back as the cleared memory does
+        send(`RB_N, `RB_V);
+        shift_ir(IR_PKT_OUT, irc);
+        read_out(32 * `RB_WORDS, big);
+        check("after JPROGRAM, FDRO readback (the BRAM shadow) is all zeros",
+              {63'h0, big[32*`RB_WORDS-1:0] === {(32*`RB_WORDS){1'b0}}}, 64'h1);
+        jprogram;                                             // RCFG is sticky until JPROGRAM
         send(`PRLOAD_N, `PRLOAD_V);
         start;
         write_user1(32'h4);                                   // USER1 cin = 1: the counter counts
@@ -294,6 +302,11 @@ module tb_frames;
         pad_i = 6'b000000; #40;
         check("design B: LD1 (00)", {63'h0, pad_o[1]}, 64'h0);
         $display("        %0d changed frame(s) written", `PR_NFRAMES);
+        send(`RB_N, `RB_V);
+        shift_ir(IR_PKT_OUT, irc);
+        read_out(32 * `RB_WORDS, big);
+        check("FDRO readback after the partial write == design B (the BRAM shadow mirrors partial writes)",
+              {63'h0, big[32*`RB_WORDS-1:0] === `PRB_RB_EXP}, 64'h1);
 
         $display("[14] partial with no CRC write: LFRM refused, stays frozen");
         send(`PRNCF_N, `PRNCF_V);

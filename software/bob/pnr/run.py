@@ -57,9 +57,9 @@ def run(top, seed=1, pcf=None, name=None, work=None, tries=5, log=None):
             sinks, keys = [], []
             for c, p in sorted(set(n["sinks"])):
                 blk = block_name(pl, c)
-                if packed.clusters[c].mode == "logic" and p.startswith("I["):
-                    # LUT inputs are permutable: any I pin of the CLB, the table follows
-                    sinks.append(tuple(route.pin_node(blk, f"I[{j}]") for j in range(B.LUT_K)))
+                if p == "I":
+                    # M21: behind a full crossbar every CLB input pin is equivalent
+                    sinks.append(tuple(route.pin_node(blk, f"I[{j}]") for j in range(B.CLB_I)))
                 else:
                     sinks.append(route.pin_node(blk, p))
                 keys.append((c, p))
@@ -77,10 +77,8 @@ def run(top, seed=1, pcf=None, name=None, work=None, tries=5, log=None):
         node_pin = {v: k for k, v in B.PIN.items()}
         for net, paths in routed.items():
             for (c, p), path in zip(sink_of[net], paths):
-                cl = packed.clusters[c]
-                if cl.mode == "logic" and p.startswith("I["):
-                    j = int(node_pin[path[-1]].rsplit("I[", 1)[1][:-1])
-                    cl.lut_pin[int(p[2:-1])] = j
+                if p == "I":
+                    packed.clusters[c].in_pin[net] = int(node_pin[path[-1]].rsplit("I[", 1)[1][:-1])
         break
     else:
         raise route.RouteError(f"{name}: no routable placement in {tries} seeds ({last})")

@@ -343,6 +343,9 @@ update_compile_order -fileset sim_1
 set_property STEPS.OPT_DESIGN.TCL.PRE      $waiver [get_runs impl_1]
 set_property STEPS.ROUTE_DESIGN.TCL.PRE    $waiver [get_runs impl_1]
 set_property STEPS.WRITE_BITSTREAM.TCL.PRE $waiver [get_runs impl_1]
+# M21: the worst path of each clock, printed right after placement (place_report.tcl),
+# so a failing build says which clock it is before phys_opt spends hours on it.
+set_property STEPS.PLACE_DESIGN.TCL.POST $script_dir/place_report.tcl [get_runs impl_1]
 
 # M7: the generated fabric (2100 routing muxes, thousands of combinational loops
 # by construction) makes timing-driven synthesis very slow. build.cfg

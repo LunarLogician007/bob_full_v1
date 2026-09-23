@@ -1,7 +1,149 @@
-# Handoff — bob_full_v1, 2026-09-22
+# Handoff — bob_full_v1, 2026-09-23
 
 **Read `CLAUDE.md` first (the rules), then `PLAN.md` §2 (status) and §3 (how the user wants this done).**
 This file is the live state: what is finished, what is in flight, and exactly what to do next.
+
+---
+
+## 0. Next agent: start here (2026-09-23, end of session)
+
+### Where things are
+- **Two checkouts.**
+  - `/Users/sk/work/bob/bob_full_v1` is the user's folder, on `main` at `8e6ecff` (M20). It must
+    keep the M20 tools while the board runs M20. Never check milestone WIP out there: the M20
+    board session broke on it, every check `KeyError: 'cluster'`.
+  - `/Users/sk/work/bob/bob_full_v1_m21` is a git worktree, branch `m21`. All M21 work is
+    here.
+- **Uncommitted, user's:** `docs/bob_full_v1_report.tex` (never commit it),
+  `docs/hwtest/results.log` (the M20 board runs), `docs/reports/M20/` (bit and two reports),
+  `runme.log` (the M21 Vivado log the user copied in).
+- **Stale:** the sweep scratch (`build/sweep/`) and the SDD ledger
+  (`.superpowers/sdd/have-a-look-into-agile-emerson/progress.md`) are in the worktree.
+
+### M20 on the board (2026-09-23): 57 of 58 pass. Two defects, both already fixed on `m21`
+1. **`bob-fir` fails at clock 16 (a stepping race).** INTEST autostep raised the step on the
+   same falling TCK edge as the boundary update (`jtag_tap6.v`), so the guest clock came about
+   30 ns after the new pad values. fir's button → DSP → adder → `y` path is longer than that
+   on M20's placement.
+   - Fix on `m21`: the step fires one TCK later.
+   - Test: `tb_bob` measures pad inputs → gce, 112 ns in simulation, and requires at least a
+     TCK.
+   - Mutant: `autostep-same-edge`.
+2. **Vivado WNS −0.919 ns** (`docs/reports/M20/bob_top_timing_summary_routed.rpt`). All 98
+   endpoints are `clock_ctrl.v`, `per_m1 → cnt` (the period arithmetic in one 8 ns cycle).
+   - Harmless on the board: the source is static config, and clock-rate / fmax / margin pass.
+   - Fix on `m21`: `last` and `min_gap` are registered.
+   - Mutants: `period-reg-stale`, `gap-floor-dropped`; both killed.
+
+**Open decision for the user:** tag `m18`/`m19`/`m20` with these two recorded as known issues,
+or rebuild M20. I recommended tagging; the user has not answered.
+
+### M21 as built (branch `m21`)
+- **The user approved N = 4, 7 × 7** (8 × 8 measured at ~86% of the chip):
+  - 49 CLBs × 4 elements = 196 LUTs; I = 16, full crossbar, W = 40
+  - 32,896 bits, 257 frames, 32 pads
+- **The sweep:** `docs/reports/M21/cluster_sweep.md` (`software/bob/sweep.py`). N = 10, the
+  plan's target, costs 421 host LUTs per LUT against N = 4's 289.
+- **Built and verified:** everything in §1d below.
+  - `make check` is green, apart from one test fixed afterwards:
+    `test_build_tcl::...measures_the_fabric_delays` had stale `delay_samples.txt`; it was
+    regenerated, and `tests/test_timing.py::test_delay_samples_name_this_device` now guards it.
+  - The whole-design yosys estimate is 58,535 LUT / 35,995 FF, with the shadow as 2 × RAMB36.
+- **Mutation suites:** every simulation now runs under a watchdog (`sim/mutate_lib.sh`,
+  `MUTATE_TIMEOUT`, default 2700 s; a normal tb_bob is 443 s). A mutant that spins in a zero-delay loop counts as killed
+  and is reported as `(hang: ...)`. Results of the rerun: MUTATE_RESULTS
+
+### The Vivado timing blocker, and the fix (2026-09-23, implemented, awaiting a Vivado run)
+The user's log: `/Users/sk/work/bob/bob_full_v1/runme.log` (copied from
+`bob_vivado\bob.runs\impl_1\runme.log`).
+
+| gce gap / XDC sysclk multicycle | WNS after placement | TNS |
+|---|---|---|
+| 512 cycles (4096 ns; M16–M20) | −133 ns | −144,700 ns |
+| 1024 cycles (8192 ns; commit `702842b`) | **−290 ns** | −13,400 ns |
+
+- **What failed:** every failing net was fabric (`u_fabric/r<node>` routing wires, LUT trees,
+  element flip-flops, DSP input registers; flattening renames many into `u_store/...`), and
+  phys_opt ground on for hours recovering picoseconds.
+- **Diagnosis:** Vivado times the **unconfigured** fabric: every mux open, a mesh of loops cut
+  wherever the timer likes. The surviving chain grew from ~4.2 µs to ~8.5 µs when the budget
+  doubled, so no gap closes it.
+
+**Fix (a), implemented on `m21`:** PLAN §8's case analysis, done in software.
+1. XDC: sysclk → sysclk multicycle **16384 / 16383** (131 µs; `XDC_SYSCLK_MULTICYCLE` in
+   `device.py`, `clock.xdc_multicycle` in device.json). That is past any simple path through
+   the ~4800 fabric muxes (IPIN 1488 + EIN 1176 + CHAN 2120). The one-cycle cell exceptions on
+   `u_clk` / `u_bram_jtag` are unchanged. A multicycle, not a false path, so those still win
+   (UG903).
+2. Gap back to **512** (`GCE_MIN_GAP_SHIFT` = `DIV_MIN_SHIFT` = 9). Commit `702842b`'s shift
+   is reverted; its generic test edits (`B.DIV_MIN_SHIFT` in test_flow, rate_scale) stay.
+3. **The contract:** `timing.spacing(word)` (clk_gap, the floor, or 512 when 0),
+   `timing.contract(t, word)`, `timing.check_contract(word)`. The flow's timing stage fails any
+   build that breaks it: stepped, free-running, timed or not; no `.bit` is written.
+   `cli.load` / `cli.load_partial` refuse before sending anything, and so does `./bob load`
+   before opening the probe. That covers studio **Program** and the board checks that load a
+   `.bit`. A combinational loop is refused too.
+   **One exception:** hwtest's `clock-margin` sweep runs atspeed faster than its computed
+   clock on purpose (that is how the guard band is proven on silicon). It passes
+   `cli.load(..., over_clock=period < gap)`, which still refuses loops.
+   `tests/test_layout.py` allows `over_clock=` in that one place only. (The full pytest run
+   found this: the sweep's first load past the gap was refused.)
+4. Tests: `tests/test_timing.py` checks the spacing, the contract and a loop; `cli.load` and
+   `load_partial` refuse (frames and chain); the flow refuses a stepped build and `--hz auto`
+   rescues it; and **every hand design in `designs.py`** keeps the contract (the board checks
+   load those through `cfgplane` directly). `tests/test_layout.py` holds the XDC to device.py
+   (≥ the gap, hold = setup − 1) and requires flow.py and cli.py to call the contract.
+   Mutation-tested by hand: dropping the call in `cli.load` or `flow.py`, or changing the
+   XDC number, each fails the suite.
+5. Docs: the XDC comment, `docs/hwtest/M21.md` (what the timing summary should show, when to
+   stop a run), PLAN M21 section and status row, REUSE, GUIDE, bitstream-format §rules, the arch
+   page's timing card (`xdc_mc`), and the README device table (generated).
+
+**Second rebuild (2026-09-23 15:58): WNS −228 ns after placement; it finished at 18:07 with a
+bitstream** (`bob_full_v1/docs/reports/M21/`: `timing.rpt`, `util.rpt`, `bob_top.bit`).
+- **sysclk met: WNS +0.868 ns, WHS +0.119 ns.** The sysclk fix worked.
+- **TCK failed: WNS −463 ns, 66 endpoints.** Worst path: `u_tap/ir_reg[2]` (updated on the
+  falling edge) → 6349 logic levels of empty fabric and DSP → `u_dsp_jtag/sr_reg[91]`,
+  5463 ns against the 5000 ns fall → rise half period.
+- **Utilization:** 36,450 LUTs (68.5%, as estimated), 36,308 FFs, 3 BRAM tiles, 2 DSPs.
+
+M7 missed TCK the same way (−657 ns). M7 missed TCK the same way (−657 ns). So the earlier diagnosis that the
+path "grows with the budget" was probably wrong: −133 / −290 / −228 ns look like this one
+TCK path, moving with placement.
+- **Fix:** TCK → TCK multicycle 16/15 (`XDC_TCK_MULTICYCLE`, `tests/test_layout.py`). Hold
+  stays at the same edge.
+- **`hw/scripts/place_report.tcl`** (place_design TCL.POST): prints `place_report: <clock>
+  WNS ...` for sysclk and tck, with the worst path's endpoints, and writes
+  `impl_1/bob_top_timing_placed.rpt`. The next failure will name its clock after about
+  15 min instead of hours.
+
+**Third build (2026-09-23 21:31, with the TCK multicycle): timing CLOSED.**
+`bob_full_v1/docs/reports/M21/` (untracked, as the user copied it): `timing.rpt`, `util.rpt`,
+`bob_top.bit`. sysclk WNS **+0.570 ns**, WHS +0.064 ns; tck WNS +4990.6 ns; 0 failing
+endpoints. The board test (`make hwtest M=M21`) passed **66/66** on the second build's
+bitstream (same RTL, the one before the TCK multicycle; `docs/hwtest/results.log` in the m21
+worktree, 2026-09-23 20:22): bob-fir passes, clock-margin 4.50x on silicon.
+- **Still missing from the report folder:** `sysclk_1cycle.txt` (tests/test_reports.py
+  requires it for every M13+ build), `delay_paths.rpt` (for `delays.py fold`), and the DRC
+  report. Copy the **whole** `bob_vivado\out\M21\` folder, then commit it and fold the delays.
+- `m21` is merged into `main` (the board now runs M21). **Not tagged `m21` yet:** the final
+  bitstream (third build) has not run `make hwtest M=M21`; its RTL is the tested one, only
+  the XDC differs. Rerun it (or decide the second build's pass counts), then tag.
+
+**What was unproven before the third build:** only Vivado can show that implementation now closes. Expect
+sysclk WNS ≥ 0 with the fabric far inside 16384 cycles, and the one-cycle `u_clk` /
+`u_bram_jtag` paths as the tight ones. If phys_opt still logs WNS in the hundreds of ns after
+half an hour, stop the run. The fallback is (b): `set_case_analysis 0` on the configuration
+flip-flops. That is 32,896 pins, flattening renames them, and the XDC must stay plain.
+
+### Then
+1. The user rebuilds with this `hw/` (it closes timing: IDCODE `0x0B021093`). Copy `out/M21/` to
+   `docs/reports/M21/` in the worktree, run `software/bob/delays.py fold
+   docs/reports/M21/delay_paths.rpt` (it samples the crossbar now), then `make check`.
+2. `make hwtest M=M21` **from the worktree** (checklist `docs/hwtest/M21.md`).
+3. Merge `m21` into `main` and tag `m21`. Tag `m18`–`m20` per the user's decision above.
+4. Refresh the generated pages: `python3 docs/project/collect.py && python3 docs/project/build.py`,
+   and `python3 docs/arch/build.py --data`.
 
 ---
 
@@ -13,12 +155,37 @@ This file is the live state: what is finished, what is in flight, and exactly wh
 | Bitstream in the PL | **M16** (`0xFBEEF093`): 100 CLBs (12 × 10 core), 145 frames = 18 560 bits, 2 BRAM, 2 DSP, 44 pads. 20 498 LUTs (38.5%), 21 511 FFs (20.2%), WNS +0.667 ns, WHS +0.112 ns, DRC clean |
 | Guest tooling | `./bob build｜load｜info｜fasm`, and **bob studio** (`software/host/studio.py`), which since M18 has **projects** (`.bobproj`) and **block designs** |
 | Whole-project report | `docs/project/REPORT.md` + `project.html`; the learning guide is `docs/project/GUIDE.md` + `guide.html` (**done**, committed in `807f2b9`) |
-| In flight | **M20: software done; the Vivado build (IDCODE `0x0B020093`) and `make hwtest M=M20` are pending.** M20's list runs M18's and M19's checks too, so one board session closes all three. After the build: copy `out/M20/` to `docs/reports/M20/`, run `software/bob/delays.py fold docs/reports/M20/delay_paths.rpt`, `make check`, then the board. Checklists `docs/hwtest/M18.md`, `M19.md`, `M20.md`. Tag `m18`/`m19`/`m20` only after they pass |
+| In flight | **M21: software done and simulated, in the worktree `../bob_full_v1_m21` (branch `m21`); the first Vivado build missed on fabric paths; the timing-contract fix is in, and the rebuild (IDCODE `0x0B021093`) and `make hwtest M=M21` are pending.** `main` (this project's folder) keeps the M20 tools for the M20 bitstream on the board. M18–M20 on the board 2026-09-23: 57/58, `bob-fir` failed (the autostep race) and the build had WNS −0.919 ns; both are fixed in M21's RTL (§1d). Whether to tag `m18`–`m20` with that known issue or rebuild M20 is the user's decision |
 
 The device table in `README.md` is generated from `software/bob/device.json` by
 `software/bob/devtable.py`; `make check` fails if it drifts.
 
 ---
+
+## 1d. M21 — the cluster CLB and the BRAM shadow
+
+- **Where:** worktree `/Users/sk/work/bob/bob_full_v1_m21`, branch `m21` (never check a milestone's WIP
+  out in the main folder while the board runs the previous one: the M20 board session broke on it).
+- **Architecture** (`device.py` `ARCH_M21`): 9 × 7 core, 49 CLBs of N = 4 elements, I = 16, full
+  crossbar, W = 40, 32 pads, 32 896 bits in 257 frames (FIDX_W 9: FAR table 32 bits/column).
+  Chosen from `software/bob/sweep.py` (`docs/reports/M21/cluster_sweep.md`); the user approved N = 4, 7 × 7.
+- **Elements:** `hw/src/clb/ble.sv`; the cluster `bob_clb` is generated into `bob_fabric.v`. In
+  the host tools a CLB's crossbar is ordinary muxes over synthetic nodes (EIN element inputs,
+  ECY carry links), so model/router/timing reuse their code. Fields are per element:
+  `clb_x1y1.e3.init`, crossbar selects `clb_x1y1.e3.x2`. CAPTURE is 2 bits per element.
+- **PnR:** VPR packs the cluster itself; `fasm_from_vpr.py` sets the crossbar from the `.net` and
+  the route (any equivalent CLB pin). bob's packer is `pnr/pack.py` (AAPack-style; dense when the
+  design fills > 70% of the CLBs).
+- **Readback:** BRAM shadow in `cfg_store.v` (section 14 of the format doc).
+- **M20 fixes:** `jtag_tap6.v` autostep a TCK late; `clock_ctrl.v` registered `last`/`min_gap`.
+- **Timing contract:** the XDC's sysclk multicycle is 16384 (it no longer times the empty
+  fabric), the gap is 512 again, and `timing.contract()` refuses any build or load whose
+  critical path × guard band exceeds its gce spacing (§0). The gap was 1024 for one failed
+  build (commit `702842b`, WNS −290 ns).
+- **Size:** yosys 58.6k LUT / 35.9k FF whole design (about 36k LUT in Vivado, 68%).
+  Implementation will take longer than M16's.
+- **Next:** hand `hw/` to Vivado (`docs/hwtest/M21.md`); after the build fold `delay_paths.rpt`
+  (it now samples the crossbar), `make check`, `make hwtest M=M21`, tag `m21`.
 
 ## 1c. M20 — the user clock from the design's own timing
 

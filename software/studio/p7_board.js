@@ -185,7 +185,7 @@ const board = {
     if (S.capture) {
       const cap = el("div", null);
       cap.style.cssText = "margin-top:18px";
-      const h = el("div", null, `CAPTURE — ${S.capture.ones} of ${S.capture.nclb} CLB registers set`);
+      const h = el("div", null, `CAPTURE — ${S.capture.ones} of ${S.capture.nclb} element outputs set`);
       h.style.cssText = "font-size:12px;color:var(--ink-2);margin-bottom:6px";
       cap.appendChild(h);
       const g = el("div", null);

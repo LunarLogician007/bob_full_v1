@@ -33,19 +33,25 @@ def dump_data():
         "chain": d.chain_width, "W": d.width, "H": d.height, "chanw": d.arch["chan_width"],
         "heights": {c["type"]: c["height"] for c in d.arch["columns"]},
         "nmux": len(d.muxes), "mbits": sum(m.width for m in d.muxes.values()),
-        "ntype": dict(collections.Counter(rr.nodes[m.node].type for m in d.muxes.values())),
+        "ntype": dict(collections.Counter(rr.nodes[m.node].type if m.node in rr.nodes else "EIN"
+                                          for m in d.muxes.values())),
+        "lut_k": d.lut_k,
+        "cluster": {"n": d.cluster["n"], "i": d.cluster["i"], "xbar": d.cluster["xbar"],
+                    "xbar_n": len(d.xbar_sources(0, 0)), "xbar_w": d.xbar_width(),
+                    "ele_w": d.element_width(), "clb_w": d.tile_types["clb"].width},
         "tiles": [[t.name, t.x, t.y, t.chain_lo, t.width, mux.get(t.name, 0), bits.get(t.name, 0)] for t in d.tiles],
         "blocks": [[b.name, b.type, b.x, b.y, b.index, b.chain_lo] for b in d.blocks],
         "pads": {p["pad"]: p["name"] for p in d.board_inputs + d.board_outputs},
         "chanfanin": sorted(collections.Counter(len(m.inputs) for m in d.muxes.values()
-                                                if rr.nodes[m.node].type != "IPIN").items()),
+                                                if m.node in rr.nodes and rr.nodes[m.node].type != "IPIN").items()),
         "ipinfanin": sorted(collections.Counter(len(m.inputs) for m in d.muxes.values()
-                                                if rr.nodes[m.node].type == "IPIN").items()),
+                                                if m.node in rr.nodes and rr.nodes[m.node].type == "IPIN").items()),
         # The user-clock numbers the timing card quotes. They live here so the page
         # cannot disagree with the XDC: M16 raised the gap from 256 to 512 cycles and
         # the page still said 256 until this was generated rather than typed.
         "clock": {"gap": 1 << device.GCE_MIN_GAP_SHIFT,
                   "gap_shift": device.GCE_MIN_GAP_SHIFT,
+                  "xdc_mc": device.XDC_SYSCLK_MULTICYCLE,        # M21: no longer the gap
                   "div_shift": device.DIV_MIN_SHIFT,
                   "max_hz": device.SYSCLK_HZ / 2 ** device.DIV_MIN_SHIFT,
                   "sysclk_ns": 1e9 / device.SYSCLK_HZ},

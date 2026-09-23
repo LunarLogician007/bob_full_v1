@@ -20,25 +20,21 @@
 .cname $auto$alumacc.cc:548:replace_alu$33.slice[6].add
 .subckt bob_add b=n54 cin=cy9 cout=cy10 sumout=n90
 .cname $auto$alumacc.cc:548:replace_alu$33.slice[7].add
-.subckt bob_add cin=cy10 sumout=cy12
-.cname bob_tap11
-.subckt bob_add a=cy12 b=cy12 cout=cy14
-.cname bob_gen13
-.subckt bob_add b=n51 cin=cy14 cout=cy15 sumout=n92
+.subckt bob_add b=n51 cin=cy10 cout=cy11 sumout=n92
 .cname $auto$alumacc.cc:548:replace_alu$33.slice[8].add
-.subckt bob_add b=n52 cin=cy15 cout=cy16 sumout=n93
+.subckt bob_add b=n52 cin=cy11 cout=cy12 sumout=n93
 .cname $auto$alumacc.cc:548:replace_alu$33.slice[9].add
-.subckt bob_add b=n49 cin=cy16 cout=cy17 sumout=n66
+.subckt bob_add b=n49 cin=cy12 cout=cy13 sumout=n66
 .cname $auto$alumacc.cc:548:replace_alu$33.slice[10].add
-.subckt bob_add b=n50 cin=cy17 cout=cy18 sumout=n68
+.subckt bob_add b=n50 cin=cy13 cout=cy14 sumout=n68
 .cname $auto$alumacc.cc:548:replace_alu$33.slice[11].add
-.subckt bob_add b=n45 cin=cy18 cout=cy19 sumout=n70
+.subckt bob_add b=n45 cin=cy14 cout=cy15 sumout=n70
 .cname $auto$alumacc.cc:548:replace_alu$33.slice[12].add
-.subckt bob_add b=n46 cin=cy19 cout=cy20 sumout=n72
+.subckt bob_add b=n46 cin=cy15 cout=cy16 sumout=n72
 .cname $auto$alumacc.cc:548:replace_alu$33.slice[13].add
-.subckt bob_add b=n47 cin=cy20 cout=cy21 sumout=n74
+.subckt bob_add b=n47 cin=cy16 cout=cy17 sumout=n74
 .cname $auto$alumacc.cc:548:replace_alu$33.slice[14].add
-.subckt bob_add b=n48 cin=cy21 sumout=n76
+.subckt bob_add b=n48 cin=cy17 sumout=n76
 .cname $auto$alumacc.cc:548:replace_alu$33.slice[15].add
 .names n12 n13 n14 n15 n16 n17 led[2]
 000000 1
@@ -264,96 +260,96 @@
 .cname $auto$ff.cc:337:slice$126
 .subckt bob_ff D=n61 C=clk Q=n24 CE=btn[0] SR=btn[1]
 .cname $auto$ff.cc:337:slice$127
-.subckt bob_ff D=ffd22 C=clk Q=n25 CE=btn[0] SR=btn[1]
+.subckt bob_ff D=ffd18 C=clk Q=n25 CE=btn[0] SR=btn[1]
 .cname $auto$ff.cc:337:slice$128
-.subckt bob_ff D=ffd23 C=clk Q=n20 CE=btn[0] SR=btn[1]
+.subckt bob_ff D=ffd19 C=clk Q=n20 CE=btn[0] SR=btn[1]
 .cname $auto$ff.cc:337:slice$129
-.subckt bob_ff D=ffd24 C=clk Q=n21 CE=btn[0] SR=btn[1]
+.subckt bob_ff D=ffd20 C=clk Q=n21 CE=btn[0] SR=btn[1]
 .cname $auto$ff.cc:337:slice$130
-.subckt bob_ff D=ffd25 C=clk Q=n22 CE=btn[0] SR=btn[1]
+.subckt bob_ff D=ffd21 C=clk Q=n22 CE=btn[0] SR=btn[1]
 .cname $auto$ff.cc:337:slice$131
-.subckt bob_ff D=ffd26 C=clk Q=n23 CE=btn[0] SR=btn[1]
+.subckt bob_ff D=ffd22 C=clk Q=n23 CE=btn[0] SR=btn[1]
 .cname $auto$ff.cc:337:slice$132
-.subckt bob_ff D=ffd27 C=clk Q=n18 CE=btn[0] SR=btn[1]
+.subckt bob_ff D=ffd23 C=clk Q=n18 CE=btn[0] SR=btn[1]
 .cname $auto$ff.cc:337:slice$133
-.subckt bob_ff D=ffd28 C=clk Q=n19 CE=btn[0] SR=btn[1]
+.subckt bob_ff D=ffd24 C=clk Q=n19 CE=btn[0] SR=btn[1]
 .cname $auto$ff.cc:337:slice$134
-.subckt bob_ff D=ffd29 C=clk Q=n32 CE=btn[0] SR=btn[1]
+.subckt bob_ff D=ffd25 C=clk Q=n32 CE=btn[0] SR=btn[1]
 .cname $auto$ff.cc:337:slice$135
-.subckt bob_ff D=ffd30 C=clk Q=n33 CE=btn[0] SR=btn[1]
+.subckt bob_ff D=ffd26 C=clk Q=n33 CE=btn[0] SR=btn[1]
 .cname $auto$ff.cc:337:slice$136
-.subckt bob_ff D=ffd31 C=clk Q=n28 CE=btn[0] SR=btn[1]
+.subckt bob_ff D=ffd27 C=clk Q=n28 CE=btn[0] SR=btn[1]
 .cname $auto$ff.cc:337:slice$137
-.subckt bob_ff D=ffd32 C=clk Q=n29 CE=btn[0] SR=btn[1]
+.subckt bob_ff D=ffd28 C=clk Q=n29 CE=btn[0] SR=btn[1]
 .cname $auto$ff.cc:337:slice$138
-.subckt bob_ff D=ffd33 C=clk Q=n26 CE=btn[0] SR=btn[1]
+.subckt bob_ff D=ffd29 C=clk Q=n26 CE=btn[0] SR=btn[1]
 .cname $auto$ff.cc:337:slice$139
-.subckt bob_ff D=ffd34 C=clk Q=n27 CE=btn[0] SR=btn[1]
+.subckt bob_ff D=ffd30 C=clk Q=n27 CE=btn[0] SR=btn[1]
 .cname $auto$ff.cc:337:slice$140
-.subckt bob_ff D=ffd35 C=clk Q=n30 CE=btn[0] SR=btn[1]
+.subckt bob_ff D=ffd31 C=clk Q=n30 CE=btn[0] SR=btn[1]
 .cname $auto$ff.cc:337:slice$141
-.subckt bob_ff D=ffd36 C=clk Q=n31 CE=btn[0] SR=btn[1]
+.subckt bob_ff D=ffd32 C=clk Q=n31 CE=btn[0] SR=btn[1]
 .cname $auto$ff.cc:337:slice$142
-.subckt bob_ff D=ffd37 C=clk Q=n36 CE=btn[0] SR=btn[1]
+.subckt bob_ff D=ffd33 C=clk Q=n36 CE=btn[0] SR=btn[1]
 .cname $auto$ff.cc:337:slice$143
-.subckt bob_ff D=ffd38 C=clk Q=n37 CE=btn[0] SR=btn[1]
+.subckt bob_ff D=ffd34 C=clk Q=n37 CE=btn[0] SR=btn[1]
 .cname $auto$ff.cc:337:slice$144
-.subckt bob_ff D=ffd39 C=clk Q=n40 CE=btn[0] SR=btn[1]
+.subckt bob_ff D=ffd35 C=clk Q=n40 CE=btn[0] SR=btn[1]
 .cname $auto$ff.cc:337:slice$145
-.subckt bob_ff D=ffd40 C=clk Q=n41 CE=btn[0] SR=btn[1]
+.subckt bob_ff D=ffd36 C=clk Q=n41 CE=btn[0] SR=btn[1]
 .cname $auto$ff.cc:337:slice$146
-.subckt bob_ff D=ffd41 C=clk Q=n34 CE=btn[0] SR=btn[1]
+.subckt bob_ff D=ffd37 C=clk Q=n34 CE=btn[0] SR=btn[1]
 .cname $auto$ff.cc:337:slice$147
-.subckt bob_ff D=ffd42 C=clk Q=n35 CE=btn[0] SR=btn[1]
+.subckt bob_ff D=ffd38 C=clk Q=n35 CE=btn[0] SR=btn[1]
 .cname $auto$ff.cc:337:slice$148
-.subckt bob_ff D=ffd43 C=clk Q=n38 CE=btn[0] SR=btn[1]
+.subckt bob_ff D=ffd39 C=clk Q=n38 CE=btn[0] SR=btn[1]
 .cname $auto$ff.cc:337:slice$149
-.subckt bob_ff D=ffd44 C=clk Q=n39 CE=btn[0] SR=btn[1]
+.subckt bob_ff D=ffd40 C=clk Q=n39 CE=btn[0] SR=btn[1]
 .cname $auto$ff.cc:337:slice$150
-.names n24 ffd22
+.names n24 ffd18
 1 1
-.names n25 ffd23
+.names n25 ffd19
 1 1
-.names n20 ffd24
+.names n20 ffd20
 1 1
-.names n21 ffd25
+.names n21 ffd21
 1 1
-.names n22 ffd26
+.names n22 ffd22
 1 1
-.names n23 ffd27
+.names n23 ffd23
 1 1
-.names n18 ffd28
+.names n18 ffd24
 1 1
-.names n19 ffd29
+.names n19 ffd25
 1 1
-.names n32 ffd30
+.names n32 ffd26
 1 1
-.names n33 ffd31
+.names n33 ffd27
 1 1
-.names n28 ffd32
+.names n28 ffd28
 1 1
-.names n29 ffd33
+.names n29 ffd29
 1 1
-.names n26 ffd34
+.names n26 ffd30
 1 1
-.names n27 ffd35
+.names n27 ffd31
 1 1
-.names n30 ffd36
+.names n30 ffd32
 1 1
-.names n31 ffd37
+.names n31 ffd33
 1 1
-.names n36 ffd38
+.names n36 ffd34
 1 1
-.names n37 ffd39
+.names n37 ffd35
 1 1
-.names n40 ffd40
+.names n40 ffd36
 1 1
-.names n41 ffd41
+.names n41 ffd37
 1 1
-.names n34 ffd42
+.names n34 ffd38
 1 1
-.names n35 ffd43
+.names n35 ffd39
 1 1
-.names n38 ffd44
+.names n38 ffd40
 1 1
 .end

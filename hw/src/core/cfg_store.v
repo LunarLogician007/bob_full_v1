@@ -18,8 +18,25 @@
 //
 //   negedge  clear (JPROGRAM) wins over everything.
 //
-// `rd_frame` is one frame-wide read mux over the memory, shared by CHAIN_OUT and
-// cfg_frames' FDRO (different instructions, never active together).
+// Readback (M21): the BRAM shadow. Every frame written into `cfg` is written, on the
+// same falling edge and from the same `buf_q`, into a block RAM `shadow` (NFRAMES x FB,
+// one or two RAMB36 on the XC7Z020). CHAIN_OUT and cfg_frames' FDRO read that copy:
+// one synchronous read port, clocked on the rising edge, continuously reading the frame
+// the next load will want. Until M20 the read was a 256:1 x 128-bit mux over the flops
+// themselves (`frame_arr`, ~11 800 LUTs, a third of the design; M20 showed a tree does
+// not help), so the shadow is where M21's cluster fabric finds its room.
+//
+//   what readback now proves: the frames that were WRITTEN (the shadow is written by the
+//   same enable and data as the flops), not what the configuration flops HOLD. The flops
+//   stay covered by golden co-simulation, CAPTURE and the board's model checks
+//   (docs/bitstream-format.md section 12).
+//   JPROGRAM: `clear` zeroes the flops at once; the shadow cannot be, so a per-frame
+//   `valid` bit (cleared with the flops, set by each write) makes an unwritten frame
+//   read back as zeros, exactly as the flops would.
+//   timing: the read is registered, so its address must be stable the cycle before it
+//   is used. FDRO's frame changes only on a word load, at least 32 TCK edges before the
+//   next one; CHAIN_OUT reads frame idx+1, where idx rests at all-ones between DR scans
+//   (set at Update-DR), so frame 0 is waiting at Capture-DR.
 //
 // History:
 //   M13 v1 wrote cfg[frame_idx*FB +: FB] <= frame_data over the whole memory: a
@@ -47,6 +64,7 @@ module cfg_store #(
     input  wire              chain_out,      // CHAIN_OUT selected
     input  wire              capture,        // Capture-DR (with either chain instruction)
     input  wire              shift,          // Shift-DR   (with either chain instruction)
+    input  wire              update,         // Update-DR  (with either chain instruction)
     input  wire              wen,            // chain writes allowed (GWE = 0)
     input  wire              clear,
     input  wire              si,
@@ -67,7 +85,7 @@ module cfg_store #(
 
     reg [FB-1:0]     buf_q  = {FB{1'b0}};
     reg [CNT_W-1:0]  cnt    = {CNT_W{1'b0}};
-    reg [FIDX_W-1:0] idx    = {FIDX_W{1'b0}};     // chain frame being shifted
+    reg [FIDX_W-1:0] idx    = {FIDX_W{1'b1}};     // chain frame being shifted (all-ones: none)
     reg              cwe    = 1'b0;               // chain: write frame cidx on the next falling edge
     reg [FIDX_W-1:0] cidx   = {FIDX_W{1'b0}};
 
@@ -76,31 +94,46 @@ module cfg_store #(
     wire more = (idx32 + 32'd1 < NFRAMES);        // a next frame exists
 
     // ---------------------------------------------------------------------
-    // frame read mux (explicit per-frame array: never a computed part-select)
+    // the BRAM shadow (write on the falling edge beside cfg, read on the rising edge)
     // ---------------------------------------------------------------------
-    // (all 2**FIDX_W entries, zeros past the last frame, so any index is in range)
-    wire [FB-1:0] frame_arr [0:(1<<FIDX_W)-1];
-    genvar f;
-    generate
-        for (f = 0; f < (1 << FIDX_W); f = f + 1) begin : g_rd
-            if (f < NFRAMES) begin : g_mem
-                assign frame_arr[f] = cfg[f*FB +: FB];
-            end else begin : g_zero
-                assign frame_arr[f] = {FB{1'b0}};
-            end
-        end
-    endgenerate
+    (* ram_style = "block" *) reg [FB-1:0] shadow [0:NFRAMES-1];
+    reg  [NFRAMES-1:0] valid = {NFRAMES{1'b0}};
+    reg  [FB-1:0]      rd_q  = {FB{1'b0}};
+    reg                rv_q  = 1'b0;
+
+    wire              swe   = cwe || frame_we;
+    wire [FIDX_W-1:0] waddr = cwe ? cidx : frame_idx;
+    wire              wok   = ({{(32-FIDX_W){1'b0}}, waddr} < NFRAMES);
+
+    always @(negedge tck)
+        if (swe && wok && !clear)
+            shadow[waddr] <= buf_q;
+
+    always @(negedge tck)
+        if (clear)
+            valid <= {NFRAMES{1'b0}};
+        else if (swe && wok)
+            valid[waddr] <= 1'b1;
 
     // CHAIN_OUT reads frame 0 at capture and frame idx+1 at each wrap
     wire [FIDX_W-1:0] chain_ridx = capture ? {FIDX_W{1'b0}} : idx + 1'b1;
     wire [FIDX_W-1:0] ridx       = chain_out ? chain_ridx : fdro_idx;
-    assign rd_frame = frame_arr[ridx];
+    wire              rok        = ({{(32-FIDX_W){1'b0}}, ridx} < NFRAMES);
+
+    always @(posedge tck) begin
+        if (rok)
+            rd_q <= shadow[ridx];
+        rv_q <= rok && valid[ridx];
+    end
+    assign rd_frame = rv_q ? rd_q : {FB{1'b0}};
 
     // ---------------------------------------------------------------------
     // buffer, counters (rising edge)
     // ---------------------------------------------------------------------
     always @(posedge tck) begin
         cwe <= 1'b0;
+        if (update)
+            idx <= {FIDX_W{1'b1}};                    // between scans: frame 0 is next
         if (capture) begin
             cnt <= {CNT_W{1'b0}};
             idx <= {FIDX_W{1'b0}};
@@ -125,6 +158,7 @@ module cfg_store #(
     // ---------------------------------------------------------------------
     // memory (falling edge)
     // ---------------------------------------------------------------------
+    genvar f;
     generate
         for (f = 0; f < NFRAMES; f = f + 1) begin : g_frame
             wire we = (cwe && cidx == f[FIDX_W-1:0]) || (frame_we && frame_idx == f[FIDX_W-1:0]);

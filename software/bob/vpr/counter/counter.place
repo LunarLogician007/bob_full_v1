@@ -1,18 +1,13 @@
-Netlist_File: counter.net Netlist_ID: SHA256:cd07aaf6d16c880a71f6c0ee0d0ab34ebf86f07ee0afd91a6dfd12adab89764f
-Array size: 14 x 12 logic blocks
+Netlist_File: counter.net Netlist_ID: SHA256:70c2ed8c5d25f7a7baa834a0dbc735201c316cd68ed10b4dc5018eb363804f9a
+Array size: 11 x 9 logic blocks
 
 #block name	x	y	subblk	layer	block number
 #----------	--	--	------	-----	------------
-$auto$alumacc.cc:548:replace_alu$16.slice[0].add	7	2	0	0	#0
-$auto$alumacc.cc:548:replace_alu$16.slice[1].add	7	3	0	0	#1
-$auto$alumacc.cc:548:replace_alu$16.slice[2].add	7	4	0	0	#2
-$auto$alumacc.cc:548:replace_alu$16.slice[3].add	7	5	0	0	#3
-$auto$alumacc.cc:548:replace_alu$16.slice[4].add	7	6	0	0	#4
-$auto$alumacc.cc:548:replace_alu$16.slice[5].add	7	7	0	0	#5
-bob_gen1	7	1	0	0	#6
-out:led[0]	13	1	0	0	#7
-out:led[1]	13	2	0	0	#8
-out:led[2]	13	3	0	0	#9
-clk		1	0	0	0	#10
-btn[0]		0	3	0	0	#11
-btn[1]		0	4	0	0	#12
+bob_gen1	8	2	0	0	#0
+$auto$alumacc.cc:548:replace_alu$16.slice[3].add	8	3	0	0	#1
+out:led[0]	10	1	0	0	#2
+out:led[1]	10	2	0	0	#3
+out:led[2]	10	3	0	0	#4
+clk		1	0	0	0	#5
+btn[0]		0	3	0	0	#6
+btn[1]		0	4	0	0	#7

@@ -15,6 +15,11 @@ programmed mux passes its selected input (0 const0, IPIN 1 const1), directs
 CE and SR are the CLB's routed input pins. One call to clock() is one fabric
 clock edge with the given global enable.
 
+M21: a CLB is N logic elements behind a crossbar. The crossbar muxes are in B.MUX like
+the routing muxes (their outputs are the element-input nodes), so they are evaluated by
+the same loop; self.clbs is per element, keyed (x, y, e), and every element has two
+flip-flops: q (out[0], O6 / carry sum) and q2 (out[1], O5).
+
 Used by sim/gen_clb_vectors.py (CLB flag sweep), sim/gen_vectors.py (sequential
 fabric designs) and tests/test_model.py. Honours BOB_DEVICE_JSON like bitstream.py.
 """
@@ -30,10 +35,12 @@ import bitstream as B  # noqa: E402
 FLAGS = B.FLAG_NAMES
 
 
-# --- one CLB ----------------------------------------------------------------------
+# --- one logic element (M21: hw/src/clb/ble.sv; until M20 the whole CLB, clb.sv) ---------
 
 def clb_comb(init, f, i, cin):
-    """-> (o6, o5, comb, cout) for LUT input address i."""
+    """-> (o6, o5, comb, cout) for LUT input address i (frac: input K-1 reads 1)."""
+    if f.get("frac"):
+        i |= 1 << (B.LUT_K - 1)
     o6 = (init >> i) & 1
     o5 = (init >> (i & ((1 << (B.LUT_K - 1)) - 1))) & 1
     di = o5 if f["cy_di_sel"] else (i & 1)
@@ -42,15 +49,17 @@ def clb_comb(init, f, i, cin):
     return o6, o5, comb, cout
 
 
-def clb_next(q, f, comb, ce, sr, gce=1, gsr=0, gwe=1):
-    """The flip-flop's next state."""
+def clb_next(q, f, comb, ce, sr, gce=1, gsr=0, gwe=1, ff=""):
+    """The flip-flop's next state; ff="" is the first FF (fields ff_*), "2" the second
+    (ff2_*, which registers O5)."""
+    rstval, sr_en, ce_en = f[f"ff{ff}_rstval"], f[f"ff{ff}_sr_en"], f[f"ff{ff}_ce_en"]
     if gsr:
-        return f["ff_rstval"]
+        return rstval
     if not (gwe and gce):
         return q
-    if f["ff_sr_en"] and sr:
-        return f["ff_rstval"]
-    if (not f["ff_ce_en"]) or ce:
+    if sr_en and sr:
+        return rstval
+    if (not ce_en) or ce:
         return comb
     return q
 
@@ -290,20 +299,21 @@ class Fabric:
         self.directs = sorted(B.DIRECT.items())
         self.cin_nodes = [B.PIN[f"{n}.cin[0]"] for n in B.CLBS if B.PIN[f"{n}.cin[0]"] not in B.DIRECT]
 
+        # M21: one entry per logic element (CAPTURE order); q / q2 are its two flip-flops
         self.clbs = []
-        for i, name in enumerate(B.CLBS):
-            blk = B.BLOCKS[name]
-            bs_ = B.Bitstream(word)
+        bs_ = B.Bitstream(word)
+        for el in B.ELEMENTS:
+            p = el["pins"]
             self.clbs.append({
-                "xy": (blk["x"], blk["y"]), "index": i,
-                "init": bs_.get_block(name, "init"),
-                "flags": {f: bs_.get_block(name, f) for f in FLAGS},
-                "I": [B.PIN[f"{name}.I[{j}]"] for j in range(B.LUT_K)],
-                "ce": B.PIN[f"{name}.ce[0]"], "sr": B.PIN[f"{name}.sr[0]"],
-                "cin": B.PIN[f"{name}.cin[0]"],
-                "O": B.PIN[f"{name}.O[0]"], "O5": B.PIN[f"{name}.O5[0]"], "cout": B.PIN[f"{name}.cout[0]"],
+                "xy": (el["x"], el["y"], el["e"]), "index": el["index"], "name": el["name"],
+                "init": bs_.get_block(el["name"], "init"),
+                "flags": {f: bs_.get_block(el["name"], f) for f in FLAGS},
+                "I": [p[f"I[{j}]"] for j in range(B.LUT_K)],
+                "ce": p["ce"], "sr": p["sr"], "cin": p["cin"],
+                "O": p["out0"], "O5": p["out1"], "cout": p["cout"],
             })
         self.q = {c["xy"]: 0 for c in self.clbs}
+        self.q2 = {c["xy"]: 0 for c in self.clbs}
 
         bs_ = B.Bitstream(word)
         self.brams = [Bram() for _ in range(B.NBRAM)]
@@ -372,7 +382,7 @@ class Fabric:
                 do = bram.do(port, self.bram_cfgs[b])
                 for k in range(Bram.DATA_W):
                     v[B.PIN[f"bram{b}.do_{port}[{k}]"]] = (do >> k) & 1
-        comb, ce, sr = {}, {}, {}
+        comb, comb5, ce, sr = {}, {}, {}, {}
         dsp_p = [0] * B.NDSP
         o5_mask = (1 << (B.LUT_K - 1)) - 1
 
@@ -399,9 +409,10 @@ class Fabric:
                 i = sum(v.get(n, 0) << j for j, n in enumerate(c["I"]))
                 _o6, lo5, lcomb, cout = clb_comb(c["init"], c["flags"], i, v.get(c["cin"], 0))
                 xy = c["xy"]
-                comb[xy], ce[xy], sr[xy] = lcomb, v.get(c["ce"], 0), v.get(c["sr"], 0)
+                comb[xy], comb5[xy] = lcomb, lo5
+                ce[xy], sr[xy] = v.get(c["ce"], 0), v.get(c["sr"], 0)
                 put(c["O"], self.q[xy] if c["flags"]["ff_en"] else lcomb)
-                put(c["O5"], lo5)
+                put(c["O5"], self.q2[xy] if c["flags"]["ff2_en"] else lo5)
                 put(c["cout"], cout)
             pcin = 0
             for s in range(B.NDSP):
@@ -420,16 +431,19 @@ class Fabric:
         pad_out = sum(v.get(node, 0) << n for n, node in enumerate(self.pad_out))
         pad_o = sum(((pad_out >> n) & 1) << k for k, n in enumerate(B.BOARD_OUT))
         o = {c["xy"]: v.get(c["O"], 0) for c in self.clbs}
-        return {"v": v, "o": o, "comb": comb, "ce": ce, "sr": sr, "pad_out": pad_out,
-                "pad_o": pad_o, "dsp_p": tuple(dsp_p)}
+        o2 = {c["xy"]: v.get(c["O5"], 0) for c in self.clbs}
+        return {"v": v, "o": o, "o2": o2, "comb": comb, "comb5": comb5, "ce": ce, "sr": sr,
+                "pad_out": pad_out, "pad_o": pad_o, "dsp_p": tuple(dsp_p)}
 
     def outputs(self, pad_i=0, cin=0, pads=None):
         return self.settle(pad_i, cin, pads)["pad_o"]
 
     def clb_o(self, pad_i=0, cin=0):
-        """Every CLB output as an int, bit i = CLB i (CAPTURE order)."""
-        o = self.settle(pad_i, cin)["o"]
-        return sum(o[c["xy"]] << c["index"] for c in self.clbs)
+        """Every element output as an int in CAPTURE order: bit 2i = element i's out[0],
+        bit 2i+1 its out[1]."""
+        s = self.settle(pad_i, cin)
+        return sum((s["o"][c["xy"]] << 2 * c["index"]) | (s["o2"][c["xy"]] << 2 * c["index"] + 1)
+                   for c in self.clbs)
 
     def dsp_p(self, pad_i=0, cin=0):
         return self.settle(pad_i, cin)["dsp_p"]
@@ -443,6 +457,9 @@ class Fabric:
         self.q = {c["xy"]: clb_next(self.q[c["xy"]], c["flags"], s["comb"][c["xy"]],
                                     s["ce"][c["xy"]], s["sr"][c["xy"]], gce, gsr, gwe)
                   for c in self.clbs}
+        self.q2 = {c["xy"]: clb_next(self.q2[c["xy"]], c["flags"], s["comb5"][c["xy"]],
+                                     s["ce"][c["xy"]], s["sr"][c["xy"]], gce, gsr, gwe, ff="2")
+                   for c in self.clbs}
         for b, bram in enumerate(self.brams):
             bram.clock(self.bram_cfgs[b], bram_pins[b], gce=gce, gsr=gsr, gwe=gwe)
         pcin = 0
@@ -458,6 +475,6 @@ if __name__ == "__main__":
     m.clock(gsr=1)
     seq = []
     for _ in range(18):
-        seq.append(sum(m.q[(1, 1 + r)] << r for r in range(4)))
+        seq.append(sum(m.q[(designs.COUNTER_X, designs.COUNTER_Y, r)] << r for r in range(4)))
         m.clock(cin=1)
     print("counter states:", seq)

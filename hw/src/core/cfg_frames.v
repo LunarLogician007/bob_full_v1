@@ -43,7 +43,7 @@ module cfg_frames #(
     parameter integer FW           = 4,            // words per frame
     parameter integer NFRAMES      = 4,
     parameter integer NCOLS        = 2,            // FAR columns
-    parameter [16*NCOLS-1:0] FAR_TABLE = 0,        // column c: [16c+7:16c] base, [16c+15:16c+8] count
+    parameter [32*NCOLS-1:0] FAR_TABLE = 0,        // column c: [32c+15:32c] base, [32c+31:32c+16] count
     parameter integer FIDX_W       = 8,
     parameter integer NBRAM        = 2             // M15: FAR block type 1 columns
 )(
@@ -141,18 +141,19 @@ module cfg_frames #(
     // ---------------------------------------------------------------------
     // FAR decode: column / minor -> frame index, validity, next address
     // ---------------------------------------------------------------------
-    function [7:0] col_base(input integer ci);
-        col_base = FAR_TABLE[16*ci +: 8];
+    function [15:0] col_base(input integer ci);
+        col_base = FAR_TABLE[32*ci +: 16];
     endfunction
-    function [7:0] col_count(input integer ci);
-        col_count = FAR_TABLE[16*ci + 8 +: 8];
+    function [7:0] col_count(input integer ci);        // at most 128 (the 7-bit minor)
+        col_count = FAR_TABLE[32*ci + 16 +: 8];
     endfunction
 
     wire [6:0]  far_minor = far[6:0];
     wire [31:0] far_col   = {22'd0, far[16:7]};
     wire       far_valid = (far[31:17] == 15'd0) && (far_col < NCOLS) &&
                            ({1'b0, far_minor} < col_count(far_col));
-    wire [FIDX_W-1:0] far_fidx = col_base(far_col) + far_minor;
+    wire [15:0]       far_fidx16 = col_base(far_col) + {9'd0, far_minor};
+    wire [FIDX_W-1:0] far_fidx   = far_fidx16[FIDX_W-1:0];
 
     // M15: block type 1 (BRAM contents)
     wire [5:0]  far_row    = far[22:17];
@@ -436,7 +437,7 @@ module cfg_frames #(
 
     assign so = out[31];
 
-    wire _unused = &{1'b0, lfrm, sh[31]};
+    wire _unused = &{1'b0, lfrm, sh[31], far_fidx16};
 
 endmodule
 

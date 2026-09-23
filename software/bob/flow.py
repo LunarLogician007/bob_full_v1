@@ -472,6 +472,14 @@ class Flow:
                        f"(gap {self._gap})")
             if self._check and self._sdc is None:
                 detail += f"; slack {self._check['slack_ns']:+.3f} ns"
+        # M21: the XDC no longer times the fabric, so every word, stepped or free-running,
+        # timed or not, must fit the gce spacing it will run at (timing.contract)
+        try:
+            T.contract(t, word)
+        except T.TimingError as e:
+            st.finish(False, str(e), cpd_ns=t["cpd_ns"], fmax_hz=t["fmax_hz"],
+                      gap=t["gap_cycles"], spacing=T.spacing(word), path=t["path"])
+            raise FlowError(str(e))
         return st.finish(True, detail, cpd_ns=t["cpd_ns"], fmax_hz=t["fmax_hz"],
                          gap=t["gap_cycles"], margin=t["margin"], provisional=t["provisional"],
                          period=self._period, clk_gap=self._gap,

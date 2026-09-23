@@ -3,8 +3,9 @@
 delays.py - per-element delays of the fabric, measured on the Vivado implementation (M20).
 
 software/bob/timing.py sums one delay per element class along a configured design's
-paths: a routing mux (track <- track), an input mux (IPIN <- track), a LUT (IPIN -> the
-CLB output), carry (cin -> cout), flip-flop clock-to-Q and setup. This module finds those
+paths: a routing mux (track <- track), an input mux (IPIN <- track), M21's crossbar mux
+(element input <- CLB pin or feedback), a LUT (element input -> its output), carry (cin ->
+cout), flip-flop clock-to-Q and setup. This module finds those
 numbers in Vivado timing reports.
 
 It works because Vivado keeps the fabric's rr-wire names through flattening: every
@@ -47,21 +48,36 @@ NET = re.compile(r"^\s*net \(.*?\)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)\s+(\S+)\s*$")
 CELL_Q = re.compile(r"\((Prop_fd[rs]e_C_Q)\)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)")
 SETUP = re.compile(r"\((Setup_fd[rs]e_C_(?:D|CE|R|S))\)\s+(-?\d+\.\d+)")
 
-# which CLB pins are which rr nodes, for the LUT and carry classes
+# M21: which element pins are which nodes, for the LUT and carry classes. An element's
+# inputs (EIN) and the carry links between its CLB's elements (ECY) live inside bob_clb
+# (bob_fabric.v), so their nets are u_clb_x<x>y<y>/x<e>[j] and u_clb_x<x>y<y>/cy[e+1];
+# its outputs and the CLB's own carry pins are rr wires r<node>.
 PIN_OF = {}
-for _name in B.CLBS:
-    for _p in ("O[0]", "cout[0]", "cin[0]", "ce[0]", "sr[0]") + tuple(f"I[{j}]" for j in range(B.LUT_K)):
-        PIN_OF[B.PIN[f"{_name}.{_p}"]] = (_name, _p)
+NET_OF = {}                                  # node -> its net in the flattened design
+for _el in B.ELEMENTS:
+    _p = _el["pins"]
+    _cell = f"u_clb_x{_el['x']}y{_el['y']}"
+    for _j in range(B.LUT_K):
+        PIN_OF[_p[f"I[{_j}]"]] = (_el["name"], f"I[{_j}]")
+        NET_OF[_p[f"I[{_j}]"]] = f"{PREFIX}{_cell}/x{_el['e']}[{_j}]"
+    for _k in ("out0", "cin", "cout"):
+        PIN_OF.setdefault(_p[_k], (_el["name"], _k))
+    PIN_OF[_p["out0"]] = (_el["name"], "out0")
+    if B.NODE[_p["cout"]][1] == "ECY":
+        NET_OF[_p["cout"]] = f"{PREFIX}{_cell}/cy[{_el['e'] + 1}]"
+for _n in B.NODE:
+    NET_OF.setdefault(_n, f"{PREFIX}r{_n}")
+NODE_OF_NET = {v: k for k, v in NET_OF.items()}
 MUX_INPUTS = {node: set(ins) for node, (_lo, _w, _base, ins) in B.MUX.items()}
 
 
+def _cls(node):
+    return {"IPIN": "mux_ipin", "EIN": "mux_xbar"}.get(KIND.get(node), "mux_chan")
+
+
 def _node(net):
-    """u_core/u_fabric/r123 -> 123 (fabric-level rr wires only)"""
-    if not net.startswith(PREFIX):
-        return None
-    rest = net[len(PREFIX):]
-    m = re.fullmatch(r"r(\d+)", rest)
-    return int(m.group(1)) if m else None
+    """u_core/u_fabric/r123 -> 123, u_core/u_fabric/u_clb_x1y1/x3[2] -> its EIN node"""
+    return NODE_OF_NET.get(net)
 
 
 HARD = re.compile(r"\b(DSP48E1|RAMB\w*|CARRY4|FD[RSCP]E\w*)\b")
@@ -74,7 +90,8 @@ def _clean(net):
     if not net.startswith(PREFIX):
         return False
     rest = net[len(PREFIX):]
-    return "/" not in rest and re.search(r"(_n_\d+|_i_\d+.*|\[\d+\]_i_\w*)$", rest) is not None
+    rest = re.sub(r"^u_clb_x\d+y\d+/(u_e\d+/(u_lut/)?)?", "", rest)   # M21: inside one CLB / element
+    return "/" not in rest and re.search(r"(_n_\d+|_i_\d+.*|\[\d+\]_i_\w*|^t\[\d+\])$", rest) is not None
 
 
 def hops(text):
@@ -103,14 +120,14 @@ def hops(text):
                 a, ta = prev
                 cls = None
                 if node in MUX_INPUTS and a in MUX_INPUTS[node]:
-                    cls = "mux_ipin" if KIND.get(node) == "IPIN" else "mux_chan"
+                    cls = _cls(node)
                 elif a in PIN_OF and node in PIN_OF and PIN_OF[a][0] == PIN_OF[node][0]:
                     pa, pb = PIN_OF[a][1], PIN_OF[node][1]
-                    if pa.startswith("I[") and pb == "O[0]":
+                    if pa.startswith("I[") and pb == "out0":
                         cls = "lut"
-                    elif pa == "cin[0]" and pb == "cout[0]":
+                    elif pa == "cin" and pb == "cout":
                         cls = "carry"
-                    elif pa.startswith("I[") and pb == "cout[0]":
+                    elif pa.startswith("I[") and pb == "cout":
                         cls = "lut_cout"
                 elif a in B.DIRECT.values() and node in B.DIRECT and B.DIRECT[node] == a:
                     cls = "direct"
@@ -164,24 +181,22 @@ def plan(n_per_class=200, seed=1):
     """A reproducible sample of hops of every class, for extract_delays.tcl."""
     rnd = random.Random(seed)
     lines = []
-    by = {"mux_chan": [], "mux_ipin": []}
+    by = {"mux_chan": [], "mux_ipin": [], "mux_xbar": []}
     for node, ins in MUX_INPUTS.items():
-        cls = "mux_ipin" if KIND.get(node) == "IPIN" else "mux_chan"
         for a in ins:
-            by[cls].append((a, node))
-    for name in B.CLBS:
-        o = B.PIN[f"{name}.O[0]"]
-        by.setdefault("lut", []).extend((B.PIN[f"{name}.I[{j}]"], o) for j in range(B.LUT_K))
-        by.setdefault("carry", []).append((B.PIN[f"{name}.cin[0]"], B.PIN[f"{name}.cout[0]"]))
+            by[_cls(node)].append((a, node))
+    for el in B.ELEMENTS:
+        p = el["pins"]
+        by.setdefault("lut", []).extend((p[f"I[{j}]"], p["out0"]) for j in range(B.LUT_K))
+        by.setdefault("carry", []).append((p["cin"], p["cout"]))
     for cls, pairs in sorted(by.items()):
         for a, b in rnd.sample(pairs, min(n_per_class, len(pairs))):
-            lines.append(f"{cls} {PREFIX}r{a} {PREFIX}r{b}")
+            lines.append(f"{cls} {NET_OF[a]} {NET_OF[b]}")
     # the flip-flop's own timing: clock-to-Q onto its output wire, and input wire -> D
-    for name in rnd.sample(list(B.CLBS), min(n_per_class // 4 or 1, len(B.CLBS))):
-        blk = B.BLOCKS[name]
-        cell = f"{PREFIX}u_clb_x{blk['x']}y{blk['y']}/q_reg"
-        lines.append(f"ffq {cell} {PREFIX}r{B.PIN[name + '.O[0]']}")
-        lines.append(f"ffd {PREFIX}r{B.PIN[name + '.I[0]']} {cell}")
+    for el in rnd.sample(list(B.ELEMENTS), min(n_per_class // 4 or 1, len(B.ELEMENTS))):
+        cell = f"{PREFIX}u_clb_x{el['x']}y{el['y']}/u_e{el['e']}/q_reg"
+        lines.append(f"ffq {cell} {NET_OF[el['pins']['out0']]}")
+        lines.append(f"ffd {NET_OF[el['pins']['I[0]']]} {cell}")
     return lines
 
 

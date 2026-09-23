@@ -145,7 +145,7 @@
   };
 
   /* ============================================================================
-     CLB (clb.sv)  —  the whole BLE, live: flags, inputs, one clock edge
+     one logic element (ble.sv; clb.sv until M20)  —  live: flags, inputs, one clock edge
      ========================================================================= */
   const BLE = { i0: 1, i1: 0, cin: 1, ce: 1, sr: 0, q: 0, fn: "add",
     f: { ff_en: 1, ff_rstval: 0, ff_ce_en: 1, ff_sr_en: 1, cy_en: 1, cy_di_sel: 0, ff_d_sel: 0 }, gsr: 0, gwe: 1 };

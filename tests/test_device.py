@@ -58,34 +58,72 @@ def test_chain_fields_chain_round_trip(k):
         assert dev.encode(dev.decode(w)) == w
 
 
-@pytest.mark.parametrize("k,chain_w", [(6, 18560), (4, 12800)])
-def test_sizes(k, chain_w):
+SIZES = {"grid": (11, 9, 40), "blocks": {"io": 32, "clb": 49, "bram": 2, "dsp": 2},
+         "cluster": (4, 16, "full"), "chain": {6: 32896, 4: 21632}}
+
+
+@pytest.mark.parametrize("k", [6, 4])
+def test_sizes(k):
     """The board device, pinned: a change here must be a deliberate one.
     M7-M12 (6x4 core) packed the tiles into 4216 bits (K=4: 3352); M13 laid the memory
     out in 128-bit frames per column (4992 bits = 39 frames; K=4: 4096 = 32).
     M12b: 8x6 core, 36 CLBs, 28 pads: 8320 bits = 65 frames (K=4: 6016 = 47).
     M16: 12x10 core, 100 CLBs, 44 pads: 18560 bits = 145 frames (K=4: 12800 = 100).
+    M21: 9x7 core, 49 CLBs of 4 elements behind a full crossbar = 196 LUTs, 257 frames
+    (software/bob/sweep.py, docs/reports/M21/cluster_sweep.md).
     The 8x8 profile (48 CLBs, 9400 bits) is frozen in release/M7_8x8."""
     dev = DEVICES[k]
-    assert (dev.width, dev.height, dev.arch["chan_width"]) == (14, 12, 24)
-    assert {t: len(v) for t, v in dev.by_type.items()} == {"io": 44, "clb": 100, "bram": 2, "dsp": 2}
-    assert dev.tile_types["clb"].width == (1 << k) + 7
+    assert (dev.width, dev.height, dev.arch["chan_width"]) == SIZES["grid"]
+    assert {t: len(v) for t, v in dev.by_type.items()} == SIZES["blocks"]
+    c = dev.cluster
+    assert (c["n"], c["i"], c["xbar"]) == SIZES["cluster"]
+    # an element: INIT + 12 flags + one crossbar select per input
+    assert dev.tile_types["clb"].width == c["n"] * ((1 << k) + 12 + k * dev.xbar_width())
     # M20: clk_mode 1 + clk_div 5 + reserved 2 + clk_period 16 + clk_gap 16
     assert dev.tile_types["ctrl"].width == 8 + 2 * device.PERIOD_W == 40
     assert dev.tile_types["bram"].width == 8 and dev.tile_types["dsp"].width == 16
-    assert dev.chain_width == chain_w
+    assert dev.chain_width == SIZES["chain"][k]
 
 
 @pytest.mark.parametrize("k", [6, 4])
 def test_mux_encoding(k):
-    """0 is const0 (IPIN 1 const1), inputs from base; the width is the smallest that fits."""
+    """0 is const0 (IPIN 1 const1), inputs from base; the width is the smallest that fits.
+    M21: a crossbar mux (its node is an element input, EIN) is an IPIN-like mux over its
+    CLB's pins in device.xbar_sources order."""
     dev = DEVICES[k]
     for m in dev.muxes.values():
+        if m.node not in dev.rr.nodes:
+            t, x, y, ej = dev.ext_nodes[m.node]
+            e, j = map(int, ej.split(","))
+            assert t == "EIN" and m.base == 2
+            clb = dev.block_at[(x, y)].name
+            assert list(m.inputs) == [dev.pin_node[(clb, p)] for p in dev.xbar_sources(e, j)]
+            assert 1 + len(m.inputs) < (1 << m.width)
+            continue
         ntype = dev.rr.nodes[m.node].type
         assert m.base == (2 if ntype == "IPIN" else 1)
         top = m.base + len(m.inputs) - 1
         assert top < (1 << m.width) and top >= (1 << (m.width - 1))
         assert list(m.inputs) == sorted(set(m.inputs)) == dev.rr.fanin[m.node]
+
+
+@pytest.mark.parametrize("k", [6, 4])
+def test_crossbar_selects_are_the_clb_fields(k):
+    """M21: element e's input j is the CLB field e<e>.x<j>, and its mux reads those bits"""
+    dev = DEVICES[k]
+    for el in dev.elements:
+        blk = dev.block_by_name[el["clb"]]
+        for j in range(k):
+            m = dev.muxes[el["pins"][f"I[{j}]"]]
+            assert (m.lo, m.width) == dev.block_field(blk, f"e{el['e']}.x{j}")
+            assert el["chain_lo"] + dev.tile_types["clb"].field(f"e0.x{j}").offset == m.lo
+    # the carry runs cin -> e0 -> ... -> e<N-1> -> cout inside every CLB
+    for blk in dev.by_type["clb"]:
+        els = [el for el in dev.elements if el["clb"] == blk.name]
+        assert els[0]["pins"]["cin"] == dev.pin_node[(blk.name, "cin[0]")]
+        assert els[-1]["pins"]["cout"] == dev.pin_node[(blk.name, "cout[0]")]
+        for lo, hi in zip(els, els[1:]):
+            assert lo["pins"]["cout"] == hi["pins"]["cin"]
 
 
 @pytest.mark.parametrize("k", [6, 4])
@@ -97,9 +135,9 @@ def test_every_pip_is_exactly_one_field_value(k):
         assert value < 1 << width
         assert (lo, value) not in seen
         seen.add((lo, value))
-        assert src in dev.rr.fanin[node]
+        assert src in (dev.rr.fanin[node] if node in dev.rr.nodes else dev.muxes[node].inputs)
         n += 1
-    assert n == sum(len(v) for nid, v in dev.rr.fanin.items() if nid in dev.muxes)
+    assert n == sum(len(m.inputs) for m in dev.muxes.values())
 
 
 @pytest.mark.parametrize("k", [6, 4])
@@ -151,7 +189,7 @@ def test_vpr_routed_the_trivial_netlist_on_this_architecture(k):
     log = open(os.path.join(ROOT, "software", "bob", "arch", f"bob_k{k}_vpr.txt")).read()
     assert "Circuit successfully routed" in log
     stamp = open(os.path.join(ROOT, "software", "bob", "arch", f"bob_k{k}_rr.stamp")).read()
-    assert "--route_chan_width 24" in stamp
+    assert f"--route_chan_width {SIZES['grid'][2]}" in stamp
 
 
 def test_arch_keeps_the_reference_routing():
@@ -167,23 +205,30 @@ def test_arch_keeps_the_reference_routing():
 
 # --- the description matches the RTL ----------------------------------------------------
 
-PKG_NAMES = ["LUT_K", "LUT_INIT_W", "CLB_CFG_W", "CLB_INIT_LO", "CLB_FF_EN", "CLB_FF_RSTVAL",
-             "CLB_FF_CE_EN", "CLB_FF_SR_EN", "CLB_CY_EN", "CLB_CY_DI_SEL", "CLB_FF_D_SEL"]
+PKG_NAMES = ["LUT_K", "LUT_INIT_W"]
 
 
 @pytest.mark.skipif(shutil.which("iverilog") is None, reason="needs iverilog")
 @pytest.mark.parametrize("k", [6, 4])
 def test_params_vh_equals_clb_pkg_when_elaborated(k, tmp_path):
-    """clb_pkg.sv takes only LUT_K from the header and derives every width
-    itself; iverilog elaborates both and compares all constants."""
+    """clb_pkg.sv (the one-element clb.sv of M4-M20, kept for the M0 bring-up fabric) takes
+    only LUT_K from the header and derives its widths itself; iverilog elaborates both and
+    compares the constants they share, and the element offsets ble.sv uses."""
     gen = os.path.join(ROOT, "hw", "src", "generated")
     if k != 6:
         gen = str(tmp_path / "gen")
         subprocess.run([sys.executable, os.path.join(ROOT, "software", "bob", "device.py"),
                         "--lut-k", str(k), "--out", gen], check=True, capture_output=True)
+    dev = DEVICES[k]
+    tt = dev.tile_types["clb"]
+    want = {f"ELE_{n.upper()}": tt.field(f"e0.{n}").offset for n, *_r in dev.ELEMENT_FIELDS}
+    want.update(ELE_INIT_LO=0, ELE_XBAR_LO=tt.field("e0.x0").offset, ELE_W=dev.element_width())
     checks = "\n".join(
         f'    if (`BOB_{n} !== {n}) begin $display("MISMATCH {n} vh=%0d pkg=%0d", '
         f'`BOB_{n}, {n}); bad = bad + 1; end' for n in PKG_NAMES)
+    checks += "\n" + "\n".join(
+        f'    if (`BOB_{n} !== {v}) begin $display("MISMATCH {n} vh=%0d device=%0d", `BOB_{n}, {v}); '
+        f'bad = bad + 1; end' for n, v in want.items())
     tb = tmp_path / "t.sv"
     tb.write_text(
         '`include "bob_params.vh"\n'
@@ -211,11 +256,16 @@ def test_rtl_sizes_come_from_bob_params():
 def test_generated_fabric_has_every_mux_and_block():
     dev = DEVICES[6]
     text = open(os.path.join(ROOT, "hw", "src", "generated", "bob_fabric.v")).read()
-    assert len(re.findall(r"^\s*bob_mux #", text, re.M)) == len(dev.muxes)
-    assert len(re.findall(r"^\s*clb u_clb_x\d+y\d+ ", text, re.M)) == len(dev.by_type["clb"])
+    rr = [m for m in dev.muxes.values() if m.node in dev.rr.nodes]
+    assert len(re.findall(r"^\s*bob_mux #.* m\d+ ", text, re.M)) == len(rr)
+    # M21: one bob_clb module holds the crossbar (one mux per element input) and N elements
+    body = text[text.index("module bob_clb"):]
+    assert len(re.findall(r"^\s*bob_mux #", body, re.M)) == dev.cluster["n"] * dev.lut_k
+    assert len(re.findall(r"^\s*ble u_e\d+ ", body, re.M)) == dev.cluster["n"]
+    assert len(re.findall(r"^\s*bob_clb u_clb_x\d+y\d+ ", text, re.M)) == len(dev.by_type["clb"])
     assert len(re.findall(r"^\s*bram_block u_bram\d ", text, re.M)) == 2
     assert len(re.findall(r"^\s*dsp_block u_dsp\d ", text, re.M)) == 2
-    for m in list(dev.muxes.values())[::97]:
+    for m in rr[::97]:
         assert f"m{m.node} (.sel(cfg[{m.lo} +: {m.width}])" in text
 
 
@@ -225,9 +275,13 @@ def test_bitstream_py_constants_come_from_device_json():
     import bitstream as B
     dev = DEVICES[6]
     assert B.FABRIC_CFG_W == B.CHAIN_W == dev.chain_width
-    assert (B.LUT_K, B.CLB_CFG_W, B.NCLB, B.NBRAM, B.NDSP, B.NPAD, B.BSR_W) == (6, 71, 100, 2, 2, 44, 88)
+    assert (B.LUT_K, B.CLB_CFG_W, B.NCLB, B.NBRAM, B.NDSP, B.NPAD, B.BSR_W) == \
+        (6, dev.tile_types["clb"].width, len(dev.by_type["clb"]), 2, 2, len(dev.pads), 2 * len(dev.pads))
+    assert (B.CLB_N, B.CLB_I, B.NCAP) == (dev.cluster["n"], dev.cluster["i"], 2 * len(dev.elements))
     assert len(B.MUX) == len(dev.muxes)
-    assert B.CLBS[0] == "clb_x1y1" and B.CLB_XY_INDEX[(2, 2)] == 11
+    ncol = len({x for x, _y in B.CLB_AT})                          # CLBs row-major, 2 bits per element
+    assert B.CLBS[0] == "clb_x1y1" and B.CLB_XY_INDEX[(2, 2)] == 2 * B.CLB_N * (ncol + 1)
+    assert B.CAP_INDEX[(1, 1, 3)] == 6 and B.CAP_STATE[7] == ((1, 1, 3), "q2")
 
 
 def test_designs_decode_to_the_fields_they_set():
@@ -240,8 +294,9 @@ def test_designs_decode_to_the_fields_they_set():
     assert bs.get_field(1, 1, "init") == B.LUT.and2()
     assert bs.get_field(2, 2, "init") == B.LUT.or2()
     assert bs.get_field(4, 3, "init") == B.LUT.xor2()
-    assert bs.get_mux(B.PIN["clb_x1y1.ce[0]"]) == 1                  # const1
+    assert bs.get_mux(B.PIN["clb_x1y1.ce[0]"]) == 0                  # M21: shared, unused: const0
     assert bs.get_mux(B.PIN["clb_x1y1.sr[0]"]) == 0                  # const0
+    assert bs.get_mux(B.PIN["clb_x1y1.e0.I[0]"]) >= 2                # the crossbar takes a CLB pin
     assert dev.decode(word)["ctrl"] == {"clk_mode": 0, "clk_div": 0, "reserved": 0,
                                         "clk_period": 0, "clk_gap": 0}     # M20: unset = the old behaviour
     for pad in B.BOARD_OUT:
@@ -295,7 +350,7 @@ def test_bitstream_engine_at_k4(tmp_path):
                     "--lut-k", "4", "--out", str(gen)], check=True, capture_output=True)
     code = (
         "import designs, bitstream as B\n"
-        "assert B.LUT_K == 4 and B.FABRIC_CFG_W == 12800\n"
+        f"assert B.LUT_K == 4 and B.FABRIC_CFG_W == {SIZES['chain'][4]}\n"
         "assert set(designs.SKIPPED) == {'and6', 'xor6'}\n"
         "for k, d, f, s in designs.DESIGNS:\n"
         "    bs = f().build()\n"

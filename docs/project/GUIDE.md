@@ -265,7 +265,7 @@ raw  = fpga.sample(p)                        # the real switches and LEDs, at on
 **Why this way.** Three reasons, in order of importance:
 1. **Timing.** A clock enable keeps the whole fabric on one real clock; a generated or gated clock would need clock resources the host does not have to spare, and UG949 recommends enables.
 2. **Determinism.** One clock per JTAG scan makes cycle-exact checks possible: the board and the model can be compared after every single user clock.
-3. **Honest constraints.** Because the RTL *guarantees* the 512-cycle spacing, the 512-cycle multicycle in the XDC is a fact, not an assumption. That is what closed M7's timing failure. It also has to be *big enough*: at M16 the grid grew to 12 × 10, the static path through the unconfigured routing muxes reached about 2500 ns, and the old 256 cycles (2048 ns) left implementation 465 ns short — `phys_opt_design` burned 1 h 15 min on it and the router abandoned timing. The fix is one number in two places, not a placement or routing effort setting.
+3. **Honest constraints.** Because the RTL *guarantees* the 512-cycle spacing, the 512-cycle multicycle in the XDC is a fact, not an assumption. That is what closed M7's timing failure. It also has to be *big enough*: at M16 the grid grew to 12 × 10, the static path through the unconfigured routing muxes reached about 2500 ns, and the old 256 cycles (2048 ns) left implementation 465 ns short — `phys_opt_design` burned 1 h 15 min on it and the router abandoned timing. The fix is one number in two places, not a placement or routing effort setting. **At M21 that stopped working:** the cluster fabric missed by 133 ns against 512 cycles and by 290 ns against 1024, so the "path" grew with the budget. Where Vivado cuts the empty mesh's loops sets it, not the fabric. So the XDC's multicycle became 16 384 cycles, a "don't optimise this" rather than a budget, and the guarantee moved into software. `timing.contract()` refuses to build or load any design whose own critical path, with the guard band, is longer than its gce spacing.
 
 **How to use it.** Per design, from the `.bit`:
 
@@ -277,7 +277,7 @@ raw  = fpga.sample(p)                        # the real switches and LEDs, at on
 
 **How to tweak it.**
 - **Rate:** `--div N` (period = 2^(N+8) sysclk cycles).
-- **Minimum spacing:** `GCE_MIN_GAP_SHIFT` in `device.py` (and the matching multicycle in the XDC). Raising it makes timing easier and the fabric slower. Grow the grid and this is the number that has to grow with it: 12 × 10 needs 9 (512 cycles), 8 × 6 fitted in 8.
+- **Minimum spacing:** `GCE_MIN_GAP_SHIFT` in `device.py`: the default gap when a design sets no `clk_gap`. Through M20 the XDC multicycle had to match it and it grew with the grid (8 × 6 fitted in 8, 12 × 10 needed 9). From M21 the XDC uses `XDC_SYSCLK_MULTICYCLE` instead, and a design that does not fit the default gap is refused (build it with `--hz auto`).
 - **A second clock domain:** a real project — a second `gce`, per-CLB clock selection, and VPR would need two global nets.
 
 **Tests.** `hw/tb/tb_clock_gap.v` (11 checks): spacing in both modes, requests that arrive too early, no `gce` at all while frozen, and pulses resuming after release.
@@ -711,7 +711,7 @@ To make it the board's K: set `lut_k` in `device.py`, `make rrgraph` (the archit
 ### 4.7 Change the user clock
 
 - Per design: `--clock jtag` (one step per TCK edge) or `--clock run --div N` (period 2^(N+8) sysclk cycles).
-- Globally: `DIV_MIN_SHIFT` / `GCE_MIN_GAP_SHIFT` in `device.py`. The gap shift and the XDC multicycle must agree — that is what makes the constraint true.
+- Globally: `DIV_MIN_SHIFT` / `GCE_MIN_GAP_SHIFT` in `device.py`. From M21 the XDC multicycle is `XDC_SYSCLK_MULTICYCLE` (≥ the gap), and `timing.contract()` makes every loaded design fit its own spacing.
 - On the board, `USER1` bit 0 is `ce`, bit 3 `step`, bit 4 `autostep` (one clock per INTEST scan).
 
 ### 4.8 Use partial reconfiguration

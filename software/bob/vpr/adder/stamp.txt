@@ -1,11 +1,11 @@
 top adder
 pcf -
-arch_sha256 6654df9882b17c7ca3e1a71fbae9be385c450ba0c84e8644626a03d6b635a3f6
+arch_sha256 842ee70653e1c0bb7f910190f562680eb10c283ada4aebbbc6b47c3cf05207fe
 eblif_sha256 e74f093421c7c3002a46001bb6cc4de68a8d32bc3fb664c40361f3f86ded68ac
 seed 1
-image ghcr.io/lnis-uofu/openfpga-master@sha256:2879ee7723111c5b4997923513eb3815211c0d28779e083100775d361f443c5c
-command vpr arch.xml adder.eblif --device bob12x10 --route_chan_width 24 --read_rr_graph rr.xml --fix_clusters adder.pins --seed 1 --absorb_buffer_luts off --const_gen_inference none --sweep_dangling_primary_ios off --sweep_dangling_nets off --sweep_dangling_blocks off --sweep_constant_primary_outputs off --pack --place --route --analysis
-wirelength 109
-cpd_ns 2.0661
-fmax_mhz 492.957
-result_sha 8c9f1b49ceec7a7c
+image ghcr.io/lnis-uofu/openfpga-master@sha256:2467ffa99296516cc1bcbb07542633c90723ae17ca3f67a175f61cb9f131abbb
+command vpr arch.xml adder.eblif --device bob9x7 --route_chan_width 40 --read_rr_graph rr.xml --fix_clusters adder.pins --seed 1 --absorb_buffer_luts off --const_gen_inference none --sweep_dangling_primary_ios off --sweep_dangling_nets off --sweep_dangling_blocks off --sweep_constant_primary_outputs off --pack --place --route --analysis
+wirelength 80
+cpd_ns 1.82157
+fmax_mhz 673.619
+result_sha 77e128a376bb1c19
