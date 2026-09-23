@@ -152,6 +152,14 @@ ARCH_12X10 = {
                 {"type": "dsp", "x": 8, "height": 5}],
 }
 
+# M21: the cluster logic block (OpenFPGA k6_frac_N10). A CLB is N logic elements (each
+# a fracturable LUT K - one LUT K or two LUT K-1 sharing K-1 inputs - with two flip-flops
+# and the carry through all N), I general inputs and 2N outputs, and a local crossbar in
+# front of every element input: "full" = every CLB input and every element output, "half"
+# = every other one (a depopulated crossbar). Sized by software/bob/sweep.py
+# (docs/reports/M21/cluster_sweep.md).
+CLUSTER_N10 = {"n": 10, "i": 40, "xbar": "half", "frac": True}
+
 ARCH = ARCH_12X10
 
 # Board pads (PYNQ-Z2): pad_i bit order and pad_o bit order used by every host tool
@@ -261,7 +269,7 @@ class StaleRRGraph(RuntimeError):
 
 
 class Device:
-    def __init__(self, lut_k=6, arch=None, with_rr=True):
+    def __init__(self, lut_k=6, arch=None, with_rr=True, rr_file=None):
         if not 2 <= lut_k <= 6:
             raise ValueError("lut_k must be 2..6")
         self.arch = dict(ARCH if arch is None else arch)
@@ -277,6 +285,7 @@ class Device:
         self._grid()
         self.rr = None
         self.tiles = []
+        self.rr_file = rr_file                 # software/bob/sweep.py: a graph built elsewhere
         if with_rr:
             self._load_rr()
 
@@ -345,20 +354,63 @@ class Device:
              f"(never below {GCE_GAP_FLOOR}); 0 = the safe 2**{GCE_MIN_GAP_SHIFT}"),
         ], "ctrl")
 
+    # M21: one logic element (hw/src/clb/ble.sv). AMD UG474: LUT6_2 fracture (generalised
+    # to K), CARRY4-style MUXCY/XORCY, FDRE/FDSE; the second flip-flop registers O5, as a
+    # slice's second FF per LUT does.
+    ELEMENT_FIELDS = (
+        ("frac", 1, "flag", "two LUT(K-1)s: input K-1 reads 1, so O6 = INIT[2**K-1:2**(K-1)] and "
+                            "O5 = INIT[2**(K-1)-1:0], both over i[K-2:0]"),
+        ("ff_en", 1, "flag", "out[0] = FF q (1) or combinational (0)"),
+        ("ff_rstval", 1, "flag", "INIT and sync reset value: FDRE=0 / FDSE=1"),
+        ("ff_ce_en", 1, "flag", "1: FF honours the CLB's routed CE, 0: always enabled"),
+        ("ff_sr_en", 1, "flag", "1: FF honours the CLB's routed SR, 0: reset ignored"),
+        ("cy_en", 1, "flag", "carry mode: XORCY sum on out[0]'s datapath, MUXCY cout"),
+        ("cy_di_sel", 1, "flag", "carry generate: 0 = i[0], 1 = O5"),
+        ("ff_d_sel", 1, "flag", "out[0] datapath: 0 = O6, 1 = O5 (ignored if cy_en)"),
+        ("ff2_en", 1, "flag", "out[1] = second FF q (1) or O5 (0)"),
+        ("ff2_rstval", 1, "flag", "second FF: INIT and sync reset value"),
+        ("ff2_ce_en", 1, "flag", "second FF honours the routed CE"),
+        ("ff2_sr_en", 1, "flag", "second FF honours the routed SR"),
+    )
+
+    @property
+    def cluster(self):
+        return self.arch["cluster"]
+
+    def xbar_sources(self, e, j):
+        """Crossbar sources of element e's input j, as CLB pin names in mux input order
+        (after const0 and const1): 'I[k]' then 'O[m]' (element feedback)."""
+        c = self.cluster
+        srcs = [f"I[{k}]" for k in range(c["i"])] + [f"O[{m}]" for m in range(2 * c["n"])]
+        if c["xbar"] == "full":
+            return srcs
+        if c["xbar"] == "half":
+            # every other source, alternating with the input: the K inputs of one element
+            # see every source, so a LUT (inputs permutable) can take any net
+            return [p for s, p in enumerate(srcs) if (s + e + j) % 2 == 0]
+        raise ValueError(f"crossbar {c['xbar']!r}: full or half")
+
+    def xbar_width(self):
+        n = len(self.xbar_sources(0, 0))
+        assert all(len(self.xbar_sources(e, j)) == n
+                   for e in range(self.cluster["n"]) for j in range(self.lut_k))
+        return (n + 1).bit_length()                  # values 0 const0, 1 const1, 2.. inputs
+
     def _clb_type(self):
         k = self.lut_k
-        return _build([
-            # AMD UG474: LUT6_2 fracture (generalised to K), CARRY4-style MUXCY/XORCY, FDRE/FDSE.
-            ("init", 1 << k, "lut_init", "clb",
-             f"LUT{k} truth table; O5 = INIT[{(1 << (k - 1)) - 1}:0] over i[{k - 2}:0]"),
-            ("ff_en", 1, "flag", "clb", "o = FF q (1) or combinational (0)"),
-            ("ff_rstval", 1, "flag", "clb", "INIT and sync reset value: FDRE=0 / FDSE=1"),
-            ("ff_ce_en", 1, "flag", "clb", "1: FF honours the routed CE, 0: always enabled"),
-            ("ff_sr_en", 1, "flag", "clb", "1: FF honours the routed SR, 0: reset ignored"),
-            ("cy_en", 1, "flag", "clb", "carry mode: XORCY sum on datapath, MUXCY cout"),
-            ("cy_di_sel", 1, "flag", "clb", "carry generate: 0 = i[0], 1 = O5"),
-            ("ff_d_sel", 1, "flag", "clb", "datapath: 0 = O6, 1 = O5 (ignored if cy_en)"),
-        ], "clb")
+        xw = self.xbar_width()
+        spec = []
+        for e in range(self.cluster["n"]):
+            spec.append((f"e{e}.init", 1 << k, "lut_init", "clb",
+                         f"element {e}: LUT{k} truth table; O5 = INIT[{(1 << (k - 1)) - 1}:0] over i[{k - 2}:0]"))
+            spec += [(f"e{e}.{n}", w, kind, "clb", doc) for n, w, kind, doc in self.ELEMENT_FIELDS]
+            spec += [(f"e{e}.x{j}", xw, "mux", "xbar",
+                      f"element {e} input {j}: 0 const0, 1 const1, 2.. crossbar source "
+                      f"(xbar_sources)") for j in range(k)]
+        return _build(spec, "clb")
+
+    def element_width(self):
+        return self.tile_types["clb"].width // self.cluster["n"]
 
     def _bram_type(self):
         return _build([
@@ -390,8 +442,9 @@ class Device:
         if t == "io":
             return [("in", "outpad", 1), ("out", "inpad", 1)]
         if t == "clb":
-            return [("in", "I", k), ("in", "ce", 1), ("in", "sr", 1), ("in", "cin", 1),
-                    ("out", "O", 1), ("out", "O5", 1), ("out", "cout", 1), ("clk", "clk", 1)]
+            c = self.cluster
+            return [("in", "I", c["i"]), ("in", "ce", 1), ("in", "sr", 1), ("in", "cin", 1),
+                    ("out", "O", 2 * c["n"]), ("out", "cout", 1), ("clk", "clk", 1)]
         if t == "bram":
             ports = []
             for p in "ab":
@@ -455,10 +508,9 @@ class Device:
              "pinloc": [(s, 0, ["io.outpad", "io.inpad"]) for s in ("left", "top", "right", "bottom")]},
             {"name": "clb", "height": 1, "capacity": 1, "ports": self.block_ports("clb"),
              "fc0": ["cin", "cout", "clk"],
-             "pinloc": [("left", 0, [f"clb.I[{h - 1}:0]", "clb.clk"]),
-                        ("right", 0, [f"clb.I[{k - 1}:{h}]", "clb.O"]),
-                        ("top", 0, ["clb.cout", "clb.ce", "clb.O5"]),
-                        ("bottom", 0, ["clb.cin", "clb.sr"])]},
+             # a full crossbar makes every CLB input equivalent (the reference's clb.I)
+             "equivalent": ("I",) if self.cluster["xbar"] == "full" else (),
+             "pinloc": self._clb_pinloc()},
             {"name": "bram", "height": heights["bram"], "capacity": 1, "model": "bob_bram",
              "ports": self.block_ports("bram"), "fc0": ["clk"],
              "pinloc": around("bram", self.block_ports("bram"), heights["bram"], ["clk"])},
@@ -466,6 +518,24 @@ class Device:
              "ports": self.block_ports("dsp"), "fc0": ["clk", "pcin", "pcout"],
              "pinloc": around("dsp", self.block_ports("dsp"), heights["dsp"], ["clk", "pcin", "pcout"])},
         ]
+
+    def _clb_pinloc(self):
+        """CLB pins round-robin over the four sides (inputs and outputs each start on a
+        different side, so every channel carries both); carry in at the bottom and out
+        at the top (the chain runs South to North), the clock and CE on the left, SR on
+        the right."""
+        c = self.cluster
+        sides = ("left", "top", "right", "bottom")
+        slots = {s: [] for s in sides}
+        for k in range(c["i"]):
+            slots[sides[k % 4]].append(f"clb.I[{k}]")
+        for m in range(2 * c["n"]):
+            slots[sides[(m + 2) % 4]].append(f"clb.O[{m}]")
+        slots["bottom"].append("clb.cin")
+        slots["top"].append("clb.cout")
+        slots["left"] += ["clb.clk", "clb.ce"]
+        slots["right"].append("clb.sr")
+        return [(s, 0, slots[s]) for s in sides]
 
     def vpr_directs(self):
         h = {c["type"]: c["height"] for c in self.arch["columns"]}["dsp"]
@@ -480,13 +550,16 @@ class Device:
 
     def _load_rr(self):
         from rrgraph import RRGraph
-        path = rr_path(self.lut_k)
+        path = self.rr_file or rr_path(self.lut_k)
         stamp = path.replace("_rr.xml.gz", "_rr.stamp")
         want = hashlib.sha256(self.arch_xml().encode()).hexdigest()
-        if not (os.path.exists(path) and os.path.exists(stamp)):
+        if self.rr_file:
+            pass
+        elif not (os.path.exists(path) and os.path.exists(stamp)):
             raise StaleRRGraph(f"no rr graph for K={self.lut_k}: run `make rrgraph` (Docker)")
-        got = dict(line.split(" ", 1) for line in open(stamp).read().splitlines() if " " in line)
-        if got.get("arch_sha256") != want:
+        got = {} if self.rr_file else dict(
+            line.split(" ", 1) for line in open(stamp).read().splitlines() if " " in line)
+        if not self.rr_file and got.get("arch_sha256") != want:
             raise StaleRRGraph(f"{os.path.relpath(path, ROOT)} was built from a different "
                                f"architecture: run `make rrgraph` (Docker)")
         rr = RRGraph(path)
@@ -582,6 +655,7 @@ class Device:
                     lo += off
             close_column(x + 1, x, start)
         self.nframes = lo // FRAME_BITS
+        self._elements(blocks)
         # only memory positions are column-major: blocks keep their row-major order,
         # which the fabric's clb_o bits and CAPTURE use (block.index)
         blocks.sort(key=lambda bl: (bl.y, bl.x))
@@ -599,6 +673,47 @@ class Device:
                 for b in range(f.width):
                     m[f.offset + b] = (f, b)
             self._bitmap[t.name] = m
+
+    def _elements(self, blocks):
+        """M21: the inside of every CLB as more nodes of the same graph. Each element
+        input is a node (type EIN) driven by its crossbar mux, whose select bits are the
+        CLB field e<e>.x<j> and whose inputs are the CLB's own IPIN/OPIN nodes; each carry
+        link between two elements is a node (type ECY). Element outputs are the CLB's
+        O pins (element e: O[2e] and O[2e+1]); CE, SR and the clock are shared. Every
+        host tool (model, router, timing) then sees the crossbar as routing muxes."""
+        c, k = self.cluster, self.lut_k
+        nid = max(self.rr.nodes) + 1
+        self.ext_nodes = {}                    # id -> (type, x, y, "e,j")
+        self.elements = []                     # [{name, clb, e, x, y, index, chain_lo, pins}]
+        ew = self.element_width()
+        for blk in sorted((b for b in blocks if b.type == "clb"), key=lambda b: (b.y, b.x)):
+            P = lambda pin: self.pin_node[(blk.name, pin)]          # noqa: E731
+            cin = P("cin[0]")
+            for e in range(c["n"]):
+                pins = {}
+                for j in range(k):
+                    self.ext_nodes[nid] = ("EIN", blk.x, blk.y, f"{e},{j}")
+                    lo, w = self.block_field(blk, f"e{e}.x{j}")
+                    ins = tuple(P(p) for p in self.xbar_sources(e, j))
+                    self.muxes[nid] = Mux(nid, lo, w, 2, ins, f"t_x{blk.x}y{blk.y}")
+                    self.pin_node[(blk.name, f"e{e}.I[{j}]")] = nid
+                    self.node_pin[nid] = (blk.name, f"e{e}.I[{j}]")
+                    pins[f"I[{j}]"] = nid
+                    nid += 1
+                if e + 1 < c["n"]:
+                    cout = nid
+                    self.ext_nodes[nid] = ("ECY", blk.x, blk.y, f"{e},0")
+                    self.pin_node[(blk.name, f"e{e}.cout[0]")] = nid
+                    self.node_pin[nid] = (blk.name, f"e{e}.cout[0]")
+                    nid += 1
+                else:
+                    cout = P("cout[0]")
+                pins.update({"cin": cin, "cout": cout, "out0": P(f"O[{2 * e}]"),
+                             "out1": P(f"O[{2 * e + 1}]"), "ce": P("ce[0]"), "sr": P("sr[0]")})
+                self.elements.append({"name": f"{blk.name}.e{e}", "clb": blk.name, "e": e,
+                                      "x": blk.x, "y": blk.y, "index": len(self.elements),
+                                      "chain_lo": blk.chain_lo + e * ew, "pins": pins})
+                cin = cout
 
     # --- lookups --------------------------------------------------------------------
 
@@ -685,7 +800,8 @@ class Device:
                        "input i, 0 const0, 1 const1 (IPIN only); directs: [ipin, opin]",
                 "nodes": [[n.id, n.type, n.xlow, n.ylow, n.xhigh, n.yhigh,
                            ",".join(map(str, n.ptc)), n.direction]
-                          for n in rr.nodes.values() if n.type in ("CHANX", "CHANY", "IPIN", "OPIN")],
+                          for n in rr.nodes.values() if n.type in ("CHANX", "CHANY", "IPIN", "OPIN")]
+                         + [[i, t, x, y, x, y, ptc, None] for i, (t, x, y, ptc) in sorted(self.ext_nodes.items())],
                 "muxes": [[m.node, m.lo, m.width, m.base, list(m.inputs)]
                           for m in sorted(self.muxes.values(), key=lambda m: m.node)],
                 "directs": [[i, o] for i, o in sorted(self.direct.items())],
@@ -712,8 +828,20 @@ class Device:
                     "cells": "cell k (bit k, cell 0 nearest TDO): k < NPAD output cell of pad k "
                              "(fabric -> world, GTS-gated), k >= NPAD input cell of pad k-NPAD "
                              "(world -> fabric)"},
-            "capture": {"width": len(self.by_type["clb"]), "status_w": STATUS_W,
-                        "order": [b.name for b in self.by_type["clb"]]},
+            "cluster": {"n": self.cluster["n"], "i": self.cluster["i"], "xbar": self.cluster["xbar"],
+                        "frac": self.cluster["frac"], "element_width": self.element_width(),
+                        "xbar_width": self.xbar_width(),
+                        "xbar_sources": [[self.xbar_sources(e, j) for j in range(self.lut_k)]
+                                         for e in range(self.cluster["n"])],
+                        "doc": "CLB = n elements; element e's fields are e<e>.* at chain_lo + "
+                               "e * element_width; its input j is node EIN driven by the crossbar "
+                               "mux e<e>.x<j> (0 const0, 1 const1, 2+i xbar_sources[e][j][i]); "
+                               "its outputs are the CLB's O[2e] (out[0]) and O[2e+1] (out[1])"},
+            "elements": [{"name": el["name"], "clb": el["clb"], "e": el["e"], "x": el["x"], "y": el["y"],
+                          "index": el["index"], "chain_lo": el["chain_lo"], "pins": el["pins"]}
+                         for el in self.elements],
+            "capture": {"width": 2 * len(self.elements), "status_w": STATUS_W,
+                        "order": [f"{el['name']}.out{o}" for el in self.elements for o in (0, 1)]},
             "bram": {"count": len(self.by_type["bram"]), "addr_w": BRAM_ADDR_W, "data_w": BRAM_DATA_W,
                      "port_pins": [[n, w] for n, w in BRAM_PORT_PINS],
                      "write_modes": BRAM_WRITE_MODES, "jtag_version": BRAM_JTAG_VERSION,
@@ -731,10 +859,14 @@ class Device:
         ct = self.tile_types["ctrl"]
         vals = [
             ("LUT_K", self.lut_k), ("LUT_INIT_W", 1 << self.lut_k), ("CLB_CFG_W", tt.width),
-            ("CLB_INIT_LO", tt.field("init").offset),
+            ("CLB_N", self.cluster["n"]), ("CLB_I", self.cluster["i"]),
+            ("ELE_W", self.element_width()), ("XBAR_W", self.xbar_width()),
+            ("XBAR_N", len(self.xbar_sources(0, 0))),
+            ("ELE_INIT_LO", tt.field("e0.init").offset),
         ]
-        for name in ("ff_en", "ff_rstval", "ff_ce_en", "ff_sr_en", "cy_en", "cy_di_sel", "ff_d_sel"):
-            vals.append((f"CLB_{name.upper()}", tt.field(name).offset))
+        for name, _w, _k, _d in self.ELEMENT_FIELDS:
+            vals.append((f"ELE_{name.upper()}", tt.field(f"e0.{name}").offset))
+        vals.append(("ELE_XBAR_LO", tt.field("e0.x0").offset))
         vals += [
             ("GRID_W", self.width), ("GRID_H", self.height), ("CHAN_W", self.arch["chan_width"]),
             ("CTRL_W", ct.width), ("CHAIN_W", self.chain_width),
@@ -746,9 +878,11 @@ class Device:
             ("CTRL_PERIOD_W", PERIOD_W), ("GCE_GAP_FLOOR", GCE_GAP_FLOOR),
             ("DIV_MIN_SHIFT", DIV_MIN_SHIFT), ("GCE_MIN_GAP_SHIFT", GCE_MIN_GAP_SHIFT),
             ("FRAME_WORDS", FRAME_WORDS), ("FRAME_BITS", FRAME_BITS), ("NFRAMES", self.nframes),
+            ("FIDX_W", max(8, self.nframes.bit_length())),
             ("FAR_NCOLS", len(self.frames) and max(c["far_col"] for c in self.frames) + 1),
             ("NPAD", len(self.pads)), ("BSR_W", 2 * len(self.pads)),
-            ("NCLB", len(self.by_type["clb"])), ("STATUS_W", STATUS_W),
+            ("NCLB", len(self.by_type["clb"])), ("NELEM", len(self.elements)),
+            ("NCAP", 2 * len(self.elements)), ("STATUS_W", STATUS_W),
             ("NBRAM", len(self.by_type["bram"])), ("NDSP", len(self.by_type["dsp"])),
             ("BRAM_ADDR_W", BRAM_ADDR_W), ("BRAM_DATA_W", BRAM_DATA_W),
             ("BRAM_PORT_PINS", sum(w for _n, w in BRAM_PORT_PINS)),
@@ -770,15 +904,17 @@ class Device:
         ]
         w = max(len(n) for n, _ in vals)
         lines += [f"`define BOB_{n:<{w}} {v}" for n, v in vals]
-        # FAR column -> (first frame, frame count), packed 16 bits each: [c*16 +: 8] base, [c*16+8 +: 8] count
+        # FAR column -> (first frame, frame count), packed 32 bits each (M21: more than 256
+        # frames): [c*32 +: 16] base, [c*32+16 +: 16] count
         ncol = max(c["far_col"] for c in self.frames) + 1
         table = {c["far_col"]: c for c in self.frames}
         packed = 0
         for c in range(ncol):
             if c in table:
-                packed |= (table[c]["base"] & 0xFF) << (16 * c) | (table[c]["count"] & 0xFF) << (16 * c + 8)
-        lines += ["", "// FAR column c: [16c+7:16c] first frame index, [16c+15:16c+8] frame count (0: no frames)",
-                  f"`define BOB_FAR_TABLE {16 * ncol}'h{packed:0{4 * ncol}x}"]
+                assert table[c]["count"] <= 128, "a FAR column holds at most 128 frames (7-bit minor)"
+                packed |= table[c]["base"] << (32 * c) | table[c]["count"] << (32 * c + 16)
+        lines += ["", "// FAR column c: [32c+15:32c] first frame index, [32c+31:32c+16] frame count (0: no frames)",
+                  f"`define BOB_FAR_TABLE {32 * ncol}'h{packed:0{8 * ncol}x}"]
         lines += ["", "`endif", ""]
         return "\n".join(lines)
 

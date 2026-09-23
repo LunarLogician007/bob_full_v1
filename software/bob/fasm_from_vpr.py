@@ -49,6 +49,10 @@ sys.path.insert(0, os.path.join(ROOT, "software", "host"))
 import bitstream as B  # noqa: E402
 
 BLOCK_AT = {(b["x"], b["y"]): b for b in B.DEVICE["blocks"]}
+NODE_PIN = {}
+for _pin, _node in B.PIN.items():
+    _blk, _p = _pin.split(".", 1)
+    NODE_PIN[_node] = (_blk, _p)
 TABLES = {"clb": B.FIELD, "bram": B.BRAM_FIELD, "dsp": B.DSP_FIELD, "ctrl": B.CTRL_FIELD}
 
 
@@ -84,12 +88,49 @@ def read_route(path):
     return nets
 
 
+def _port_text(blk, direction, name):
+    for port in blk.find(direction).findall("port"):
+        if port.get("name") == name:
+            return port.text.split() if port.text else []
+    return []
+
+
+def _lut_init(leaf, spec, k):
+    """the atom's truth table spec["tt"] over its own inputs, re-indexed onto the LUT's k
+    physical pins through VPR's port_rotation_map (physical pin j carries logical input
+    rot[j]); physical pins VPR left open read 0 and the table does not depend on them"""
+    rot = None
+    for r in leaf.find("inputs").findall("port_rotation_map"):
+        rot = r.text.split()
+    init = 0
+    for addr in range(1 << k):
+        a = 0
+        for j, src in enumerate(rot):
+            if src != "open":
+                a |= ((addr >> j) & 1) << int(src)
+        init |= ((spec["tt"] >> a) & 1) << addr
+    return init
+
+
+def _ff_features(put, el, side, ffblk, second=False):
+    ff = side["ff"][ffblk.get("name")]
+    p = "ff2" if second else "ff"
+    put(f"{el}.{p}_en", 1)
+    if ff["rstval"]:
+        put(f"{el}.{p}_rstval", 1)
+    if ff["ce"]:
+        put(f"{el}.{p}_ce_en", 1)
+    if ff["sr"]:
+        put(f"{el}.{p}_sr_en", 1)
+
+
 def features(work, result):
     """-> ({feature: value}, bram contents {index: words}) for the VPR result
     <work>/<name>.{net,place,route,vpr.json}"""
     side = json.load(open(os.path.join(work, f"{result}.vpr.json")))
     place = read_place(os.path.join(work, f"{result}.place"))
     root = ET.parse(os.path.join(work, f"{result}.net")).getroot()
+    routes = read_route(os.path.join(work, f"{result}.route"))
     F = {}
 
     def put(feature, value):
@@ -100,7 +141,17 @@ def features(work, result):
     def pin_const(block, pin, v):
         put(f"rr{B.PIN[f'{block}.{pin}']}", v)
 
+    # which cluster input pins each net actually reached (the router may use any pin of an
+    # equivalent class, so the packer's choice in the .net is only a preference)
+    reached = {}
+    for net, branches in routes.items():
+        for node, kind in branches[0]:
+            if kind == "IPIN" and node in NODE_PIN:
+                blk, pin = NODE_PIN[node]
+                reached.setdefault((blk, net), set()).add(pin)
+
     contents = {}
+    k = B.LUT_K
     for blk in root.findall("block"):
         inst = blk.get("instance").split("[")[0]
         x, y = place[blk.get("name")]
@@ -109,40 +160,78 @@ def features(work, result):
             raise FasmError(f"{blk.get('name')}: VPR put a {inst} at ({x},{y}), device.json has {dev}")
         name = dev["name"]
         if inst == "clb":
-            kids = {c.get("instance").split("[")[0]: c for c in _children(blk)}
-            mode = blk.get("mode")
-            if mode == "logic" and "lut" in kids:
-                lut = kids["lut"]
-                leaf = lut.find("block") if lut.find("block") is not None else lut
-                rot = None
-                for r in leaf.find("inputs").findall("port_rotation_map"):
-                    rot = r.text.split()
-                spec = side["lut"][lut.get("name")]
-                init = 0
-                for addr in range(B.LUT_INIT_W):
-                    a = 0
-                    for j, src in enumerate(rot):
-                        if src != "open":
-                            a |= ((addr >> j) & 1) << int(src)
-                    init |= ((spec["tt"] >> a) & 1) << addr
-                put(f"{name}.init", init)
-            elif mode == "arithmetic" and "add" in kids:
-                add = kids["add"]
-                inv = side["add"][add.get("name")]["inv"]
-                put(f"{name}.init", B.lut(lambda a, b: a ^ b ^ inv, 2))
-                put(f"{name}.cy_en", 1)
-                for pin, v in side["consts"].get(add.get("name"), {}).items():
-                    if v is not None:
-                        pin_const(name, {"a": "I[0]", "b": "I[1]"}[pin], v)
-            if "ff" in kids:
-                ff = side["ff"][kids["ff"].get("name")]
-                put(f"{name}.ff_en", 1)
-                if ff["rstval"]:
-                    put(f"{name}.ff_rstval", 1)
-                if ff["ce"]:
-                    put(f"{name}.ff_ce_en", 1)
-                if ff["sr"]:
-                    put(f"{name}.ff_sr_en", 1)
+            clb_in = _port_text(blk, "inputs", "I")                     # net on each clb.I pin
+            for fle in blk.findall("block"):
+                if fle.get("name") == "open":
+                    continue
+                e = int(fle.get("instance").split("[")[1].rstrip("]"))
+                el = f"{name}.e{e}"
+                mode = fle.get("mode")
+                kids = {c.get("instance"): c for c in _children(fle)}
+                consts = {}
+                if mode == "lut":
+                    ble = kids["ble[0]"]
+                    bk = {c.get("instance").split("[")[0]: c for c in _children(ble)}
+                    if "lut" in bk:
+                        lut = bk["lut"]
+                        leaf = lut.find("block") if lut.find("block") is not None else lut
+                        put(f"{el}.init", _lut_init(leaf, side["lut"][lut.get("name")], k))
+                    if "ff" in bk:
+                        _ff_features(put, el, side, bk["ff"])
+                elif mode == "frac":
+                    put(f"{el}.frac", 1)
+                    init = 0
+                    for half in (0, 1):                  # blef[0]: O6 = INIT[hi], blef[1]: O5 = INIT[lo]
+                        ble = kids.get(f"blef[{half}]")
+                        if ble is None:
+                            continue
+                        bk = {c.get("instance").split("[")[0]: c for c in _children(ble)}
+                        if "lutf" in bk:
+                            lut = bk["lutf"]
+                            leaf = lut.find("block") if lut.find("block") is not None else lut
+                            t = _lut_init(leaf, side["lut"][lut.get("name")], k - 1)
+                            init |= t << ((1 << (k - 1)) if half == 0 else 0)
+                        if "ff" in bk:
+                            _ff_features(put, el, side, bk["ff"], second=(half == 1))
+                    if init:
+                        put(f"{el}.init", init)
+                elif mode == "arithmetic":
+                    add = kids["add[0]"]
+                    inv = side["add"][add.get("name")]["inv"]
+                    put(f"{el}.init", B.lut(lambda a, b: a ^ b ^ inv, 2))
+                    put(f"{el}.cy_en", 1)
+                    for pin, v in side["consts"].get(add.get("name"), {}).items():
+                        if v is not None:
+                            consts[{"a": 0, "b": 1}[pin]] = v
+                    if "ff[0]" in kids:
+                        _ff_features(put, el, side, kids["ff[0]"])
+                # the crossbar: each used element input takes the source carrying its net
+                fins = _port_text(fle, "inputs", "in")
+                for j in range(k):
+                    if j in consts:
+                        put(f"{el}.x{j}", consts[j])          # 0 const0, 1 const1
+                        continue
+                    src = fins[j] if j < len(fins) else "open"
+                    if src == "open":
+                        continue
+                    srcs = B.XBAR_SOURCES[e][j]
+                    m = re.match(r"fle\[(\d+)\]\.out\[(\d+)\]", src)
+                    if m:
+                        pin = f"O[{2 * int(m.group(1)) + int(m.group(2))}]"
+                    else:
+                        m = re.match(r"clb\.I\[(\d+)\]", src)
+                        if not m:
+                            raise FasmError(f"{el} input {j}: unknown crossbar source {src}")
+                        net = clb_in[int(m.group(1))]
+                        got = reached.get((name, net), set())
+                        want = f"I[{m.group(1)}]"
+                        pin = want if want in got else next((p for p in srcs if p in got), None)
+                        if pin is None:
+                            raise FasmError(f"{el} input {j}: net {net} reaches {name} on "
+                                            f"{sorted(got) or 'no pin'}, none on its crossbar")
+                    if pin not in srcs:
+                        raise FasmError(f"{el} input {j}: {pin} is not on its crossbar")
+                    put(f"{el}.x{j}", 2 + srcs.index(pin))
         elif inst in ("bram", "dsp"):
             atom = _children(blk)[0].get("name")
             if inst == "bram":
@@ -159,7 +248,7 @@ def features(work, result):
             pin_const(B.pad_block(side["out_pads"][oname]), "outpad[0]", v)
 
     # routing
-    for net, branches in read_route(os.path.join(work, f"{result}.route")).items():
+    for net, branches in routes.items():
         seen, prev = set(), None
         for node, kind in branches[0]:
             if node in seen:                       # a branch restarts from a node on the tree
@@ -178,25 +267,38 @@ def features(work, result):
 
 
 def capture_map(result, work=None):
-    """[(CAPTURE bit, yosys bit)] for every CLB whose output is its flip-flop: the
-    register state CAPTURE reads, and the golden net (golden.py n<bit>) it must equal"""
+    """[(CAPTURE bit, yosys bit)] for every element output that is a flip-flop: the
+    register state CAPTURE reads (bit 2i = element i's out[0], 2i+1 its out[1]), and the
+    golden net (golden.py n<bit>) it must equal"""
     import vpr_run
     work = work or os.path.join(vpr_run.RESULTS, result)
     side = json.load(open(os.path.join(work, f"{result}.vpr.json")))
     place = read_place(os.path.join(work, f"{result}.place"))
     root = ET.parse(os.path.join(work, f"{result}.net")).getroot()
     out = []
-    for blk in root.findall("block"):
-        if not blk.get("instance").startswith("clb["):
-            continue
-        kids = {c.get("instance").split("[")[0]: c for c in _children(blk)}
-        if "ff" not in kids:
-            continue
-        q = kids["ff"].find("outputs").find("port").text.strip()
+
+    def ff_q(ff):
+        q = ff.find("outputs").find("port").text.strip()
         bit = side["net_bits"].get(q)
         if bit is None:
             raise FasmError(f"{result}: flip-flop output net {q} has no yosys bit")
-        out.append((B.CLBS.index(BLOCK_AT[place[blk.get("name")]]["name"]), bit))
+        return bit
+
+    for blk in root.findall("block"):
+        if not blk.get("instance").startswith("clb["):
+            continue
+        name = BLOCK_AT[place[blk.get("name")]]["name"]
+        for fle in _children(blk):
+            e = int(fle.get("instance").split("[")[1].rstrip("]"))
+            idx = B.ELEM[f"{name}.e{e}"]["index"]
+            for sub in _children(fle):                    # ble / blef[0] / blef[1] / add, ff
+                inst = sub.get("instance")
+                if inst == "ff[0]":
+                    out.append((2 * idx, ff_q(sub)))
+                    continue
+                for leaf in _children(sub):
+                    if leaf.get("instance") == "ff[0]":
+                        out.append((2 * idx + (1 if inst == "blef[1]" else 0), ff_q(leaf)))
     return sorted(out)
 
 
@@ -214,6 +316,12 @@ def check_legal(F):
                 raise FasmError(f"{feat} = {v}: not a constant or an input of a {len(ins)}-input mux")
             continue
         block, field = feat.split(".", 1)
+        m = re.fullmatch(r"e(\d+)\.x(\d+)", field)
+        if m and block in B.BLOCKS and B.BLOCKS[block]["type"] == "clb":      # a crossbar select
+            n = len(B.XBAR_SOURCES[int(m.group(1))][int(m.group(2))])
+            if not (0 <= v < 2 + n and f"e{m.group(1)}.x{m.group(2)}" in B.FIELD):
+                raise FasmError(f"{feat} = {v}: not a constant or one of the {n} crossbar sources")
+            continue
         if block == "ctrl":
             table = B.CTRL_FIELD
         else:

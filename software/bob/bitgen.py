@@ -9,7 +9,8 @@ bitgen.py - bob FASM <-> configuration chain, and the .bit file (M10).
 FASM (written by software/bob/fasm_from_vpr.py, read here): one feature per line,
 `feature = <width>'h<value>`, # comments, only non-zero features needed.
 
-  <block>.<field>     a CLB / BRAM / DSP field (device.json tile_types)
+  <block>.<field>     a CLB / BRAM / DSP field (device.json tile_types); a CLB's are
+                      per element (M21): clb_x1y1.e3.init, clb_x1y1.e3.x2 (crossbar)
   ctrl.<field>        the ctrl tile (clock mode, divider)
   rr<node>            the routing mux of rr-graph node <node>
 
@@ -94,7 +95,8 @@ def features_from_word(word):
         for field, (off, w) in table.items():
             take(f"{bname}.{field}", blk["chain_lo"] + off, w)
     for node, (lo, w, _base, _ins) in B.MUX.items():
-        take(f"rr{node}", lo, w)
+        if B.NODE[node][1] != "EIN":                      # crossbar muxes are CLB fields (M21)
+            take(f"rr{node}", lo, w)
     stray = word & ~owned & ((1 << B.CHAIN_W) - 1)
     if stray or word >> B.CHAIN_W:
         raise FasmError(f"chain has set bits no feature owns (first at {(stray & -stray).bit_length() - 1})")

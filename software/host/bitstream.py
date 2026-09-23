@@ -46,14 +46,26 @@ CHAIN_W = DEVICE["chain"]["width"]
 FABRIC_CFG_W = CHAIN_W                       # the name every host tool has used since M1
 
 _TT = DEVICE["tile_types"]
-FIELD = {f["name"]: (f["offset"], f["width"]) for f in _TT["clb"]["fields"]}
+FIELD = {f["name"]: (f["offset"], f["width"]) for f in _TT["clb"]["fields"]}      # CLB: e<e>.<field>
 CLB_CFG_W = _TT["clb"]["width"]
 CTRL_FIELD = {f["name"]: (f["offset"], f["width"]) for f in _TT["ctrl"]["fields"]}
 BRAM_FIELD = {f["name"]: (f["offset"], f["width"]) for f in _TT["bram"]["fields"]}
 DSP_FIELD = {f["name"]: (f["offset"], f["width"]) for f in _TT["dsp"]["fields"]}
-FLAG_NAMES = ("ff_en", "ff_rstval", "ff_ce_en", "ff_sr_en", "cy_en", "cy_di_sel", "ff_d_sel")
-CLB_FF_EN = FIELD["ff_en"][0]
-CLB_FF_D_SEL = FIELD["ff_d_sel"][0]
+
+# M21: a CLB is a cluster of N logic elements. ELE_FIELD is one element's fields, relative
+# to the element's own chain position (element e of a CLB sits e * ELE_W after the CLB's).
+CLUSTER = DEVICE["cluster"]
+CLB_N = CLUSTER["n"]
+CLB_I = CLUSTER["i"]
+ELE_W = CLUSTER["element_width"]
+ELE_FIELD = {n[3:]: (off, w) for n, (off, w) in FIELD.items() if n.startswith("e0.")}
+XBAR_SOURCES = CLUSTER["xbar_sources"]                            # [e][j] -> ['I[3]', 'O[5]', ...]
+FLAG_NAMES = ("frac", "ff_en", "ff_rstval", "ff_ce_en", "ff_sr_en", "cy_en", "cy_di_sel", "ff_d_sel",
+              "ff2_en", "ff2_rstval", "ff2_ce_en", "ff2_sr_en")
+ELEMENTS = DEVICE["elements"]                                     # CAPTURE order: 2 bits each
+ELEM = {el["name"]: el for el in ELEMENTS}
+ELEM_AT = {(el["x"], el["y"], el["e"]): el["name"] for el in ELEMENTS}
+NCAP = DEVICE["capture"]["width"]
 
 CLOCK_MODES = DEVICE["clock"]["modes"]
 DIV_MIN_SHIFT = DEVICE["clock"]["div_min_shift"]
@@ -110,6 +122,13 @@ DSP_BUS_SOURCES = ("const0", "jtag", "fabric")
 def pad_block(pad):
     x, y = PAD_XY[pad]
     return f"io_x{x}y{y}"
+
+
+def elem_name(x, y, e=0):
+    clb_name(x, y)
+    if not 0 <= e < CLB_N:
+        raise ValueError(f"a CLB has elements 0..{CLB_N - 1}")
+    return ELEM_AT[(x, y, e)]
 
 
 def clb_name(x, y):
@@ -194,13 +213,14 @@ class Pad(Signal):
 
 
 class Cell(Signal):
-    """CLB (x,y)'s o or o5 output."""
-    def __init__(self, x, y, which="o"):
-        clb_name(x, y)
+    """Element e of CLB (x,y): output 'o' (out[0]: FF q or O6 / carry sum) or 'o5'
+    (out[1]: the second FF's q or O5)."""
+    def __init__(self, x, y, which="o", e=0):
+        elem_name(x, y, e)
         if which not in ("o", "o5"):
-            raise ValueError("a CLB output is 'o' or 'o5'")
-        self.x, self.y, self.which = x, y, which
-    def __repr__(self): return f"clb({self.x},{self.y}).{self.which}"
+            raise ValueError("an element output is 'o' or 'o5'")
+        self.x, self.y, self.which, self.e = x, y, which, e
+    def __repr__(self): return f"clb({self.x},{self.y}).e{self.e}.{self.which}"
 
 
 class BramOut(Signal):
@@ -223,7 +243,7 @@ def source_node(sig):
     if isinstance(sig, Pad):
         return PIN[f"{pad_block(sig.n)}.inpad[0]"]
     if isinstance(sig, Cell):
-        return PIN[f"{clb_name(sig.x, sig.y)}.{'O' if sig.which == 'o' else 'O5'}[0]"]
+        return ELEM[elem_name(sig.x, sig.y, sig.e)]["pins"]["out0" if sig.which == "o" else "out1"]
     if isinstance(sig, BramOut):
         return PIN[f"bram{sig.b}.do_{sig.port}[{sig.bit}]"]
     if isinstance(sig, DspOut):
@@ -268,6 +288,9 @@ class Bitstream:
         return self._get(*CTRL_FIELD[name])
 
     def _block_field(self, block, name):
+        if block in ELEM:                                   # an element: clb_x1y1.e3
+            off, w = ELE_FIELD[name]
+            return ELEM[block]["chain_lo"] + off, w
         b = BLOCKS[block]
         table = {"clb": FIELD, "bram": BRAM_FIELD, "dsp": DSP_FIELD}[b["type"]]
         off, w = table[name]
@@ -279,21 +302,21 @@ class Bitstream:
     def get_block(self, block, name):
         return self._get(*self._block_field(block, name))
 
-    def set_field(self, x, y, name, value):
-        self.set_block(clb_name(x, y), name, value)
+    def set_field(self, x, y, name, value, e=0):
+        self.set_block(elem_name(x, y, e), name, value)
 
-    def get_field(self, x, y, name):
-        return self.get_block(clb_name(x, y), name)
+    def get_field(self, x, y, name, e=0):
+        return self.get_block(elem_name(x, y, e), name)
 
-    def set_lut(self, x, y, init):
-        self.set_field(x, y, "init", init & ((1 << LUT_INIT_W) - 1))
+    def set_lut(self, x, y, init, e=0):
+        self.set_field(x, y, "init", init & ((1 << LUT_INIT_W) - 1), e)
 
-    def set_clb_flags(self, x, y, **flags):
+    def set_clb_flags(self, x, y, e=0, **flags):
         for name in flags:
             if name not in FLAG_NAMES:
-                raise ValueError(f"unknown CLB flag {name}")
+                raise ValueError(f"unknown element flag {name}")
         for name in FLAG_NAMES:
-            self.set_field(x, y, name, int(flags.get(name, 0)))
+            self.set_field(x, y, name, int(flags.get(name, 0)), e)
 
     def set_bram(self, b, name, value):
         self.set_block(f"bram{b}", name, value)
@@ -376,23 +399,28 @@ class Design:
         self.sinks[node] = sig
         self.sink_label[node] = label or pin
 
-    def lut(self, x, y, init, inputs=(), ce=None, sr=None, **flags):
-        """Place a LUT at CLB (x,y). `inputs` map positionally to i[0], i[1]...
-        `ce` / `sr` (defaults const1 / const0) matter only with ff_ce_en / ff_sr_en."""
+    def lut(self, x, y, init, inputs=(), ce=None, sr=None, e=0, **flags):
+        """Place a LUT in element e of CLB (x,y). `inputs` map positionally to i[0],
+        i[1]... through the CLB's crossbar. `ce` / `sr` are the CLB's routed pins, shared
+        by all its elements: they matter only with ff_ce_en / ff_sr_en (CE defaults to
+        const1 when ff_ce_en is set, SR to const0)."""
         name = clb_name(x, y)
-        if (x, y) in self.cells:
-            raise ValueError(f"CLB ({x},{y}) already holds a LUT")
+        el = elem_name(x, y, e)
+        if (x, y, e) in self.cells:
+            raise ValueError(f"CLB ({x},{y}) element {e} already holds a LUT")
         if len(inputs) > LUT_K:
             raise ValueError(f"a LUT{LUT_K} has at most {LUT_K} inputs")
         for f in flags:
             if f not in FLAG_NAMES:
-                raise ValueError(f"unknown CLB flag {f}")
-        self.cells[(x, y)] = {"init": init, "flags": flags}
+                raise ValueError(f"unknown element flag {f}")
+        self.cells[(x, y, e)] = {"init": init, "flags": flags}
         for j in range(LUT_K):
-            self._sink(f"{name}.I[{j}]", inputs[j] if j < len(inputs) else Const(0))
-        self._sink(f"{name}.ce[0]", Const(1) if ce is None else ce)
-        self._sink(f"{name}.sr[0]", Const(0) if sr is None else sr)
-        return Cell(x, y, "o")
+            self._sink(f"{name}.e{ELEM[el]['e']}.I[{j}]", inputs[j] if j < len(inputs) else Const(0))
+        if ce is not None or flags.get("ff_ce_en") or flags.get("ff2_ce_en"):
+            self._sink(f"{name}.ce[0]", Const(1) if ce is None else ce)
+        if sr is not None:
+            self._sink(f"{name}.sr[0]", sr)
+        return Cell(x, y, "o", e)
 
     def output(self, k, signal):
         """Drive board LED k (pad_o bit k)."""
@@ -488,7 +516,9 @@ class Design:
                         prev[m] = n
                         found = True
                         break
-                    if NODE[m][1] not in CHAN or owner.get(m) not in (None, key):
+                    # through wires, and through a CLB input pin into its crossbar (M21)
+                    if not (NODE[m][1] in CHAN or NODE[m][1] == "IPIN" and m in FANOUT) \
+                            or owner.get(m) not in (None, key):
                         continue
                     prev[m] = n
                     q.append(m)
@@ -530,7 +560,7 @@ class Design:
                 return
             self.bs.word = saved
             for node in MUX:                                    # clear routing, keep consts
-                if NODE[node][1] in CHAN:
+                if NODE[node][1] in CHAN or NODE[node][1] == "IPIN" and node in FANOUT:
                     self.bs.set_mux(node, 0)
             for node, sig in self.sinks.items():
                 if not isinstance(sig, Const):
@@ -546,9 +576,9 @@ class Design:
             raise RuntimeError("build() is single-shot; make a new Design")
         mode, div = self.clock
         self.bs.set_ctrl(CLOCK_MODES[mode], div)
-        for (x, y), spec in self.cells.items():
-            self.bs.set_lut(x, y, spec["init"])
-            self.bs.set_clb_flags(x, y, **spec["flags"])
+        for (x, y, e), spec in self.cells.items():
+            self.bs.set_lut(x, y, spec["init"], e)
+            self.bs.set_clb_flags(x, y, e, **spec["flags"])
         for b, cfg in self.bram_cfg.items():
             for name, v in cfg.items():
                 self.bs.set_bram(b, name, v)
@@ -566,11 +596,11 @@ class Design:
         used = sum(len(v) - 1 for v in self.routes.values())
         lines = [f"design: {len(self.cells)} LUT(s), {len(self.routes)} routed net(s) over "
                  f"{used} routing node(s), clock {mode}" + (f" div {div}" if mode == "run" else "")]
-        for (x, y), spec in sorted(self.cells.items()):
+        for (x, y, e), spec in sorted(self.cells.items()):
             name = clb_name(x, y)
-            ins = ", ".join(f"i{j}={self.sinks[PIN[f'{name}.I[{j}]']]}" for j in range(LUT_K)
-                            if not isinstance(self.sinks[PIN[f"{name}.I[{j}]"]], Const))
-            lines.append(f"  clb({x},{y})  INIT=0x{spec['init']:0{(LUT_INIT_W + 3) // 4}X}  {ins}")
+            ins = ", ".join(f"i{j}={self.sinks[PIN[f'{name}.e{e}.I[{j}]']]}" for j in range(LUT_K)
+                            if not isinstance(self.sinks[PIN[f"{name}.e{e}.I[{j}]"]], Const))
+            lines.append(f"  clb({x},{y}).e{e}  INIT=0x{spec['init']:0{(LUT_INIT_W + 3) // 4}X}  {ins}")
         for key, nodes in sorted(self.routes.items()):
             sinks = [self.sink_label[n] for n, s in self.sinks.items()
                      if not isinstance(s, Const) and signal_key(s) == key]
@@ -587,9 +617,9 @@ def simulate(bs, pad_i, cin=0):
     sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
                                     "software", "bob"))
     import model
-    for name in CLBS:
-        if Bitstream(bs.to_int()).get_block(name, "ff_en"):
-            b = BLOCKS[name]
+    for el in ELEMENTS:
+        if Bitstream(bs.to_int()).get_block(el["name"], "ff_en") or \
+                Bitstream(bs.to_int()).get_block(el["name"], "ff2_en"):
             raise ValueError("simulate() models combinational designs only "
-                             f"(clb ({b['x']},{b['y']}) has FF_EN set) - use software/bob/model.py")
+                             f"({el['name']} has a flip-flop on) - use software/bob/model.py")
     return model.Fabric(bs).outputs(pad_i, cin)

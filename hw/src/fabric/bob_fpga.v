@@ -13,8 +13,10 @@
 //   cfg_ctrl     the chain's CRC-32C + length check (CHAIN_IN); GSR/GTS/GWE/DONE
 //                startup after either path
 //   u_store      the configuration memory: NFRAMES frames, written by the chain
-//                (shift register + shadow) or frame by frame; both only while GWE = 0
-//   capture      USER3 snapshots every CLB output; USER1 returns the first 16
+//                (streamed through one frame buffer) or frame by frame; both only while
+//                GWE = 0. M21: readback comes from a BRAM shadow of the written frames
+//   capture      USER3 snapshots every element output (M21: 2 per element, 2N per CLB);
+//                USER1 returns the first 16
 //
 // User clock (clock_ctrl.v): the fabric runs on sysclk with gce as its enable -
 // one pulse per TCK edge while USER1 ce (clk_mode 0) or a divider (clk_mode 1).
@@ -80,7 +82,7 @@ module bob_fpga #(
     wire                cfg_capture, cfg_shift, cfg_commit, cfg_clear;
     wire                gsr, gts, gwe, done, committed;
     wire [CHAIN_W-1:0]  chain_cfg;                    // chain bit k = chain_cfg[k] = memory bit k
-    localparam integer  FIDX_W = 8;
+    localparam integer  FIDX_W = `BOB_FIDX_W;          // M21: more than 256 frames
     wire                frame_we, frame_load, frames_ok, frames_error, frames_crc_error;
     wire [FIDX_W-1:0]   frame_idx, fdro_idx;
     wire [`BOB_FRAME_BITS-1:0] rd_frame;
@@ -97,7 +99,7 @@ module bob_fpga #(
     wire                gce, gsr_s, gwe_s, cin_s;
 
     // fabric
-    wire [NCLB-1:0]         clb_o;
+    wire [`BOB_NCAP-1:0]    clb_o;
     wire [NPAD-1:0]         fab_pad_in, fab_pad_out;
     wire [NBRAM*64-1:0]     bram_drive;
     wire [NBRAM-1:0]        bram_init_go;
@@ -229,6 +231,7 @@ module bob_fpga #(
         .chain_out  (sel_chain_out),
         .capture    (cfg_capture),
         .shift      (cfg_shift),
+        .update     ((sel_chain_in | sel_chain_out) & dr_update),
         .wen        (~gwe),                    // chain writes only before startup
         .clear      (cfg_clear),
         .si         (tdi),
@@ -242,7 +245,7 @@ module bob_fpga #(
         .cfg        (chain_cfg)
     );
 
-    capture_chain #(.N(NCLB)) u_cap (
+    capture_chain #(.N(`BOB_NCAP)) u_cap (
         .tck     (tck),
         .capture (sel_capture & dr_capture),
         .shift   (sel_capture & dr_shift),

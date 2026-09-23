@@ -33,7 +33,7 @@ def fabric_verilog(dev):
     e(f"// {dev.name}: {dev.width} x {dev.height} grid, channel width {dev.arch['chan_width']} "
       f"(L{dev.arch['segment_length']} unidirectional, Wilton Fs={dev.arch['fs']}),")
     e(f"// {npad} pads, {nclb} CLBs (LUT{k}), {nbram} BRAMs, {ndsp} DSP slices, "
-      f"{len(dev.muxes)} routing muxes, chain {dev.chain_width} bits.")
+      f"{sum(m.node in rr.nodes for m in dev.muxes.values())} routing muxes, chain {dev.chain_width} bits.")
     e("// -----------------------------------------------------------------------------")
     e("")
     e("`timescale 1ns / 1ps")
@@ -50,7 +50,7 @@ def fabric_verilog(dev):
     e("    input  wire [`BOB_CHAIN_W-1:0]                cfg,")
     e("    input  wire [`BOB_NPAD-1:0]                   pad_in,")
     e("    output wire [`BOB_NPAD-1:0]                   pad_out,")
-    e("    output wire [`BOB_NCLB-1:0]                   clb_o,")
+    e("    output wire [`BOB_NCAP-1:0]                   clb_o,")
     e("    input  wire [`BOB_NBRAM*64-1:0]               bram_drive,")
     e("    input  wire [`BOB_NBRAM-1:0]                  bram_init_go,")
     e("    input  wire                                   bram_init_wr,")
@@ -72,6 +72,8 @@ def fabric_verilog(dev):
 
     e("    // --- routing muxes -------------------------------------------------------")
     for m in sorted(dev.muxes.values(), key=lambda m: m.node):
+        if m.node not in rr.nodes:
+            continue                                  # a crossbar mux: inside bob_clb
         n = rr.nodes[m.node]
         e(f"    bob_mux #(.N({len(m.inputs)}), .W({m.width}), .C1({1 if m.base == 2 else 0})) "
           f"m{m.node} (.sel(cfg[{m.lo} +: {m.width}]), .in({_vec(m.inputs)}), .o(r{m.node}));"
@@ -98,15 +100,18 @@ def fabric_verilog(dev):
           f"assign pad_out[{b.index}] = {P(b.name, 'outpad[0]')};   // {b.name}")
     e("")
 
-    e("    // --- CLBs (row-major; clb_o index = CAPTURE order) ------------------------")
+    e("    // --- CLBs (row-major); clb_o bit 2i+o = element i's out[o] = CAPTURE order ----")
+    c = dev.cluster
     for b in dev.by_type["clb"]:
-        lo, w = dev.block_field(b, "init")[0], dev.tile_types["clb"].width
-        ins = ", ".join(P(b.name, f"I[{j}]") for j in reversed(range(k)))
-        e(f"    clb u_clb_x{b.x}y{b.y} (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), "
-          f".ce({P(b.name, 'ce[0]')}), .sr({P(b.name, 'sr[0]')}), .i({{{ins}}}), "
-          f".cin({P(b.name, 'cin[0]')}), .cfg(cfg[{lo} +: {w}]), .o({P(b.name, 'O[0]')}), "
-          f".o5({P(b.name, 'O5[0]')}), .cout({P(b.name, 'cout[0]')}));")
-        e(f"    assign clb_o[{b.index}] = {P(b.name, 'O[0]')};")
+        lo, w = b.chain_lo, dev.tile_types["clb"].width
+        ins = _vec([dev.pin_node[(b.name, f"I[{j}]")] for j in range(c["i"])])
+        outs = [dev.pin_node[(b.name, f"O[{m}]")] for m in range(2 * c["n"])]
+        e(f"    bob_clb u_clb_x{b.x}y{b.y} (.clk(clk), .gce(gce), .gsr(gsr), .gwe(gwe), "
+          f".ce({P(b.name, 'ce[0]')}), .sr({P(b.name, 'sr[0]')}), .cin({P(b.name, 'cin[0]')}),")
+        e(f"        .i({ins}),")
+        e(f"        .cfg(cfg[{lo} +: {w}]), .o({_vec(outs)}), .cout({P(b.name, 'cout[0]')}));")
+        first = dev.elements[[el["clb"] for el in dev.elements].index(b.name)]["index"]
+        e(f"    assign clb_o[{2 * first} +: {2 * c['n']}] = {_vec(outs)};")
     e("")
 
     e("    // --- BRAMs ---------------------------------------------------------------")
@@ -159,5 +164,53 @@ def fabric_verilog(dev):
     e("endmodule")
     e("/* verilator lint_on UNUSEDSIGNAL */")
     e("")
+    L.extend(cluster_verilog(dev))
     e("`default_nettype wire")
     return "\n".join(L) + "\n"
+
+
+def cluster_verilog(dev):
+    """bob_clb: N elements (hw/src/clb/ble.sv) behind the local crossbar, one bob_mux per
+    element input over device.xbar_sources (0 const0, 1 const1, then the sources), and
+    the carry cin -> e0 -> ... -> e<N-1> -> cout. Generated, because the crossbar's
+    population is an architecture parameter (device.py CLUSTER)."""
+    c, k = dev.cluster, dev.lut_k
+    n, ni = c["n"], c["i"]
+    tt = dev.tile_types["clb"]
+    ew, xw = dev.element_width(), dev.xbar_width()
+    L = []
+    e = L.append
+    e("// -----------------------------------------------------------------------------")
+    e(f"// bob_clb - the M21 cluster: {n} logic elements (LUT{k}, fracturable, 2 FFs), {ni} inputs,")
+    e(f"// {2 * n} outputs, a {c['xbar']} crossbar of {len(dev.xbar_sources(0, 0))}:1 muxes "
+      f"({xw} select bits) per element input.")
+    e(f"// cfg: element e at [{ew}e +: {ew}] (fields as bob_params.vh BOB_ELE_*, then input j's")
+    e(f"// crossbar select at BOB_ELE_XBAR_LO + {xw}j).")
+    e("// -----------------------------------------------------------------------------")
+    e("module bob_clb (")
+    e("    input  wire              clk, gce, gsr, gwe, ce, sr, cin,")
+    e(f"    input  wire [{ni - 1}:0]       i,")
+    e(f"    input  wire [{tt.width - 1}:0]     cfg,")
+    e(f"    output wire [{2 * n - 1}:0]       o,")
+    e("    output wire              cout")
+    e(");")
+    e(f"    wire [{n}:0] cy;")
+    e("    assign cy[0] = cin;")
+    e(f"    assign cout  = cy[{n}];")
+    for el in range(n):
+        base = el * ew
+        e(f"    // element {el}")
+        e(f"    wire [{k - 1}:0] x{el};")
+        for j in range(k):
+            srcs = dev.xbar_sources(el, j)
+            vec = "{" + ", ".join(f"i[{p[2:-1]}]" if p.startswith("I") else f"o[{p[2:-1]}]"
+                                  for p in reversed(srcs)) + "}"
+            lo = tt.field(f"e{el}.x{j}").offset
+            e(f"    bob_mux #(.N({len(srcs)}), .W({xw}), .C1(1)) m{el}_{j} "
+              f"(.sel(cfg[{lo} +: {xw}]), .in({vec}), .o(x{el}[{j}]));")
+        e(f"    ble u_e{el} (.clk(clk), .gce(gce), .ce(ce), .sr(sr), .gsr(gsr), .gwe(gwe), "
+          f".i(x{el}), .cin(cy[{el}]), .cfg(cfg[{base} +: {ew}]), .o(o[{2 * el}]), "
+          f".o2(o[{2 * el + 1}]), .cout(cy[{el + 1}]));")
+    e("endmodule")
+    e("")
+    return L

@@ -17,16 +17,18 @@ few rewrites bob's fabric needs, so that VPR only sees what it can implement:
                    constant goes to <top>.vpr.json, where fasm_from_vpr.py sets
                    that IPIN mux to const0/const1 (value 0/1). Constant LUT inputs
                    are folded into the truth table.
-  carry chains     VPR places a chain as one macro up a CLB column (the carry
-                   direct), so a chain is cut to the column height. Each piece
+  carry chains     VPR places a chain as one macro up a CLB column (through the N
+                   elements of each CLB, then the carry direct), so a chain is cut
+                   to the column's element count. Each piece
                    starts with a generator (bob_add a = b = carry-in: sum bit 0,
                    cout = a) and, when the chain continues or its carry out is
                    used, ends in a tap (bob_add a = b = 0: sumout = cin). As in
                    M8's hand placer, the global USER1 cin never enters a design.
   flip-flops       BOB_FDRE / BOB_FDSE become bob_ff (FDRE vs FDSE is recorded in
                    <top>.vpr.json). The fabric's FF D is the LUT/adder output of
-                   the same CLB, so when D is anything else (a pad, a net with
-                   other loads) a buffer LUT is inserted.
+                   the same element, so when D is anything else (a pad, a net with
+                   other loads) a buffer LUT is inserted (M21: two of those share an
+                   element as a fractured LUT pair).
   outputs          a second output on the same net gets a buffer LUT.
   hard blocks      BOB_BRAM18 / BOB_DSP -> bob_bram / bob_dsp with the tile pin names.
 
@@ -58,7 +60,8 @@ KEEP = ("eblif", "pins", "vpr.json", "net", "place", "route")
 VPR = "/opt/openfpga/build/vtr-verilog-to-routing/vpr/vpr"
 ARCH_DIR = os.path.join(HERE, "arch")
 K = B.LUT_K
-COL_ROWS = len({y for _x, y in B.CLB_AT})          # CLBs per column = longest VPR chain
+# the longest carry chain VPR can place: every element of every CLB up one column (M21)
+COL_ROWS = len({y for _x, y in B.CLB_AT}) * B.CLB_N
 
 
 class VprError(Exception):
