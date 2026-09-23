@@ -17,7 +17,8 @@
 #
 # The fabric is loop-ridden when unconfigured, and Vivado cuts loops by disabling arcs,
 # so some samples have no path at all; they are written as "### ... NOPATH" and the
-# fold counts them. No sample changes the design: this only reads timing.
+# fold counts them. A sample whose net or cell is not in the netlist is "### ... NONET".
+# No sample changes the design: this only reads timing.
 # -----------------------------------------------------------------------------
 set samples [file join [file dirname [info script]] delay_samples.txt]
 if {![file exists $samples]} {
@@ -29,13 +30,22 @@ set fh [open $out w]
 set sf [open $samples r]
 set lines [split [read $sf] "\n"]
 close $sf
-set n 0; set miss 0; set t0 [clock seconds]
+set n 0; set miss 0; set nonet 0; set t0 [clock seconds]
 foreach line $lines {
     set line [string trim $line]
     if {$line eq "" || [string index $line 0] eq "#"} { continue }
     lassign $line cls a b
     incr n
     set s ""
+    # M22: every sample of the first M22 build came back NOPATH. Say which objects were
+    # not found at all (a naming change in the netlist) apart from ones found with no path.
+    set objs [expr {$cls eq "ffq" ? [llength [get_cells -quiet $a]] : [llength [get_nets -quiet $a]]}]
+    set objs [expr {$objs && ($cls eq "ffd" ? [llength [get_cells -quiet $b]] : [llength [get_nets -quiet $b]])}]
+    if {!$objs} {
+        incr miss; incr nonet
+        puts $fh "### $cls $a $b NONET"
+        continue
+    }
     set err [catch {
         switch -- $cls {
             ffq     { set s [report_timing -quiet -from [get_cells -quiet $a] -through [get_nets -quiet $b] \
@@ -56,4 +66,4 @@ foreach line $lines {
     if {$n % 100 == 0} { puts "extract_delays: $n samples, [expr {[clock seconds] - $t0}] s" }
 }
 close $fh
-puts "extract_delays: $n samples ($miss without a path) in [expr {[clock seconds] - $t0}] s -> $out"
+puts "extract_delays: $n samples ($miss without a path, $nonet of them naming no object) in [expr {[clock seconds] - $t0}] s -> $out"

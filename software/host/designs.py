@@ -363,3 +363,29 @@ def d_pipeline(mode="run", div=0):
     for k in range(3):
         d.output(k, d.dsp_out(0, k))
     return d
+
+
+# --- M22: every LUT of the fabric in one chain (the CFGLUT5 loader's reach) -------------------
+
+def snake_order():
+    """(x, y, e) of every element: up column 1, down column 2, ... (boustrophedon over the CLB
+    columns), elements 0..N-1 within each CLB (the crossbar's feedback from the element below)"""
+    order = []
+    for n, x in enumerate(CLB_COLS):
+        rows = CLB_ROWS if n % 2 == 0 else list(reversed(CLB_ROWS))
+        for y in rows:
+            order += [(x, y, e) for e in range(CLB_N)]
+    return order
+
+
+def d_snake(invert=0):
+    """M22: SW0 -> every logic element of the fabric in turn -> LD0, combinational. Element k
+    is a buffer, or an inverter when bit k of `invert` is set, so LD0 = SW0 xor the parity of
+    `invert`. Every element's truth table and the crossbar or routing into it must have
+    loaded for LD0 to follow SW0 both ways; two masks give each LUT both of its tables."""
+    d = Design()
+    s = d.input(0)
+    for k, (x, y, e) in enumerate(snake_order()):
+        s = d.lut(x, y, LUT.inv(0) if (invert >> k) & 1 else LUT.buf(0), [s], e=e)
+    d.output(0, s)
+    return d

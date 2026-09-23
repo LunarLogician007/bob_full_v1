@@ -41,6 +41,8 @@ module tb_frames;
     `include "frame_vectors.vh"          // first: it sets TB_IDCODE for the harness
     `include "bob_harness.vh"
 
+    wire [CFG_W-1:0] cfg_mem = dut.chain_cfg | dut.u_store.sim_lmem;   // M22: + the L-frames written
+
     localparam [5:0] IR_PKT_IN  = 6'b000101;     // CFG_IN
     localparam [5:0] IR_PKT_OUT = 6'b000100;     // CFG_OUT
     localparam integer SW = `TB_SW;             // from frame_vectors.vh: a whole load fits
@@ -157,10 +159,10 @@ module tb_frames;
         send(`GOOD_N, `GOOD_V);
         read_stat(statw);
         check("STAT after the load (START accepted, no error)", {32'h0, statw}, {32'h0, `GOOD_STAT});
-        check("memory == the chain word", {63'h0, dut.chain_cfg === `SHOW_W}, 64'h1);
+        check("memory == the chain word", {63'h0, cfg_mem === `SHOW_W}, 64'h1);
         shift_ir(IR_CHAIN_OUT, irc);
         shift_chain({CFG_W{1'b0}});
-        check("CHAIN_OUT scan leaves the memory untouched", {63'h0, dut.chain_cfg === `SHOW_W}, 64'h1);
+        check("CHAIN_OUT scan leaves the memory untouched", {63'h0, cfg_mem === `SHOW_W}, 64'h1);
         start;
         check("DONE after JSTART", {63'h0, configured}, 64'h1);
         read_stat(statw);
@@ -183,7 +185,7 @@ module tb_frames;
         send(`LIVE_N, `LIVE_V);
         read_stat(statw);
         check("STAT: WR_ERROR, START not accepted", {32'h0, statw}, {32'h0, `LIVE_STAT});
-        check("memory unchanged", {63'h0, dut.chain_cfg === `SHOW_W}, 64'h1);
+        check("memory unchanged", {63'h0, cfg_mem === `SHOW_W}, 64'h1);
         check("still DONE", {63'h0, configured}, 64'h1);
 
         $display("[3] garbage before sync, stream split over three scans (counter)");
@@ -193,14 +195,14 @@ module tb_frames;
         send(`SPLIT2_N, `SPLIT2_V);
         read_stat(statw);
         check("STAT after the split load", {32'h0, statw}, {32'h0, `SPLIT_STAT});
-        check("memory == counter chain word", {63'h0, dut.chain_cfg === `CNT_W}, 64'h1);
+        check("memory == counter chain word", {63'h0, cfg_mem === `CNT_W}, 64'h1);
 
         $display("[4] one flipped frame bit");
         jprogram;
         send(`BADCRC_N, `BADCRC_V);
         read_stat(statw);
         check("STAT: CRC_ERROR", {32'h0, statw}, {32'h0, `BADCRC_STAT});
-        check("memory as the model wrote it before the CRC check", {63'h0, dut.chain_cfg === `BADCRC_MEM}, 64'h1);
+        check("memory as the model wrote it before the CRC check", {63'h0, cfg_mem === `BADCRC_MEM}, 64'h1);
         shift_ir(IR_JSTART, irc);
         idle(12);
         check("JSTART cannot finish: DONE stays 0", {63'h0, configured}, 64'h0);
@@ -212,7 +214,7 @@ module tb_frames;
         send(`BADID_N, `BADID_V);
         read_stat(statw);
         check("STAT: ID_ERROR", {32'h0, statw}, {32'h0, `BADID_STAT});
-        check("nothing written", {63'h0, dut.chain_cfg === {CFG_W{1'b0}}}, 64'h1);
+        check("nothing written", {63'h0, cfg_mem === {CFG_W{1'b0}}}, 64'h1);
 
         $display("[7] packet error");
         jprogram;
@@ -225,12 +227,12 @@ module tb_frames;
         send(`NOWCFG_N, `NOWCFG_V);
         read_stat(statw);
         check("STAT: WR_ERROR", {32'h0, statw}, {32'h0, `NOWCFG_STAT});
-        check("nothing written", {63'h0, dut.chain_cfg === {CFG_W{1'b0}}}, 64'h1);
+        check("nothing written", {63'h0, cfg_mem === {CFG_W{1'b0}}}, 64'h1);
 
         $display("[9] the chain path after the frame path");
         cfgw = `CNT_W; cfgcrc = `CNT_CRC; dname = "counter over the chain";
         commit_config;
-        check("chain commit", {63'h0, dut.chain_cfg === `CNT_W}, 64'h1);
+        check("chain commit", {63'h0, cfg_mem === `CNT_W}, 64'h1);
         start;
         check("DONE", {63'h0, configured}, 64'h1);
 
@@ -239,7 +241,7 @@ module tb_frames;
         shift_dr(64, {64'h0, 8'hC5, 24'h0, `SHOW_CRC}, rx);
         shift_ir(IR_CHAIN_IN, irc);
         shift_chain(`SHOW_W);
-        check("not committed: memory still the counter", {63'h0, dut.chain_cfg === `CNT_W}, 64'h1);
+        check("not committed: memory still the counter", {63'h0, cfg_mem === `CNT_W}, 64'h1);
         check("still DONE", {63'h0, configured}, 64'h1);
 
         $display("[11] frames with no CRC write");
@@ -247,7 +249,7 @@ module tb_frames;
         send(`NOCRC_N, `NOCRC_V);
         read_stat(statw);
         check("STAT: frames in, START not accepted, no error", {32'h0, statw}, {32'h0, `NOCRC_STAT});
-        check("memory written", {63'h0, dut.chain_cfg === `SHOW_W}, 64'h1);
+        check("memory written", {63'h0, cfg_mem === `SHOW_W}, 64'h1);
         shift_ir(IR_JSTART, irc);
         idle(12);
         check("JSTART does nothing: DONE stays 0", {63'h0, configured}, 64'h0);
@@ -288,7 +290,7 @@ module tb_frames;
         send(`PRFRM_N, `PRFRM_V);
         count_en = 1'b0;
         check("no gce between the freeze and LFRM (whole partial write)", p_rel, 0);
-        check("memory == design B", {63'h0, dut.chain_cfg === `PRB_W}, 64'h1);
+        check("memory == design B", {63'h0, cfg_mem === `PRB_W}, 64'h1);
         count_en = 1'b1;
         #400;
         count_en = 1'b0;
@@ -314,7 +316,7 @@ module tb_frames;
         send(`PRNC_N, `PRNC_V);
         read_stat(statw);
         check("STAT: WR_ERROR, GHIGH_B = 0", {32'h0, statw}, {32'h0, `PRNC_STAT});
-        check("frames landed: memory == design A", {63'h0, dut.chain_cfg === `PRA_W}, 64'h1);
+        check("frames landed: memory == design A", {63'h0, cfg_mem === `PRA_W}, 64'h1);
         prq0 = prq; pulses = 0; count_en = 1'b1;
         #400;
         count_en = 1'b0;
@@ -353,7 +355,7 @@ module tb_frames;
         send(`PRONE_N, `PRONE_V);
         read_stat(statw);
         check("STAT: WR_ERROR", {32'h0, statw}, {32'h0, `PRONE_STAT});
-        check("memory unchanged: design A", {63'h0, dut.chain_cfg === `PRA_W}, 64'h1);
+        check("memory unchanged: design A", {63'h0, cfg_mem === `PRA_W}, 64'h1);
 
         $display("[18] M15: BRAM contents as frames, before startup");
         jprogram;

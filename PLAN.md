@@ -54,8 +54,8 @@ The 8×8 profile (48 CLBs, 9400 bits, `0x9BEEF093`) is frozen in `release/M7_8x8
 | M19 | bob studio as a desktop app (`./bob studio`, pywebview), all software under `software/` (the studio page moved to `software/studio/`), zoom and pan on the block design, Device view and waveform, board pins (SW0..BTN3, LD0..LD2) as block-design ports, the **waveform viewer**: a logic analyser on the pads through boundary scan (`software/host/padwave.py`; step = INTEST autostep, one sample per user clock; live = SAMPLE), with triggers and VCD export | **passed on the board 2026-09-23** (in the M20 run). Checklist `docs/hwtest/M19.md` |
 | M20 | a per-design user clock: `clock_ctrl.v` `clk_period` (any integer rate, `clk_div` prescales) and `clk_gap` (the design's own gce spacing, floor 2 cycles = 62.5 MHz, 0 = the safe 512); `software/bob/timing.py` (static timing of the configured bits), `software/bob/delays.py` + `hw/scripts/extract_delays.tcl` (per-element delays measured on the build), clock constraints as in Vivado: a `.sdc` `create_clock` (project `constrs/`, `--sdc`), slack reported, **negative slack fails the build (no `.bit`)**; `--hz auto` for the fastest safe clock; new IDCODE scheme `0x0B020093`. (A tree readback mux was measured and left out: +310 LUTs in the whole design) | **on the board 2026-09-23: 58/59** (clock-rate, clock-fmax, clock-margin pass; `bob-fir` failed on the autostep race, fixed and passed in M21); build WNS −0.919 ns in the period arithmetic (fixed in M21). Checklist `docs/hwtest/M20.md` |
 
-| M21 | the cluster CLB: 49 CLBs × 4 logic elements (fracturable LUT6, carry, 2 FFs) behind a full crossbar = 196 LUTs, N and the crossbar measured first (`docs/reports/M21/cluster_sweep.md`); readback from a BRAM shadow (the 256:1 readback mux removed); autostep a TCK after the pad update (M20 `bob-fir`), `clock_ctrl` period/gap registered (M20 WNS −0.919 ns); fir16, bob's cluster packer; the XDC stops timing the empty fabric (sysclk multicycle 16384, gap back to 512) and `timing.contract()` refuses any build or load whose critical path exceeds its gce spacing; IDCODE `0x0B021093` | **passed on hardware 2026-09-23** (66/66; third build closed: sysclk WNS +0.570 ns, tck +4990 ns; every mutant killed). Checklist `docs/hwtest/M21.md` |
-| M22 | LUT contents and the crossbar in AMD CFGLUT5 (ZUMA-style), 9 × 9 = 81 CLBs = 324 LUTs; nothing on the wire changes; IDCODE `0x0B022093` | **in progress on branch `m22`** (worktree `../bob_full_v1_m22`): code, simulation and `make check` done; Vivado build and `make hwtest M=M22` pending |
+| M21 | the cluster CLB: 49 CLBs × 4 logic elements (fracturable LUT6, carry, 2 FFs) behind a full crossbar = 196 LUTs, N and the crossbar measured first (`docs/reports/M21/cluster_sweep.md`); readback from a BRAM shadow (the 256:1 readback mux removed); autostep a TCK after the pad update (M20 `bob-fir`), `clock_ctrl` period/gap registered (M20 WNS −0.919 ns); fir16, bob's cluster packer; the XDC stops timing the empty fabric (sysclk multicycle 16384, gap back to 512) and `timing.contract()` refuses any build or load whose critical path exceeds its gce spacing; IDCODE `0x0B021093` | **passed on hardware 2026-09-23** (66/66; third build closed: sysclk WNS +0.570 ns, tck +4990 ns) (`make hwtest M=M21`). Checklist `docs/hwtest/M21.md` |
+| M22 | LUT contents and the crossbar in AMD CFGLUT5 (ZUMA-style), measured first (a CLB: 469 LUTs + 424 config FFs → 193 LUTs + 48 FFs, yosys); 9 × 9 = 81 CLBs = 324 LUTs; `lut_loader.v` shifts each written frame into its CLB's CFGLUT5s, `lut_expand.v` expands the compact selects, JPROGRAM sweeps zeros; nothing on the wire changes; IDCODE `0x0B022093` | **on the board 2026-09-24: 65/67**; the two failed fir16 live checks rerun 12/12 (one interactive rerun pending). Vivado WNS +0.172 ns, 38,184 LUTs (71.8%), SLICEM 70.6%. Checklist `docs/hwtest/M22.md`, spec `docs/superpowers/specs/2026-09-23-m22-lutram-design.md` |
 
 Hardware results are in `docs/hwtest/results.log`; Vivado reports are in `docs/reports/Mx/`; per-design guest reports in `docs/reports/M11/designs.md`.
 
@@ -113,6 +113,30 @@ per 4 bits (about 4,600). A balanced binary tree beat the flat array on `cfg_sto
 FDRO's word select, and the tree stops that. `cfg_store.v` keeps M16's code. Room for M21 has
 to come from a different memory (a BRAM shadow for readback, or ZUMA-style LUTRAM), not a
 different mux.
+
+### M22: LUT contents in CFGLUT5, 9 × 9 CLBs
+
+M21 filled 90.9% of the chip's slices: 36.4k LUTs and 36.3k flip-flops, 32.9k of them
+configuration. Measured in yosys, one M21 CLB is 469 host LUTs plus 424 configuration
+flip-flops; with each element's truth table and each crossbar mux in AMD CFGLUT5s (a LUT5
+whose table is shifted in, UG953; ZUMA's trick, Brant & Lemieux FCCM 2012) it is 193 LUTs
+(152 CFGLUT5) and 48 flip-flops. CFGLUT5 needs SLICEM (17,400 LUTs on the XC7Z020), so the
+routing muxes stay flip-flop configured - in LUTRAM they would cap the fabric near 48 CLBs.
+The user chose **9 × 9 = 81 CLBs, 324 LUTs** (SLICEM ~71%).
+
+- **Nothing on the wire changes.** A CLB tile is frame aligned and starts with its
+  L-frames (the truth tables, then the crossbar selects); `cfg_store.v` keeps no flip-flops
+  for them. `lut_loader.v` copies each written frame on the falling TCK edge that writes it
+  and shifts 32 TCK cycles into the owning CLB's CFGLUT5s; a shared `lut_expand.v` turns
+  selects into tree contents. JPROGRAM sweeps zeros; JSTART waits for the loader.
+- **Simulation:** `hw/tb/prims/CFGLUT5.v` (sim only, `sim/hwfiles.sh --sim`) resolves an
+  unknown address when the candidate entries agree (as UNISIM) and shows contents between
+  shifts, so a half-shifted table cannot spin a zero-delay loop. `tb_clb` loads the chip's
+  way; `tb_bob` checks CFGLUT5 contents against an independent model and the sweep.
+- **Board:** the M21 list plus `lutram-snake` (all 324 elements in one chain).
+- **Found on the way:** two M21 mutants were stale (`carry-direct-cut` cut a column no test
+  used and survived; `xbar-no-feedback` no longer applied), and `make -k mutate` never ran
+  `mutate_frames.sh` after a failing suite. Fixed on `m21`; `MUTATE_ONLY` reruns named mutants.
 
 ### M21: the cluster CLB, sized by measurement
 

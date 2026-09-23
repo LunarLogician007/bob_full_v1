@@ -72,6 +72,7 @@ def facts():
         "xdc_mc": d["clock"].get("xdc_multicycle"),
         "n": d.get("cluster", {}).get("n", 1), "ci": d.get("cluster", {}).get("i"),
         "xbar": d.get("cluster", {}).get("xbar"),
+        "lframes": len(d.get("lframes", {}).get("list", [])),
     }
     f["max_hz"] = d["clock"]["sysclk_hz"] / 2 ** f["div_shift"]
 
@@ -92,7 +93,8 @@ def table():
                      f"({f['core_w']} × {f['core_h']} core inside an I/O ring, corners empty)"),
         ("CLBs", f"{f['clb']} × {f['n']} logic elements = {f['clb'] * f['n']} LUTs (columns x = {f['clb_cols']}); "
                  f"each element LUT{f['lut_k']} (or two LUT{f['lut_k'] - 1}), MUXCY/XORCY carry, two FDRE/FDSE; "
-                 f"{f['ci']} inputs and a {f['xbar']} crossbar per CLB"),
+                 f"{f['ci']} inputs and a {f['xbar']} crossbar per CLB"
+                 + ("; LUT contents and crossbar in CFGLUT5 (M22)" if f["lframes"] else "")),
         ("BRAM", f"{f['bram']} × 1024×18 true dual port (column x = {f['bram_col']}, "
                  f"{f['bram_h']} rows tall); contents as frames (FAR type 001) or over USER4"),
         ("DSP", f"{f['dsp']} × DSP48E1-style slices (column x = {f['dsp_col']}, "
@@ -100,7 +102,8 @@ def table():
         ("I/O", f"{f['pads']} pads; board switches, buttons and LEDs on fixed pads, LD3 = DONE"),
         ("Routing", f"L{f['seg']} unidirectional, W = {f['chan_w']}, {f['sb'].replace('wilton fs=', 'Wilton Fs = ')} "
                     f"(from OpenFPGA's k6_frac_N10 tileable arch); {f['muxes']} muxes"),
-        ("Configuration", f"{f['chain_w']} bits = {f['frames']} frames of {f['fwords']} × 32; "
+        ("Configuration", f"{f['chain_w']} bits = {f['frames']} frames of {f['fwords']} × 32"
+                          + (f" ({f['lframes']} of them held only in CFGLUT5s)" if f["lframes"] else "") + "; "
                           "UG470-style packets on CFG_IN/CFG_OUT (CRC-32C, IDCODE, partial "
                           "reconfiguration, BRAM content frames) or the streamed chain on "
                           "CHAIN_IN/CHAIN_OUT; GSR → GTS → GWE → DONE startup"),

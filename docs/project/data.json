@@ -5814,6 +5814,591 @@
      "SW1..0 = 00/01/10/11 should light LD0 / LD1 / LD2 / all three"
     ]
    ]
+  },
+  {
+   "date": "2026-09-24",
+   "time": "03:49:46",
+   "milestone": "M22",
+   "tag": "M22",
+   "pass": 65,
+   "fail": 2,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x0B022093, build.cfg expects 0x0B022093"
+    ],
+    [
+     "PASS",
+     "bypass",
+     "measured 1 bit(s)"
+    ],
+    [
+     "PASS",
+     "selftest",
+     "12/12 designs match the model"
+    ],
+    [
+     "PASS",
+     "usercode",
+     "0x00000016, build.cfg expects 0x00000016"
+    ],
+    [
+     "PASS",
+     "chain-length",
+     "56448 bits, design intact after the marker scan"
+    ],
+    [
+     "PASS",
+     "ir-status",
+     "{'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}"
+    ],
+    [
+     "PASS",
+     "crc-reject-live",
+     "crc_err=1 DONE=1 config kept=True showcase vectors wrong=0"
+    ],
+    [
+     "PASS",
+     "gts",
+     "outputs before JSTART=000, after=011, model=011"
+    ],
+    [
+     "PASS",
+     "gsr-gwe",
+     "q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1"
+    ],
+    [
+     "PASS",
+     "capture-user1",
+     "CAPTURE=0x0003 USER1[19:4]=0x0003 (switches must not move during the check)"
+    ],
+    [
+     "PASS",
+     "jprogram",
+     "DONE=0 GTS=1 chain zero=True outputs=000"
+    ],
+    [
+     "PASS",
+     "showcase-live",
+     "pad_i=000011 LD2..0=011 model=011"
+    ],
+    [
+     "PASS",
+     "ce-sr",
+     "CE loads, SR clears (beats CE), both low holds - 7 steps match model.py"
+    ],
+    [
+     "PASS",
+     "counter-step",
+     "counts [15, 12, 9, 6, 3, 0] (steps [13, 13, 13, 13, 13], want 13 each); ce off: [11, 11, 11] (want constant)"
+    ],
+    [
+     "PASS",
+     "counter-run",
+     "11 counts in 3.07 s = 3.58/s (expected 3.73)"
+    ],
+    [
+     "PASS",
+     "bram-init",
+     "64/64 words read back"
+    ],
+    [
+     "PASS",
+     "bram-locked",
+     "err=1 gwe=1"
+    ],
+    [
+     "PASS",
+     "bram-rom",
+     "LEDs ['101', '101', '001', '111'] contents ['101', '101', '001', '111']"
+    ],
+    [
+     "PASS",
+     "bram-modes",
+     "72/72 stepped operations match model.py"
+    ],
+    [
+     "PASS",
+     "dsp-modes",
+     "60/60 stepped operations match model.py "
+    ],
+    [
+     "PASS",
+     "dsp-mult",
+     "LEDs ['000', '011', '110', '001'] expected ['000', '011', '110', '001']"
+    ],
+    [
+     "PASS",
+     "dsp-accum",
+     "P0 0 -> 11 in 3.03 s = 3.63/s (expected 3.73)"
+    ],
+    [
+     "PASS",
+     "bram-select",
+     "16 words each read back from bram0 and bram1; SELECT 9 ignored (target 0)"
+    ],
+    [
+     "PASS",
+     "pipeline",
+     "LEDs ['001', '101', '000', '110', '101', '001', '110', '000'] model ['001', '101', '000', '110', '101', '001', '110', '000']"
+    ],
+    [
+     "PASS",
+     "counter8",
+     "counts [15, 28, 41, 54, 3, 16, 29, 42, 55, 4, 17, 30] (steps [13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13], want 13 each)"
+    ],
+    [
+     "PASS",
+     "frames-load",
+     "loaded 441 frames (1764 words) through CFG_IN, CRC A9B9CED3, FDRO readback verified; CHAIN_OUT == word: True; DONE=1; 4/4 vectors == model"
+    ],
+    [
+     "PASS",
+     "frames-crc-reject",
+     "CRC_ERROR=1 START_OK=0 DONE=0 INIT_B=0"
+    ],
+    [
+     "PASS",
+     "frames-idcode-reject",
+     "ID_ERROR=1 memory empty=True"
+    ],
+    [
+     "PASS",
+     "frames-live-refused",
+     "frames: WR_ERROR=1 memory kept=True; chain while running kept=True; DONE=1; showcase 4/4 vectors == model"
+    ],
+    [
+     "PASS",
+     "frames-vs-chain",
+     "chain load -> FDRO == word: True; frame load -> CHAIN_OUT == word: True"
+    ],
+    [
+     "PASS",
+     "bob-gates",
+     "loaded 441 frames (1764 words) through CFG_IN, CRC 14788327, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 0 CAPTUREs x 0 registers == golden"
+    ],
+    [
+     "PASS",
+     "bob-counter",
+     "loaded 441 frames (1764 words) through CFG_IN, CRC A872082D, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 6 registers == golden"
+    ],
+    [
+     "PASS",
+     "bob-ram",
+     "loaded 441 frames (1764 words) through CFG_IN + 256 BRAM content frames (1 BRAM, all 1024 words), CRC DFD1337B, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 0 CAPTUREs x 0 registers == golden"
+    ],
+    [
+     "PASS",
+     "bob-mult",
+     "loaded 441 frames (1764 words) through CFG_IN, CRC 22AA4B4A, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 7 registers == golden"
+    ],
+    [
+     "PASS",
+     "bob-fir",
+     "loaded 441 frames (1764 words) through CFG_IN, CRC A3EA7346, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 7 registers == golden"
+    ],
+    [
+     "PASS",
+     "pnr-switches",
+     "loaded 441 frames (1764 words) through CFG_IN, CRC 50595771, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 3 registers == golden"
+    ],
+    [
+     "PASS",
+     "ram-readback",
+     "64 clocks (50 with BTN0 write), bram0[0..15] = [2, 2, 4, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] read back after JPROGRAM == model (all 1024 words were written at load, so no earlier design's words remain); chain readback"
+    ],
+    [
+     "PASS",
+     "blinky-rate",
+     "31 counts in 4.17 s = 7.43 Hz (expected 7.45)"
+    ],
+    [
+     "PASS",
+     "bob-wide",
+     "loaded 441 frames (1764 words) through CFG_IN, CRC B04318EA, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 20 registers == golden"
+    ],
+    [
+     "PASS",
+     "pnr-wide",
+     "loaded 441 frames (1764 words) through CFG_IN, CRC 3E421D5C, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 20 registers == golden"
+    ],
+    [
+     "PASS",
+     "partial-swap",
+     "1 of 441 frames rewritten; counter 5 -> 5 across the partial -> 8 after 3 clocks; LD1 A (AND) [0, 0, 0, 1] (model [0, 0, 0, 1]), B (OR) [0, 1, 1, 1] (model [0, 1, 1, 1]); DONE=1"
+    ],
+    [
+     "PASS",
+     "partial-live",
+     "before: counting=True; frozen (GHIGH_B=0): 2 -> 2 over 1.2 s; 1 frame(s) written; released (GHIGH_B=1): 2 -> 4; LD1 [0, 1, 1, 1] (OR model [0, 1, 1, 1])"
+    ],
+    [
+     "PASS",
+     "partial-bad-crc",
+     "refused=True CRC_ERROR=1 GHIGH_B=0; frozen counter 0 -> 0; DONE=1; JPROGRAM + full load counts again=True"
+    ],
+    [
+     "PASS",
+     "partial-guest",
+     "partial: 13 of 441 frames rewritten with the design running, released; LEDs [0, 2, 3, 5] == gates_swapped model [0, 2, 3, 5]: True (13 frames differ)"
+    ],
+    [
+     "PASS",
+     "frames-bram-load",
+     "loaded 441 frames (1764 words) through CFG_IN + 512 BRAM content frames (2 BRAMs, all 1024 words), CRC 3B243BEB, FDRO readback verified; USER4 reads the same words: True; ROM LEDs [7, 2, 1, 5] == mem[SW] [7, 2, 1, 5]"
+    ],
+    [
+     "PASS",
+     "frames-bram-live-refused",
+     "WR_ERROR=1; bram0[0..31] after JPROGRAM unchanged=True"
+    ],
+    [
+     "PASS",
+     "ram-readback-frames",
+     "bram0[0..15] = [2, 2, 4, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] over FDRO block type 1 after JPROGRAM == model, == USER4"
+    ],
+    [
+     "PASS",
+     "bob-big",
+     "loaded 441 frames (1764 words) through CFG_IN, CRC E89FF829, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 40 registers == golden"
+    ],
+    [
+     "PASS",
+     "pnr-big",
+     "loaded 441 frames (1764 words) through CFG_IN, CRC 5FD22D38, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 40 registers == golden"
+    ],
+    [
+     "PASS",
+     "bob-bd_demo",
+     "loaded 441 frames (1764 words) through CFG_IN, CRC E5B9AF75, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 5 registers == golden"
+    ],
+    [
+     "PASS",
+     "pnr-bd_demo",
+     "loaded 441 frames (1764 words) through CFG_IN, CRC DEA062F2, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 5 registers == golden"
+    ],
+    [
+     "PASS",
+     "live-bd_demo",
+     "613 live samples LEDs == model(registers, pins), 31 input vectors, 17 register states, 70 bursts skipped (moving); all goals reached; readback while running == .bit"
+    ],
+    [
+     "PASS",
+     "wave-step",
+     "120 clocks captured == source Verilog (5 LED values, 246.9 samples/s), VCD 9 time steps"
+    ],
+    [
+     "PASS",
+     "wave-live",
+     "1800 live samples, LD0 == SW0 xor SW1 in all, 4 switch settings"
+    ],
+    [
+     "PASS",
+     "clock-rate",
+     "clk_period 47 x 2**16: 169 counts in 4.17 s = 40.49 Hz (expected 40.58)"
+    ],
+    [
+     "PASS",
+     "clock-fmax",
+     "critical path 67.594 ns -> every 17 sysclk cycles = 7.353 MHz: 1 s with no error, registers moving"
+    ],
+    [
+     "PASS",
+     "clock-fmax-py",
+     "critical path 64.042 ns -> every 17 sysclk cycles = 7.353 MHz: 1 s with no error, registers moving"
+    ],
+    [
+     "PASS",
+     "clock-margin",
+     "computed 17 cycles (7.353 MHz); first failure at 4 (31.250 MHz): margin 4.25x on silicon"
+    ],
+    [
+     "PASS",
+     "shadow-readback",
+     "frames: FDRO == showcase; JPROGRAM: FDRO and CHAIN_OUT all zeros; chain load: CHAIN_OUT == FDRO == the counter (441 frames)"
+    ],
+    [
+     "PASS",
+     "partial-cluster",
+     "1 of 441 frames rewritten inside clb(1,1); counter 5 -> 5 -> 7; LD1 AND [0, 0, 0, 1] (model [0, 0, 0, 1]), OR [0, 1, 1, 1] (model [0, 1, 1, 1]); FDRO == B: True; DONE=1"
+    ],
+    [
+     "PASS",
+     "bob-fir16",
+     "loaded 441 frames (1764 words) through CFG_IN, CRC 4FB1235A, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 58 registers == golden"
+    ],
+    [
+     "PASS",
+     "pnr-fir16",
+     "loaded 441 frames (1764 words) through CFG_IN, CRC 1B76222D, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 58 registers == golden"
+    ],
+    [
+     "FAIL",
+     "live-fir16",
+     "2 wrong, first ['SW1..0=11 BTN3..0=1111 registers 320D80000000006040402140B000000C00C0CC0E2C6A000000000D42300C800000040300018002000000000D04800F8C00000000000001B100000000000000000000000: LEDs 111, model 000', 'CFG_OUT re"
+    ],
+    [
+     "FAIL",
+     "fast-fir16",
+     "frame load refused: STAT ['PKT_ERROR'] START_OK=0 SYNCED=1"
+    ],
+    [
+     "PASS",
+     "fmax-cluster",
+     "critical path 67.594 ns -> every 17 sysclk cycles = 7.353 MHz: 1 s with no error, registers moving"
+    ],
+    [
+     "PASS",
+     "lutram-snake",
+     "324 elements in one chain; frames: LD0 for SW0 = 0/1 [0, 1] (want [0, 1]); chain: LD0 for SW0 = 0/1 [0, 1] (want [0, 1])"
+    ],
+    [
+     "PASS",
+     "pipeline-live",
+     "SW1..0 = 00/01/10/11 should light LD0 / LD1 / LD2 / all three"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-24",
+   "time": "03:52:19",
+   "milestone": "M22",
+   "tag": "M22",
+   "pass": 2,
+   "fail": 0,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x0B022093, build.cfg expects 0x0B022093"
+    ],
+    [
+     "PASS",
+     "live-fir16",
+     "130 live samples LEDs == model(registers, pins), 1 input vectors, 1 register states, 0 bursts skipped (moving); goals not checked (not a terminal: run `make hwtest` interactively); readback while running == .bit"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-24",
+   "time": "03:52:45",
+   "milestone": "M22",
+   "tag": "M22",
+   "pass": 2,
+   "fail": 0,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x0B022093, build.cfg expects 0x0B022093"
+    ],
+    [
+     "PASS",
+     "fast-fir16",
+     "131 live samples LEDs == model(registers, pins), 1 input vectors, 1 register states, 0 bursts skipped (moving); goals not checked (not a terminal: run `make hwtest` interactively); readback while running == .bit"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-24",
+   "time": "03:53:19",
+   "milestone": "M22",
+   "tag": "M22",
+   "pass": 2,
+   "fail": 0,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x0B022093, build.cfg expects 0x0B022093"
+    ],
+    [
+     "PASS",
+     "live-fir16",
+     "130 live samples LEDs == model(registers, pins), 1 input vectors, 1 register states, 0 bursts skipped (moving); goals not checked (not a terminal: run `make hwtest` interactively); readback while running == .bit"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-24",
+   "time": "03:53:45",
+   "milestone": "M22",
+   "tag": "M22",
+   "pass": 2,
+   "fail": 0,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x0B022093, build.cfg expects 0x0B022093"
+    ],
+    [
+     "PASS",
+     "fast-fir16",
+     "130 live samples LEDs == model(registers, pins), 1 input vectors, 1 register states, 0 bursts skipped (moving); goals not checked (not a terminal: run `make hwtest` interactively); readback while running == .bit"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-24",
+   "time": "03:54:11",
+   "milestone": "M22",
+   "tag": "M22",
+   "pass": 2,
+   "fail": 0,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x0B022093, build.cfg expects 0x0B022093"
+    ],
+    [
+     "PASS",
+     "live-fir16",
+     "131 live samples LEDs == model(registers, pins), 1 input vectors, 1 register states, 0 bursts skipped (moving); goals not checked (not a terminal: run `make hwtest` interactively); readback while running == .bit"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-24",
+   "time": "03:54:37",
+   "milestone": "M22",
+   "tag": "M22",
+   "pass": 2,
+   "fail": 0,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x0B022093, build.cfg expects 0x0B022093"
+    ],
+    [
+     "PASS",
+     "fast-fir16",
+     "129 live samples LEDs == model(registers, pins), 1 input vectors, 1 register states, 0 bursts skipped (moving); goals not checked (not a terminal: run `make hwtest` interactively); readback while running == .bit"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-24",
+   "time": "03:55:04",
+   "milestone": "M22",
+   "tag": "M22",
+   "pass": 2,
+   "fail": 0,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x0B022093, build.cfg expects 0x0B022093"
+    ],
+    [
+     "PASS",
+     "live-fir16",
+     "131 live samples LEDs == model(registers, pins), 1 input vectors, 1 register states, 0 bursts skipped (moving); goals not checked (not a terminal: run `make hwtest` interactively); readback while running == .bit"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-24",
+   "time": "03:55:30",
+   "milestone": "M22",
+   "tag": "M22",
+   "pass": 2,
+   "fail": 0,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x0B022093, build.cfg expects 0x0B022093"
+    ],
+    [
+     "PASS",
+     "fast-fir16",
+     "130 live samples LEDs == model(registers, pins), 1 input vectors, 1 register states, 0 bursts skipped (moving); goals not checked (not a terminal: run `make hwtest` interactively); readback while running == .bit"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-24",
+   "time": "03:55:57",
+   "milestone": "M22",
+   "tag": "M22",
+   "pass": 2,
+   "fail": 0,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x0B022093, build.cfg expects 0x0B022093"
+    ],
+    [
+     "PASS",
+     "live-fir16",
+     "131 live samples LEDs == model(registers, pins), 1 input vectors, 1 register states, 0 bursts skipped (moving); goals not checked (not a terminal: run `make hwtest` interactively); readback while running == .bit"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-24",
+   "time": "03:56:23",
+   "milestone": "M22",
+   "tag": "M22",
+   "pass": 2,
+   "fail": 0,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x0B022093, build.cfg expects 0x0B022093"
+    ],
+    [
+     "PASS",
+     "fast-fir16",
+     "130 live samples LEDs == model(registers, pins), 1 input vectors, 1 register states, 0 bursts skipped (moving); goals not checked (not a terminal: run `make hwtest` interactively); readback while running == .bit"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-24",
+   "time": "03:56:49",
+   "milestone": "M22",
+   "tag": "M22",
+   "pass": 2,
+   "fail": 0,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x0B022093, build.cfg expects 0x0B022093"
+    ],
+    [
+     "PASS",
+     "live-fir16",
+     "131 live samples LEDs == model(registers, pins), 1 input vectors, 1 register states, 0 bursts skipped (moving); goals not checked (not a terminal: run `make hwtest` interactively); readback while running == .bit"
+    ]
+   ]
+  },
+  {
+   "date": "2026-09-24",
+   "time": "03:57:15",
+   "milestone": "M22",
+   "tag": "M22",
+   "pass": 2,
+   "fail": 0,
+   "checks": [
+    [
+     "PASS",
+     "idcode",
+     "0x0B022093, build.cfg expects 0x0B022093"
+    ],
+    [
+     "PASS",
+     "fast-fir16",
+     "130 live samples LEDs == model(registers, pins), 1 input vectors, 1 register states, 0 bursts skipped (moving); goals not checked (not a terminal: run `make hwtest` interactively); readback while running == .bit"
+    ]
+   ]
   }
  ],
  "vivado": {
@@ -5898,16 +6483,19 @@
    "idcode": "0x4BEEF093",
    "built": "2026-09-14 06:25:16"
   },
-  "M21": {
-   "lut": 35882,
-   "ff": 36307,
+  "M22": {
+   "lut": 38184,
+   "ff": 25599,
    "bram": 3.0,
    "dsp": 2.0,
-   "wns": 0.57,
+   "wns": 0.172,
    "tns": 0.0,
    "failing": 0,
-   "endpoints": 105599,
-   "whs": 0.057
+   "endpoints": 97246,
+   "whs": 0.029,
+   "top": "bob_top",
+   "idcode": "0x0B022093",
+   "built": "2026-09-24 03:38:47"
   },
   "M3": {
    "lut": 3951,
@@ -5953,19 +6541,19 @@
   }
  },
  "device": {
-  "chain_width": 32896,
-  "frames": 257,
+  "chain_width": 56448,
+  "frames": 441,
   "frame_bits": 128,
   "grid": [
-   11,
-   9
+   13,
+   11
   ],
   "chan_width": 40,
   "lut_k": 6,
-  "muxes": 4572,
+  "muxes": 6878,
   "blocks": {
-   "io": 32,
-   "clb": 49,
+   "io": 40,
+   "clb": 81,
    "bram": 2,
    "dsp": 2
   }
@@ -5974,22 +6562,22 @@
   "vpr": [
    {
     "name": "adder",
-    "wirelength": 80,
+    "wirelength": 88,
     "critical_ns": null
    },
    {
     "name": "atspeed",
-    "wirelength": 320,
+    "wirelength": 292,
     "critical_ns": null
    },
    {
     "name": "bd_demo_bd_wrapper",
-    "wirelength": 94,
+    "wirelength": 125,
     "critical_ns": null
    },
    {
     "name": "big",
-    "wirelength": 375,
+    "wirelength": 422,
     "critical_ns": null
    },
    {
@@ -5999,47 +6587,47 @@
    },
    {
     "name": "counter",
-    "wirelength": 71,
+    "wirelength": 81,
     "critical_ns": null
    },
    {
     "name": "fir",
-    "wirelength": 240,
+    "wirelength": 237,
     "critical_ns": null
    },
    {
     "name": "fir16",
-    "wirelength": 2380,
+    "wirelength": 2710,
     "critical_ns": null
    },
    {
     "name": "gates",
-    "wirelength": 82,
+    "wirelength": 90,
     "critical_ns": null
    },
    {
     "name": "gates_swapped",
-    "wirelength": 82,
+    "wirelength": 94,
     "critical_ns": null
    },
    {
     "name": "mult",
-    "wirelength": 184,
+    "wirelength": 199,
     "critical_ns": null
    },
    {
     "name": "ram",
-    "wirelength": 114,
+    "wirelength": 103,
     "critical_ns": null
    },
    {
     "name": "switches",
-    "wirelength": 75,
+    "wirelength": 92,
     "critical_ns": null
    },
    {
     "name": "wide",
-    "wirelength": 212,
+    "wirelength": 229,
     "critical_ns": null
    }
   ],
@@ -6172,18 +6760,18 @@
  },
  "code": {
   "lines": {
-   "other": 14311,
-   "Markdown": 6667,
-   "Python": 34760,
+   "other": 14322,
+   "Markdown": 6962,
+   "Python": 35196,
    "JavaScript": 4418,
-   "Tcl": 1040,
-   "SystemVerilog": 488,
+   "Tcl": 1050,
+   "SystemVerilog": 566,
    "XDC": 156,
-   "Verilog": 6913,
-   "shell": 752
+   "Verilog": 7276,
+   "shell": 766
   },
-  "generated_fabric_lines": 4350,
-  "commits": 60,
+  "generated_fabric_lines": 7011,
+  "commits": 70,
   "tags": [
    "m10",
    "m11",
@@ -6256,6 +6844,18 @@
     0
    ],
    [
+    "io_x10y0",
+    "io",
+    10,
+    0
+   ],
+   [
+    "io_x11y0",
+    "io",
+    11,
+    0
+   ],
+   [
     "io_x0y1",
     "io",
     0,
@@ -6292,8 +6892,8 @@
     1
    ],
    [
-    "dsp0",
-    "dsp",
+    "clb_x6y1",
+    "clb",
     6,
     1
    ],
@@ -6304,8 +6904,8 @@
     1
    ],
    [
-    "clb_x8y1",
-    "clb",
+    "dsp0",
+    "dsp",
     8,
     1
    ],
@@ -6316,9 +6916,21 @@
     1
    ],
    [
-    "io_x10y1",
-    "io",
+    "clb_x10y1",
+    "clb",
     10,
+    1
+   ],
+   [
+    "clb_x11y1",
+    "clb",
+    11,
+    1
+   ],
+   [
+    "io_x12y1",
+    "io",
+    12,
     1
    ],
    [
@@ -6352,15 +6964,15 @@
     2
    ],
    [
-    "clb_x7y2",
+    "clb_x6y2",
     "clb",
-    7,
+    6,
     2
    ],
    [
-    "clb_x8y2",
+    "clb_x7y2",
     "clb",
-    8,
+    7,
     2
    ],
    [
@@ -6370,9 +6982,21 @@
     2
    ],
    [
-    "io_x10y2",
-    "io",
+    "clb_x10y2",
+    "clb",
     10,
+    2
+   ],
+   [
+    "clb_x11y2",
+    "clb",
+    11,
+    2
+   ],
+   [
+    "io_x12y2",
+    "io",
+    12,
     2
    ],
    [
@@ -6406,15 +7030,15 @@
     3
    ],
    [
-    "clb_x7y3",
+    "clb_x6y3",
     "clb",
-    7,
+    6,
     3
    ],
    [
-    "clb_x8y3",
+    "clb_x7y3",
     "clb",
-    8,
+    7,
     3
    ],
    [
@@ -6424,9 +7048,21 @@
     3
    ],
    [
-    "io_x10y3",
-    "io",
+    "clb_x10y3",
+    "clb",
     10,
+    3
+   ],
+   [
+    "clb_x11y3",
+    "clb",
+    11,
+    3
+   ],
+   [
+    "io_x12y3",
+    "io",
+    12,
     3
    ],
    [
@@ -6448,12 +7084,6 @@
     4
    ],
    [
-    "bram1",
-    "bram",
-    3,
-    4
-   ],
-   [
     "clb_x4y4",
     "clb",
     4,
@@ -6466,8 +7096,8 @@
     4
    ],
    [
-    "dsp1",
-    "dsp",
+    "clb_x6y4",
+    "clb",
     6,
     4
    ],
@@ -6478,21 +7108,27 @@
     4
    ],
    [
-    "clb_x8y4",
-    "clb",
-    8,
-    4
-   ],
-   [
     "clb_x9y4",
     "clb",
     9,
     4
    ],
    [
-    "io_x10y4",
-    "io",
+    "clb_x10y4",
+    "clb",
     10,
+    4
+   ],
+   [
+    "clb_x11y4",
+    "clb",
+    11,
+    4
+   ],
+   [
+    "io_x12y4",
+    "io",
+    12,
     4
    ],
    [
@@ -6514,6 +7150,12 @@
     5
    ],
    [
+    "bram1",
+    "bram",
+    3,
+    5
+   ],
+   [
     "clb_x4y5",
     "clb",
     4,
@@ -6526,14 +7168,20 @@
     5
    ],
    [
+    "clb_x6y5",
+    "clb",
+    6,
+    5
+   ],
+   [
     "clb_x7y5",
     "clb",
     7,
     5
    ],
    [
-    "clb_x8y5",
-    "clb",
+    "dsp1",
+    "dsp",
     8,
     5
    ],
@@ -6544,9 +7192,21 @@
     5
    ],
    [
-    "io_x10y5",
-    "io",
+    "clb_x10y5",
+    "clb",
     10,
+    5
+   ],
+   [
+    "clb_x11y5",
+    "clb",
+    11,
+    5
+   ],
+   [
+    "io_x12y5",
+    "io",
+    12,
     5
    ],
    [
@@ -6580,15 +7240,15 @@
     6
    ],
    [
-    "clb_x7y6",
+    "clb_x6y6",
     "clb",
-    7,
+    6,
     6
    ],
    [
-    "clb_x8y6",
+    "clb_x7y6",
     "clb",
-    8,
+    7,
     6
    ],
    [
@@ -6598,9 +7258,21 @@
     6
    ],
    [
-    "io_x10y6",
-    "io",
+    "clb_x10y6",
+    "clb",
     10,
+    6
+   ],
+   [
+    "clb_x11y6",
+    "clb",
+    11,
+    6
+   ],
+   [
+    "io_x12y6",
+    "io",
+    12,
     6
    ],
    [
@@ -6634,15 +7306,15 @@
     7
    ],
    [
-    "clb_x7y7",
+    "clb_x6y7",
     "clb",
-    7,
+    6,
     7
    ],
    [
-    "clb_x8y7",
+    "clb_x7y7",
     "clb",
-    8,
+    7,
     7
    ],
    [
@@ -6652,64 +7324,220 @@
     7
    ],
    [
-    "io_x10y7",
-    "io",
+    "clb_x10y7",
+    "clb",
     10,
     7
    ],
    [
-    "io_x1y8",
+    "clb_x11y7",
+    "clb",
+    11,
+    7
+   ],
+   [
+    "io_x12y7",
     "io",
+    12,
+    7
+   ],
+   [
+    "io_x0y8",
+    "io",
+    0,
+    8
+   ],
+   [
+    "clb_x1y8",
+    "clb",
     1,
     8
    ],
    [
-    "io_x2y8",
-    "io",
+    "clb_x2y8",
+    "clb",
     2,
     8
    ],
    [
-    "io_x3y8",
-    "io",
-    3,
-    8
-   ],
-   [
-    "io_x4y8",
-    "io",
+    "clb_x4y8",
+    "clb",
     4,
     8
    ],
    [
-    "io_x5y8",
-    "io",
+    "clb_x5y8",
+    "clb",
     5,
     8
    ],
    [
-    "io_x6y8",
-    "io",
+    "clb_x6y8",
+    "clb",
     6,
     8
    ],
    [
-    "io_x7y8",
-    "io",
+    "clb_x7y8",
+    "clb",
     7,
     8
    ],
    [
-    "io_x8y8",
-    "io",
-    8,
+    "clb_x9y8",
+    "clb",
+    9,
     8
    ],
    [
-    "io_x9y8",
+    "clb_x10y8",
+    "clb",
+    10,
+    8
+   ],
+   [
+    "clb_x11y8",
+    "clb",
+    11,
+    8
+   ],
+   [
+    "io_x12y8",
+    "io",
+    12,
+    8
+   ],
+   [
+    "io_x0y9",
+    "io",
+    0,
+    9
+   ],
+   [
+    "clb_x1y9",
+    "clb",
+    1,
+    9
+   ],
+   [
+    "clb_x2y9",
+    "clb",
+    2,
+    9
+   ],
+   [
+    "clb_x4y9",
+    "clb",
+    4,
+    9
+   ],
+   [
+    "clb_x5y9",
+    "clb",
+    5,
+    9
+   ],
+   [
+    "clb_x6y9",
+    "clb",
+    6,
+    9
+   ],
+   [
+    "clb_x7y9",
+    "clb",
+    7,
+    9
+   ],
+   [
+    "clb_x9y9",
+    "clb",
+    9,
+    9
+   ],
+   [
+    "clb_x10y9",
+    "clb",
+    10,
+    9
+   ],
+   [
+    "clb_x11y9",
+    "clb",
+    11,
+    9
+   ],
+   [
+    "io_x12y9",
+    "io",
+    12,
+    9
+   ],
+   [
+    "io_x1y10",
+    "io",
+    1,
+    10
+   ],
+   [
+    "io_x2y10",
+    "io",
+    2,
+    10
+   ],
+   [
+    "io_x3y10",
+    "io",
+    3,
+    10
+   ],
+   [
+    "io_x4y10",
+    "io",
+    4,
+    10
+   ],
+   [
+    "io_x5y10",
+    "io",
+    5,
+    10
+   ],
+   [
+    "io_x6y10",
+    "io",
+    6,
+    10
+   ],
+   [
+    "io_x7y10",
+    "io",
+    7,
+    10
+   ],
+   [
+    "io_x8y10",
+    "io",
+    8,
+    10
+   ],
+   [
+    "io_x9y10",
     "io",
     9,
-    8
+    10
+   ],
+   [
+    "io_x10y10",
+    "io",
+    10,
+    10
+   ],
+   [
+    "io_x11y10",
+    "io",
+    11,
+    10
    ]
   ],
   "pads": [
@@ -6769,146 +7597,194 @@
    },
    {
     "pad": 9,
+    "x": 10,
+    "y": 0,
+    "name": null
+   },
+   {
+    "pad": 10,
+    "x": 11,
+    "y": 0,
+    "name": null
+   },
+   {
+    "pad": 11,
     "x": 0,
     "y": 1,
     "name": "SW0"
    },
    {
-    "pad": 10,
-    "x": 10,
+    "pad": 12,
+    "x": 12,
     "y": 1,
     "name": "LD0"
    },
    {
-    "pad": 11,
+    "pad": 13,
     "x": 0,
     "y": 2,
     "name": "SW1"
    },
    {
-    "pad": 12,
-    "x": 10,
+    "pad": 14,
+    "x": 12,
     "y": 2,
     "name": "LD1"
    },
    {
-    "pad": 13,
+    "pad": 15,
     "x": 0,
     "y": 3,
     "name": "BTN0"
    },
    {
-    "pad": 14,
-    "x": 10,
+    "pad": 16,
+    "x": 12,
     "y": 3,
     "name": "LD2"
    },
    {
-    "pad": 15,
+    "pad": 17,
     "x": 0,
     "y": 4,
     "name": "BTN1"
    },
    {
-    "pad": 16,
-    "x": 10,
-    "y": 4,
-    "name": null
-   },
-   {
-    "pad": 17,
-    "x": 0,
-    "y": 5,
-    "name": "BTN2"
-   },
-   {
     "pad": 18,
-    "x": 10,
-    "y": 5,
+    "x": 12,
+    "y": 4,
     "name": null
    },
    {
     "pad": 19,
     "x": 0,
-    "y": 6,
-    "name": "BTN3"
+    "y": 5,
+    "name": "BTN2"
    },
    {
     "pad": 20,
-    "x": 10,
-    "y": 6,
+    "x": 12,
+    "y": 5,
     "name": null
    },
    {
     "pad": 21,
     "x": 0,
-    "y": 7,
-    "name": null
+    "y": 6,
+    "name": "BTN3"
    },
    {
     "pad": 22,
-    "x": 10,
-    "y": 7,
+    "x": 12,
+    "y": 6,
     "name": null
    },
    {
     "pad": 23,
-    "x": 1,
-    "y": 8,
+    "x": 0,
+    "y": 7,
     "name": null
    },
    {
     "pad": 24,
-    "x": 2,
-    "y": 8,
+    "x": 12,
+    "y": 7,
     "name": null
    },
    {
     "pad": 25,
-    "x": 3,
+    "x": 0,
     "y": 8,
     "name": null
    },
    {
     "pad": 26,
-    "x": 4,
+    "x": 12,
     "y": 8,
     "name": null
    },
    {
     "pad": 27,
-    "x": 5,
-    "y": 8,
+    "x": 0,
+    "y": 9,
     "name": null
    },
    {
     "pad": 28,
-    "x": 6,
-    "y": 8,
+    "x": 12,
+    "y": 9,
     "name": null
    },
    {
     "pad": 29,
-    "x": 7,
-    "y": 8,
+    "x": 1,
+    "y": 10,
     "name": null
    },
    {
     "pad": 30,
-    "x": 8,
-    "y": 8,
+    "x": 2,
+    "y": 10,
     "name": null
    },
    {
     "pad": 31,
+    "x": 3,
+    "y": 10,
+    "name": null
+   },
+   {
+    "pad": 32,
+    "x": 4,
+    "y": 10,
+    "name": null
+   },
+   {
+    "pad": 33,
+    "x": 5,
+    "y": 10,
+    "name": null
+   },
+   {
+    "pad": 34,
+    "x": 6,
+    "y": 10,
+    "name": null
+   },
+   {
+    "pad": 35,
+    "x": 7,
+    "y": 10,
+    "name": null
+   },
+   {
+    "pad": 36,
+    "x": 8,
+    "y": 10,
+    "name": null
+   },
+   {
+    "pad": 37,
     "x": 9,
-    "y": 8,
+    "y": 10,
+    "name": null
+   },
+   {
+    "pad": 38,
+    "x": 10,
+    "y": 10,
+    "name": null
+   },
+   {
+    "pad": 39,
+    "x": 11,
+    "y": 10,
     "name": null
    }
   ],
   "heights": {
-   "bram": 3,
-   "dsp": 3
+   "bram": 4,
+   "dsp": 4
   },
   "frame_columns": [
    {
@@ -6927,60 +7803,72 @@
     "far_col": 2,
     "x": 1,
     "base": 4,
-    "count": 34
+    "count": 46
    },
    {
     "far_col": 3,
     "x": 2,
-    "base": 38,
-    "count": 33
+    "base": 50,
+    "count": 46
    },
    {
     "far_col": 4,
     "x": 3,
-    "base": 71,
-    "count": 8
+    "base": 96,
+    "count": 9
    },
    {
     "far_col": 5,
     "x": 4,
-    "base": 79,
-    "count": 33
+    "base": 105,
+    "count": 46
    },
    {
     "far_col": 6,
     "x": 5,
-    "base": 112,
-    "count": 33
+    "base": 151,
+    "count": 46
    },
    {
     "far_col": 7,
     "x": 6,
-    "base": 145,
-    "count": 12
+    "base": 197,
+    "count": 46
    },
    {
     "far_col": 8,
     "x": 7,
-    "base": 157,
-    "count": 33
+    "base": 243,
+    "count": 46
    },
    {
     "far_col": 9,
     "x": 8,
-    "base": 190,
-    "count": 33
+    "base": 289,
+    "count": 13
    },
    {
     "far_col": 10,
     "x": 9,
-    "base": 223,
-    "count": 33
+    "base": 302,
+    "count": 46
    },
    {
     "far_col": 11,
     "x": 10,
-    "base": 256,
+    "base": 348,
+    "count": 46
+   },
+   {
+    "far_col": 12,
+    "x": 11,
+    "base": 394,
+    "count": 46
+   },
+   {
+    "far_col": 13,
+    "x": 12,
+    "base": 440,
     "count": 1
    }
   ]
@@ -7020,7 +7908,7 @@
     "type-1 WRITE IDCODE count 1"
    ],
    [
-    "0B021093",
+    "0B022093",
     "IDCODE data"
    ],
    [
@@ -7048,8 +7936,8 @@
     "type-1 WRITE FDRI count 0"
    ],
    [
-    "50000404",
-    "type-2 count 1028"
+    "500006E4",
+    "type-2 count 1764"
    ],
    [
     "00000000",
@@ -7077,7 +7965,7 @@
    ],
    [
     "\u2026",
-    "2048 more words"
+    "2784 more words"
    ],
    [
     "0003D09E",
@@ -7092,7 +7980,7 @@
     "type-1 WRITE CRC count 1"
    ],
    [
-    "4BB8CDA4",
+    "9C02BF5E",
     "CRC data"
    ],
    [
@@ -7128,7 +8016,7 @@
     "dummy"
    ]
   ],
-  "load_words": 2082,
+  "load_words": 2818,
   "partial_freeze": [
    [
     "FFFFFFFF",
@@ -7163,7 +8051,7 @@
     "type-1 WRITE IDCODE count 1"
    ],
    [
-    "0B021093",
+    "0B022093",
     "IDCODE data"
    ],
    [
@@ -7197,7 +8085,7 @@
     "type-1 WRITE FAR count 1"
    ],
    [
-    "00000280",
+    "00000282",
     "FAR data"
    ],
    [
@@ -7205,11 +8093,7 @@
     "type-1 WRITE FDRI count 4"
    ],
    [
-    "00000000",
-    "FDRI data"
-   ],
-   [
-    "EEEEEE00",
+    "EEEEEEEE",
     "FDRI data"
    ],
    [
@@ -7217,7 +8101,11 @@
     "FDRI data"
    ],
    [
-    "1AA000EE",
+    "00000000",
+    "FDRI data"
+   ],
+   [
+    "00000000",
     "FDRI data"
    ],
    [
@@ -7225,7 +8113,7 @@
     "type-1 WRITE CRC count 1"
    ],
    [
-    "27D8058F",
+    "2D589F27",
     "CRC data"
    ],
    [
@@ -7288,8 +8176,8 @@
     "type-1 READ FDRO count 0"
    ],
    [
-    "48000404",
-    "type-2 count 1028"
+    "480006E4",
+    "type-2 count 1764"
    ],
    [
     "30008001",

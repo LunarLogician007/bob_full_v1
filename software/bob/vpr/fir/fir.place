@@ -1,16 +1,16 @@
-Netlist_File: fir.net Netlist_ID: SHA256:c86d88f2e7b9f4fb95ae2cd64a7fdd6476b8d16db6df70f1981bb8d2a1f04ef0
-Array size: 11 x 9 logic blocks
+Netlist_File: fir.net Netlist_ID: SHA256:b622c3835045c6f7ca9b32f064bf2c7bb819f84c7e7bd4f4cf1715cfe984365d
+Array size: 13 x 11 logic blocks
 
 #block name	x	y	subblk	layer	block number
 #----------	--	--	------	-----	------------
-$mul$work/examples/fir/fir.v:20$3	6	4	0	0	#0
-$mul$work/examples/fir/fir.v:20$4	6	1	0	0	#1
-bob_gen1	5	2	0	0	#2
-$auto$alumacc.cc:548:replace_alu$26.slice[3].add	5	3	0	0	#3
-ffd8		1	3	0	0	#4
-out:led[0]	10	1	0	0	#5
-out:led[1]	10	2	0	0	#6
-out:led[2]	10	3	0	0	#7
+$mul$work/examples/fir/fir.v:20$3	8	5	0	0	#0
+$mul$work/examples/fir/fir.v:20$4	8	1	0	0	#1
+bob_gen1	9	3	0	0	#2
+$auto$alumacc.cc:548:replace_alu$26.slice[3].add	9	4	0	0	#3
+ffd8		5	2	0	0	#4
+out:led[0]	12	1	0	0	#5
+out:led[1]	12	2	0	0	#6
+out:led[2]	12	3	0	0	#7
 clk		1	0	0	0	#8
 sw[0]		0	1	0	0	#9
 sw[1]		0	2	0	0	#10

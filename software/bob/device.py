@@ -197,7 +197,27 @@ ARCH_M21 = {
     "cluster": CLUSTER_N4,
 }
 
-ARCH = ARCH_M21
+# M22: the LUT contents and the crossbar in CFGLUT5 (AMD UG953: a LUT5 whose truth table is
+# shifted in), ZUMA-style (Brant & Lemieux, FCCM 2012): measured in yosys, a CLB drops from
+# 469 host LUTs + 424 configuration flip-flops to 193 LUTs (152 of them CFGLUT5, SLICEM
+# only) + 48 flag flip-flops (docs/superpowers/specs/2026-09-23-m22-lutram-design.md).
+# SLICEM (17,400 LUTs) is the new limit: 81 CLBs x 152 = 12.3k (71%). The user chose 9 x 9
+# CLBs = 324 LUTs (1.65x M21): 11 x 9 core, BRAM x=3 and DSP x=8 of height 4 (two of each,
+# as at M21, and the top cell of each column empty: dsp_jtag.v's 256-bit register holds two
+# slices), W = 40 as at M21.
+ARCH_M22 = {
+    "nx": 11, "ny": 9,
+    "chan_width": 40,
+    "segment_length": 4,
+    "fs": 3,
+    "fc_in": 0.15, "fc_out": 0.10,
+    "io_capacity": 1,
+    "columns": [{"type": "bram", "x": 3, "height": 4},
+                {"type": "dsp", "x": 8, "height": 4}],
+    "cluster": CLUSTER_N4,
+}
+
+ARCH = ARCH_M22
 
 # Board pads (PYNQ-Z2): pad_i bit order and pad_o bit order used by every host tool
 BOARD_INPUTS = ("SW0", "SW1", "BTN0", "BTN1", "BTN2", "BTN3")
@@ -433,21 +453,89 @@ class Device:
                    for e in range(self.cluster["n"]) for j in range(self.lut_k))
         return (n + 1).bit_length()                  # values 0 const0, 1 const1, 2.. inputs
 
-    def _clb_type(self):
-        k = self.lut_k
+    # M22: a CLB tile is frame aligned, and its truth tables and crossbar selects live only
+    # in CFGLUT5s (hw/src/core/lut_loader.v shifts them in as their frame is written):
+    #   frame 0       the first crossbar selects (xbar_width bits each), then the element
+    #                 flags (flip-flops) at the end of the frame
+    #   INIT frames   the N truth tables, FRAME_BITS / 2**K per frame
+    #   tail frames   the remaining selects, FRAME_BITS // xbar_width per frame; after the
+    #                 last one the tile's routing muxes follow, as before
+    # Frames are written in ascending order and a frame's flip-flops take their bits at the
+    # write, before its CFGLUT5s start shifting, so a load sets the flags first: no
+    # intermediate state can wire an element's output back through the crossbar while its
+    # flip-flop is still off (a crossbar-before-flags order did - a counter oscillated in
+    # tb_synth). Every crossbar frame keeps slot t at bit t * xbar_width, so one expander
+    # (bob_lexp) serves them all. cfg_store.v keeps no flip-flops for these bits (per bit:
+    # frames 0 and the last tail frame are mixed).
+    def lutram_layout(self):
+        k, n = self.lut_k, self.cluster["n"]
         xw = self.xbar_width()
-        spec = []
-        for e in range(self.cluster["n"]):
-            spec.append((f"e{e}.init", 1 << k, "lut_init", "clb",
-                         f"element {e}: LUT{k} truth table; O5 = INIT[{(1 << (k - 1)) - 1}:0] over i[{k - 2}:0]"))
-            spec += [(f"e{e}.{n}", w, kind, "clb", doc) for n, w, kind, doc in self.ELEMENT_FIELDS]
-            spec += [(f"e{e}.x{j}", xw, "mux", "xbar",
-                      f"element {e} input {j}: 0 const0, 1 const1, 2.. crossbar source "
-                      f"(xbar_sources)") for j in range(k)]
-        return _build(spec, "clb")
+        per_init = FRAME_BITS >> k
+        n_init = -(-n // per_init)
+        per_x = FRAME_BITS // xw
+        flags_w = n * sum(w for _n, w, _k, _d in self.ELEMENT_FIELDS)
+        assert flags_w <= FRAME_BITS, "the element flags must fit frame 0"
+        head = min(n * k, (FRAME_BITS - flags_w) // xw)       # selects in frame 0
+        n_tail = -(-(n * k - head) // per_x)
+        kinds = ["xbar"] + ["init"] * n_init + ["xbar"] * n_tail
+        return {"init_per_frame": per_init, "init_frames": n_init, "xbar_per_frame": per_x,
+                "xbar_head": head, "xbar_frames": 1 + n_tail, "frames": len(kinds), "kinds": kinds,
+                "flags_lo": FRAME_BITS - flags_w}
+
+    def xbar_slot(self, s):
+        """(tile frame, slot) of crossbar select s = e * K + j"""
+        lay = self.lutram_layout()
+        if s < lay["xbar_head"]:
+            return 0, s
+        f, t = divmod(s - lay["xbar_head"], lay["xbar_per_frame"])
+        return 1 + lay["init_frames"] + f, t
+
+    def _clb_type(self):
+        k, n = self.lut_k, self.cluster["n"]
+        xw = self.xbar_width()
+        lay = self.lutram_layout()
+        fields, off = [], 0
+
+        def add(name, w, kind, group, doc):
+            nonlocal off
+            fields.append(Field(name, off, w, kind, group, doc))
+            off += w
+
+        def pad_to(end):
+            if off < end:
+                add(f"lpad{off}", end - off, "reserved", "lutram", "L-frame padding, write 0")
+
+        doc_x = ("element {e} input {j}: 0 const0, 1 const1, 2.. crossbar source (xbar_sources); "
+                 "M22: a CFGLUT5 tree, expanded from this select at load")
+        for s in range(lay["xbar_head"]):
+            e, j = divmod(s, k)
+            add(f"e{e}.x{j}", xw, "mux", "xbar", doc_x.format(e=e, j=j))
+        pad_to(lay["flags_lo"])
+        for e in range(n):
+            for name, w, kind, doc in self.ELEMENT_FIELDS:
+                add(f"e{e}.{name}", w, kind, "clb", doc)
+        for e in range(n):
+            f, slot = divmod(e, lay["init_per_frame"])
+            pad_to((1 + f) * FRAME_BITS + slot * (1 << k))
+            add(f"e{e}.init", 1 << k, "lut_init", "clb",
+                f"element {e}: LUT{k} truth table (M22: two CFGLUT5, lo = INIT[{(1 << (k - 1)) - 1}:0], "
+                f"hi = the upper half); O5 = the lower half over i[{k - 2}:0]")
+        for s in range(lay["xbar_head"], n * k):
+            e, j = divmod(s, k)
+            f, t = self.xbar_slot(s)
+            pad_to(f * FRAME_BITS + t * xw)
+            add(f"e{e}.x{j}", xw, "mux", "xbar", doc_x.format(e=e, j=j))
+        return TileType("clb", tuple(fields))
 
     def element_width(self):
-        return self.tile_types["clb"].width // self.cluster["n"]
+        """M22: one element's flip-flop fields (the flags); its INIT and crossbar selects
+        live in the CLB's L-frames."""
+        return sum(w for _n, w, _k, _d in self.ELEMENT_FIELDS)
+
+    @staticmethod
+    def is_lfield(f):
+        """M22: a field held in CFGLUT5s rather than flip-flops (or L-frame padding)."""
+        return f.kind == "lut_init" or f.group in ("xbar", "lutram")
 
     def _bram_type(self):
         return _build([
@@ -675,6 +763,13 @@ class Device:
             for y in range(self.height):
                 fields, off = [], 0
                 blk = self.block_at.get((x, y))
+                if blk is not None and blk.type == "clb" and lo % FRAME_BITS:
+                    # M22: a CLB tile starts on a frame boundary (its L-frames come first)
+                    pad = FRAME_BITS - lo % FRAME_BITS
+                    self.tiles.append(Tile(f"pad_x{x}y{y}", "tail", None, None, lo,
+                                           (Field("reserved", 0, pad, "reserved", "ctrl",
+                                                  "M22: padding to the CLB's first L-frame, write 0"),)))
+                    lo += pad
                 if blk is not None and blk.type in ("clb", "bram", "dsp"):
                     for f in self.tile_types[blk.type].fields:
                         fields.append(Field(f.name, off, f.width, f.kind, f.group, f.doc))
@@ -693,6 +788,24 @@ class Device:
             close_column(x + 1, x, start)
         self.nframes = lo // FRAME_BITS
         self._elements(blocks)
+        # M22: the L-frames, each owned by one CLB: frame -> (clb, kind, k)
+        lay = self.lutram_layout()
+        self.lframes = []
+        for blk in sorted((b for b in blocks if b.type == "clb"), key=lambda b: b.chain_lo):
+            assert blk.chain_lo % FRAME_BITS == 0, blk.name
+            f0 = blk.chain_lo // FRAME_BITS
+            for i, kind in enumerate(lay["kinds"]):
+                self.lframes.append({"frame": f0 + i, "clb": blk.name, "kind": kind, "k": i})
+        # and exactly which bits: the CLBs' L fields (cfg_store.v keeps no flip-flops for them)
+        self.lbits = 0
+        tt = self.tile_types["clb"]
+        tmask = 0
+        for f in tt.fields:
+            if self.is_lfield(f):
+                tmask |= ((1 << f.width) - 1) << f.offset
+        for blk in blocks:
+            if blk.type == "clb":
+                self.lbits |= tmask << blk.chain_lo
         # only memory positions are column-major: blocks keep their row-major order,
         # which the fabric's clb_o bits and CAPTURE use (block.index)
         blocks.sort(key=lambda bl: (bl.y, bl.x))
@@ -722,7 +835,6 @@ class Device:
         nid = max(self.rr.nodes) + 1
         self.ext_nodes = {}                    # id -> (type, x, y, "e,j")
         self.elements = []                     # [{name, clb, e, x, y, index, chain_lo, pins}]
-        ew = self.element_width()
         for blk in sorted((b for b in blocks if b.type == "clb"), key=lambda b: (b.y, b.x)):
             P = lambda pin: self.pin_node[(blk.name, pin)]          # noqa: E731
             cin = P("cin[0]")
@@ -747,9 +859,12 @@ class Device:
                     cout = P("cout[0]")
                 pins.update({"cin": cin, "cout": cout, "out0": P(f"O[{2 * e}]"),
                              "out1": P(f"O[{2 * e + 1}]"), "ce": P("ce[0]"), "sr": P("sr[0]")})
+                # M22: an element's fields are the CLB's e<e>.* (INIT and crossbar in the
+                # L-frames, flags after them); chain_lo is its first flag bit
                 self.elements.append({"name": f"{blk.name}.e{e}", "clb": blk.name, "e": e,
                                       "x": blk.x, "y": blk.y, "index": len(self.elements),
-                                      "chain_lo": blk.chain_lo + e * ew, "pins": pins})
+                                      "chain_lo": blk.chain_lo + self.tile_types["clb"].field(
+                                          f"e{e}.{self.ELEMENT_FIELDS[0][0]}").offset, "pins": pins})
                 cin = cout
 
     # --- lookups --------------------------------------------------------------------
@@ -869,16 +984,21 @@ class Device:
                              "(world -> fabric)"},
             "cluster": {"n": self.cluster["n"], "i": self.cluster["i"], "xbar": self.cluster["xbar"],
                         "frac": self.cluster["frac"], "element_width": self.element_width(),
+                        "lutram": dict(self.lutram_layout(), cfglut5_per_clb=self.cfglut5_per_clb()),
                         "xbar_width": self.xbar_width(),
                         "xbar_sources": [[self.xbar_sources(e, j) for j in range(self.lut_k)]
                                          for e in range(self.cluster["n"])],
-                        "doc": "CLB = n elements; element e's fields are e<e>.* at chain_lo + "
-                               "e * element_width; its input j is node EIN driven by the crossbar "
+                        "doc": "CLB = n elements; element e's fields are the CLB's e<e>.* (M22: "
+                               "INIT and crossbar selects in the CLB's L-frames, held in CFGLUT5s; "
+                               "the flags after them); its input j is node EIN driven by the crossbar "
                                "mux e<e>.x<j> (0 const0, 1 const1, 2+i xbar_sources[e][j][i]); "
                                "its outputs are the CLB's O[2e] (out[0]) and O[2e+1] (out[1])"},
             "elements": [{"name": el["name"], "clb": el["clb"], "e": el["e"], "x": el["x"], "y": el["y"],
                           "index": el["index"], "chain_lo": el["chain_lo"], "pins": el["pins"]}
                          for el in self.elements],
+            "lframes": {"doc": "M22: frames whose bits live only in CFGLUT5s, loaded by "
+                               "hw/src/core/lut_loader.v as each is written (no flip-flops)",
+                        "list": [[lf["frame"], lf["clb"], lf["kind"], lf["k"]] for lf in self.lframes]},
             "capture": {"width": 2 * len(self.elements), "status_w": STATUS_W,
                         "order": [f"{el['name']}.out{o}" for el in self.elements for o in (0, 1)]},
             "bram": {"count": len(self.by_type["bram"]), "addr_w": BRAM_ADDR_W, "data_w": BRAM_DATA_W,
@@ -901,11 +1021,17 @@ class Device:
             ("CLB_N", self.cluster["n"]), ("CLB_I", self.cluster["i"]),
             ("ELE_W", self.element_width()), ("XBAR_W", self.xbar_width()),
             ("XBAR_N", len(self.xbar_sources(0, 0))),
-            ("ELE_INIT_LO", tt.field("e0.init").offset),
         ]
+        # M22: ELE_<flag> = the flag's bit within the element's flags (ble.sv's cfg port);
+        # element e's flags sit at CLB_FLAGS_LO + e * ELE_W
+        flag0 = tt.field(f"e0.{self.ELEMENT_FIELDS[0][0]}").offset
         for name, _w, _k, _d in self.ELEMENT_FIELDS:
-            vals.append((f"ELE_{name.upper()}", tt.field(f"e0.{name}").offset))
-        vals.append(("ELE_XBAR_LO", tt.field("e0.x0").offset))
+            vals.append((f"ELE_{name.upper()}", tt.field(f"e0.{name}").offset - flag0))
+        lay = self.lutram_layout()
+        vals += [("CLB_FLAGS_LO", flag0), ("LF_XHEAD", lay["xbar_head"]),
+                 ("LF_INIT", lay["init_frames"]), ("LF_XBAR", lay["xbar_frames"]),
+                 ("LF_N", lay["frames"]), ("LF_INIT_PER", lay["init_per_frame"]),
+                 ("LF_XBAR_PER", lay["xbar_per_frame"]), ("NLFRAMES", len(self.lframes))]
         vals += [
             ("GRID_W", self.width), ("GRID_H", self.height), ("CHAN_W", self.arch["chan_width"]),
             ("CTRL_W", ct.width), ("CHAIN_W", self.chain_width),
@@ -954,8 +1080,17 @@ class Device:
                 packed |= table[c]["base"] << (32 * c) | table[c]["count"] << (32 * c + 16)
         lines += ["", "// FAR column c: [32c+15:32c] first frame index, [32c+31:32c+16] frame count (0: no frames)",
                   f"`define BOB_FAR_TABLE {32 * ncol}'h{packed:0{8 * ncol}x}"]
+        # M22: bit k set = chain bit k lives only in a CFGLUT5 (no flip-flop in cfg_store.v)
+        lines += ["", "// M22: chain bits held only in CFGLUT5s (hw/src/core/cfg_store.v keeps no flip-flops for them)",
+                  f"`define BOB_LBIT_MASK {self.chain_width}'h{self.lbits:0{-(-self.chain_width // 4)}x}"]
         lines += ["", "`endif", ""]
         return "\n".join(lines)
+
+    def cfglut5_per_clb(self):
+        """CFGLUT5 primitives in one CLB: two per element LUT, a tree per crossbar mux."""
+        s = len(self.xbar_sources(0, 0))
+        leaves = -(-s // 5)
+        return self.cluster["n"] * 2 + self.cluster["n"] * self.lut_k * (leaves + (1 if leaves > 1 else 0))
 
 
 def generated(lut_k=6, out_dir=None, arch_only=False):

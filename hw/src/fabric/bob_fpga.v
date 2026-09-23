@@ -94,6 +94,14 @@ module bob_fpga #(
     wire [9:0]          bf_addr;
     wire [71:0]         bf_data, bf_rdata;
     wire [CTRL_W-1:0]   ctrl_cfg = chain_cfg[CTRL_W-1:0];
+    // M22: the CFGLUT5 loader (lut_loader.v)
+    wire                st_wr;
+    wire [FIDX_W-1:0]   st_wr_idx;
+    wire [`BOB_FRAME_BITS-1:0] st_wr_data;
+    wire                l_busy, l_clr;
+    wire [FIDX_W-1:0]   l_idx;
+    wire [`BOB_FRAME_BITS-1:0] l_buf;
+    wire [4:0]          l_cnt;
 
     // user clock
     wire                gce, gsr_s, gwe_s, cin_s;
@@ -166,7 +174,7 @@ module bob_fpga #(
         .sel_cfg_out (sel_chain_out),
         .sel_ctrl    (sel_ctrl),
         .jprogram    (jprogram),
-        .jstart_tick (jstart_tick),
+        .jstart_tick (jstart_tick & ~l_busy),   // M22: startup waits for the CFGLUT5 loader
         .frames_ok        (frames_ok),
         .frames_error     (frames_error),
         .frames_crc_error (frames_crc_error),
@@ -225,7 +233,8 @@ module bob_fpga #(
     );
 
     // chain: TDI -> memory bit CHAIN_W-1 ... bit 0 -> TDO; frames: frame f = bits [FB*f +: FB]
-    cfg_store #(.FB(`BOB_FRAME_BITS), .NFRAMES(`BOB_NFRAMES), .FIDX_W(FIDX_W)) u_store (
+    cfg_store #(.FB(`BOB_FRAME_BITS), .NFRAMES(`BOB_NFRAMES), .FIDX_W(FIDX_W),
+                .LBITS(`BOB_LBIT_MASK)) u_store (
         .tck        (tck),
         .chain_in   (sel_chain_in),
         .chain_out  (sel_chain_out),
@@ -242,7 +251,25 @@ module bob_fpga #(
         .frame_idx  (frame_idx),
         .fdro_idx   (fdro_idx),
         .rd_frame   (rd_frame),
+        .wr         (st_wr),
+        .wr_idx     (st_wr_idx),
+        .wr_data    (st_wr_data),
         .cfg        (chain_cfg)
+    );
+
+    // M22: every frame write is shifted into the CFGLUT5s that own it (L-frames: the LUT
+    // contents and crossbar selects, which keep no flip-flops in u_store)
+    lut_loader #(.FB(`BOB_FRAME_BITS), .FIDX_W(FIDX_W)) u_lutld (
+        .tck     (tck),
+        .clear   (cfg_clear),
+        .wr      (st_wr),
+        .wr_idx  (st_wr_idx),
+        .wr_data (st_wr_data),
+        .busy    (l_busy),
+        .clr     (l_clr),
+        .idx     (l_idx),
+        .lbuf    (l_buf),
+        .cnt     (l_cnt)
     );
 
     capture_chain #(.N(`BOB_NCAP)) u_cap (
@@ -374,6 +401,12 @@ module bob_fpga #(
         .gwe            (gwe_s),
         .cin            (cin_s),
         .cfg            (chain_cfg),
+        .lck            (tck),                     // M22: CFGLUT5 shift clock
+        .l_busy         (l_busy),
+        .l_clr          (l_clr),
+        .l_idx          (l_idx),
+        .l_buf          (l_buf),
+        .l_cnt          (l_cnt),
         .pad_in         (fab_pad_in),
         .pad_out        (fab_pad_out),
         .clb_o          (clb_o),

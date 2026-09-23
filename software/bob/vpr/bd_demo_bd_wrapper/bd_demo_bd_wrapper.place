@@ -1,13 +1,13 @@
-Netlist_File: bd_demo_bd_wrapper.net Netlist_ID: SHA256:321a21ef49080f7cd9c2238cf0a0fa22ec25fb44c6fae71845cd44bb61823209
-Array size: 11 x 9 logic blocks
+Netlist_File: bd_demo_bd_wrapper.net Netlist_ID: SHA256:084b07fa7b0266720d7c56ac6a8fbc49e1817b8e0031a1185a0eb8aa1e957e27
+Array size: 13 x 11 logic blocks
 
 #block name	x	y	subblk	layer	block number
 #----------	--	--	------	-----	------------
-bob_gen1	1	2	0	0	#0
-n17		5	3	0	0	#1
-out:led[0]	10	1	0	0	#2
-out:led[1]	10	2	0	0	#3
-out:led[2]	10	3	0	0	#4
+bob_gen1	4	2	0	0	#0
+n17		2	3	0	0	#1
+out:led[0]	12	1	0	0	#2
+out:led[1]	12	2	0	0	#3
+out:led[2]	12	3	0	0	#4
 clk		1	0	0	0	#5
 sw[0]		0	1	0	0	#6
 sw[1]		0	2	0	0	#7

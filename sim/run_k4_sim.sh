@@ -20,7 +20,7 @@ export BOB_DEVICE_JSON="$K4/device.json"
 SRC=()
 while read -r l; do
     if [[ "$l" == */generated/bob_fabric.v ]]; then SRC+=("$K4/bob_fabric.v"); else SRC+=("$l"); fi
-done < <(./hwfiles.sh)
+done < <(./hwfiles.sh --sim)
 
 echo "-- K=4 CLB flag sweep --"
 iverilog -g2012 -DSIMULATION -I"$K4" -I../hw/src/generated -I../hw/tb -s tb_clb \

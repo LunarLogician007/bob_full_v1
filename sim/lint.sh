@@ -14,7 +14,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-SRC=(); while read -r l; do SRC+=("$l"); done < <(./hwfiles.sh)
+SRC=(); while read -r l; do SRC+=("$l"); done < <(./hwfiles.sh --sim)
 
 echo "-- single CLB --"
 verilator --lint-only -Wall --timing -I../hw/src/generated \

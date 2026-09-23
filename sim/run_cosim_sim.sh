@@ -6,7 +6,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 ./gen_cosim.py "$@"
 
-SRC=(); while read -r l; do SRC+=("$l"); done < <(./hwfiles.sh)
+SRC=(); while read -r l; do SRC+=("$l"); done < <(./hwfiles.sh --sim)
 EX=(); while read -r l; do EX+=("$l"); done < ../build/cosim/sources.txt
 
 iverilog -g2012 -DSIMULATION -I../hw/src/generated -I../hw/tb -I../build/cosim -s tb_cosim \

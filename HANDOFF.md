@@ -5,19 +5,85 @@ This file is the live state: what is finished, what is in flight, and exactly wh
 
 ---
 
-## 0. Next agent: start here (2026-09-24)
+## 0. Next agent: start here (2026-09-24, M22 code done; Vivado build pending)
 
-- **`main` (this folder) is M21, which the board runs** (66/66, WNS +0.570 ns). Every M21
-  mutant is killed. Documents refreshed 2026-09-24: `docs/project/REPORT.md` + `project.html`,
-  `GUIDE.md` + `guide.html`, `arch.html`, README, PLAN, CLAUDE.md.
-- **M22 is in `../bob_full_v1_m22` (branch `m22`)** - its own `HANDOFF.md` is the live state:
-  CFGLUT5 truth tables, 9 × 9 CLBs; code, simulation and `make check` green; the Vivado build
-  is running. Merge `m22` into `main` only after `make hwtest M=M22` passes.
-- **M21 loose ends:** the rest of `bob_vivado\out\M21\` (`sysclk_1cycle.txt`,
-  `delay_paths.rpt`, DRC) - then commit `docs/reports/M21/`, `delays.py fold`, tag `m21` (the
-  user decides whether the second build's 66/66 counts or a rerun on the final bitstream is
-  wanted). Tags for `m18`-`m20` are still the user's call.
-- `docs/hwtest/results.log` now holds every board run including M21's (committed 2026-09-24).
+### Where things are
+- **Three checkouts.**
+  - `/Users/sk/work/bob/bob_full_v1` - the user's folder, `main`, which now has **M21**
+    (merged 2026-09-23; the board runs M21). Uncommitted and the user's: `docs/bob_full_v1_report.tex`
+    (never commit it), `docs/hwtest/results.log`, `docs/reports/M20/`, and `docs/reports/M21/`
+    (`timing.rpt`, `util.rpt`, `bob_top.bit` of the final M21 build).
+  - `/Users/sk/work/bob/bob_full_v1_m21` - branch `m21`, merged; keep for reference. Its
+    `docs/hwtest/results.log` holds the M21 board run (66/66).
+  - `/Users/sk/work/bob/bob_full_v1_m22` - branch `m22`: **all M22 work.**
+- **M21 is done** except the tag: timing closed (sysclk +0.570 ns, tck +4990 ns), hwtest 66/66
+  on the second build (same RTL; the third build only changed the XDC), every mutant killed.
+  Still wanted from the user: the rest of `bob_vivado\out\M21\` (`sysclk_1cycle.txt` - which
+  `tests/test_reports.py` requires - `delay_paths.rpt`, DRC), then commit `docs/reports/M21/`,
+  fold the delays, and tag `m21` (after a hwtest rerun on the final bitstream, or on the
+  user's say-so that the second build's pass counts).
+
+### M22 as built (branch `m22`, approved 2026-09-23: approach B, 9 x 9, measure first)
+- **What:** each element's truth table and each crossbar mux in AMD CFGLUT5 (ZUMA-style);
+  81 CLBs (9 x 9) = 324 LUTs; 441 frames (56,448 bits), 30,456 bits held only in CFGLUT5s;
+  each CLB tile: frame 0 = 16 selects + the flags, 2 INIT frames, 8 selects + routing. Spec:
+  `docs/superpowers/specs/2026-09-23-m22-lutram-design.md`; the design in
+  `docs/bitstream-format.md` section 15; checklist `docs/hwtest/M22.md`.
+- **Verified:** `make check`-equivalent runs (see the commit log): tb_clb 4032, tb_bob 671
+  (with CFGLUT5 contents against an independent model and the JPROGRAM sweep), cfg, K=4,
+  frames, cosim, synth; lint clean; pytest 501 + the device table; every example re-routed by
+  VPR and legal; M22 mutants killed (see below).
+- **Mutants:** all M22 mutants killed - `expand-bit-order`, `lxmux-root-no-ce`,
+  `lut-halves-swapped` (tb_clb), `loader-no-sweep` (tb_bob), `loader-31-shifts` (as a hang:
+  every table one bit off leaves loops, and the watchdog's 2700 s ended it). The full
+  `make mutate` for M22 has not been rerun end to end (each tb_bob mutant is ~10 min).
+- **`make check` green 2026-09-24** (2 h 20 min: cosim alone ~90 min with the CFGLUT5 model).
+- **Size (yosys, whole design):** 36,980 logic LUTs + 12,312 CFGLUT5 = 49.3k (M21 58.5k),
+  25.4k FFs (M21 36.0k), 5.1 GB peak. **Vivado projection 35-42k LUTs (66-79%)** - the two
+  M21 calibrations disagree - and SLICEM ~71%. My grid table for the user said ~28k; it
+  undercounted the routing each extra CLB brings. At the high end slices would be near 100%
+  (M21: 68.5% LUTs was 90.9% of slices). **If placement or routing fails, step down:**
+  `ARCH_M22` `ny` 9 -> 8 (72 CLBs) in `software/bob/device.py`, then `make rrgraph`,
+  `make device`, `make vpr`, the pinned sizes in `tests/test_device.py`, `make check`.
+- **Simulation-only pieces** (never in Vivado): `hw/tb/prims/CFGLUT5.v` (from
+  `sim/hwfiles.sh --sim`: X-resolving reads as UNISIM, outputs held while shifting, and a
+  10 ps output delay so a transient loop during a load - one CLB's crossbar and the routing
+  live before another CLB's flags - oscillates in simulated time instead of spinning the
+  simulator; it hung tb_synth on blinky), `cfg_store.sim_lmem`, and per-CLB gated shift
+  clocks in `bob_fabric.v` under `ifdef SIMULATION` (without them tb_bob never finished: 12k
+  CFGLUT5 processes woke on every TCK edge).
+- **Layout lesson:** a CLB tile writes its flags before any crossbar content (frame 0 =
+  16 selects + flags; a frame's flip-flops load at the write, before its CFGLUT5s shift).
+  `tests/test_device.py::test_a_load_sets_the_flags_before_any_crossbar_select` holds it.
+
+### M22 on the board (2026-09-24)
+- **Vivado:** timing closed, WNS +0.172 ns (WHS +0.029). 38,184 LUTs (71.8%, inside the
+  66-79% projection), 12,282 LUT as memory (70.6% of SLICEM), 25,599 FFs, slices 82.3%
+  (M21 90.9%). Reports in `docs/reports/M22/` (all of `out\M22\`).
+- **`make hwtest M=M22`: 65/67.** lutram-snake passed (all 324 CFGLUT5 elements, frames and
+  chain), partial-cluster, bob-/pnr-fir16, clock-margin 4.25x. Failed: `live-fir16` (one LED
+  sample at SW=11 BTN=1111 - all four buttons pressed, so button bounce during the JTAG
+  sample is the likely cause - then "CFG_OUT readback while running differs") and the next
+  check `fast-fir16` (frame load refused, PKT_ERROR). Readback and the load failing
+  together look like one corrupted JTAG transfer.
+- **Rerun non-interactively 2026-09-24 (no hands on the board): 12/12 PASS** (`live-fir16`
+  and `fast-fir16` six times each: load accepted, LEDs == model, readback == .bit). Not
+  reproduced. Still to do: one **interactive** `make hwtest M=M22 ONLY=live-fir16` (the goals
+  need a person; press the buttons one at a time, as `docs/hwtest/M22.md` says).
+- **Delay extraction measured nothing:** all 1100 samples in `delay_paths.rpt` are NOPATH, so
+  the fold is refused (it used to relabel the old provisional numbers as measured - fixed,
+  `tests/test_timing.py::test_a_fold_that_measured_nothing_changes_nothing`). `delays.json`
+  stays provisional (2x guard band; silicon margin 4.25x). `extract_delays.tcl` now writes
+  NONET when a sampled net or cell is not in the netlist. To diagnose without a rebuild, in
+  Vivado on the routed M22 checkpoint:
+  `llength [get_nets -quiet u_core/u_fabric/r1563]` and
+  `report_timing -through [get_nets u_core/u_fabric/r1563] -max_paths 1`.
+
+### Then
+1. The interactive `live-fir16` rerun; then merge `m22` into `main` and tag `m22`.
+2. The delay-sampling diagnosis (above) before the next build.
+
+---
 
 ## 0b. The M21 session (2026-09-23), kept for reference
 

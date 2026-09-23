@@ -441,3 +441,56 @@ does not help (a tree was +310 LUTs in the whole design); M21 removes it.
   (CHAIN_OUT); mutants `shadow-no-rewrite` (a partial rewrite of a frame not mirrored),
   `shadow-wrong-frame`, `shadow-not-cleared`, `shadow-frames-only` (chain writes not
   mirrored) in `sim/mutate_frames.sh`.
+
+## 15. LUT contents and the crossbar in CFGLUT5 (M22)
+
+From M22 the bits that describe a CLB's logic - each element's truth table (`e<e>.init`)
+and each crossbar select (`e<e>.x<j>`) - are not held in configuration flip-flops. They
+live in AMD CFGLUT5 primitives (UG953: a LUT5 whose 32-bit table is shifted in on CLK
+while CE, first bit ending at bit 31), the way ZUMA keeps an overlay's LUTs in host LUTRAM
+(Brant & Lemieux, FCCM 2012). Nothing on the wire changes: the same fields, the same
+frames, the same CRC, the same FASM.
+
+- **Layout.** A CLB tile starts on a frame boundary. Frame 0 holds the first 16 crossbar
+  selects (5 bits each, slot t at bit 5t) and then the 48 element-flag bits; the next two
+  frames hold the truth tables (2^K bits each, 128 / 2^K per frame); the last frame holds
+  the remaining 8 selects (again slot t at bit 5t), after which the tile's routing muxes
+  follow as before. At K = 6, N = 4: 4 frames per CLB carry CFGLUT5 bits (2 of them mixed
+  with flip-flop bits), 30,456 of the 56,448 bits; `BOB_LBIT_MASK` names them bit by bit.
+- **Why this order.** Frames are written in ascending order, and a frame's flip-flop bits
+  load at the write, before its CFGLUT5s start shifting - so a load sets the flags, then
+  the truth tables, then the crossbar. A first layout wrote the crossbar before the flags:
+  for 128 TCK cycles a new crossbar could feed an element's output back through its own
+  LUT with its flip-flop still off (a counter's `q -> +1 -> q` became a ring oscillator).
+  Harmless on silicon (GWE low, pads held), but it hung `tb_synth`. A second layout gave
+  the flags a frame of their own and pushed the chain past 65,536 bits, iverilog's widest
+  constant. `tests/test_device.py` now requires every flag frame to come no later than
+  every select frame. `device.json` lists them (`lframes`),
+  `bob_params.vh` carries `BOB_LFRAME_MASK`.
+- **The element's LUT** is two CFGLUT5: lo = INIT[2^(K-1)-1:0], hi = the upper half, both
+  over i[K-2:0]; O6 = (i[K-1] | frac) ? hi : lo (a MUXF7), O5 = lo - UG474's LUT6_2 fracture.
+- **A crossbar mux** is a CFGLUT5 tree (`lxmux.v`): ceil(S/5) leaves over the sources and a
+  root over the leaves. Select 2+i puts "address bit i%5" in leaf i/5 and "address bit i/5"
+  in the root; select 1 (const1) is an all-ones root; 0 (and values past the sources) all
+  zeros.
+- **Loading.** Every write - chain or FDRI, full or partial - reaches memory from
+  `cfg_store.v`'s frame buffer on a falling TCK edge. On that edge `lut_loader.v` copies the
+  buffer and the frame index and shifts for 32 TCK cycles; each CLB compares the index with
+  its own L-frames (CE), and one shared expander (`lut_expand.v`) turns the buffer into
+  every slot's shift data: truth-table bits as they are, selects into the tree contents
+  above. A frame takes at least 128 TCK cycles to arrive, so a load always finishes before
+  the next; JSTART ticks are held while the loader is busy.
+- **JPROGRAM** starts a 32-cycle sweep of zeros into every CFGLUT5: every select const0,
+  every table 0 - the dark, loop-free fabric the cleared flip-flops give.
+- **No flip-flops.** `cfg_store.v` keeps none for L-frames. Readback is unchanged: the M21
+  shadow (section 14) holds what was written, L-frames included.
+- **Clocks.** CFGLUT5 CLK is TCK; the fabric reads the tables combinationally, as it read
+  the configuration flip-flops (TCK and sysclk are asynchronous groups; configuration only
+  changes with the fabric frozen).
+- **Verification:** `tb_clb` loads every configuration through `lut_expand.v` and 32 shift
+  clocks per L-frame (4032 checks against `model.py`); `tb_bob` checks CLB (1,1)'s tables
+  and one crossbar tree against contents `sim/gen_vectors.py` computes independently from
+  the word, and the JPROGRAM sweep; every chip-level bench loads over JTAG, through the
+  loader. Mutants `expand-bit-order`, `lxmux-root-no-ce`, `lut-halves-swapped`,
+  `loader-31-shifts`, `loader-no-sweep` (`sim/mutate_fabric.sh`). On the board,
+  `lutram-snake` chains all 324 elements (docs/hwtest/M22.md).

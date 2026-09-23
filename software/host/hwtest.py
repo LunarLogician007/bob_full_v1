@@ -2113,6 +2113,49 @@ MILESTONE["M21"] = (
      ("fmax-cluster", check_fmax_cluster)] +
     [MILESTONE["M20"][-1]])
 
+# --- M22: LUT contents and crossbar in CFGLUT5, 9 x 9 CLBs ----------------------------------
+
+SNAKE_SEED = 22
+
+
+def check_lutram_snake(p, ctx):
+    """M22: every logic element in one combinational chain, SW0 -> 324 LUTs -> LD0
+    (designs.d_snake): each a buffer or an inverter, from a random mask, then from its
+    complement, so every CFGLUT5 table is loaded both ways, over frames and then over the
+    chain. LD0 must be SW0 xor the mask's parity for both switch positions each time:
+    one truth table or crossbar tree the loader missed breaks it."""
+    import random
+    import cfgplane
+    import fpga
+    from bitstream import CHAIN_W
+    from designs import d_snake, snake_order
+    n = len(snake_order())
+    mask = random.Random(SNAKE_SEED).getrandbits(n)
+    runs = []
+    for m, how in ((mask, "frames"), (mask ^ ((1 << n) - 1), "chain")):
+        word = d_snake(m).build().to_int()
+        if how == "frames":
+            ok, msg = cfgplane.load_frames(p, word)
+        else:
+            cfgplane.jprogram(p)
+            ok, msg = cfgplane.load(p, word, CHAIN_W)
+        if not ok:
+            fpga.go_live(p)
+            return False, f"{how} load: {msg}"
+        got = [v & 1 for v in fpga.intest_sweep(p, [0, 1])]
+        par = bin(m).count("1") & 1
+        runs.append((how, got, [par, 1 ^ par]))
+    fpga.go_live(p)
+    bad = [r for r in runs if r[1] != r[2]]
+    txt = "; ".join(f"{how}: LD0 for SW0 = 0/1 {got} (want {want})" for how, got, want in runs)
+    return not bad, f"{n} elements in one chain; {txt}"
+
+
+MILESTONE["M22"] = (
+    MILESTONE["M21"][:-1] +
+    [("lutram-snake", check_lutram_snake)] +
+    [MILESTONE["M21"][-1]])
+
 # --- runner ------------------------------------------------------------------
 
 def manual_steps(milestone):
