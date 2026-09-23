@@ -5,23 +5,17 @@ This file is the live state: what is finished, what is in flight, and exactly wh
 
 ---
 
-## 0. Next agent: start here (2026-09-24, M22 code done; Vivado build pending)
+## 0. Next agent: start here (2026-09-24, after the M22 merge)
 
 ### Where things are
-- **Three checkouts.**
-  - `/Users/sk/work/bob/bob_full_v1` - the user's folder, `main`, which now has **M21**
-    (merged 2026-09-23; the board runs M21). Uncommitted and the user's: `docs/bob_full_v1_report.tex`
-    (never commit it), `docs/hwtest/results.log`, `docs/reports/M20/`, and `docs/reports/M21/`
-    (`timing.rpt`, `util.rpt`, `bob_top.bit` of the final M21 build).
-  - `/Users/sk/work/bob/bob_full_v1_m21` - branch `m21`, merged; keep for reference. Its
-    `docs/hwtest/results.log` holds the M21 board run (66/66).
-  - `/Users/sk/work/bob/bob_full_v1_m22` - branch `m22`: **all M22 work.**
-- **M21 is done** except the tag: timing closed (sysclk +0.570 ns, tck +4990 ns), hwtest 66/66
-  on the second build (same RTL; the third build only changed the XDC), every mutant killed.
-  Still wanted from the user: the rest of `bob_vivado\out\M21\` (`sysclk_1cycle.txt` - which
-  `tests/test_reports.py` requires - `delay_paths.rpt`, DRC), then commit `docs/reports/M21/`,
-  fold the delays, and tag `m21` (after a hwtest rerun on the final bitstream, or on the
-  user's say-so that the second build's pass counts).
+- **One checkout again:** `/Users/sk/work/bob/bob_full_v1`, branch `main`, holds everything
+  through M22. The `m21` and `m22` worktrees were merged and removed (branches kept); tags
+  `m21` and `m22` are set. The board runs M22 (IDCODE `0x0B022093`).
+- Uncommitted and the user's: `docs/bob_full_v1_report.tex` (never commit it),
+  `docs/reports/M20/`, `docs/reports/M21/` (`timing.rpt`, `util.rpt`, `bob_top.bit`;
+  `tests/test_reports.py` fails on it until `sysclk_1cycle.txt` arrives from `out\M21\`).
+- For the next milestone, work in a new worktree again, so `main` keeps the tools that
+  match the bitstream on the board.
 
 ### M22 as built (branch `m22`, approved 2026-09-23: approach B, 9 x 9, measure first)
 - **What:** each element's truth table and each crossbar mux in AMD CFGLUT5 (ZUMA-style);
