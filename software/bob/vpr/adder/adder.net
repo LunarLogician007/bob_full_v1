@@ -5,25 +5,19 @@
 	<clocks></clocks>
 	<block name="bob_gen1" instance="clb[0]" mode="default">
 		<inputs>
-			<port name="I">open open btn[0] open open btn[1] sw[0] open open open open sw[1] open open open open open open open open open open open open open open open open open open open open open open open open open open open open</port>
+			<port name="I">open open btn[0] open open btn[1] sw[0] open open open open sw[1] open open open open</port>
 			<port name="ce">open</port>
 			<port name="sr">open</port>
 			<port name="cin">open</port>
 		</inputs>
 		<outputs>
-			<port name="O">open open open open open open open open open open open open open open fle[7].out[0]-&gt;outs open fle[8].out[0]-&gt;outs open fle[9].out[0]-&gt;outs open</port>
+			<port name="O">open open fle[1].out[0]-&gt;outs open fle[2].out[0]-&gt;outs open fle[3].out[0]-&gt;outs open</port>
 			<port name="cout">open</port>
 		</outputs>
 		<clocks>
 			<port name="clk">open</port>
 		</clocks>
-		<block name="open" instance="fle[0]" />
-		<block name="open" instance="fle[1]" />
-		<block name="open" instance="fle[2]" />
-		<block name="open" instance="fle[3]" />
-		<block name="open" instance="fle[4]" />
-		<block name="open" instance="fle[5]" />
-		<block name="bob_gen1" instance="fle[6]" mode="arithmetic">
+		<block name="bob_gen1" instance="fle[0]" mode="arithmetic">
 			<inputs>
 				<port name="in">open open open open open open</port>
 				<port name="cin">open</port>
@@ -53,10 +47,10 @@
 			</block>
 			<block name="open" instance="ff[0]" />
 		</block>
-		<block name="$auto$alumacc.cc:548:replace_alu$6.slice[0].add" instance="fle[7]" mode="arithmetic">
+		<block name="$auto$alumacc.cc:548:replace_alu$6.slice[0].add" instance="fle[1]" mode="arithmetic">
 			<inputs>
 				<port name="in">clb.I[6]-&gt;crossbar clb.I[2]-&gt;crossbar open open open open</port>
-				<port name="cin">fle[6].cout[0]-&gt;carry_link</port>
+				<port name="cin">fle[0].cout[0]-&gt;carry_link</port>
 				<port name="ce">open</port>
 				<port name="sr">open</port>
 			</inputs>
@@ -83,10 +77,10 @@
 			</block>
 			<block name="open" instance="ff[0]" />
 		</block>
-		<block name="$auto$alumacc.cc:548:replace_alu$6.slice[1].add" instance="fle[8]" mode="arithmetic">
+		<block name="$auto$alumacc.cc:548:replace_alu$6.slice[1].add" instance="fle[2]" mode="arithmetic">
 			<inputs>
 				<port name="in">clb.I[11]-&gt;crossbar clb.I[5]-&gt;crossbar open open open open</port>
-				<port name="cin">fle[7].cout[0]-&gt;carry_link</port>
+				<port name="cin">fle[1].cout[0]-&gt;carry_link</port>
 				<port name="ce">open</port>
 				<port name="sr">open</port>
 			</inputs>
@@ -113,10 +107,10 @@
 			</block>
 			<block name="open" instance="ff[0]" />
 		</block>
-		<block name="$auto$alumacc.cc:548:replace_alu$6.slice[2].add" instance="fle[9]" mode="arithmetic">
+		<block name="$auto$alumacc.cc:548:replace_alu$6.slice[2].add" instance="fle[3]" mode="arithmetic">
 			<inputs>
 				<port name="in">open open open open open open</port>
-				<port name="cin">fle[8].cout[0]-&gt;carry_link</port>
+				<port name="cin">fle[2].cout[0]-&gt;carry_link</port>
 				<port name="ce">open</port>
 				<port name="sr">open</port>
 			</inputs>

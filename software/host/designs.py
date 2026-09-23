@@ -220,22 +220,25 @@ def d_partial(gate="and", mode="jtag", div=0):
 
 
 PARTIAL_Q = [(1, 1, 0), (1, 1, 1), (1, 1, 2), (1, 1, 3)]          # counter bits 0..3
-PARTIAL_GATE_E = 5                                                 # M21: the gate's element in clb(1,1)
+# M21: partial reconfiguration inside ONE CLB - a counter in elements 0..N-2 and the gate
+# in the last element of clb(1,1)
+PARTIAL_GATE_E = CLB_N - 1
+PARTIAL_CLUSTER_Q = [(1, 1, e) for e in range(CLB_N - 1)]
 
 
 def d_partial_cluster(gate="and", mode="jtag", div=0):
-    """M21 partial reconfiguration INSIDE one CLB: the same 4-bit counter in elements 0..3 of
-    clb(1,1) and the gate in element 5 of that same CLB, its inputs through the CLB's
-    crossbar. AND -> OR rewrites the frame(s) holding element 5's INIT; the frozen counter
-    beside it in the same CLB must keep its state. LD0 = q3, LD1 = the gate, LD2 = q2."""
+    """M21 partial reconfiguration INSIDE one CLB: a counter in elements 0..N-2 of clb(1,1)
+    and the gate in its last element, the gate's inputs through the CLB's crossbar. AND ->
+    OR rewrites the frame(s) holding that element's INIT; the frozen counter beside it in
+    the same CLB must keep its state. LD0 = the counter's top bit, LD1 = the gate, LD2 = q0."""
     d = Design()
     d.set_clock(mode, div)
-    for x, y, e in PARTIAL_Q:
+    for x, y, e in PARTIAL_CLUSTER_Q:
         d.lut(x, y, LUT.buf(0), [Cell(x, y, "o", e)], ff_en=1, cy_en=1, e=e)
     a, b = d.input(0), d.input(1)
-    d.output(0, Cell(1, 1, "o", 3))
+    d.output(0, Cell(*PARTIAL_CLUSTER_Q[-1][:2], "o", PARTIAL_CLUSTER_Q[-1][2]))
     d.output(1, d.lut(1, 1, {"and": LUT.and2(), "or": LUT.or2()}[gate], [a, b], e=PARTIAL_GATE_E))
-    d.output(2, Cell(1, 1, "o", 2))
+    d.output(2, Cell(1, 1, "o", 0))
     return d
 
 

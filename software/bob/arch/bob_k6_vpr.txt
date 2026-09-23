@@ -1,20 +1,22 @@
 Warning 1: To use RLPlace for WLdriven placements, the reward function should be basic or nonPenalizing_basic.
-FPGA sized to 10 x 8: 80 grid tiles (bob8x6)
+FPGA sized to 11 x 9: 99 grid tiles (bob9x7)
 Warning 2: Treated 0 constant nets as global which will not be routed (to see net names increase packer verbosity).
-FPGA sized to 10 x 8: 80 grid tiles (bob8x6)
-Warning 3: Found no more sample locations for SOURCE in io
-Warning 4: Found no more sample locations for OPIN in io
-Warning 5: Found no more sample locations for SOURCE in clb
-Warning 6: Found no more sample locations for OPIN in clb
-Warning 7: Found no more sample locations for SOURCE in bram
-Warning 8: Found no more sample locations for OPIN in bram
-Warning 9: Found no more sample locations for SOURCE in dsp
-Warning 10: Found no more sample locations for OPIN in dsp
-Circuit successfully routed with a channel width factor of 56.
-	Total wirelength: 12, average net length: 4.00000
+Warning 3: Found 14 nodes with no out-going switches. Run VTR with route_verbosity > 1 to see details.
+Warning 4: in check_rr_graph: fringe node 3873 CHANX at (1,1) has no fanin.
+FPGA sized to 11 x 9: 99 grid tiles (bob9x7)
+Warning 5: Found no more sample locations for SOURCE in io
+Warning 6: Found no more sample locations for OPIN in io
+Warning 7: Found no more sample locations for SOURCE in clb
+Warning 8: Found no more sample locations for OPIN in clb
+Warning 9: Found no more sample locations for SOURCE in bram
+Warning 10: Found no more sample locations for OPIN in bram
+Warning 11: Found no more sample locations for SOURCE in dsp
+Warning 12: Found no more sample locations for OPIN in dsp
+Circuit successfully routed with a channel width factor of 40.
+	Total wirelength: 25, average net length: 8.33333
 	Total logic block area (Warning, need to add pitch of routing to blocks with height > 3): 0
                            ---- ---- -----------
-                             L4    0     0.00123
+                             L4    0      0.0033
 Flow timing analysis took 0 seconds (0 STA, 0 slack) (0 full updates: 0 setup, 0 hold, 0 combined).
 VPR succeeded
-The entire flow of VPR took 0.85 seconds (max_rss 81.7 MiB)
+The entire flow of VPR took 3.30 seconds (max_rss 79.4 MiB)

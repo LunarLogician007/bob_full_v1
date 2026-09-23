@@ -2031,11 +2031,20 @@ def check_shadow_readback(p, ctx):
                   f"CHAIN_OUT == FDRO == the counter ({packets.NFRAMES} frames)")
 
 
+def _cluster_q(p):
+    """the partial-cluster design's counter (elements 0..N-2 of clb(1,1)), from CAPTURE"""
+    import cfgplane
+    from bitstream import CAP_INDEX, NCAP
+    from designs import PARTIAL_CLUSTER_Q
+    cap = cfgplane.capture(p, NCAP)
+    return sum(((cap >> CAP_INDEX[c]) & 1) << k for k, c in enumerate(PARTIAL_CLUSTER_Q))
+
+
 def check_partial_cluster(p, ctx):
-    """M21: partial reconfiguration of ONE element of a CLB while the counter in four other
-    elements of the same CLB is stopped mid-count: the counter reads 5 before and after, LD1
-    goes from AND to OR, 3 more clocks give 8, and FDRO reads back design B (the BRAM shadow
-    mirrored the partial write)."""
+    """M21: partial reconfiguration of ONE element of a CLB while the counter in the CLB's
+    other elements is stopped mid-count: the counter reads 5 before and after, LD1 goes from
+    AND to OR, 2 more clocks give 7, and FDRO reads back design B (the BRAM shadow mirrored
+    the partial write)."""
     import cfgplane
     import fpga
     import packets
@@ -2045,22 +2054,22 @@ def check_partial_cluster(p, ctx):
     if not ok:
         return False, "load A: " + msg
     _autostep(p, 5)
-    q5 = _partial_q(p)
+    q5 = _cluster_q(p)
     ga, wa = _gate_sweep(p, "and")
     ok, msg, n = cfgplane.load_partial(p, b.to_int())
     if not ok:
         fpga.go_live(p)
         return False, "partial: " + msg
-    q_after = _partial_q(p)
+    q_after = _cluster_q(p)
     gb, wb = _gate_sweep(p, "or")
-    _autostep(p, 3)
-    q8 = _partial_q(p)
+    _autostep(p, 2)
+    q7 = _cluster_q(p)
     back = cfgplane.frames_readback(p)
     done = cfgplane.status(p)["done"]
     fpga.go_live(p)
-    good = (q5 == 5 and q_after == 5 and q8 == 8 and ga == wa and gb == wb and done and n >= 1
+    good = (q5 == 5 and q_after == 5 and q7 == 7 and ga == wa and gb == wb and done and n >= 1
             and back == b.to_int())
-    return good, (f"{n} of {packets.NFRAMES} frames rewritten inside clb(1,1); counter 5 -> {q_after} -> {q8}; "
+    return good, (f"{n} of {packets.NFRAMES} frames rewritten inside clb(1,1); counter 5 -> {q_after} -> {q7}; "
                   f"LD1 AND {ga} (model {wa}), OR {gb} (model {wb}); FDRO == B: {back == b.to_int()}; DONE={done}")
 
 

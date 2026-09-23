@@ -158,21 +158,24 @@ ARCH_12X10 = {
 # front of every element input: "full" = every CLB input and every element output, "half"
 # = every other one (a depopulated crossbar). Sized by software/bob/sweep.py
 # (docs/reports/M21/cluster_sweep.md).
-CLUSTER_N10 = {"n": 10, "i": 40, "xbar": "full", "frac": True}
+CLUSTER_N10 = {"n": 10, "i": 40, "xbar": "full", "frac": True}        # the plan's target (measured: too
+                                                                     # costly per LUT on this chip)
+CLUSTER_N4 = {"n": 4, "i": 16, "xbar": "full", "frac": True}          # M21 as built (user, 2026-09-23)
 
-# M21: 8x6 core = 6 CLB columns x 6 rows = 36 CLBs of 10 elements = 360 LUTs, BRAM x=3 and
-# DSP x=6 (height 3: two of each), 28 pads. W = 56: 1.3x the widest channel VPR needed on
-# any example (fir16, 42; sweep.py).
+# M21: 9x7 core = 7 CLB columns x 7 rows = 49 CLBs of 4 elements = 196 LUTs, BRAM x=3 and
+# DSP x=6 (height 3: two of each), 32 pads. W = 40: 1.3x the widest channel VPR needed on
+# any example (fir16, 30; software/bob/sweep.py r2_n4). Whole design in yosys 58.6k LUT /
+# 35.9k FF (about 36k LUT in Vivado, 68% of the XC7Z020); 8x8 CLBs would be ~88%.
 ARCH_M21 = {
-    "nx": 8, "ny": 6,
-    "chan_width": 56,
+    "nx": 9, "ny": 7,
+    "chan_width": 40,
     "segment_length": 4,
     "fs": 3,
     "fc_in": 0.15, "fc_out": 0.10,
     "io_capacity": 1,
     "columns": [{"type": "bram", "x": 3, "height": 3},
                 {"type": "dsp", "x": 6, "height": 3}],
-    "cluster": CLUSTER_N10,
+    "cluster": CLUSTER_N4,
 }
 
 ARCH = ARCH_M21

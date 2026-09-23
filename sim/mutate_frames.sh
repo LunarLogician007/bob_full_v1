@@ -81,7 +81,8 @@ run gce-pending-lost    src/core/clock_ctrl.v 's/if \(req\) pend <= 1.b1;/if (re
 # clk_div must prescale a set period, and the floor must hold whatever clk_gap says.
 run period-ignored      src/core/clock_ctrl.v 's/wire \[31:0\] last     = \(per_m1 != \{PERIOD_W\{1.b0\}\}\) \? per32 - 32.h1/wire [31:0] last     = (1'"'"'b0) ? per32 - 32'"'"'h1/' tb_clock_gap
 run gap-field-ignored   src/core/clock_ctrl.v 's/wire \[31:0\] want_gap = \(gp_m1 != \{PERIOD_W\{1.b0\}\}\) \? gp32/wire [31:0] want_gap = (1'"'"'b0) ? gp32/' tb_clock_gap
-run gap-floor-dropped   src/core/clock_ctrl.v 's/wire \[31:0\] min_gap  = \(\(want_gap < GAP_FLOOR\) \? GAP_FLOOR : want_gap\) - 32.h1;/wire [31:0] min_gap  = want_gap - 32'"'"'h1;/' tb_clock_gap
+run gap-floor-dropped   src/core/clock_ctrl.v 's/wire \[31:0\] min_gap_c = \(\(want_gap < GAP_FLOOR\) \? GAP_FLOOR : want_gap\) - 32.h1;/wire [31:0] min_gap_c = want_gap - 32'"'"'h1;/' tb_clock_gap
+run period-reg-stale    src/core/clock_ctrl.v 's/        last_q  <= last;/        last_q  <= last_q;/' tb_clock_gap
 run period-no-prescale  src/core/clock_ctrl.v 's/wire \[31:0\] per32    = \{\{\(32-PERIOD_W\)\{1.b0\}\}, per_m1\} << psh;/wire [31:0] per32    = {{(32-PERIOD_W){1'"'"'b0}}, per_m1};/' tb_clock_gap
 
 wait

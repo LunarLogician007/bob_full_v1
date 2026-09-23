@@ -125,7 +125,19 @@ module clock_ctrl #(
     // against, so an unconfigured fabric or an older bitstream runs exactly as before.
     wire [31:0] gp32     = {{(32-PERIOD_W){1'b0}}, gp_m1};
     wire [31:0] want_gap = (gp_m1 != {PERIOD_W{1'b0}}) ? gp32 : (32'h1 << GAP_SHIFT);
-    wire [31:0] min_gap  = ((want_gap < GAP_FLOOR) ? GAP_FLOOR : want_gap) - 32'h1;
+    wire [31:0] min_gap_c = ((want_gap < GAP_FLOOR) ? GAP_FLOOR : want_gap) - 32'h1;
+
+    // M21: both are registered. They depend only on configuration (static while the fabric
+    // runs), but combinational they put the shift, subtract and compare in one 8 ns cycle:
+    // M20's build missed timing by 0.919 ns on per_m1 -> cnt (98 endpoints, all here).
+    // A cycle of latency after a configuration change costs nothing; until the first
+    // update they hold the slowest values, so nothing fires early.
+    reg  [31:0] last_q   = 32'hFFFFFFFF;
+    reg  [31:0] min_gap  = 32'hFFFFFFFF;
+    always @(posedge sysclk) begin
+        last_q  <= last;
+        min_gap <= min_gap_c;
+    end
 
     initial begin
         gce    = 1'b0;
@@ -134,13 +146,13 @@ module clock_ctrl #(
 
     reg req;
     always @(*) begin
-        if (mode_m[1]) req = (cnt >= last);
+        if (mode_m[1]) req = (cnt >= last_q);
         else           req = (tck_rise & ce_m[1]) | step_rise;
     end
 
     always @(posedge sysclk) begin
         if (mode_m[1])
-            cnt <= (cnt >= last) ? 32'h0 : cnt + 32'h1;
+            cnt <= (cnt >= last_q) ? 32'h0 : cnt + 32'h1;
         else
             cnt <= 32'h0;
 

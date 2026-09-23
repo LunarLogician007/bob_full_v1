@@ -27,6 +27,15 @@ run_one() {
     while read -r l; do
         if [[ "$l" == */$file ]]; then SRC+=("$mut"); else SRC+=("$l"); fi
     done < <(sim/hwfiles.sh)
+    # M21: the element and the crossbar have the cluster unit bench (tb_clb, every mode,
+    # every crossbar select, both flip-flops): seconds, where tb_bob takes minutes, so first
+    if [[ "$file" == src/clb/ble.sv || "$file" == src/generated/bob_fabric.v ]]; then
+        if iverilog -g2012 -DSIMULATION -Ihw/src/generated -Ihw/tb -s tb_clb -o "$WORK/$name-clb.vvp" \
+                "${SRC[@]}" hw/tb/tb_clb.sv 2>/dev/null \
+           && ! (cd "$WORK" && vvp "$name-clb.vvp" 2>&1 | grep -q 'ALL TESTS PASSED'); then
+            echo "  killed  $name (tb_clb)"; return
+        fi
+    fi
     if ! iverilog -g2012 -DSIMULATION -Ihw/src/generated -Ihw/tb -s tb_bob -o "$WORK/$name.vvp" \
             "${SRC[@]}" hw/tb/tb_bob.v 2>"$WORK/$name.err"; then
         echo "  ERROR   $name: does not compile"; sed 's/^/          /' "$WORK/$name.err" | head -5
@@ -44,15 +53,6 @@ run_one() {
                 "$mut" "hw/tb/$unit.v" 2>/dev/null \
            && ! (cd "$WORK" && vvp "$name-unit.vvp" 2>&1 | grep -q 'ALL TESTS PASSED'); then
             echo "  killed  $name ($unit)"; return
-        fi
-    fi
-    # M21: the element and the crossbar have the cluster unit bench (tb_clb, every mode,
-    # every crossbar select, both flip-flops), which reaches what tb_bob's designs do not
-    if [[ "$file" == src/clb/ble.sv || "$file" == src/generated/bob_fabric.v ]]; then
-        if iverilog -g2012 -DSIMULATION -Ihw/src/generated -Ihw/tb -s tb_clb -o "$WORK/$name-clb.vvp" \
-                "${SRC[@]}" hw/tb/tb_clb.sv 2>/dev/null \
-           && ! (cd "$WORK" && vvp "$name-clb.vvp" 2>&1 | grep -q 'ALL TESTS PASSED'); then
-            echo "  killed  $name (tb_clb)"; return
         fi
     fi
     echo "  SURVIVED $name"; survivors=$((survivors+1))
@@ -74,6 +74,8 @@ run done-is-commit  src/fabric/bob_fpga.v 's/assign configured = done;/assign co
 # M4 user clock and routed CE
 run no-gce          src/clb/ble.sv        's/else if \(gwe && gce\) begin/else if (gwe) begin/'
 run ce-not-routed   src/clb/ble.sv        's/else if \(!ff_ce_en \|\| ce\)       q <= comb;/else if (1'"'"'b1)       q <= comb;/'
+# M21 the autostep clock a TCK after the new pad inputs (M20's bob-fir race)
+run autostep-same-edge  src/core/jtag_tap6.v 's/autostep_arm <= autostep_req;/autostep_arm <= (state == UPDATE_DR) \&\& (ir == IR_INTEST) \&\& bsr_on \&\& user_out[USER_AUTOSTEP];/'
 # M21 the cluster: crossbar, fracturable LUT, carry through the elements, second flip-flop
 run xbar-sel-off-by-one src/generated/bob_fabric.v 's/m0_0 \(\.sel\(cfg\[([0-9]+) \+: ([0-9]+)\]\)/m0_0 (.sel(cfg[\1 +: \2] + 1'"'"'b1)/'
 run lut5-halves-swapped src/clb/ble.sv    's/wire \[K-1:0\] li = \{i\[K-1\] \| frac, i\[K-2:0\]\};/wire [K-1:0] li = {i[K-1] \& ~frac, i[K-2:0]};/'

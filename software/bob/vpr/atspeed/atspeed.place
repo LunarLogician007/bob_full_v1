@@ -1,14 +1,20 @@
-Netlist_File: atspeed.net Netlist_ID: SHA256:4dd807c064c4fe3979c095809169df6bf766421c495bcd721eaa7414366ef35b
-Array size: 10 x 8 logic blocks
+Netlist_File: atspeed.net Netlist_ID: SHA256:01e178053fb2d8a681011cda8e21da0341062dd24463299cf77951af56fae33e
+Array size: 11 x 9 logic blocks
 
 #block name	x	y	subblk	layer	block number
 #----------	--	--	------	-----	------------
-bob_gen14	2	2	0	0	#0
-bob_gen1	2	4	0	0	#1
-$auto$alumacc.cc:548:replace_alu$31.slice[9].add	2	3	0	0	#2
-$auto$alumacc.cc:548:replace_alu$28.slice[9].add	2	5	0	0	#3
-out:led[0]	9	1	0	0	#4
-out:led[1]	9	2	0	0	#5
-out:led[2]	9	3	0	0	#6
-clk		1	0	0	0	#7
-btn[1]		0	4	0	0	#8
+$auto$alumacc.cc:548:replace_alu$31.slice[3].add	7	5	0	0	#0
+$auto$alumacc.cc:548:replace_alu$31.slice[7].add	7	6	0	0	#1
+bob_gen14	7	4	0	0	#2
+$auto$alumacc.cc:548:replace_alu$28.slice[3].add	5	5	0	0	#3
+$auto$alumacc.cc:548:replace_alu$28.slice[7].add	5	6	0	0	#4
+$auto$alumacc.cc:548:replace_alu$31.slice[11].add	7	7	0	0	#5
+bob_gen1	5	4	0	0	#6
+$auto$alumacc.cc:548:replace_alu$28.slice[11].add	5	7	0	0	#7
+n29		4	5	0	0	#8
+n36		4	6	0	0	#9
+out:led[0]	10	1	0	0	#10
+out:led[1]	10	2	0	0	#11
+out:led[2]	10	3	0	0	#12
+clk		1	0	0	0	#13
+btn[1]		0	4	0	0	#14

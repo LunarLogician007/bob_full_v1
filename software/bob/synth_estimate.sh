@@ -19,6 +19,7 @@ open(p, "w").write(s)
 PY
 cd "$T/hw"
 FILES=$(grep -v '^\s*#' sources.f | grep -v '^\s*$' | grep -v clb_pkg.sv | tr '\n' ' ')
-( /usr/bin/time -l yosys -q -p "read_verilog -sv -D SYNTHESIS -I src/generated -I src/clb $FILES; hierarchy -top bob_top; synth_xilinx -flatten -top bob_top; tee -q -o $2.stat stat" \
-    > /dev/null 2> >(tail -c 100000 > "$2.err") ) 2> "$2.time" || echo "yosys failed" >> "$2.time"
+# time measures a bash that runs yosys, so only yosys' own stderr goes to the tail
+/usr/bin/time -l bash -c "yosys -q -p \"read_verilog -sv -D SYNTHESIS -I src/generated -I src/clb $FILES; hierarchy -top bob_top; synth_xilinx -flatten -top bob_top; tee -q -o $2.stat stat\" \
+    > /dev/null 2> >(tail -c 100000 > '$2.err')" 2> "$2.time" || echo "yosys failed" >> "$2.time"
 rm -rf "$T"

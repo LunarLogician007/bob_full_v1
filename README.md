@@ -47,15 +47,15 @@ Generated from `software/bob/device.json` by `software/bob/devtable.py`; `tests/
 
 | | |
 |---|---|
-| VPR grid | 14 × 12 (12 × 10 core inside an I/O ring, corners empty) |
-| CLBs | 100 (columns x = 1, 2, 4, 5, 6, 7, 9, 10, 11, 12; one BLE each: LUT6 O6/O5, MUXCY/XORCY carry, FDRE/FDSE) |
-| BRAM | 2 × 1024×18 true dual port (column x = 3, 5 rows tall); contents as frames (FAR type 001) or over USER4 |
-| DSP | 2 × DSP48E1-style slices (column x = 8, 5 rows tall), PCOUT→PCIN cascade |
-| I/O | 44 pads; board switches, buttons and LEDs on fixed pads, LD3 = DONE |
-| Routing | L4 unidirectional, W = 24, Wilton Fs = 3 (from OpenFPGA's k6_frac_N10 tileable arch); 3391 muxes |
-| Configuration | 18560 bits = 145 frames of 4 × 32; UG470-style packets on CFG_IN/CFG_OUT (CRC-32C, IDCODE, partial reconfiguration, BRAM content frames) or the streamed chain on CHAIN_IN/CHAIN_OUT; GSR → GTS → GWE → DONE startup |
+| VPR grid | 11 × 9 (9 × 7 core inside an I/O ring, corners empty) |
+| CLBs | 49 (columns x = 1, 2, 4, 5, 7, 8, 9; one BLE each: LUT6 O6/O5, MUXCY/XORCY carry, FDRE/FDSE) |
+| BRAM | 2 × 1024×18 true dual port (column x = 3, 3 rows tall); contents as frames (FAR type 001) or over USER4 |
+| DSP | 2 × DSP48E1-style slices (column x = 6, 3 rows tall), PCOUT→PCIN cascade |
+| I/O | 32 pads; board switches, buttons and LEDs on fixed pads, LD3 = DONE |
+| Routing | L4 unidirectional, W = 40, Wilton Fs = 3 (from OpenFPGA's k6_frac_N10 tileable arch); 4572 muxes |
+| Configuration | 32896 bits = 257 frames of 4 × 32; UG470-style packets on CFG_IN/CFG_OUT (CRC-32C, IDCODE, partial reconfiguration, BRAM content frames) or the streamed chain on CHAIN_IN/CHAIN_OUT; GSR → GTS → GWE → DONE startup |
 | User clock | one sysclk enable at a time, spaced by each design's own timing (clk_gap from software/bob/timing.py, never under 2 cycles = 62.5 MHz); unset, at least 2**9 = 512 cycles apart (the XDC's multicycle), at most 244 kHz |
-| JTAG | 6-bit AMD 7-series IR, IDCODE `0x0B020093` (M20) |
+| JTAG | 6-bit AMD 7-series IR, IDCODE `0x0B021093` (M21) |
 
 <!-- device:end -->
 

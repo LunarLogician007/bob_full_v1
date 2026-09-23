@@ -128,9 +128,9 @@
 },
 "pins": {
 "clk": 0,
-"out:led[0]": 9,
-"out:led[1]": 11,
-"out:led[2]": 13
+"out:led[0]": 10,
+"out:led[1]": 12,
+"out:led[2]": 14
 },
 "pcf": null
 }

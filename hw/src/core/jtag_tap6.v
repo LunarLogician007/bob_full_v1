@@ -290,10 +290,21 @@ module jtag_tap6 #(
     always @(posedge tck) step_d <= user_out[USER_STEP];
     wire manual_step = user_out[USER_STEP] & ~step_d;
 
+    // M21: the step fires one TCK AFTER the boundary takes the vector. Until M20 it was
+    // armed on the same falling edge as the update cells, so the user clock came about
+    // four sysclk cycles (~30 ns) after the new pad values: a pad -> logic -> flip-flop
+    // path slower than that captured the old value. The pads are asynchronous and
+    // false-pathed, so nothing timed it; fir's buttons -> DSP -> adder -> y path missed it
+    // on the M20 build (bob-fir, clock 16). A TCK later INTEST is still selected (the IR
+    // changes only at Update-IR), so the boundary still drives the vector, and the inputs
+    // have stood for a whole TCK (10 us at 100 kHz) when the clock comes.
+    reg autostep_req = 1'b0;
     reg autostep_arm = 1'b0;
-    always @(negedge tck)
-        autostep_arm <= (state == UPDATE_DR) && (ir == IR_INTEST) && bsr_on
+    always @(negedge tck) begin
+        autostep_req <= (state == UPDATE_DR) && (ir == IR_INTEST) && bsr_on
                         && user_out[USER_AUTOSTEP];
+        autostep_arm <= autostep_req;
+    end
 
     assign step_pulse = manual_step | autostep_arm;
 

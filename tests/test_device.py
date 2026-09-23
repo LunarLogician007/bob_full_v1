@@ -58,8 +58,8 @@ def test_chain_fields_chain_round_trip(k):
         assert dev.encode(dev.decode(w)) == w
 
 
-SIZES = {"grid": (10, 8, 56), "blocks": {"io": 28, "clb": 36, "bram": 2, "dsp": 2},
-         "cluster": (10, 40, "full"), "chain": {6: 55936, 4: 34304}}
+SIZES = {"grid": (11, 9, 40), "blocks": {"io": 32, "clb": 49, "bram": 2, "dsp": 2},
+         "cluster": (4, 16, "full"), "chain": {6: 32896, 4: 21632}}
 
 
 @pytest.mark.parametrize("k", [6, 4])
@@ -69,7 +69,8 @@ def test_sizes(k):
     out in 128-bit frames per column (4992 bits = 39 frames; K=4: 4096 = 32).
     M12b: 8x6 core, 36 CLBs, 28 pads: 8320 bits = 65 frames (K=4: 6016 = 47).
     M16: 12x10 core, 100 CLBs, 44 pads: 18560 bits = 145 frames (K=4: 12800 = 100).
-    M21: CLBs of 10 elements behind a full crossbar (software/bob/sweep.py).
+    M21: 9x7 core, 49 CLBs of 4 elements behind a full crossbar = 196 LUTs, 257 frames
+    (software/bob/sweep.py, docs/reports/M21/cluster_sweep.md).
     The 8x8 profile (48 CLBs, 9400 bits) is frozen in release/M7_8x8."""
     dev = DEVICES[k]
     assert (dev.width, dev.height, dev.arch["chan_width"]) == SIZES["grid"]

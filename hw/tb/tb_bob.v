@@ -375,6 +375,14 @@ module tb_bob;
         end
     endtask
 
+    // M21: an autostep clock must come a whole TCK after the boundary changes the fabric's
+    // pad inputs (M20's bob-fir failed on the board: ~30 ns was all a pad path got)
+    realtime t_pad = 0.0, pad_to_gce = 1.0e30;
+    reg      watch_pad = 1'b0;
+    always @(dut.fab_pad_in) t_pad = $realtime;
+    always @(posedge dut.gce)
+        if (watch_pad && $realtime - t_pad < pad_to_gce) pad_to_gce = $realtime - t_pad;
+
     // hwtest's ce-sr check: INTEST scan 1 applies the vector (autostep clock),
     // scan 2 captures the result (and clocks again). LD0 is output cell PAD_LD0.
     task intest_step(input [5:0] v, input exp_q);
@@ -703,7 +711,12 @@ module tb_bob;
         load_config;
         write_user1(32'h10);
         shift_ir(IR_INTEST, irc);
+        watch_pad = 1'b1;
         run_ce_sr_intest;
+        watch_pad = 1'b0;
+        check("autostep: the user clock comes a whole TCK after the new pad inputs",
+              {63'h0, pad_to_gce >= 2 * HALF}, 64'h1);
+        $display("        (pad inputs to the clock enable: %0t)", pad_to_gce);
         write_user1(32'h0);
         pad_i = 6'b000000;
 
