@@ -404,3 +404,11 @@ def _hand_designs():
 def test_every_hand_design_keeps_the_contract(name, fn):
     t = T.check_contract(fn().build().to_int())
     assert t["gap_cycles"] <= t["spacing"]
+
+
+def test_a_fold_that_measured_nothing_changes_nothing(tmp_path, monkeypatch):
+    """M22's first build returned every sample NOPATH; the fold then relabelled the old,
+    provisional delays as measured, which would have cut the guard band to 1.25x."""
+    import delays
+    with pytest.raises(ValueError, match="nothing measured"):
+        delays.fold(["### carry a b NOPATH\n### lut c d NOPATH\n"], False, "test")

@@ -1,0 +1,39 @@
+tag         M22
+top         bob_top
+idcode      0x0B022093
+usercode    0x00000016
+part        xc7z020clg400-1
+fingerprint cf53a715
+wns         0.171857 ns
+built       2026-09-24 03:38:47
+sources
+  src/clb/clb_pkg.sv
+  src/clb/lutk.sv
+  src/clb/clb.sv
+  src/clb/ble.sv
+  src/clb/lxmux.v
+  src/core/jtag_tap.v
+  src/core/bsc_cell.v
+  src/core/jtag_tap6.v
+  src/core/cfg_tile_sr.v
+  src/core/cfg_mem.v
+  src/core/cfg_ctrl.v
+  src/core/cfg_store.v
+  src/core/cfg_frames.v
+  src/core/capture_chain.v
+  src/core/lut_loader.v
+  src/core/lut_expand.v
+  src/core/clock_ctrl.v
+  src/tiles/bram_core.v
+  src/tiles/bram_jtag.v
+  src/tiles/bram_block.v
+  src/tiles/dsp_core.v
+  src/tiles/dsp_jtag.v
+  src/tiles/dsp_block.v
+  src/fabric/bob_mux.v
+  src/generated/bob_fabric.v
+  src/fabric/bob_fpga.v
+  src/fabric/mini_fpga.v
+  src/top/bob_top.v
+  src/top/mini_fpga_top.v
+  src/top/cfg_test_top.v

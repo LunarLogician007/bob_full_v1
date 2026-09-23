@@ -56,10 +56,32 @@ This file is the live state: what is finished, what is in flight, and exactly wh
   16 selects + flags; a frame's flip-flops load at the write, before its CFGLUT5s shift).
   `tests/test_device.py::test_a_load_sets_the_flags_before_any_crossbar_select` holds it.
 
+### M22 on the board (2026-09-24)
+- **Vivado:** timing closed, WNS +0.172 ns (WHS +0.029). 38,184 LUTs (71.8%, inside the
+  66-79% projection), 12,282 LUT as memory (70.6% of SLICEM), 25,599 FFs, slices 82.3%
+  (M21 90.9%). Reports in `docs/reports/M22/` (all of `out\M22\`).
+- **`make hwtest M=M22`: 65/67.** lutram-snake passed (all 324 CFGLUT5 elements, frames and
+  chain), partial-cluster, bob-/pnr-fir16, clock-margin 4.25x. Failed: `live-fir16` (one LED
+  sample at SW=11 BTN=1111 - all four buttons pressed, so button bounce during the JTAG
+  sample is the likely cause - then "CFG_OUT readback while running differs") and the next
+  check `fast-fir16` (frame load refused, PKT_ERROR). Readback and the load failing
+  together look like one corrupted JTAG transfer.
+- **Rerun non-interactively 2026-09-24 (no hands on the board): 12/12 PASS** (`live-fir16`
+  and `fast-fir16` six times each: load accepted, LEDs == model, readback == .bit). Not
+  reproduced. Still to do: one **interactive** `make hwtest M=M22 ONLY=live-fir16` (the goals
+  need a person; press the buttons one at a time, as `docs/hwtest/M22.md` says).
+- **Delay extraction measured nothing:** all 1100 samples in `delay_paths.rpt` are NOPATH, so
+  the fold is refused (it used to relabel the old provisional numbers as measured - fixed,
+  `tests/test_timing.py::test_a_fold_that_measured_nothing_changes_nothing`). `delays.json`
+  stays provisional (2x guard band; silicon margin 4.25x). `extract_delays.tcl` now writes
+  NONET when a sampled net or cell is not in the netlist. To diagnose without a rebuild, in
+  Vivado on the routed M22 checkpoint:
+  `llength [get_nets -quiet u_core/u_fabric/r1563]` and
+  `report_timing -through [get_nets u_core/u_fabric/r1563] -max_paths 1`.
+
 ### Then
-1. **The M22 Vivado build is running (started 2026-09-24).** Watch the two `place_report:` lines.
-2. Copy the whole `out\M22\` to `docs/reports/M22/`, `delays.py fold`, `make check`.
-3. `make hwtest M=M22` from the m22 worktree; merge `m22` into `main`, tag `m22`.
+1. The interactive `live-fir16` rerun; then merge `m22` into `main` and tag `m22`.
+2. The delay-sampling diagnosis (above) before the next build.
 
 ---
 

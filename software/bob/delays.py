@@ -156,9 +156,11 @@ def fold(texts, provisional, source):
     # classes a report cannot show (the flip-flop's own timing, BRAM, DSP) and classes
     # the sample happened to miss keep the previous file's values, and say so
     try:
-        old = json.load(open(OUT))["ns"]
+        prev = json.load(open(OUT))
+        old = prev["ns"]
+        old_prov = bool(prev.get("provisional"))
     except (OSError, ValueError, KeyError):
-        old = {}
+        old, old_prov = {}, False
     kept = {}
     for cls, v in old.items():
         if cls not in ns:
@@ -172,6 +174,14 @@ def fold(texts, provisional, source):
         kept.pop("ff_setup", None)
     ns.setdefault("wire", 0.0)
     ns["direct"] = 0.0                    # a direct is a wire inside the fabric; its delay
+    # M22: a fold that measured nothing (every sample NOPATH) must not relabel old numbers
+    # as measured - that would drop timing.py's guard band from 2x to 1.25x on estimates.
+    # And if any routing or LUT class still comes from a provisional file, stay provisional.
+    if not stats:
+        raise ValueError("no sample had a timing path (every one NOPATH): nothing measured, "
+                         "delays.json left as it was")
+    if old_prov and any(c in kept for c in ("mux_chan", "mux_ipin", "mux_xbar", "lut", "carry")):
+        provisional = True
     return {"provisional": provisional,   # is in the next element's hop
             "source": source, "device": B.DEVICE["name"],
             "ns": ns, "measured": stats, "kept_from_previous": kept}
@@ -248,7 +258,11 @@ def main():
         return 0
     texts = [open(r, errors="replace").read() for r in a.reports]
     src = ", ".join(os.path.relpath(os.path.abspath(r), ROOT) for r in a.reports)
-    d = fold(texts, a.provisional, ("provisional: hops on the paths of " if a.provisional else "measured: ") + src)
+    try:
+        d = fold(texts, a.provisional, ("provisional: hops on the paths of " if a.provisional else "measured: ") + src)
+    except ValueError as e:
+        print(f"delays.py fold: {e}")
+        return 1
     with open(a.out, "w") as fh:
         json.dump(d, fh, indent=1)
         fh.write("\n")
