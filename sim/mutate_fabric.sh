@@ -6,6 +6,7 @@
 #   sim/mutate_fabric.sh     exit 0 only if every mutant is killed
 set -uo pipefail
 cd "$(dirname "$0")/.."
+source sim/mutate_lib.sh          # vvp_verdict: every simulation under a watchdog (M21)
 
 WORK=$(mktemp -d)
 trap 'rm -rf "$WORK"' EXIT
@@ -29,11 +30,12 @@ run_one() {
     done < <(sim/hwfiles.sh)
     # M21: the element and the crossbar have the cluster unit bench (tb_clb, every mode,
     # every crossbar select, both flip-flops): seconds, where tb_bob takes minutes, so first
+    local v
     if [[ "$file" == src/clb/ble.sv || "$file" == src/generated/bob_fabric.v ]]; then
         if iverilog -g2012 -DSIMULATION -Ihw/src/generated -Ihw/tb -s tb_clb -o "$WORK/$name-clb.vvp" \
-                "${SRC[@]}" hw/tb/tb_clb.sv 2>/dev/null \
-           && ! (cd "$WORK" && vvp "$name-clb.vvp" 2>&1 | grep -q 'ALL TESTS PASSED'); then
-            echo "  killed  $name (tb_clb)"; return
+                "${SRC[@]}" hw/tb/tb_clb.sv 2>/dev/null; then
+            v=$(vvp_verdict "$WORK" "$name-clb.vvp")
+            if [[ $v != pass ]]; then echo "  killed  $name (tb_clb)$(killed_note "$v")"; return; fi
         fi
     fi
     if ! iverilog -g2012 -DSIMULATION -Ihw/src/generated -Ihw/tb -s tb_bob -o "$WORK/$name.vvp" \
@@ -41,8 +43,9 @@ run_one() {
         echo "  ERROR   $name: does not compile"; sed 's/^/          /' "$WORK/$name.err" | head -5
         survivors=$((survivors+1)); return
     fi
-    if ! (cd "$WORK" && vvp "$name.vvp" 2>&1 | grep -q 'ALL TESTS PASSED'); then
-        echo "  killed  $name"; return
+    v=$(vvp_verdict "$WORK" "$name.vvp")
+    if [[ $v != pass ]]; then
+        echo "  killed  $name$(killed_note "$v")"; return
     fi
     # bram_core.v / dsp_core.v also have exhaustive unit benches; a mutant must fail one
     local unit=""
@@ -50,9 +53,9 @@ run_one() {
     [[ "$file" == src/tiles/dsp_core.v  ]] && unit=tb_dsp
     if [[ -n "$unit" ]]; then
         if iverilog -g2012 -DSIMULATION -Ihw/tb -s "$unit" -o "$WORK/$name-unit.vvp" \
-                "$mut" "hw/tb/$unit.v" 2>/dev/null \
-           && ! (cd "$WORK" && vvp "$name-unit.vvp" 2>&1 | grep -q 'ALL TESTS PASSED'); then
-            echo "  killed  $name ($unit)"; return
+                "$mut" "hw/tb/$unit.v" 2>/dev/null; then
+            v=$(vvp_verdict "$WORK" "$name-unit.vvp")
+            if [[ $v != pass ]]; then echo "  killed  $name ($unit)$(killed_note "$v")"; return; fi
         fi
     fi
     echo "  SURVIVED $name"; survivors=$((survivors+1))

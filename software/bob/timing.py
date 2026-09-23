@@ -350,6 +350,53 @@ def clock_for(t, hz=None):
     return r["period"], gap, r["div"]
 
 
+# --- the contract with the XDC (M21) -----------------------------------------------
+#
+# Vivado cannot time the fabric: unconfigured, it is one mesh of combinational loops, and
+# how it cuts them decides its "critical path" (M21: 4.2 us against a 512-cycle budget,
+# 8.5 us against 1024, and phys_opt ground on it for hours). So the XDC gives sysclk ->
+# sysclk a multicycle far beyond any path (clock.xdc_multicycle), and the promise that made
+# the old number true moves here: no word reaches the fabric unless its own critical path,
+# with the guard band, fits the gce spacing clock_ctrl.v guarantees for it - clk_gap, or
+# 2**GCE_MIN_GAP_SHIFT when clk_gap is 0 - in both clock modes. The flow checks every build
+# and cli.load every .bit it loads; tests/test_timing.py checks the hand-written designs.
+
+GAP_DEFAULT = 1 << B.DEVICE["clock"]["gce_min_gap_shift"]
+
+
+def spacing(word):
+    """The gce spacing (sysclk cycles) clock_ctrl.v guarantees for this word: its clk_gap,
+    never under the floor, or the default when clk_gap is 0. A free-running period can only
+    space the pulses further apart, so this holds in both clock modes."""
+    gap = B.Bitstream(int(word)).get_ctrl("clk_gap")
+    return max(GAP_FLOOR, gap) if gap else GAP_DEFAULT
+
+
+def contract(t, word):
+    """Hold an analyse() result of this word to its gce spacing: -> the spacing, or
+    TimingViolation when the critical path x guard band does not fit in it."""
+    have = spacing(word)
+    if t["gap_cycles"] > have:
+        need = t["cpd_ns"] * t["margin"]
+        default = not B.Bitstream(int(word)).get_ctrl("clk_gap")
+        raise TimingViolation(
+            f"timing contract: critical path {t['cpd_ns']:.3f} ns x {t['margin']} guard band = "
+            f"{need:.3f} ns needs {t['gap_cycles']} sysclk cycles between user clocks, but this "
+            f"configuration spaces them {have} ({have * SYSCLK_NS:g} ns"
+            + (", the default for clk_gap 0" if default else "") + "). "
+            "Rebuild with timing (--hz auto or a .sdc) so clk_gap covers the path")
+    return have
+
+
+def check_contract(word, delays=None):
+    """-> the analyse() result plus "spacing". Raises TimingViolation when the design does not
+    fit its spacing, and TimingError on a combinational loop (a loop is exactly the path
+    nothing can time)."""
+    t = analyse(word, delays)
+    t["spacing"] = contract(t, word)
+    return t
+
+
 def main():
     import argparse
     import bitgen

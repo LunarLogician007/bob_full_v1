@@ -69,6 +69,7 @@ def facts():
         "dsp_col": ", ".join(str(x) for x in cols["dsp"]), "dsp_h": height.get("dsp"),
         "div_shift": d["clock"]["div_min_shift"], "gap_shift": d["clock"]["gce_min_gap_shift"],
         "gap_floor": d["clock"].get("gce_gap_floor"),
+        "xdc_mc": d["clock"].get("xdc_multicycle"),
         "n": d.get("cluster", {}).get("n", 1), "ci": d.get("cluster", {}).get("i"),
         "xbar": d.get("cluster", {}).get("xbar"),
     }
@@ -106,7 +107,9 @@ def table():
         ("User clock", (f"one sysclk enable at a time, spaced by each design's own timing "
                         f"(clk_gap from software/bob/timing.py, never under {f['gap_floor']} cycles = "
                         f"{125 / f['gap_floor']:.1f} MHz); unset, at least 2**{f['gap_shift']} = "
-                        f"{1 << f['gap_shift']} cycles apart (the XDC's multicycle), "
+                        f"{1 << f['gap_shift']} cycles apart"
+                        + (" (a word is loaded only if its critical path fits its spacing)"
+                           if f.get("xdc_mc") else " (the XDC's multicycle)") + ", "
                         f"at most {f['max_hz'] / 1000:.0f} kHz")
                        if f.get("gap_floor") else
                        (f"one sysclk enable at a time, at least 2**{f['gap_shift']} = "

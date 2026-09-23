@@ -51,6 +51,7 @@ def dump_data():
         # the page still said 256 until this was generated rather than typed.
         "clock": {"gap": 1 << device.GCE_MIN_GAP_SHIFT,
                   "gap_shift": device.GCE_MIN_GAP_SHIFT,
+                  "xdc_mc": device.XDC_SYSCLK_MULTICYCLE,        # M21: no longer the gap
                   "div_shift": device.DIV_MIN_SHIFT,
                   "max_hz": device.SYSCLK_HZ / 2 ** device.DIV_MIN_SHIFT,
                   "sysclk_ns": 1e9 / device.SYSCLK_HZ},

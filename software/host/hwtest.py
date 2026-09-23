@@ -1908,7 +1908,9 @@ def check_clock_margin(p, ctx):
     first_fail = None
     for period in range(gap, GAP_FLOOR - 1, -1):
         bit = _with_clock(path, word, contents, meta, period, period)
-        ok, msg = cli.load(p, bit, log=lambda *_: None)
+        # below the computed period on purpose: this sweep is what proves the guard band,
+        # so it alone may load past the timing contract (a loop is still refused)
+        ok, msg = cli.load(p, bit, log=lambda *_: None, over_clock=period < gap)
         if not ok:
             return False, f"period {period}: {msg}"
         import time

@@ -77,25 +77,32 @@ JSON_PATH = os.path.join(HERE, JSON_NAME)
 GEN_DIR = os.path.join(ROOT, "hw", "src", "generated")
 
 SYSCLK_HZ = 125_000_000              # PYNQ-Z2 PL clock on H16
-DIV_MIN_SHIFT = 10                   # free-running enable: every 2**(clk_div+10) sysclk cycles (M21: was 9)
-GCE_MIN_GAP_SHIFT = 10               # M13: user-clock enables >= 2**GCE_MIN_GAP_SHIFT sysclk cycles
-                                     # apart in both modes; the XDC multicycle must match it.
+DIV_MIN_SHIFT = 9                    # free-running enable: every 2**(clk_div+9) sysclk cycles
+GCE_MIN_GAP_SHIFT = 9                # M13: user-clock enables >= 2**GCE_MIN_GAP_SHIFT sysclk cycles
+                                     # apart in both modes.
                                      # M16: 8 (256 cycles, 2048 ns) no longer covers the 12x10
                                      # fabric - implementation reported WNS -465 ns on
                                      # fabric flop -> flop paths, so the static path through the
                                      # unconfigured routing muxes is ~2500 ns. 9 = 512 cycles
                                      # = 4096 ns. Raising it makes timing easier and the
                                      # free-running guest clock slower (488 -> 244 kHz max).
-                                     # M21: 10 (1024 cycles, 8192 ns). The first M21
-                                     # implementation placed at WNS -133 ns on fabric paths:
-                                     # the cluster fabric's empty-mesh path is ~4230 ns, past
-                                     # 4096. As at M16, the gap follows the grid. Since M20 it
-                                     # only costs untimed designs (122 kHz max, was 244): a
-                                     # design built with timing sets its own clk_gap.
                                      # M20: this is now the DEFAULT gap (clk_gap = 0): an
                                      # unconfigured fabric or a design without timing runs at it.
                                      # A design timed by the flow sets its own clk_gap from its
-                                     # critical path (per-design sign-off), never below:
+                                     # critical path (per-design sign-off), never below
+                                     # GCE_GAP_FLOOR.
+                                     # M21: no longer tied to the XDC. The cluster fabric's
+                                     # empty mesh placed at WNS -133 ns against 512 cycles and
+                                     # -290 ns against 1024: Vivado's loop cutting, not the
+                                     # fabric, sets that path. The XDC now relaxes sysclk by
+                                     # XDC_SYSCLK_MULTICYCLE, and timing.contract() refuses any
+                                     # word whose own critical path does not fit its spacing.
+XDC_SYSCLK_MULTICYCLE = 16384        # M21: the XDC's sysclk -> sysclk multicycle (131 us). Not a
+                                     # timing budget any more, only "Vivado, do not optimise the
+                                     # unconfigured fabric": it must exceed any path Vivado can
+                                     # build through it. A simple path visits each fabric mux at
+                                     # most once (~4800 in M21), a few LUT levels each, so tens
+                                     # of us at worst. tests/test_layout.py holds the XDC to it.
 GCE_GAP_FLOOR = 2                    # M20: hardware floor of the gce spacing (62.5 MHz)
 PERIOD_W = 16                        # M20: clk_period / clk_gap field width (up to 65535 cycles)
 
@@ -806,6 +813,7 @@ class Device:
                                  for c in a["columns"]]},
             "clock": {"sysclk_hz": SYSCLK_HZ, "div_min_shift": DIV_MIN_SHIFT,
                       "gce_min_gap_shift": GCE_MIN_GAP_SHIFT,
+                      "xdc_multicycle": XDC_SYSCLK_MULTICYCLE,
                       "gce_gap_floor": GCE_GAP_FLOOR, "period_w": PERIOD_W,
                       "modes": {"jtag": 0, "run": 1}},
             "tile_types": {name: {"width": tt.width,

@@ -247,7 +247,7 @@ Status: **same** = byte-identical to `bob/`, **moved** = same content at a new p
 | studio backend | `software/host/studio.py` | **new**; stdlib `http.server` + Server-Sent Events only, so the project gains no dependency (pyusb was already required). Every route drives `flow.py` or `software/host/cfgplane.py` |
 | studio page | `software/studio/`, `studio.html` | **new**, assembled by `software/studio/build.py` exactly as `docs/arch/build.py` assembles `arch.html`, reusing that page's tokens and SVG primitives. No external libraries |
 | device table | `software/bob/devtable.py` | **new**; the table was hand-copied into six documents and drifted (README described the 36-CLB M12b profile after M16 put 100 CLBs on the board). Generated from `device.json` between markers, checked by `tests/test_device_table.py` and `make check` |
-| timing-contract guards | `tests/test_layout.py` | **new** checks over existing files: the XDC's sysclk multicycle must equal `2**GCE_MIN_GAP_SHIFT`, hold must be setup − 1, and the RTL must take the gap from that macro. Each one was mutation-tested |
+| timing-contract guards | `tests/test_layout.py` | **new** checks over existing files: the XDC's sysclk multicycle must equal `2**GCE_MIN_GAP_SHIFT` (M21: `XDC_SYSCLK_MULTICYCLE`, ≥ the gap), hold must be setup − 1, and the RTL must take the gap from that macro. Each one was mutation-tested |
 | the gap in simulation | `hw/tb/tb_clock_gap.v`, `sim/run_frames_sim.sh` | the existing testbench, parameterised: it ran only at GAP = 4, and now also runs at the board's `BOB_GCE_MIN_GAP_SHIFT` |
 
 ## M18: projects and block designs (2026-09-22)
@@ -298,3 +298,6 @@ Status: **same** = byte-identical to `bob/`, **moved** = same content at a new p
 | autostep | `hw/src/core/jtag_tap6.v` | one register more: the step fires a TCK after the pad update (M20 `bob-fir`) |
 | clock controller | `hw/src/core/clock_ctrl.v` | `last` / `min_gap` registered (M20 WNS) |
 | example | `work/examples/fir16/fir16.v` | **new** |
+| timing contract | `software/bob/timing.py` `spacing` / `contract` / `check_contract`, called by `flow.py` (timing stage) and `cli.load` / `load_partial` | **new**, over the existing `analyse()`: the per-design sign-off of M20 becomes the guarantee the XDC's sysclk multicycle rests on (PLAN §8's case analysis, done in software rather than as 32 896 `set_case_analysis` pins) |
+| XDC sysclk multicycle | `hw/constr/pynq_z2.xdc`, `software/bob/device.py` `XDC_SYSCLK_MULTICYCLE` | modified: 16384/16383, decoupled from the gap (back to 512); `tests/test_layout.py` holds the XDC to device.py and to ≥ the gap, and requires the flow and `cli.load` to call the contract |
+| mutation watchdog | `sim/mutate_lib.sh` | **new**, sourced by the three `sim/mutate_*.sh`: each simulation under a background-kill timeout (`MUTATE_TIMEOUT`); a mutant that hangs in a zero-delay loop counts as killed and is reported as a hang |

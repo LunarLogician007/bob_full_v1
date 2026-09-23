@@ -131,13 +131,35 @@ def write_brams(p, brams):
     return msg
 
 
-def load(p, path, start=True, log=print, mode="frames"):
+def contract(word, spacing=True):
+    """M21: refuse a word whose critical path does not fit the gce spacing it would run at
+    (software/bob/timing.py). The XDC no longer times the fabric; this check is what does.
+    spacing=False keeps only the loop check: for the board's clock-margin sweep, which runs
+    a design faster than its computed clock on purpose to find where silicon fails.
+    -> None, or the reason."""
+    import timing as T
+    try:
+        if spacing:
+            T.check_contract(word)
+        else:
+            T.analyse(word)
+    except T.TimingError as e:
+        return str(e)
+    return None
+
+
+def load(p, path, start=True, log=print, mode="frames", over_clock=False):
     """.bit -> configuration memory + BRAM contents -> JSTART.
     mode "frames" (M13 default): UG470-style packets on CFG_IN, STAT, FDRO readback; since
     M15 the BRAM contents travel in the same stream as block-type-1 frames (under the CRC);
-    mode "chain": CHAIN_IN with CFG_CTRL CRC, CHAIN_OUT readback, BRAM contents over USER4."""
+    mode "chain": CHAIN_IN with CFG_CTRL CRC, CHAIN_OUT readback, BRAM contents over USER4.
+    M21: a word that breaks the timing contract is refused before anything is sent;
+    over_clock=True (hwtest's clock-margin sweep only) lets it run faster than its path."""
     import cfgplane
     c = bitgen.read_bit(path)
+    why = contract(c["word"], spacing=not over_clock)
+    if why:
+        return False, why
     if mode == "frames":
         ok, msg = cfgplane.load_frames(p, c["word"], start=False, brams=c["brams"])
     elif mode == "chain":
@@ -162,6 +184,9 @@ def load_partial(p, path, log=print):
     differ, with the user clock held (AGHIGH ... LFRM). BRAM contents are not touched."""
     import cfgplane
     c = bitgen.read_bit(path)
+    why = contract(c["word"])
+    if why:
+        return False, why
     ok, msg, _n = cfgplane.load_partial(p, c["word"])
     return ok, msg
 
@@ -261,7 +286,9 @@ def main():
         if args.cmd == "load":
             import fpga
             from fakeboard import probe as open_probe
-            bitgen.read_bit(args.bit)                                   # refuse before touching hardware
+            why = contract(bitgen.read_bit(args.bit)["word"])           # refuse before touching hardware
+            if why:
+                raise BuildError(why)
             p = open_probe(args.probe, freq_khz=args.freq)
             idcode = p.read_idcode()
             if idcode != fpga.IDCODE_FABRIC:

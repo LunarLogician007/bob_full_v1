@@ -274,3 +274,133 @@ def test_delay_samples_name_this_device():
             assert delays._node(a) is not None, (cls, a)
         else:
             assert delays._node(a) is not None and delays._node(b) is not None, (cls, a, b)
+
+
+# --- the contract with the XDC (M21) ---------------------------------------------------
+#
+# The XDC's sysclk multicycle no longer covers the fabric (hw/constr/pynq_z2.xdc): Vivado
+# cannot time an unconfigured mesh of loops. What makes a design safe is now that its own
+# critical path fits the gce spacing it runs at, and timing.contract() is that check. The
+# flow runs it on every build and cli.load on every .bit; these tests hold both to it.
+
+SLOW = {**UNIT, "ns": {k: v * 1000.0 for k, v in UNIT["ns"].items()}}   # microsecond hops
+
+
+def _with_gap(word, gap):
+    bs = B.Bitstream(word)
+    bs.set_ctrl(B.CLOCK_MODES["run"], 0, max(gap, 1), gap)
+    return bs.to_int()
+
+
+def test_the_spacing_is_clk_gap_or_the_default():
+    w = _chain(1)
+    assert T.spacing(w) == T.GAP_DEFAULT == 1 << B.DEVICE["clock"]["gce_min_gap_shift"]
+    assert T.spacing(_with_gap(w, 40)) == 40
+    assert T.spacing(_with_gap(w, 1)) == T.GAP_FLOOR               # the hardware floor wins
+
+
+def test_the_contract_holds_a_word_to_its_own_spacing():
+    w = _chain(3)
+    t = T.check_contract(w, UNIT)                                   # a few ns: fits 512 cycles
+    assert t["spacing"] == T.GAP_DEFAULT
+    slow = T.analyse(w, SLOW)
+    assert slow["gap_cycles"] > T.GAP_DEFAULT                       # longer than the default...
+    with pytest.raises(T.TimingViolation, match="default for clk_gap 0"):
+        T.check_contract(w, SLOW)
+    ok = _with_gap(w, slow["gap_cycles"])                           # ... unless clk_gap covers it
+    assert T.check_contract(ok, SLOW)["spacing"] == slow["gap_cycles"]
+    with pytest.raises(T.TimingViolation, match=f"spaces them {slow['gap_cycles'] - 1} "):
+        T.check_contract(_with_gap(w, slow["gap_cycles"] - 1), SLOW)
+
+
+def test_the_contract_refuses_a_combinational_loop():
+    d = B.Design()
+    (xa, ya), (xb, yb), pos = *_clbs(2), _clbs(3)[2]
+    a = d.lut(xa, ya, BUF, [B.Cell(xb, yb, "o")])
+    b = d.lut(xb, yb, BUF, [a])
+    d.output(0, d.lut(*pos, BUF, [b], ff_en=1))
+    with pytest.raises(T.TimingError, match="combinational loop"):
+        T.check_contract(d.build().to_int(), UNIT)
+
+
+def _slow_delays(tmp_path, monkeypatch):
+    import json
+    path = tmp_path / "delays.json"
+    path.write_text(json.dumps({**SLOW, "ns": {**SLOW["ns"], "mux_xbar": 1000.0}}))
+    monkeypatch.setattr(T, "DELAYS", str(path))
+
+
+def test_load_refuses_a_bit_that_breaks_the_contract(tmp_path, monkeypatch):
+    """cli.load (and so ./bob load, bob studio and the board checks that load a .bit) sends
+    nothing when the design's path is longer than its spacing."""
+    from fakeboard import FakeBob
+    import cli
+    bit = str(tmp_path / "c.bit")
+    bitgen.write_bit(bit, _chain(3), {}, {"design": "chain3"})
+    p = FakeBob()
+    ok, msg = cli.load(p, bit, log=lambda *_: None)
+    assert ok, msg
+    _slow_delays(tmp_path, monkeypatch)
+    for load in (lambda: cli.load(p, bit, log=lambda *_: None),
+                 lambda: cli.load(p, bit, mode="chain", log=lambda *_: None),
+                 lambda: cli.load_partial(p, bit)):
+        ok, msg = load()
+        assert not ok and "timing contract" in msg, msg
+    # the board's clock-margin sweep may run a design past its clock on purpose ...
+    ok, msg = cli.load(p, bit, log=lambda *_: None, over_clock=True)
+    assert ok, msg
+
+
+def test_over_clocking_still_refuses_a_loop(tmp_path):
+    """... but never a combinational loop"""
+    from fakeboard import FakeBob
+    import cli
+    d = B.Design()
+    (xa, ya), (xb, yb), pos = *_clbs(2), _clbs(3)[2]
+    a = d.lut(xa, ya, BUF, [B.Cell(xb, yb, "o")])
+    d.output(0, d.lut(*pos, BUF, [d.lut(xb, yb, BUF, [a])], ff_en=1))
+    bit = str(tmp_path / "loop.bit")
+    bitgen.write_bit(bit, d.build().to_int(), {}, {"design": "loop"})
+    ok, msg = cli.load(FakeBob(), bit, log=lambda *_: None, over_clock=True)
+    assert not ok and "combinational loop" in msg, msg
+
+
+@needs_tools
+def test_the_flow_refuses_a_design_that_breaks_the_contract(tmp_path, monkeypatch):
+    """A stepped build has no clock constraint, but it still runs at the default spacing:
+    the timing stage fails it and no .bit is written."""
+    src = [os.path.join(ROOT, "work", "examples", "counter", "counter.v")]
+    _slow_delays(tmp_path, monkeypatch)
+    out = tmp_path / "c.bit"
+    res = flow.Flow(src, out=str(out), clock="jtag").run()
+    assert not res.ok and "timing contract" in res.error, res.error
+    st = res.stages[-1]
+    assert st.name == "timing" and st.ok is False and st.stats["spacing"] == T.GAP_DEFAULT
+    assert not out.exists()
+    # --hz auto sets clk_gap from the same path, so the same design builds
+    res = flow.Flow(src, out=str(out), hz="auto").run()
+    assert res.ok, res.error
+
+
+def _hand_designs():
+    """Every hand-written design the board checks load straight through cfgplane,
+    bypassing cli.load: each d_* builder at its defaults, and the variant tables."""
+    import inspect
+    import designs as D
+    for name, fn in sorted(vars(D).items()):
+        if name.startswith("d_") and callable(fn) and all(
+                p.default is not p.empty for p in inspect.signature(fn).parameters.values()):
+            yield name, fn
+    for key, s0, s1 in D.DSP_JTAG_VARIANTS:
+        yield f"d_dsp_jtag[{key}]", lambda s0=s0, s1=s1: D.d_dsp_jtag(s0, s1)
+    for key, kw in D.BRAM_JTAG_VARIANTS:
+        yield f"d_bram_jtag[{key}]", lambda kw=kw: D.d_bram_jtag(**kw)
+    for gate in ("and", "or"):
+        yield f"d_partial[{gate}]", lambda g=gate: D.d_partial(g)
+        yield f"d_partial_cluster[{gate}]", lambda g=gate: D.d_partial_cluster(g)
+
+
+@pytest.mark.parametrize("name,fn", list(_hand_designs()), ids=lambda v: v if isinstance(v, str) else "fn")
+def test_every_hand_design_keeps_the_contract(name, fn):
+    t = T.check_contract(fn().build().to_int())
+    assert t["gap_cycles"] <= t["spacing"]
