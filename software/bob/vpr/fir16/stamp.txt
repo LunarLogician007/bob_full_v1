@@ -1,0 +1,11 @@
+top fir16
+pcf -
+arch_sha256 43df1ea8c555ba420b115024bc18b6b7ac0f36c382c2d1dd6d5cba16572d8b10
+eblif_sha256 358071870b301b867062966eda72455d100be7d834c9e2484bf54e69a3908a13
+seed 1
+image ghcr.io/lnis-uofu/openfpga-master@sha256:2467ffa99296516cc1bcbb07542633c90723ae17ca3f67a175f61cb9f131abbb
+command vpr arch.xml fir16.eblif --device bob8x6 --route_chan_width 56 --read_rr_graph rr.xml --fix_clusters fir16.pins --seed 1 --absorb_buffer_luts off --const_gen_inference none --sweep_dangling_primary_ios off --sweep_dangling_nets off --sweep_dangling_blocks off --sweep_constant_primary_outputs off --pack --place --route --analysis
+wirelength 2910
+cpd_ns 5.82882
+fmax_mhz 180.221
+result_sha b863f0b64768d8a6

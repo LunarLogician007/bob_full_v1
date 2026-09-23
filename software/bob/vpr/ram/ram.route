@@ -1,112 +1,109 @@
-Placement_File: ram.place Placement_ID: SHA256:f5dec4bb9c48d798ec6a3a9edc31ef4133fb6a98437b4e49120ac125e7cb802d
-Array size: 14 x 12 logic blocks.
+Placement_File: ram.place Placement_ID: SHA256:0010a095f9a18ed67442d2ebe737da3cd0f4582fd58d42a4ca87890334295f82
+Array size: 10 x 8 logic blocks.
 
 Routing:
 
 Net 0 (sw[0])
 
-Node:	48	SOURCE (0,1,0)  Pad: 1  Switch: 0
-Node:	50	  OPIN (0,1,0)  Pad: 1  Switch: 2
-Node:	5438	 CHANY (0,1,0) to (0,4,0)  Track: 0  Switch: 2
-Node:	4478	 CHANX (1,2,0) to (2,2,0)  Track: 18  Switch: 2
-Node:	5597	 CHANY (2,1,0) to (2,2,0)  Track: 3  Switch: 2
-Node:	5595	 CHANY (2,1,0)  Track: 1  Switch: 1
-Node:	252	  IPIN (3,1,0)  Pin: 0   bram.addr_a[0] Switch: 0
-Node:	140	  SINK (3,1,0)  Class: 0  Switch: -1 Net_pin_index: 1
+Node:	32	SOURCE (0,1,0)  Pad: 1  Switch: 0
+Node:	34	  OPIN (0,1,0)  Pad: 1  Switch: 2
+Node:	6206	 CHANY (0,1,0) to (0,2,0)  Track: 36  Switch: 2
+Node:	5046	 CHANX (1,1,0) to (2,1,0)  Track: 24  Switch: 2
+Node:	6463	 CHANY (2,1,0)  Track: 41  Switch: 1
+Node:	372	  IPIN (3,1,0)  Pin: 0   bram.addr_a[0] Switch: 0
+Node:	254	  SINK (3,1,0)  Class: 0  Switch: -1 Net_pin_index: 1
 
 
 Net 1 (sw[1])
 
-Node:	1056	SOURCE (0,2,0)  Pad: 1  Switch: 0
-Node:	1058	  OPIN (0,2,0)  Pad: 1  Switch: 2
-Node:	5441	 CHANY (0,1,0) to (0,2,0)  Track: 3  Switch: 2
-Node:	4260	 CHANX (1,0,0) to (2,0,0)  Track: 4  Switch: 2
-Node:	5594	 CHANY (2,1,0) to (2,4,0)  Track: 0  Switch: 2
-Node:	5618	 CHANY (2,2,0) to (2,5,0)  Track: 0  Switch: 1
-Node:	263	  IPIN (3,2,0)  Pin: 1   bram.addr_a[1] Switch: 0
-Node:	141	  SINK (3,2,0)  Class: 1  Switch: -1 Net_pin_index: 1
-Node:	4260	 CHANX (1,0,0) to (2,0,0)  Track: 4  Switch: 2
-Node:	4284	 CHANX (2,0,0) to (5,0,0)  Track: 16  Switch: 2
-Node:	4286	 CHANX (3,0,0) to (6,0,0)  Track: 0  Switch: 1
-Node:	246	  IPIN (3,1,0)  Pin: 10   bram.di_a[0] Switch: 0
-Node:	150	  SINK (3,1,0)  Class: 10  Switch: -1 Net_pin_index: 2
+Node:	1326	SOURCE (0,2,0)  Pad: 1  Switch: 0
+Node:	1328	  OPIN (0,2,0)  Pad: 1  Switch: 2
+Node:	6226	 CHANY (0,2,0) to (0,5,0)  Track: 0  Switch: 2
+Node:	5284	 CHANX (1,2,0) to (2,2,0)  Track: 52  Switch: 2
+Node:	6465	 CHANY (2,1,0) to (2,2,0)  Track: 43  Switch: 1
+Node:	388	  IPIN (3,2,0)  Pin: 1   bram.addr_a[1] Switch: 0
+Node:	255	  SINK (3,2,0)  Class: 1  Switch: -1 Net_pin_index: 1
+Node:	5284	 CHANX (1,2,0) to (2,2,0)  Track: 52  Switch: 2
+Node:	5300	 CHANX (2,2,0)  Track: 48  Switch: 2
+Node:	6500	 CHANY (2,3,0) to (2,6,0)  Track: 32  Switch: 1
+Node:	413	  IPIN (3,3,0)  Pin: 10   bram.di_a[0] Switch: 0
+Node:	264	  SINK (3,3,0)  Class: 10  Switch: -1 Net_pin_index: 2
 
 
 Net 2 (btn[2])
 
-Node:	1860	SOURCE (0,5,0)  Pad: 1  Switch: 0
-Node:	1862	  OPIN (0,5,0)  Pad: 1  Switch: 2
-Node:	5463	 CHANY (0,2,0) to (0,5,0)  Track: 7  Switch: 2
-Node:	4690	 CHANX (1,4,0) to (2,4,0)  Track: 2  Switch: 2
-Node:	5562	 CHANY (1,5,0) to (1,8,0)  Track: 16  Switch: 2
-Node:	4828	 CHANX (2,5,0) to (5,5,0)  Track: 8  Switch: 1
-Node:	291	  IPIN (3,5,0)  Pin: 11   bram.di_a[1] Switch: 0
-Node:	151	  SINK (3,5,0)  Class: 11  Switch: -1 Net_pin_index: 1
+Node:	3728	SOURCE (0,5,0)  Pad: 1  Switch: 0
+Node:	3730	  OPIN (0,5,0)  Pad: 1  Switch: 2
+Node:	6237	 CHANY (0,2,0) to (0,5,0)  Track: 47  Switch: 2
+Node:	5476	 CHANX (1,3,0) to (3,3,0)  Track: 34  Switch: 2
+Node:	6577	 CHANY (3,1,0) to (3,3,0)  Track: 29  Switch: 2
+Node:	6573	 CHANY (3,1,0)  Track: 25  Switch: 1
+Node:	356	  IPIN (3,1,0)  Pin: 11   bram.di_a[1] Switch: 0
+Node:	265	  SINK (3,1,0)  Class: 11  Switch: -1 Net_pin_index: 1
 
 
 Net 3 (btn[3])
 
-Node:	2128	SOURCE (0,6,0)  Pad: 1  Switch: 0
-Node:	2130	  OPIN (0,6,0)  Pad: 1  Switch: 2
-Node:	5469	 CHANY (0,3,0) to (0,6,0)  Track: 7  Switch: 2
-Node:	4692	 CHANX (1,4,0) to (2,4,0)  Track: 4  Switch: 2
-Node:	4716	 CHANX (2,4,0)  Track: 16  Switch: 2
-Node:	5609	 CHANY (2,1,0) to (2,4,0)  Track: 15  Switch: 1
-Node:	253	  IPIN (3,1,0)  Pin: 12   bram.di_a[2] Switch: 0
-Node:	152	  SINK (3,1,0)  Class: 12  Switch: -1 Net_pin_index: 1
+Node:	4282	SOURCE (0,6,0)  Pad: 1  Switch: 0
+Node:	4284	  OPIN (0,6,0)  Pad: 1  Switch: 2
+Node:	6257	 CHANY (0,4,0) to (0,6,0)  Track: 15  Switch: 2
+Node:	6217	 CHANY (0,1,0) to (0,4,0)  Track: 47  Switch: 2
+Node:	4916	 CHANX (1,0,0) to (4,0,0)  Track: 48  Switch: 2
+Node:	6564	 CHANY (3,1,0) to (3,4,0)  Track: 16  Switch: 1
+Node:	381	  IPIN (3,2,0)  Pin: 12   bram.di_a[2] Switch: 0
+Node:	266	  SINK (3,2,0)  Class: 12  Switch: -1 Net_pin_index: 1
 
 
 Net 4 (btn[0])
 
-Node:	1324	SOURCE (0,3,0)  Pad: 1  Switch: 0
-Node:	1326	  OPIN (0,3,0)  Pad: 1  Switch: 2
-Node:	5468	 CHANY (0,3,0) to (0,6,0)  Track: 0  Switch: 2
-Node:	4706	 CHANX (1,4,0) to (2,4,0)  Track: 18  Switch: 2
-Node:	5640	 CHANY (2,5,0) to (2,8,0)  Track: 16  Switch: 1
-Node:	303	  IPIN (3,5,0)  Pin: 28   bram.we_a[0] Switch: 0
-Node:	168	  SINK (3,5,0)  Class: 28  Switch: -1 Net_pin_index: 1
+Node:	1880	SOURCE (0,3,0)  Pad: 1  Switch: 0
+Node:	1882	  OPIN (0,3,0)  Pad: 1  Switch: 2
+Node:	6240	 CHANY (0,3,0) to (0,6,0)  Track: 0  Switch: 2
+Node:	6270	 CHANY (0,5,0) to (0,6,0)  Track: 8  Switch: 2
+Node:	6058	 CHANX (1,6,0) to (3,6,0)  Track: 42  Switch: 2
+Node:	6621	 CHANY (3,3,0) to (3,6,0)  Track: 15  Switch: 2
+Node:	6593	 CHANY (3,1,0) to (3,3,0)  Track: 45  Switch: 1
+Node:	383	  IPIN (3,2,0)  Pin: 28   bram.we_a[0] Switch: 0
+Node:	282	  SINK (3,2,0)  Class: 28  Switch: -1 Net_pin_index: 1
 
 
 Net 5 (led[0])
 
-Node:	104	SOURCE (3,1,0) to (3,5,0)  Class: 64  Switch: 0
-Node:	238	  OPIN (3,5,0)  Pin: 64   bram.do_a[0] Switch: 2
-Node:	5638	 CHANY (2,5,0) to (2,8,0)  Track: 8  Switch: 2
-Node:	4834	 CHANX (3,5,0) to (6,5,0)  Track: 8  Switch: 2
-Node:	4854	 CHANX (6,5,0) to (9,5,0)  Track: 16  Switch: 2
-Node:	6167	 CHANY (9,2,0) to (9,5,0)  Track: 15  Switch: 2
-Node:	4446	 CHANX (10,1,0) to (12,1,0)  Track: 16  Switch: 2
-Node:	6375	 CHANY (12,1,0)  Track: 1  Switch: 1
-Node:	1055	  IPIN (13,1,0)  Pad: 0  Switch: 0
-Node:	1053	  SINK (13,1,0)  Pad: 0  Switch: -1 Net_pin_index: 1
+Node:	218	SOURCE (3,1,0) to (3,3,0)  Class: 64  Switch: 0
+Node:	328	  OPIN (3,1,0)  Pin: 64   bram.do_a[0] Switch: 2
+Node:	6423	 CHANY (2,1,0)  Track: 1  Switch: 2
+Node:	4940	 CHANX (3,0,0) to (6,0,0)  Track: 8  Switch: 2
+Node:	4974	 CHANX (5,0,0) to (8,0,0)  Track: 32  Switch: 2
+Node:	5008	 CHANX (8,0,0)  Track: 0  Switch: 2
+Node:	7178	 CHANY (8,1,0) to (8,4,0)  Track: 0  Switch: 1
+Node:	1325	  IPIN (9,1,0)  Pad: 0  Switch: 0
+Node:	1323	  SINK (9,1,0)  Pad: 0  Switch: -1 Net_pin_index: 1
 
 
 Net 6 (led[1])
 
-Node:	105	SOURCE (3,1,0) to (3,5,0)  Class: 65  Switch: 0
-Node:	205	  OPIN (3,1,0)  Pin: 65   bram.do_a[1] Switch: 2
-Node:	5684	 CHANY (3,1,0) to (3,2,0)  Track: 12  Switch: 2
-Node:	4386	 CHANX (4,1,0) to (6,1,0)  Track: 10  Switch: 2
-Node:	5907	 CHANY (6,1,0)  Track: 1  Switch: 2
-Node:	4312	 CHANX (7,0,0) to (10,0,0)  Track: 8  Switch: 2
-Node:	4324	 CHANX (9,0,0) to (12,0,0)  Track: 8  Switch: 2
-Node:	6384	 CHANY (12,1,0) to (12,3,0)  Track: 10  Switch: 1
-Node:	1323	  IPIN (13,2,0)  Pad: 0  Switch: 0
-Node:	1321	  SINK (13,2,0)  Pad: 0  Switch: -1 Net_pin_index: 1
+Node:	219	SOURCE (3,1,0) to (3,3,0)  Class: 65  Switch: 0
+Node:	337	  OPIN (3,2,0)  Pin: 65   bram.do_a[1] Switch: 2
+Node:	6425	 CHANY (2,1,0) to (2,2,0)  Track: 3  Switch: 2
+Node:	4942	 CHANX (3,0,0) to (6,0,0)  Track: 16  Switch: 2
+Node:	6978	 CHANY (6,1,0) to (6,2,0)  Track: 52  Switch: 2
+Node:	5174	 CHANX (7,1,0) to (8,1,0)  Track: 12  Switch: 2
+Node:	7234	 CHANY (8,2,0) to (8,5,0)  Track: 0  Switch: 1
+Node:	1879	  IPIN (9,2,0)  Pad: 0  Switch: 0
+Node:	1877	  SINK (9,2,0)  Pad: 0  Switch: -1 Net_pin_index: 1
 
 
 Net 7 (led[2])
 
-Node:	106	SOURCE (3,1,0) to (3,5,0)  Class: 66  Switch: 0
-Node:	214	  OPIN (3,2,0)  Pin: 66   bram.do_a[2] Switch: 2
-Node:	5675	 CHANY (3,1,0) to (3,2,0)  Track: 3  Switch: 2
-Node:	4296	 CHANX (4,0,0) to (7,0,0)  Track: 16  Switch: 2
-Node:	4314	 CHANX (7,0,0) to (10,0,0)  Track: 16  Switch: 2
-Node:	6238	 CHANY (10,1,0) to (10,2,0)  Track: 20  Switch: 2
-Node:	4566	 CHANX (11,2,0) to (12,2,0)  Track: 16  Switch: 2
-Node:	6404	 CHANY (12,3,0) to (12,6,0)  Track: 0  Switch: 1
-Node:	1591	  IPIN (13,3,0)  Pad: 0  Switch: 0
-Node:	1589	  SINK (13,3,0)  Pad: 0  Switch: -1 Net_pin_index: 1
+Node:	220	SOURCE (3,1,0) to (3,3,0)  Class: 66  Switch: 0
+Node:	350	  OPIN (3,3,0)  Pin: 66   bram.do_a[2] Switch: 2
+Node:	6427	 CHANY (2,1,0) to (2,3,0)  Track: 5  Switch: 2
+Node:	4944	 CHANX (3,0,0) to (6,0,0)  Track: 24  Switch: 2
+Node:	4972	 CHANX (5,0,0) to (8,0,0)  Track: 24  Switch: 2
+Node:	5016	 CHANX (8,0,0)  Track: 32  Switch: 2
+Node:	7202	 CHANY (8,1,0) to (8,4,0)  Track: 24  Switch: 1
+Node:	2433	  IPIN (9,3,0)  Pad: 0  Switch: 0
+Node:	2431	  SINK (9,3,0)  Pad: 0  Switch: -1 Net_pin_index: 1
 
 
 Net 8 (clk): global net connecting:

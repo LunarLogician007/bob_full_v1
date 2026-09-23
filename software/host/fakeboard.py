@@ -248,7 +248,7 @@ class FakeBob:
                     | sum(((pins >> k) & 1) << (B.NPAD + pad) for k, pad in enumerate(B.BOARD_IN)))
         if ir == "CAPTURE":
             v = self.fab.clb_o(self._pins(), cin=(self.user1 >> 2) & 1)      # IR is not INTEST: the pads read the real switches
-            return v ^ ((1 << B.NCLB) - 1) if self.corrupt_capture else v
+            return v ^ ((1 << B.NCAP) - 1) if self.corrupt_capture else v
         return 0
 
     # --- the rest of the dirtyjtag.Probe surface ---------------------------

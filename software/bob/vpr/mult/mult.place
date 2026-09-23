@@ -1,23 +1,17 @@
-Netlist_File: mult.net Netlist_ID: SHA256:1c275a8b33b039b696a99a9de5eec54e215a1aa62f558db00be11420e8dfdf1e
-Array size: 14 x 12 logic blocks
+Netlist_File: mult.net Netlist_ID: SHA256:2961a2cc16f4e1c7ab9d066c2b7ae26b591d5d991869c269d603e2fb1c7b1921
+Array size: 10 x 8 logic blocks
 
 #block name	x	y	subblk	layer	block number
 #----------	--	--	------	-----	------------
-$mul$work/examples/mult/mult.v:12$3	8	1	0	0	#0
-ffd5		11	1	0	0	#1
-ffd6		10	1	0	0	#2
-ffd7		9	1	0	0	#3
-ffd1		7	1	0	0	#4
-ffd2		7	2	0	0	#5
-ffd3		7	3	0	0	#6
-ffd4		4	4	0	0	#7
-out:led[0]	13	1	0	0	#8
-out:led[1]	13	2	0	0	#9
-out:led[2]	13	3	0	0	#10
-clk		1	0	0	0	#11
-sw[0]		0	1	0	0	#12
-sw[1]		0	2	0	0	#13
-btn[0]		0	3	0	0	#14
-btn[1]		0	4	0	0	#15
-btn[2]		0	5	0	0	#16
-btn[3]		0	6	0	0	#17
+$mul$work/examples/mult/mult.v:12$3	6	1	0	0	#0
+ffd5		5	2	0	0	#1
+out:led[0]	9	1	0	0	#2
+out:led[1]	9	2	0	0	#3
+out:led[2]	9	3	0	0	#4
+clk		1	0	0	0	#5
+sw[0]		0	1	0	0	#6
+sw[1]		0	2	0	0	#7
+btn[0]		0	3	0	0	#8
+btn[1]		0	4	0	0	#9
+btn[2]		0	5	0	0	#10
+btn[3]		0	6	0	0	#11

@@ -1,6 +1,6 @@
 {
  "provisional": true,
- "source": "provisional: hops on the paths of docs/reports/M16/timing.rpt",
+ "source": "provisional: hops on the paths of docs/reports/M16/timing.rpt; M21 crossbar = the routing mux's delay until the M21 build measures it",
  "device": "bob12x10",
  "ns": {
   "mux_chan": 3.61,
@@ -15,7 +15,8 @@
   "bram_setup": 1.0,
   "dsp_clk_q": 1.0,
   "dsp_comb": 8.0,
-  "dsp_setup": 1.0
+  "dsp_setup": 1.0,
+  "mux_xbar": 3.61
  },
  "measured": {
   "mux_chan": {
@@ -42,6 +43,7 @@
   "bram_setup": 1.0,
   "dsp_clk_q": 1.0,
   "dsp_comb": 8.0,
-  "dsp_setup": 1.0
+  "dsp_setup": 1.0,
+  "mux_xbar": 3.61
  }
 }

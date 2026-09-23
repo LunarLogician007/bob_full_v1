@@ -350,16 +350,17 @@ def check_fabric_jprogram(p, ctx):
 # --- M4: user clock, routed CE/SR, carry-chain counter -----------------------------
 
 def _counter_value(capture_bits, x=None, bits=4):
-    """q0..q[bits-1] of a counter up column x: CLBs (x,1)..(x,bits), at their CAPTURE indices."""
+    """q0..q[bits-1] of a counter on column x's carry (designs.counter_cells: element r of
+    clb(x,1), on into the CLB above), at their CAPTURE indices."""
     import bitstream as B
-    from designs import COUNTER_X
+    from designs import COUNTER_X, counter_cells
     x = COUNTER_X if x is None else x
-    return sum(((capture_bits >> B.CLB_XY_INDEX[(x, 1 + r)]) & 1) << r for r in range(bits))
+    return sum(((capture_bits >> B.CAP_INDEX[c]) & 1) << r for r, c in enumerate(counter_cells(x, bits)))
 
 
 def _capture_w():
     import bitstream as B
-    return B.NCLB
+    return B.NCAP
 
 
 def _run_rate(div):
@@ -823,7 +824,7 @@ def _bob_check(name, pnr="vpr"):
         import cli
         import fasm_from_vpr
         import fpga
-        from bitstream import FABRIC_CFG_W, NCLB
+        from bitstream import FABRIC_CFG_W, NCAP
         path, word, contents, tr, work, result = _build(name, pnr)
         ok, msg = cli.load(p, path, start=False, log=lambda *_: None)
         if not ok:
@@ -841,7 +842,7 @@ def _bob_check(name, pnr="vpr"):
         p.shift_dr_fast(fpga.BSR_W, fpga.bsr_word(trace[0][0]))      # inputs 0, clock 0
         for k in range(len(trace)):
             if cmap:                                                 # registers after clock k
-                cap = cfgplane.capture(p, NCLB)
+                cap = cfgplane.capture(p, NCAP)
                 nets = int(tr["nets_after"][k], 16)
                 for idx, bit in cmap:
                     want = (nets >> pos[bit]) & 1
@@ -880,11 +881,11 @@ def _live_state(p, cmap_idx):
     between, else None"""
     import cfgplane
     import fpga
-    from bitstream import NCLB
-    c1 = cfgplane.capture(p, NCLB)
+    from bitstream import NCAP
+    c1 = cfgplane.capture(p, NCAP)
     cfgplane.ir(p, "SAMPLE")
     smp = fpga.sample(p)
-    c2 = cfgplane.capture(p, NCLB)
+    c2 = cfgplane.capture(p, NCAP)
     mask = sum(1 << i for i in cmap_idx)
     return (smp, c1) if (c1 & mask) == (c2 & mask) else None
 
@@ -1015,7 +1016,7 @@ def _live_check(name, pnr="vpr"):
         import fasm_from_vpr
         import fpga
         import model
-        from bitstream import BLOCKS, CLBS, FABRIC_CFG_W, Bitstream
+        from bitstream import CAP_STATE, FABRIC_CFG_W, Bitstream
         guide = LIVE_GUIDE[name]
         path, word, work, result = _live_build(name, pnr)
         ok, msg = cli.load(p, path, log=lambda *_: None)
@@ -1041,8 +1042,8 @@ def _live_check(name, pnr="vpr"):
             smp, cap = got
             m = model.Fabric(Bitstream(word))
             for i in idx:
-                b = BLOCKS[CLBS[i]]
-                m.q[(b["x"], b["y"])] = (cap >> i) & 1
+                key, reg = CAP_STATE[i]
+                getattr(m, reg)[key] = (cap >> i) & 1
             want = m.outputs(smp["i"])
             samples += 1
             seen_in.add(smp["i"])
@@ -1094,7 +1095,7 @@ def check_blinky_rate(p, ctx):
     import cli
     import fasm_from_vpr
     import fpga
-    from bitstream import DIV_MIN_SHIFT, NCLB
+    from bitstream import DIV_MIN_SHIFT, NCAP
     path, _word, _work, _result = _live_build("blinky")
     ok, msg = cli.load(p, path, log=lambda *_: None)
     if not ok:
@@ -1104,7 +1105,7 @@ def check_blinky_rate(p, ctx):
     where = {bit: i for i, bit in fasm_from_vpr.capture_map("blinky")}
 
     def count():
-        c = cfgplane.capture(p, NCLB)
+        c = cfgplane.capture(p, NCAP)
         return sum(((c >> where[b]) & 1) << k for k, b in enumerate(qbits))
 
     t0, last, total = time.time(), count(), 0
@@ -1457,10 +1458,10 @@ MILESTONE = {
 def _partial_q(p):
     """the M14 pair's 4-bit counter, from CAPTURE"""
     import cfgplane
-    from bitstream import CLB_XY_INDEX, NCLB
+    from bitstream import CAP_INDEX, NCAP
     from designs import PARTIAL_Q
-    cap = cfgplane.capture(p, NCLB)
-    return sum(((cap >> CLB_XY_INDEX[xy]) & 1) << k for k, xy in enumerate(PARTIAL_Q))
+    cap = cfgplane.capture(p, NCAP)
+    return sum(((cap >> CAP_INDEX[c]) & 1) << k for k, c in enumerate(PARTIAL_Q))
 
 
 def _autostep(p, n):
@@ -1865,15 +1866,15 @@ def _clock_fmax(pnr):
         import cfgplane
         import cli
         import fpga
-        from bitstream import NCLB, guest_hz
+        from bitstream import NCAP, guest_hz
         path, word, contents, meta = _atspeed(pnr, "_fmax")
         hz = guest_hz("run", meta.get("pdiv", 0), meta["period"], meta["gap"])
         ok, msg = cli.load(p, path, log=lambda *_: None)
         if not ok:
             return False, msg
-        c1 = cfgplane.capture(p, NCLB)
+        c1 = cfgplane.capture(p, NCAP)
         time.sleep(ATSPEED_S)
-        c2 = cfgplane.capture(p, NCLB)
+        c2 = cfgplane.capture(p, NCAP)
         err = _err(p)
         fpga.go_live(p)
         what = (f"critical path {meta['cpd_ns']} ns -> every {meta['period']} sysclk cycles = "
@@ -1935,7 +1936,7 @@ def check_clock_rate(p, ctx):
     import cli
     import fasm_from_vpr
     import fpga
-    from bitstream import NCLB, guest_hz
+    from bitstream import NCAP, guest_hz
     path, word, contents, _tr, _work, _res = _build("blinky", "vpr", "_rate", clock="run", div=LIVE_DIV)
     import bitgen
     meta = bitgen.read_bit(path)["meta"]
@@ -1948,7 +1949,7 @@ def check_clock_rate(p, ctx):
     where = {bit_: i for i, bit_ in fasm_from_vpr.capture_map("blinky")}
 
     def count():
-        c = cfgplane.capture(p, NCLB)
+        c = cfgplane.capture(p, NCAP)
         return sum(((c >> where[b]) & 1) << k for k, b in enumerate(qbits))
 
     t0, last, total = time.time(), count(), 0

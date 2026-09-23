@@ -3,8 +3,8 @@ btn[0]	0	3	0
 btn[1]	0	4	0
 btn[2]	0	5	0
 btn[3]	0	6	0
-out:led[0]	13	3	0
-out:led[1]	13	2	0
-out:led[2]	13	1	0
+out:led[0]	9	3	0
+out:led[1]	9	2	0
+out:led[2]	9	1	0
 sw[0]	0	2	0
 sw[1]	0	1	0

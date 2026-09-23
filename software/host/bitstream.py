@@ -93,6 +93,8 @@ NCLB = len(CLBS)
 # CAPTURE bit of an element's out[0] (M21: 2 bits per element, out[1] is the next one)
 CAP_INDEX = {(el["x"], el["y"], el["e"]): 2 * el["index"] for el in ELEMENTS}
 CLB_XY_INDEX = {(x, y): i for (x, y, e), i in CAP_INDEX.items() if e == 0}      # element 0
+# CAPTURE bit i -> (element key (x, y, e), the model register it reads: "q" or "q2")
+CAP_STATE = [((el["x"], el["y"], el["e"]), q) for el in ELEMENTS for q in ("q", "q2")]
 NBRAM = DEVICE["bram"]["count"]
 NDSP = DEVICE["dsp"]["count"]
 

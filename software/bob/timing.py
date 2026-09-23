@@ -17,10 +17,11 @@ measured on the host implementation, summed along the guest circuit's own paths.
 This module does that from the configuration word alone, so it serves VPR and bob's
 own PnR alike, and any .bit:
 
-  sources    CLB flip-flops (clk->Q), BRAM read data, DSP P (clk->Q)
-  endpoints  CLB flip-flop D, CE and SR (setup), BRAM and DSP inputs (setup)
-  through    selected mux inputs (one delay per mux by its class), directs (carry and
-             cascade wires, zero), LUTs (inputs the INIT depends on), carry cin->cout,
+  sources    element flip-flops, both of them (clk->Q), BRAM read data, DSP P (clk->Q)
+  endpoints  element flip-flop D, the CLB's CE and SR (setup), BRAM and DSP inputs (setup)
+  through    selected mux inputs (one delay per mux by its class: routing wire, connection
+             box, M21's crossbar), directs (carry and cascade wires, zero), LUTs (inputs
+             the INIT depends on; a fractured LUT's two halves separately), carry cin->cout,
              DSP inputs -> P when the slice is combinational (conservatively always)
   not timed  pads: the switches, buttons and LEDs are asynchronous to the fabric and
              false-pathed in the XDC, so pad paths set no clock
@@ -65,7 +66,7 @@ def load_delays(path=None):
         d = json.load(open(path))
     except (OSError, ValueError) as e:
         raise TimingError(f"{os.path.relpath(path, ROOT)}: {e}")
-    need = {"mux_chan", "mux_ipin", "lut", "carry", "ff_clk_q", "ff_setup",
+    need = {"mux_chan", "mux_ipin", "mux_xbar", "lut", "carry", "ff_clk_q", "ff_setup",
             "bram_clk_q", "bram_setup", "dsp_clk_q", "dsp_comb", "dsp_setup"}
     missing = need - set(d.get("ns", {}))
     if missing:
@@ -94,36 +95,45 @@ def graph(word):
     for node, (lo, w, base, ins) in B.MUX.items():
         sel = get(lo, w)
         if base <= sel < base + len(ins):
-            cls = "mux_ipin" if KIND.get(node) == "IPIN" else "mux_chan"
+            kind = KIND.get(node)
+            cls = {"IPIN": "mux_ipin", "EIN": "mux_xbar"}.get(kind, "mux_chan")
             fanin[node] = [(ins[sel - base], cls)]
     for ipin, opin in B.DIRECT.items():
         fanin[ipin] = [(opin, "direct")]
 
+    # M21: every logic element of every CLB; its inputs are the crossbar's outputs (EIN)
     k = B.LUT_K
-    for name in B.CLBS:
+    half = 1 << (k - 1)
+    for el in B.ELEMENTS:
+        name = el["name"]
         init = bs.get_block(name, "init")
         fl = {f: bs.get_block(name, f) for f in B.FLAG_NAMES}
-        pin = lambda p: B.PIN[f"{name}.{p}"]                    # noqa: E731
-        ins = [pin(f"I[{j}]") for j in range(k)]
-        used = [ins[j] for j in range(k) if _depends(init, j, k)]
+        p = el["pins"]
+        ins = [p[f"I[{j}]"] for j in range(k)]
+        lo_init, hi_init = init & ((1 << half) - 1), init >> half
+        if fl["frac"]:                      # input K-1 reads 1: O6 is the upper LUT(K-1)
+            used = [ins[j] for j in range(k - 1) if _depends(hi_init, j, k - 1)]
+        else:
+            used = [ins[j] for j in range(k) if _depends(init, j, k)]
         comb_in = [(n, "lut") for n in used]
         if fl["cy_en"]:
-            comb_in.append((pin("cin[0]"), "carry"))
-            fanin[pin("cout[0]")] = [(n, "lut") for n in used] + [(pin("cin[0]"), "carry")]
+            comb_in.append((p["cin"], "carry"))
+            fanin[p["cout"]] = [(n, "lut") for n in used] + [(p["cin"], "carry")]
         comb = f"{name}.comb"                                    # the LUT/carry output, internal
         fanin[comb] = comb_in
         # O5 depends on inputs 0..K-2 of the lower half of the INIT
-        lo_init = init & ((1 << (1 << (k - 1))) - 1)
-        fanin[pin("O5[0]")] = [(ins[j], "lut") for j in range(k - 1) if _depends(lo_init, j, k - 1)]
-        if fl["ff_en"]:
-            sources[pin("O[0]")] = "ff_clk_q"
-            endpoints[comb] = "ff_setup"
-            if fl["ff_ce_en"]:
-                endpoints[pin("ce[0]")] = "ff_setup"
-            if fl["ff_sr_en"]:
-                endpoints[pin("sr[0]")] = "ff_setup"
-        else:
-            fanin[pin("O[0]")] = [(comb, "wire")]
+        comb5 = f"{name}.comb5"
+        fanin[comb5] = [(ins[j], "lut") for j in range(k - 1) if _depends(lo_init, j, k - 1)]
+        for ff, out, c in (("ff", "out0", comb), ("ff2", "out1", comb5)):
+            if fl[f"{ff}_en"]:
+                sources[p[out]] = "ff_clk_q"
+                endpoints[c] = "ff_setup"
+                if fl[f"{ff}_ce_en"]:
+                    endpoints[p["ce"]] = "ff_setup"
+                if fl[f"{ff}_sr_en"]:
+                    endpoints[p["sr"]] = "ff_setup"
+            else:
+                fanin[p[out]] = [(c, "wire")]
 
     for b in range(B.NBRAM):
         for port in "ab":
@@ -207,7 +217,8 @@ def analyse(word, delays=None, margin=None):
     return {"cpd_ns": round(worst, 3), "margin": margin, "provisional": provisional,
             "delays": d.get("source", ""), "gap_cycles": gap,
             "fmax_hz": 1e9 / (gap * SYSCLK_NS), "endpoints": len(endpoints),
-            "path": path, "levels": sum(1 for p in path if p["kind"] in ("CHANX", "CHANY", "IPIN"))}
+            "path": path, "levels": sum(1 for p in path if p["kind"] in ("CHANX", "CHANY", "IPIN")),
+            "xbar_hops": sum(1 for p in path if p["kind"] == "EIN")}
 
 
 # --- the clock constraint (SDC) ---------------------------------------------------

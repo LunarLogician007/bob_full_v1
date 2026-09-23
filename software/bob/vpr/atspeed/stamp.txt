@@ -1,11 +1,11 @@
 top atspeed
 pcf -
-arch_sha256 6654df9882b17c7ca3e1a71fbae9be385c450ba0c84e8644626a03d6b635a3f6
-eblif_sha256 84516974ae2a2dd6c93b216b32592cf48e7a1dc7d1296151a305eb9a4cecc154
+arch_sha256 43df1ea8c555ba420b115024bc18b6b7ac0f36c382c2d1dd6d5cba16572d8b10
+eblif_sha256 9f5ab9bcbd1a497be46e60ceb7ef3cc1d3a7671f015e998b99c0d9363298b281
 seed 1
 image ghcr.io/lnis-uofu/openfpga-master@sha256:2467ffa99296516cc1bcbb07542633c90723ae17ca3f67a175f61cb9f131abbb
-command vpr arch.xml atspeed.eblif --device bob12x10 --route_chan_width 24 --read_rr_graph rr.xml --fix_clusters atspeed.pins --seed 1 --absorb_buffer_luts off --const_gen_inference none --sweep_dangling_primary_ios off --sweep_dangling_nets off --sweep_dangling_blocks off --sweep_constant_primary_outputs off --pack --place --route --analysis
-wirelength 900
-cpd_ns 5.41321
-fmax_mhz 155.154
-result_sha 12a96be69227b33d
+command vpr arch.xml atspeed.eblif --device bob8x6 --route_chan_width 56 --read_rr_graph rr.xml --fix_clusters atspeed.pins --seed 1 --absorb_buffer_luts off --const_gen_inference none --sweep_dangling_primary_ios off --sweep_dangling_nets off --sweep_dangling_blocks off --sweep_constant_primary_outputs off --pack --place --route --analysis
+wirelength 205
+cpd_ns 2.60466
+fmax_mhz 357.539
+result_sha fe1e9572ff70aad8

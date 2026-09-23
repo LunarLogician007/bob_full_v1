@@ -729,14 +729,15 @@ class Target:
             raise RuntimeError("no target open: POST /api/target first")
         with self.lock:
             try:
-                v = cfgplane.capture(self.probe, B.NCLB)
+                v = cfgplane.capture(self.probe, B.NCAP)
             except Exception as e:
-                return {"ok": False, "nclb": B.NCLB, "bits": [], "ones": 0,
+                return {"ok": False, "nclb": B.NCAP, "bits": [], "ones": 0,
                         "message": f"nothing to capture - is a design loaded? ({e})"}
-        return {"ok": True, "nclb": B.NCLB, "value": f"{v:0{(B.NCLB + 3) // 4}X}",
-                "bits": [(v >> i) & 1 for i in range(B.NCLB)],
+        # M21: two outputs per logic element (out[0], out[1]), CLB by CLB
+        return {"ok": True, "nclb": B.NCAP, "value": f"{v:0{(B.NCAP + 3) // 4}X}",
+                "bits": [(v >> i) & 1 for i in range(B.NCAP)],
                 "ones": bin(v).count("1"),
-                "message": f"{bin(v).count('1')} of {B.NCLB} CLB registers set"}
+                "message": f"{bin(v).count('1')} of {B.NCAP} element outputs set"}
 
     def partial(self, bit):
         """M14: rewrite only the frames that differ, with the user clock held."""
@@ -1061,7 +1062,7 @@ def serve(port=8765, probe=None, open_browser=True):
             print(f"  studio  find it with:  lsof -ti tcp:{port}")
         raise SystemExit(1)
     url = f"http://127.0.0.1:{port}/"
-    print(f"  device  {B.DEVICE['name']}: {B.NCLB} CLBs, {B.CHAIN_W}-bit chain, "
+    print(f"  device  {B.DEVICE['name']}: {B.NCLB} CLBs x {B.CLB_N} LUTs, {B.CHAIN_W}-bit chain, "
           f"{B.DEVICE['frames']['count']} frames")
     print(f"  studio  {url}", flush=True)
     if not os.path.exists(PAGE):
