@@ -117,7 +117,20 @@ TCK path, moving with placement.
   `impl_1/bob_top_timing_placed.rpt`. The next failure will name its clock after about
   15 min instead of hours.
 
-**What is still unproven:** only Vivado can show that implementation now closes. Expect
+**Third build (2026-09-23 21:31, with the TCK multicycle): timing CLOSED.**
+`bob_full_v1/docs/reports/M21/` (untracked, as the user copied it): `timing.rpt`, `util.rpt`,
+`bob_top.bit`. sysclk WNS **+0.570 ns**, WHS +0.064 ns; tck WNS +4990.6 ns; 0 failing
+endpoints. The board test (`make hwtest M=M21`) passed **66/66** on the second build's
+bitstream (same RTL, the one before the TCK multicycle; `docs/hwtest/results.log` in the m21
+worktree, 2026-09-23 20:22): bob-fir passes, clock-margin 4.50x on silicon.
+- **Still missing from the report folder:** `sysclk_1cycle.txt` (tests/test_reports.py
+  requires it for every M13+ build), `delay_paths.rpt` (for `delays.py fold`), and the DRC
+  report. Copy the **whole** `bob_vivado\out\M21\` folder, then commit it and fold the delays.
+- `m21` is merged into `main` (the board now runs M21). **Not tagged `m21` yet:** the final
+  bitstream (third build) has not run `make hwtest M=M21`; its RTL is the tested one, only
+  the XDC differs. Rerun it (or decide the second build's pass counts), then tag.
+
+**What was unproven before the third build:** only Vivado can show that implementation now closes. Expect
 sysclk WNS ≥ 0 with the fabric far inside 16384 cycles, and the one-cycle `u_clk` /
 `u_bram_jtag` paths as the tight ones. If phys_opt still logs WNS in the hundreds of ns after
 half an hour, stop the run. The fallback is (b): `set_case_analysis 0` on the configuration

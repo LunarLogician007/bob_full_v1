@@ -80,7 +80,7 @@ hw:
 	@echo "  4. make hwtest M=$(M)"
 
 hwtest:
-	cd host && ./hwtest.py --milestone $(M) $(if $(ONLY),--only $(ONLY))
+	cd software/host && ./hwtest.py --milestone $(M) $(if $(ONLY),--only $(ONLY))
 
 clean:
 	rm -f sim/*.vvp sim/*.vcd
