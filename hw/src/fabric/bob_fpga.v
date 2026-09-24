@@ -105,6 +105,7 @@ module bob_fpga #(
 
     // user clock
     wire                gce, gsr_s, gwe_s, cin_s;
+    wire                grestore;          // M25: UG470 GRESTORE from the frame parser
 
     // fabric
     wire [`BOB_NCAP-1:0]    clb_o;
@@ -213,6 +214,7 @@ module bob_fpga #(
         .done       (done),
         .frozen_ack (frozen),
         .freeze     (freeze),
+        .grestore   (grestore),
         .rd_frame   (rd_frame),
         .rd_idx     (fdro_idx),
         .bf_wr_t    (bf_wr_t),
@@ -299,7 +301,7 @@ module bob_fpga #(
         .ce       (ce),
         .step     (step_pulse),
         .cin      (cin),
-        .gsr      (gsr),
+        .gsr      (gsr | grestore),     // M25: GRESTORE pulses the fabric's GSR too
         .gwe      (gwe),
         .freeze   (freeze),
         .frozen   (frozen),

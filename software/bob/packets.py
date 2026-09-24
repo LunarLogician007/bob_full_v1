@@ -43,14 +43,15 @@ DUMMY = 0xFFFFFFFF
 NOP = 0x20000000
 REG = {"CRC": 0, "FAR": 1, "FDRI": 2, "FDRO": 3, "CMD": 4, "STAT": 7, "IDCODE": 12}
 REG_NAME = {v: k for k, v in REG.items()}
-CMD = {"NULL": 0, "WCFG": 1, "LFRM": 3, "RCFG": 4, "START": 5, "RCRC": 7, "AGHIGH": 8, "DESYNC": 13}
+CMD = {"NULL": 0, "WCFG": 1, "LFRM": 3, "RCFG": 4, "START": 5, "RCRC": 7, "AGHIGH": 8,
+       "GRESTORE": 10, "DESYNC": 13}
 CMD_NAME = {v: k for k, v in CMD.items()}
 OP_NOP, OP_READ, OP_WRITE = 0, 1, 2
 FRAMES = B.DEVICE["frames"]
 FW = FRAMES["words"]
 FB = FRAMES["bits"]
 NFRAMES = FRAMES["count"]
-VERSION = 0x15
+VERSION = 0x16                  # M25: GRESTORE
 NBRAM = B.NBRAM
 BRAM_WORDS = 1024
 BRAM_FRAMES = BRAM_WORDS // FW          # M15: FAR block type 1, frames per BRAM
@@ -198,6 +199,53 @@ def partial_streams(old, new, idcode=None, crc_override=None):
     return freeze, frames, len(todo)
 
 
+def _frame_runs(frames):
+    runs, k = [], 0
+    while k < len(frames):
+        j = k
+        while j + 1 < len(frames) and frames[j + 1] == frames[j] + 1:
+            j += 1
+        runs.append(frames[k:j + 1])
+        k = j + 1
+    return runs
+
+
+def restore_streams(mem, init_mem, idcode=None, crc_override=None):
+    """M25: restore a running design's flip-flops (UG470 GRESTORE, software/bob/snapshot.py).
+
+    `mem` is the design as loaded, `init_mem` the same with every flip-flop's INIT/reset bit
+    set to the state to restore. Returns (freeze, frames, nframes): after `freeze` (AGHIGH,
+    check GHIGH_B = 0), `frames` writes the frames that differ (mem -> init_mem), pulses
+    GRESTORE (every flip-flop takes its INIT value), writes them back (init_mem -> mem), and
+    ends with one CRC over all of it and LFRM, which releases the freeze only on a match."""
+    idcode = device_idcode() if idcode is None else idcode
+    freeze = [DUMMY, DUMMY, SYNC, NOP] + write("CMD", CMD["RCRC"]) + [NOP]
+    freeze += write("IDCODE", idcode) + write("CMD", CMD["AGHIGH"]) + [NOP]
+    crc = crc37(crc37(0, REG["IDCODE"], idcode), REG["CMD"], CMD["AGHIGH"])
+    frames = write("CMD", CMD["WCFG"]) + [NOP]
+    crc = crc37(crc, REG["CMD"], CMD["WCFG"])
+    todo = changed_frames(mem, init_mem)
+
+    def put(word):
+        nonlocal frames, crc
+        for r in _frame_runs(todo):
+            a = _far_of(r[0])
+            frames += write("FAR", a)
+            crc = crc37(crc, REG["FAR"], a)
+            data = [(word >> (FB * f + 32 * w)) & 0xFFFFFFFF for f in r for w in range(FW)]
+            frames += [type1(OP_WRITE, REG["FDRI"], len(data))] + data
+            for d in data:
+                crc = crc37(crc, REG["FDRI"], d)
+
+    put(init_mem)
+    frames += write("CMD", CMD["GRESTORE"]) + [NOP]
+    crc = crc37(crc, REG["CMD"], CMD["GRESTORE"])
+    put(mem)
+    frames += write("CRC", crc if crc_override is None else crc_override)
+    frames += write("CMD", CMD["LFRM"]) + write("CMD", CMD["DESYNC"]) + [NOP, NOP]
+    return freeze, frames, len(todo)
+
+
 def bram_readback_stream(b, first=0, n=BRAM_FRAMES):
     """M15: read n content frames of BRAM b from frame `first` (4n words on CFG_OUT); GWE = 0 only"""
     return ([DUMMY, SYNC, NOP] + write("CMD", CMD["RCFG"]) + write("FAR", bram_far(b, first)) +
@@ -272,6 +320,8 @@ class Controller:
         self.brams = [[0] * BRAM_WORDS for _ in range(NBRAM)]     # M15: survive JPROGRAM, as on the board
         self.gwe = 0
         self.ack = True          # clock_ctrl acknowledges a freeze (the board: within ns)
+        self.on_grestore = None  # M25: called with the memory at a GRESTORE (the GSR pulse)
+        self.grestores = 0
         self.reset()
 
     def reset(self):
@@ -420,6 +470,13 @@ class Controller:
             elif w == CMD["AGHIGH"]:
                 if f["id_ok"]:
                     f["freeze"] = 1
+                else:
+                    self._err("wr_err")
+            elif w == CMD["GRESTORE"]:
+                if f["id_ok"] and (self.frozen() or not self.gwe):
+                    self.grestores += 1
+                    if self.on_grestore:
+                        self.on_grestore(self.mem)
                 else:
                     self._err("wr_err")
             elif w == CMD["RCFG"]:

@@ -470,3 +470,19 @@ def test_m24_runs_the_full_m23_list_first():
     names = [n for n, _f in hwtest.MILESTONE["M24"]]
     assert names[:len(hwtest.MILESTONE["M23"]) - 1] == [n for n, _f in hwtest.MILESTONE["M23"]][:-1]
     assert "double-duty" in names
+
+
+def test_m25_time_travel_passes_on_a_healthy_board():
+    ok, msg = hwtest.check_time_travel(FakeBob(), {})
+    assert ok, msg
+
+
+def test_m25_time_travel_fails_when_grestore_does_nothing():
+    ok, msg = hwtest.check_time_travel(FakeBob(no_grestore=True), {})
+    assert not ok, msg
+
+
+def test_m25_runs_the_full_m24_list_first():
+    names = [n for n, _f in hwtest.MILESTONE["M25"]]
+    assert names[:len(hwtest.MILESTONE["M24"]) - 1] == [n for n, _f in hwtest.MILESTONE["M24"]][:-1]
+    assert "time-travel" in names
