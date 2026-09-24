@@ -1,4 +1,4 @@
-Netlist_File: gates_swapped.net Netlist_ID: SHA256:c727a38d6b4fc995c72878a00e7884351b7020dd967c9e9f0dabe20b05643979
+Netlist_File: gates_swapped.net Netlist_ID: SHA256:12a0b8ec3fe77089596640956a267c3f41c567150e67d0b422807cdd9dc6572e
 Array size: 14 x 12 logic blocks
 
 #block name	x	y	subblk	layer	block number

@@ -372,7 +372,7 @@ class Flow:
                              wirelength=stamp.get("wirelength"),
                              result_sha=stamp.get("result_sha"))
         try:
-            work = vpr_run.run(self.top, self.seed, pcf=self.pcf, name=self.name)
+            work, self.seed = vpr_run.run_retry(self.top, self.seed, pcf=self.pcf, name=self.name)
         except vpr_run.VprError as e:
             st.messages = _log_messages(os.path.join(ROOT, "build", "vpr", self.name, "vpr.log"), "vpr")
             st.finish(False, str(e))

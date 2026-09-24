@@ -1,4 +1,4 @@
-Netlist_File: counter.net Netlist_ID: SHA256:c2c6afe0f68ffc8829cdcdd78aca8596821dd88f492d29e24ead1d77804d70e9
+Netlist_File: counter.net Netlist_ID: SHA256:98d14f7fe12a8a0a5fdbf1870dcd8e17404399f5169c8e6d22971eb3f8473e1d
 Array size: 14 x 12 logic blocks
 
 #block name	x	y	subblk	layer	block number

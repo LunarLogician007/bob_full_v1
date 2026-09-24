@@ -341,7 +341,7 @@
             <direct name="out" input="blef[1:0].out" output="fle.out[1:0]"/>
           </interconnect>
         </mode>
-        <mode name="arithmetic">
+        <mode name="dd">
           <pb_type name="add" blif_model=".subckt bob_add" num_pb="1">
             <input name="a" num_pins="1"/>
             <input name="b" num_pins="1"/>
@@ -366,9 +366,45 @@
             <T_setup value="66e-12" port="ff.SR" clock="C"/>
             <T_clock_to_Q max="124e-12" port="ff.Q" clock="C"/>
           </pb_type>
+          <pb_type name="bled" num_pb="1">
+            <input name="in" num_pins="3"/>
+            <input name="ce" num_pins="1"/>
+            <input name="sr" num_pins="1"/>
+            <output name="out" num_pins="1"/>
+            <clock name="clk" num_pins="1"/>
+            <pb_type name="lutd" blif_model=".names" num_pb="1" class="lut">
+              <input name="in" num_pins="3" port_class="lut_in"/>
+              <output name="out" num_pins="1" port_class="lut_out"/>
+              <delay_matrix type="max" in_port="lutd.in" out_port="lutd.out">261e-12 261e-12 261e-12</delay_matrix>
+            </pb_type>
+            <pb_type name="ff" blif_model=".subckt bob_ff" num_pb="1">
+              <input name="D" num_pins="1" port_class="D"/>
+              <input name="CE" num_pins="1"/>
+              <input name="SR" num_pins="1"/>
+              <output name="Q" num_pins="1" port_class="Q"/>
+              <clock name="C" num_pins="1" port_class="clock"/>
+              <T_setup value="66e-12" port="ff.D" clock="C"/>
+              <T_setup value="66e-12" port="ff.CE" clock="C"/>
+              <T_setup value="66e-12" port="ff.SR" clock="C"/>
+              <T_clock_to_Q max="124e-12" port="ff.Q" clock="C"/>
+            </pb_type>
+            <interconnect>
+              <direct name="lut_in" input="bled.in" output="lutd.in"/>
+              <direct name="ff_d" input="lutd.out" output="ff.D">
+                <pack_pattern name="bled" in_port="lutd.out" out_port="ff.D"/>
+              </direct>
+              <direct name="ff_ce" input="bled.ce" output="ff.CE"/>
+              <direct name="ff_sr" input="bled.sr" output="ff.SR"/>
+              <direct name="ff_c" input="bled.clk" output="ff.C"/>
+              <mux name="o" input="ff.Q lutd.out" output="bled.out">
+                <delay_constant max="25e-12" in_port="lutd.out" out_port="bled.out"/>
+                <delay_constant max="45e-12" in_port="ff.Q" out_port="bled.out"/>
+              </mux>
+            </interconnect>
+          </pb_type>
           <interconnect>
-            <direct name="a" input="fle.in[0]" output="add.a"/>
-            <direct name="b" input="fle.in[1]" output="add.b"/>
+            <direct name="a" input="fle.in[2]" output="add.a"/>
+            <direct name="b" input="fle.in[3]" output="add.b"/>
             <direct name="cin" input="fle.cin" output="add.cin">
               <pack_pattern name="chain" in_port="fle.cin" out_port="add.cin"/>
             </direct>
@@ -385,6 +421,11 @@
               <delay_constant max="25e-12" in_port="add.sumout" out_port="fle.out[0]"/>
               <delay_constant max="45e-12" in_port="ff.Q" out_port="fle.out[0]"/>
             </mux>
+            <direct name="din" input="fle.in[1:0]" output="bled.in[1:0]"/>
+            <direct name="dce" input="fle.ce" output="bled.ce"/>
+            <direct name="dsr" input="fle.sr" output="bled.sr"/>
+            <direct name="dclk" input="fle.clk" output="bled.clk"/>
+            <direct name="dout" input="bled.out" output="fle.out[1]"/>
           </interconnect>
         </mode>
       </pb_type>

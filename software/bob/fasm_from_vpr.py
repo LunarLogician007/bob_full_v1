@@ -25,6 +25,8 @@ How the parts become features:
   packing   clb mode "logic": init = the LUT's table re-indexed through VPR's
             port_rotation_map (which physical pin carries which atom input);
             mode "arithmetic": init = I0 ^ I1 (^1 for INV_B), cy_en.
+            mode "dd" (M24): dd + cy_en (cy_di_sel = INV_B), the adder on I[K-2], I[K-1];
+            init[2**(K-1)-1:0] = the LUT's table on I[K-3:0], repeated over I[K-2] (O5) -> out[1].
             ff in the cluster: ff_en, ff_rstval (FDSE), ff_ce_en / ff_sr_en when
             CE / SR is a net.
   placement VPR's (x, y) is bob's (x, y); the block rooted there names the tile.
@@ -195,6 +197,31 @@ def features(work, result):
                             _ff_features(put, el, side, bk["ff"], second=(half == 1))
                     if init:
                         put(f"{el}.init", init)
+                elif mode == "dd":
+                    # M24 Double Duty: the adder on in[k-2] (A) / in[k-1] (B), INV_B in
+                    # cy_di_sel; the LUT (bled, k-1 pins, the top one unconnected) on
+                    # in[k-3:0] = the O5 half INIT[2**(k-1)-1:0] -> out[1]; _lut_init
+                    # repeats the table over the unconnected pin, which the fabric drives with A
+                    add = kids.get("add[0]")             # VPR may use dd for the LUT alone
+                    if add is not None:
+                        put(f"{el}.dd", 1)
+                        put(f"{el}.cy_en", 1)
+                        if side["add"][add.get("name")]["inv"]:
+                            put(f"{el}.cy_di_sel", 1)
+                        for pin, v in side["consts"].get(add.get("name"), {}).items():
+                            if v is not None:
+                                consts[{"a": k - 2, "b": k - 1}[pin]] = v
+                    if "ff[0]" in kids:
+                        _ff_features(put, el, side, kids["ff[0]"])
+                    ble = kids.get("bled[0]")
+                    if ble is not None:
+                        bk = {c.get("instance").split("[")[0]: c for c in _children(ble)}
+                        if "lutd" in bk:
+                            lut = bk["lutd"]
+                            leaf = lut.find("block") if lut.find("block") is not None else lut
+                            put(f"{el}.init", _lut_init(leaf, side["lut"][lut.get("name")], k - 1))
+                        if "ff" in bk:
+                            _ff_features(put, el, side, bk["ff"], second=True)
                 elif mode == "arithmetic":
                     add = kids["add[0]"]
                     inv = side["add"][add.get("name")]["inv"]
@@ -291,14 +318,14 @@ def capture_map(result, work=None):
         for fle in _children(blk):
             e = int(fle.get("instance").split("[")[1].rstrip("]"))
             idx = B.ELEM[f"{name}.e{e}"]["index"]
-            for sub in _children(fle):                    # ble / blef[0] / blef[1] / add, ff
+            for sub in _children(fle):                    # ble / blef[0] / blef[1] / add, ff / bled[0]
                 inst = sub.get("instance")
                 if inst == "ff[0]":
                     out.append((2 * idx, ff_q(sub)))
                     continue
                 for leaf in _children(sub):
                     if leaf.get("instance") == "ff[0]":
-                        out.append((2 * idx + (1 if inst == "blef[1]" else 0), ff_q(leaf)))
+                        out.append((2 * idx + (1 if inst in ("blef[1]", "bled[0]") else 0), ff_q(leaf)))
     return sorted(out)
 
 

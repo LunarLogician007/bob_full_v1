@@ -1,4 +1,4 @@
-Netlist_File: blinky.net Netlist_ID: SHA256:308e753fd36eff76e8d8a752745e0c067642c25c1e1fc404b0bced3c90a89559
+Netlist_File: blinky.net Netlist_ID: SHA256:5fe1ad3e17d5efa1d6a121f4f712029dcd75e792eb0434a0a0e02b6340807bc2
 Array size: 14 x 12 logic blocks
 
 #block name	x	y	subblk	layer	block number

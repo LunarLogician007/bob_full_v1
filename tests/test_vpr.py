@@ -72,9 +72,11 @@ def test_arch_has_bob_cells():
     for model in ("bob_add", "bob_ff", "bob_bram", "bob_dsp"):
         assert f'<model name="{model}">' in arch
     # M21: the cluster's element (fle) has the reference's modes: one LUT, two fractured
-    # LUTs, the adder; the crossbar feeds the element inputs
-    for mode in ("lut", "frac", "arithmetic"):
+    # LUTs, the adder (M24: Double Duty, the adder beside a LUT K-2); the crossbar feeds the
+    # element inputs
+    for mode in ("lut", "frac", "dd"):
         assert f'<mode name="{mode}">' in arch
+    assert '<mode name="arithmetic">' not in arch
     assert f'<pb_type name="fle" num_pb="{B.CLB_N}">' in arch
     assert 'name="crossbar"' in arch or 'name="xb0_0"' in arch
 

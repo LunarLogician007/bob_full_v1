@@ -7,7 +7,8 @@ packing has two steps, as in VPR:
   elements   pattern matching with the architecture's pack patterns:
                lut    a .names LUT; the flip-flop its output feeds alone joins it (ble)
                arith  a bob_add; the flip-flop its sum feeds alone joins it (chain);
-                      a -> in[0], b -> in[1], cin/cout on the carry
+                      M24 Double Duty: a -> in[K-2], b -> in[K-1], cin/cout on the carry,
+                      and a LUT of at most K-2 inputs beside it (in[0..K-3] -> out[1])
                frac   two LUTs of at most K-1 inputs whose inputs together are at most
                       K-1 (the fractured LUT: O6 and O5 over the shared inputs), each
                       with its flip-flop (the second one registers O5)
@@ -112,7 +113,7 @@ def elements(nl):
             luts.append((a, absorb(a.pins["out"])))
         elif a.kind == "bob_add":
             el = Elem("arith", add=a)
-            el.ins = [a.pins.get("a"), a.pins.get("b")] + [None] * (K - 2)
+            el.ins = [None] * (K - 2) + [a.pins.get("a"), a.pins.get("b")]      # M24: dd, A/B on K-2/K-1
             ff = absorb(a.pins["sumout"]) if "sumout" in a.pins else None
             el.ffs[0] = ff
             el.outs[0] = ff.pins["Q"] if ff else a.pins.get("sumout")
@@ -133,6 +134,41 @@ def elements(nl):
         chains.append(chain)
     if sum(len(c) for c in chains) != len(adds):
         raise PackError("adders whose carry-in comes from nowhere")
+
+    # M24 Double Duty: an adder element's LUT is free (the adder reads in[K-2], in[K-1]
+    # directly), so each takes a LUT of at most K-2 inputs on in[0..K-3] -> out[1], the one
+    # sharing the most nets with its chain. VPR's packer cannot aim for this (it cannot say
+    # "this LUT only beside an adder"); here it is a direct choice. A LUT whose flip-flop
+    # would disagree with the adder's on CE or SR stays out (one CE and SR per CLB).
+    tiny = sorted(((a, ff) for a, ff in luts if len(lut_ins(a)) <= K - 2), key=lambda t: t[0].name)
+    taken = set()
+    for chain in chains:
+        chain_nets = set()
+        for el in chain:
+            chain_nets |= {n for n in el.ins + el.outs if n}
+        for el in chain:
+            best = None
+            for a, ff in tiny:
+                if a.name in taken:
+                    continue
+                if ff is not None and el.ffs[0] is not None and any(
+                        ff.pins.get(p) != el.ffs[0].pins.get(p) for p in ("CE", "SR")):
+                    continue
+                ins = lut_ins(a)
+                key = (len(set(ins) & chain_nets) + (a.pins["out"] in chain_nets), -len(ins), a.name)
+                if best is None or key[:2] > best[0][:2]:
+                    best = (key, a, ff)
+            if best is None:
+                continue
+            _key, a, ff = best
+            taken.add(a.name)
+            ins = lut_ins(a)
+            el.luts = [a]
+            el.ins = ins + [None] * (K - 2 - len(ins)) + el.ins[K - 2:]
+            el.ffs[1] = ff
+            el.outs[1] = ff.pins["Q"] if ff else a.pins["out"]
+            chain_nets |= {n for n in ins if n} | {el.outs[1]}
+    luts = [(a, ff) for a, ff in luts if a.name not in taken]
 
     # fracturable pairs: two LUTs of <= K-1 inputs sharing inputs, together <= K-1
     small = sorted(((a, ff) for a, ff in luts if len(lut_ins(a)) <= K - 1),

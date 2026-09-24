@@ -1,4 +1,4 @@
-Netlist_File: gates.net Netlist_ID: SHA256:c584541a1f614d825bf9af6d6f1aa52920dd66c5e509ab34cebc663a80f11e0f
+Netlist_File: gates.net Netlist_ID: SHA256:a7dd0c966e0028eaf29cf03b1d82a982e535f8fa372650b06be3df14477b0fa2
 Array size: 14 x 12 logic blocks
 
 #block name	x	y	subblk	layer	block number

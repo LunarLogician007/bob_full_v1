@@ -17,9 +17,9 @@
 		<clocks>
 			<port name="clk">clk</port>
 		</clocks>
-		<block name="$auto$alumacc.cc:548:replace_alu$31.slice[3].add" instance="fle[0]" mode="arithmetic">
+		<block name="$auto$alumacc.cc:548:replace_alu$31.slice[3].add" instance="fle[0]" mode="dd">
 			<inputs>
-				<port name="in">open fle[0].out[0]-&gt;crossbar open open open open</port>
+				<port name="in">open open open open open fle[0].out[0]-&gt;crossbar</port>
 				<port name="cin">clb.cin[0]-&gt;carry_in</port>
 				<port name="ce">open</port>
 				<port name="sr">clb.sr[0]-&gt;sr</port>
@@ -36,7 +36,7 @@
 				<parameters />
 				<inputs>
 					<port name="a">open</port>
-					<port name="b">fle.in[1]-&gt;b</port>
+					<port name="b">fle.in[5]-&gt;b</port>
 					<port name="cin">fle.cin[0]-&gt;cin</port>
 				</inputs>
 				<outputs>
@@ -60,10 +60,11 @@
 					<port name="C">fle.clk[0]-&gt;ff_c</port>
 				</clocks>
 			</block>
+			<block name="open" instance="bled[0]" />
 		</block>
-		<block name="$auto$alumacc.cc:548:replace_alu$31.slice[4].add" instance="fle[1]" mode="arithmetic">
+		<block name="$auto$alumacc.cc:548:replace_alu$31.slice[4].add" instance="fle[1]" mode="dd">
 			<inputs>
-				<port name="in">open fle[1].out[0]-&gt;crossbar open open open open</port>
+				<port name="in">open open open open open fle[1].out[0]-&gt;crossbar</port>
 				<port name="cin">fle[0].cout[0]-&gt;carry_link</port>
 				<port name="ce">open</port>
 				<port name="sr">clb.sr[0]-&gt;sr</port>
@@ -80,7 +81,7 @@
 				<parameters />
 				<inputs>
 					<port name="a">open</port>
-					<port name="b">fle.in[1]-&gt;b</port>
+					<port name="b">fle.in[5]-&gt;b</port>
 					<port name="cin">fle.cin[0]-&gt;cin</port>
 				</inputs>
 				<outputs>
@@ -104,10 +105,11 @@
 					<port name="C">fle.clk[0]-&gt;ff_c</port>
 				</clocks>
 			</block>
+			<block name="open" instance="bled[0]" />
 		</block>
-		<block name="$auto$alumacc.cc:548:replace_alu$31.slice[5].add" instance="fle[2]" mode="arithmetic">
+		<block name="$auto$alumacc.cc:548:replace_alu$31.slice[5].add" instance="fle[2]" mode="dd">
 			<inputs>
-				<port name="in">open fle[2].out[0]-&gt;crossbar open open open open</port>
+				<port name="in">open open open open open fle[2].out[0]-&gt;crossbar</port>
 				<port name="cin">fle[1].cout[0]-&gt;carry_link</port>
 				<port name="ce">open</port>
 				<port name="sr">clb.sr[0]-&gt;sr</port>
@@ -124,7 +126,7 @@
 				<parameters />
 				<inputs>
 					<port name="a">open</port>
-					<port name="b">fle.in[1]-&gt;b</port>
+					<port name="b">fle.in[5]-&gt;b</port>
 					<port name="cin">fle.cin[0]-&gt;cin</port>
 				</inputs>
 				<outputs>
@@ -148,10 +150,11 @@
 					<port name="C">fle.clk[0]-&gt;ff_c</port>
 				</clocks>
 			</block>
+			<block name="open" instance="bled[0]" />
 		</block>
-		<block name="$auto$alumacc.cc:548:replace_alu$31.slice[6].add" instance="fle[3]" mode="arithmetic">
+		<block name="$auto$alumacc.cc:548:replace_alu$31.slice[6].add" instance="fle[3]" mode="dd">
 			<inputs>
-				<port name="in">open fle[3].out[0]-&gt;crossbar open open open open</port>
+				<port name="in">open open open open open fle[3].out[0]-&gt;crossbar</port>
 				<port name="cin">fle[2].cout[0]-&gt;carry_link</port>
 				<port name="ce">open</port>
 				<port name="sr">clb.sr[0]-&gt;sr</port>
@@ -168,7 +171,7 @@
 				<parameters />
 				<inputs>
 					<port name="a">open</port>
-					<port name="b">fle.in[1]-&gt;b</port>
+					<port name="b">fle.in[5]-&gt;b</port>
 					<port name="cin">fle.cin[0]-&gt;cin</port>
 				</inputs>
 				<outputs>
@@ -192,6 +195,7 @@
 					<port name="C">fle.clk[0]-&gt;ff_c</port>
 				</clocks>
 			</block>
+			<block name="open" instance="bled[0]" />
 		</block>
 	</block>
 	<block name="$auto$alumacc.cc:548:replace_alu$31.slice[7].add" instance="clb[1]" mode="default">
@@ -208,9 +212,9 @@
 		<clocks>
 			<port name="clk">clk</port>
 		</clocks>
-		<block name="$auto$alumacc.cc:548:replace_alu$31.slice[7].add" instance="fle[0]" mode="arithmetic">
+		<block name="$auto$alumacc.cc:548:replace_alu$31.slice[7].add" instance="fle[0]" mode="dd">
 			<inputs>
-				<port name="in">open fle[0].out[0]-&gt;crossbar open open open open</port>
+				<port name="in">open open open open open fle[0].out[0]-&gt;crossbar</port>
 				<port name="cin">clb.cin[0]-&gt;carry_in</port>
 				<port name="ce">open</port>
 				<port name="sr">clb.sr[0]-&gt;sr</port>
@@ -227,7 +231,7 @@
 				<parameters />
 				<inputs>
 					<port name="a">open</port>
-					<port name="b">fle.in[1]-&gt;b</port>
+					<port name="b">fle.in[5]-&gt;b</port>
 					<port name="cin">fle.cin[0]-&gt;cin</port>
 				</inputs>
 				<outputs>
@@ -251,10 +255,11 @@
 					<port name="C">fle.clk[0]-&gt;ff_c</port>
 				</clocks>
 			</block>
+			<block name="open" instance="bled[0]" />
 		</block>
-		<block name="$auto$alumacc.cc:548:replace_alu$31.slice[8].add" instance="fle[1]" mode="arithmetic">
+		<block name="$auto$alumacc.cc:548:replace_alu$31.slice[8].add" instance="fle[1]" mode="dd">
 			<inputs>
-				<port name="in">open fle[1].out[0]-&gt;crossbar open open open open</port>
+				<port name="in">open open open open open fle[1].out[0]-&gt;crossbar</port>
 				<port name="cin">fle[0].cout[0]-&gt;carry_link</port>
 				<port name="ce">open</port>
 				<port name="sr">clb.sr[0]-&gt;sr</port>
@@ -271,7 +276,7 @@
 				<parameters />
 				<inputs>
 					<port name="a">open</port>
-					<port name="b">fle.in[1]-&gt;b</port>
+					<port name="b">fle.in[5]-&gt;b</port>
 					<port name="cin">fle.cin[0]-&gt;cin</port>
 				</inputs>
 				<outputs>
@@ -295,10 +300,11 @@
 					<port name="C">fle.clk[0]-&gt;ff_c</port>
 				</clocks>
 			</block>
+			<block name="open" instance="bled[0]" />
 		</block>
-		<block name="$auto$alumacc.cc:548:replace_alu$31.slice[9].add" instance="fle[2]" mode="arithmetic">
+		<block name="$auto$alumacc.cc:548:replace_alu$31.slice[9].add" instance="fle[2]" mode="dd">
 			<inputs>
-				<port name="in">open fle[2].out[0]-&gt;crossbar open open open open</port>
+				<port name="in">open open open open open fle[2].out[0]-&gt;crossbar</port>
 				<port name="cin">fle[1].cout[0]-&gt;carry_link</port>
 				<port name="ce">open</port>
 				<port name="sr">clb.sr[0]-&gt;sr</port>
@@ -315,7 +321,7 @@
 				<parameters />
 				<inputs>
 					<port name="a">open</port>
-					<port name="b">fle.in[1]-&gt;b</port>
+					<port name="b">fle.in[5]-&gt;b</port>
 					<port name="cin">fle.cin[0]-&gt;cin</port>
 				</inputs>
 				<outputs>
@@ -339,10 +345,11 @@
 					<port name="C">fle.clk[0]-&gt;ff_c</port>
 				</clocks>
 			</block>
+			<block name="open" instance="bled[0]" />
 		</block>
-		<block name="$auto$alumacc.cc:548:replace_alu$31.slice[10].add" instance="fle[3]" mode="arithmetic">
+		<block name="$auto$alumacc.cc:548:replace_alu$31.slice[10].add" instance="fle[3]" mode="dd">
 			<inputs>
-				<port name="in">open fle[3].out[0]-&gt;crossbar open open open open</port>
+				<port name="in">open open open open open fle[3].out[0]-&gt;crossbar</port>
 				<port name="cin">fle[2].cout[0]-&gt;carry_link</port>
 				<port name="ce">open</port>
 				<port name="sr">clb.sr[0]-&gt;sr</port>
@@ -359,7 +366,7 @@
 				<parameters />
 				<inputs>
 					<port name="a">open</port>
-					<port name="b">fle.in[1]-&gt;b</port>
+					<port name="b">fle.in[5]-&gt;b</port>
 					<port name="cin">fle.cin[0]-&gt;cin</port>
 				</inputs>
 				<outputs>
@@ -383,6 +390,7 @@
 					<port name="C">fle.clk[0]-&gt;ff_c</port>
 				</clocks>
 			</block>
+			<block name="open" instance="bled[0]" />
 		</block>
 	</block>
 	<block name="bob_gen14" instance="clb[2]" mode="default">
@@ -399,7 +407,7 @@
 		<clocks>
 			<port name="clk">clk</port>
 		</clocks>
-		<block name="bob_gen14" instance="fle[0]" mode="arithmetic">
+		<block name="bob_gen14" instance="fle[0]" mode="dd">
 			<inputs>
 				<port name="in">open open open open open open</port>
 				<port name="cin">open</port>
@@ -428,10 +436,11 @@
 				<clocks />
 			</block>
 			<block name="open" instance="ff[0]" />
+			<block name="open" instance="bled[0]" />
 		</block>
-		<block name="$auto$alumacc.cc:548:replace_alu$31.slice[0].add" instance="fle[1]" mode="arithmetic">
+		<block name="$auto$alumacc.cc:548:replace_alu$31.slice[0].add" instance="fle[1]" mode="dd">
 			<inputs>
-				<port name="in">open fle[1].out[0]-&gt;crossbar open open open open</port>
+				<port name="in">open open open open open fle[1].out[0]-&gt;crossbar</port>
 				<port name="cin">fle[0].cout[0]-&gt;carry_link</port>
 				<port name="ce">open</port>
 				<port name="sr">clb.sr[0]-&gt;sr</port>
@@ -448,7 +457,7 @@
 				<parameters />
 				<inputs>
 					<port name="a">open</port>
-					<port name="b">fle.in[1]-&gt;b</port>
+					<port name="b">fle.in[5]-&gt;b</port>
 					<port name="cin">fle.cin[0]-&gt;cin</port>
 				</inputs>
 				<outputs>
@@ -472,10 +481,11 @@
 					<port name="C">fle.clk[0]-&gt;ff_c</port>
 				</clocks>
 			</block>
+			<block name="open" instance="bled[0]" />
 		</block>
-		<block name="$auto$alumacc.cc:548:replace_alu$31.slice[1].add" instance="fle[2]" mode="arithmetic">
+		<block name="$auto$alumacc.cc:548:replace_alu$31.slice[1].add" instance="fle[2]" mode="dd">
 			<inputs>
-				<port name="in">open fle[2].out[0]-&gt;crossbar open open open open</port>
+				<port name="in">open open open open open fle[2].out[0]-&gt;crossbar</port>
 				<port name="cin">fle[1].cout[0]-&gt;carry_link</port>
 				<port name="ce">open</port>
 				<port name="sr">clb.sr[0]-&gt;sr</port>
@@ -492,7 +502,7 @@
 				<parameters />
 				<inputs>
 					<port name="a">open</port>
-					<port name="b">fle.in[1]-&gt;b</port>
+					<port name="b">fle.in[5]-&gt;b</port>
 					<port name="cin">fle.cin[0]-&gt;cin</port>
 				</inputs>
 				<outputs>
@@ -516,10 +526,11 @@
 					<port name="C">fle.clk[0]-&gt;ff_c</port>
 				</clocks>
 			</block>
+			<block name="open" instance="bled[0]" />
 		</block>
-		<block name="$auto$alumacc.cc:548:replace_alu$31.slice[2].add" instance="fle[3]" mode="arithmetic">
+		<block name="$auto$alumacc.cc:548:replace_alu$31.slice[2].add" instance="fle[3]" mode="dd">
 			<inputs>
-				<port name="in">open fle[3].out[0]-&gt;crossbar open open open open</port>
+				<port name="in">open open open open open fle[3].out[0]-&gt;crossbar</port>
 				<port name="cin">fle[2].cout[0]-&gt;carry_link</port>
 				<port name="ce">open</port>
 				<port name="sr">clb.sr[0]-&gt;sr</port>
@@ -536,7 +547,7 @@
 				<parameters />
 				<inputs>
 					<port name="a">open</port>
-					<port name="b">fle.in[1]-&gt;b</port>
+					<port name="b">fle.in[5]-&gt;b</port>
 					<port name="cin">fle.cin[0]-&gt;cin</port>
 				</inputs>
 				<outputs>
@@ -560,6 +571,7 @@
 					<port name="C">fle.clk[0]-&gt;ff_c</port>
 				</clocks>
 			</block>
+			<block name="open" instance="bled[0]" />
 		</block>
 	</block>
 	<block name="$auto$alumacc.cc:548:replace_alu$28.slice[3].add" instance="clb[3]" mode="default">
@@ -576,9 +588,9 @@
 		<clocks>
 			<port name="clk">open</port>
 		</clocks>
-		<block name="$auto$alumacc.cc:548:replace_alu$28.slice[3].add" instance="fle[0]" mode="arithmetic">
+		<block name="$auto$alumacc.cc:548:replace_alu$28.slice[3].add" instance="fle[0]" mode="dd">
 			<inputs>
-				<port name="in">open clb.I[0]-&gt;crossbar open open open open</port>
+				<port name="in">open open open open open clb.I[0]-&gt;crossbar</port>
 				<port name="cin">clb.cin[0]-&gt;carry_in</port>
 				<port name="ce">open</port>
 				<port name="sr">open</port>
@@ -595,7 +607,7 @@
 				<parameters />
 				<inputs>
 					<port name="a">open</port>
-					<port name="b">fle.in[1]-&gt;b</port>
+					<port name="b">fle.in[5]-&gt;b</port>
 					<port name="cin">fle.cin[0]-&gt;cin</port>
 				</inputs>
 				<outputs>
@@ -605,10 +617,11 @@
 				<clocks />
 			</block>
 			<block name="open" instance="ff[0]" />
+			<block name="open" instance="bled[0]" />
 		</block>
-		<block name="$auto$alumacc.cc:548:replace_alu$28.slice[4].add" instance="fle[1]" mode="arithmetic">
+		<block name="$auto$alumacc.cc:548:replace_alu$28.slice[4].add" instance="fle[1]" mode="dd">
 			<inputs>
-				<port name="in">open clb.I[2]-&gt;crossbar open open open open</port>
+				<port name="in">open open open open open clb.I[2]-&gt;crossbar</port>
 				<port name="cin">fle[0].cout[0]-&gt;carry_link</port>
 				<port name="ce">open</port>
 				<port name="sr">open</port>
@@ -625,7 +638,7 @@
 				<parameters />
 				<inputs>
 					<port name="a">open</port>
-					<port name="b">fle.in[1]-&gt;b</port>
+					<port name="b">fle.in[5]-&gt;b</port>
 					<port name="cin">fle.cin[0]-&gt;cin</port>
 				</inputs>
 				<outputs>
@@ -635,10 +648,11 @@
 				<clocks />
 			</block>
 			<block name="open" instance="ff[0]" />
+			<block name="open" instance="bled[0]" />
 		</block>
-		<block name="$auto$alumacc.cc:548:replace_alu$28.slice[5].add" instance="fle[2]" mode="arithmetic">
+		<block name="$auto$alumacc.cc:548:replace_alu$28.slice[5].add" instance="fle[2]" mode="dd">
 			<inputs>
-				<port name="in">open clb.I[1]-&gt;crossbar open open open open</port>
+				<port name="in">open open open open open clb.I[1]-&gt;crossbar</port>
 				<port name="cin">fle[1].cout[0]-&gt;carry_link</port>
 				<port name="ce">open</port>
 				<port name="sr">open</port>
@@ -655,7 +669,7 @@
 				<parameters />
 				<inputs>
 					<port name="a">open</port>
-					<port name="b">fle.in[1]-&gt;b</port>
+					<port name="b">fle.in[5]-&gt;b</port>
 					<port name="cin">fle.cin[0]-&gt;cin</port>
 				</inputs>
 				<outputs>
@@ -665,10 +679,11 @@
 				<clocks />
 			</block>
 			<block name="open" instance="ff[0]" />
+			<block name="open" instance="bled[0]" />
 		</block>
-		<block name="$auto$alumacc.cc:548:replace_alu$28.slice[6].add" instance="fle[3]" mode="arithmetic">
+		<block name="$auto$alumacc.cc:548:replace_alu$28.slice[6].add" instance="fle[3]" mode="dd">
 			<inputs>
-				<port name="in">open clb.I[5]-&gt;crossbar open open open open</port>
+				<port name="in">open open open open open clb.I[5]-&gt;crossbar</port>
 				<port name="cin">fle[2].cout[0]-&gt;carry_link</port>
 				<port name="ce">open</port>
 				<port name="sr">open</port>
@@ -685,7 +700,7 @@
 				<parameters />
 				<inputs>
 					<port name="a">open</port>
-					<port name="b">fle.in[1]-&gt;b</port>
+					<port name="b">fle.in[5]-&gt;b</port>
 					<port name="cin">fle.cin[0]-&gt;cin</port>
 				</inputs>
 				<outputs>
@@ -695,6 +710,7 @@
 				<clocks />
 			</block>
 			<block name="open" instance="ff[0]" />
+			<block name="open" instance="bled[0]" />
 		</block>
 	</block>
 	<block name="$auto$alumacc.cc:548:replace_alu$28.slice[7].add" instance="clb[4]" mode="default">
@@ -711,9 +727,9 @@
 		<clocks>
 			<port name="clk">open</port>
 		</clocks>
-		<block name="$auto$alumacc.cc:548:replace_alu$28.slice[7].add" instance="fle[0]" mode="arithmetic">
+		<block name="$auto$alumacc.cc:548:replace_alu$28.slice[7].add" instance="fle[0]" mode="dd">
 			<inputs>
-				<port name="in">open clb.I[0]-&gt;crossbar open open open open</port>
+				<port name="in">open open open open open clb.I[0]-&gt;crossbar</port>
 				<port name="cin">clb.cin[0]-&gt;carry_in</port>
 				<port name="ce">open</port>
 				<port name="sr">open</port>
@@ -730,7 +746,7 @@
 				<parameters />
 				<inputs>
 					<port name="a">open</port>
-					<port name="b">fle.in[1]-&gt;b</port>
+					<port name="b">fle.in[5]-&gt;b</port>
 					<port name="cin">fle.cin[0]-&gt;cin</port>
 				</inputs>
 				<outputs>
@@ -740,10 +756,11 @@
 				<clocks />
 			</block>
 			<block name="open" instance="ff[0]" />
+			<block name="open" instance="bled[0]" />
 		</block>
-		<block name="$auto$alumacc.cc:548:replace_alu$28.slice[8].add" instance="fle[1]" mode="arithmetic">
+		<block name="$auto$alumacc.cc:548:replace_alu$28.slice[8].add" instance="fle[1]" mode="dd">
 			<inputs>
-				<port name="in">open clb.I[2]-&gt;crossbar open open open open</port>
+				<port name="in">open open open open open clb.I[2]-&gt;crossbar</port>
 				<port name="cin">fle[0].cout[0]-&gt;carry_link</port>
 				<port name="ce">open</port>
 				<port name="sr">open</port>
@@ -760,7 +777,7 @@
 				<parameters />
 				<inputs>
 					<port name="a">open</port>
-					<port name="b">fle.in[1]-&gt;b</port>
+					<port name="b">fle.in[5]-&gt;b</port>
 					<port name="cin">fle.cin[0]-&gt;cin</port>
 				</inputs>
 				<outputs>
@@ -770,10 +787,11 @@
 				<clocks />
 			</block>
 			<block name="open" instance="ff[0]" />
+			<block name="open" instance="bled[0]" />
 		</block>
-		<block name="$auto$alumacc.cc:548:replace_alu$28.slice[9].add" instance="fle[2]" mode="arithmetic">
+		<block name="$auto$alumacc.cc:548:replace_alu$28.slice[9].add" instance="fle[2]" mode="dd">
 			<inputs>
-				<port name="in">open clb.I[1]-&gt;crossbar open open open open</port>
+				<port name="in">open open open open open clb.I[1]-&gt;crossbar</port>
 				<port name="cin">fle[1].cout[0]-&gt;carry_link</port>
 				<port name="ce">open</port>
 				<port name="sr">open</port>
@@ -790,7 +808,7 @@
 				<parameters />
 				<inputs>
 					<port name="a">open</port>
-					<port name="b">fle.in[1]-&gt;b</port>
+					<port name="b">fle.in[5]-&gt;b</port>
 					<port name="cin">fle.cin[0]-&gt;cin</port>
 				</inputs>
 				<outputs>
@@ -800,10 +818,11 @@
 				<clocks />
 			</block>
 			<block name="open" instance="ff[0]" />
+			<block name="open" instance="bled[0]" />
 		</block>
-		<block name="$auto$alumacc.cc:548:replace_alu$28.slice[10].add" instance="fle[3]" mode="arithmetic">
+		<block name="$auto$alumacc.cc:548:replace_alu$28.slice[10].add" instance="fle[3]" mode="dd">
 			<inputs>
-				<port name="in">open clb.I[5]-&gt;crossbar open open open open</port>
+				<port name="in">open open open open open clb.I[5]-&gt;crossbar</port>
 				<port name="cin">fle[2].cout[0]-&gt;carry_link</port>
 				<port name="ce">open</port>
 				<port name="sr">open</port>
@@ -820,7 +839,7 @@
 				<parameters />
 				<inputs>
 					<port name="a">open</port>
-					<port name="b">fle.in[1]-&gt;b</port>
+					<port name="b">fle.in[5]-&gt;b</port>
 					<port name="cin">fle.cin[0]-&gt;cin</port>
 				</inputs>
 				<outputs>
@@ -830,11 +849,12 @@
 				<clocks />
 			</block>
 			<block name="open" instance="ff[0]" />
+			<block name="open" instance="bled[0]" />
 		</block>
 	</block>
 	<block name="$auto$alumacc.cc:548:replace_alu$31.slice[11].add" instance="clb[5]" mode="default">
 		<inputs>
-			<port name="I">n19 n38 n20 led[1] n18 n36 n17 n37 n29 open open open open open open open</port>
+			<port name="I">open n38 n20 led[1] n18 n36 n17 n19 n37 n29 open open open open open open</port>
 			<port name="ce">open</port>
 			<port name="sr">btn[1]</port>
 			<port name="cin">cy26</port>
@@ -846,9 +866,9 @@
 		<clocks>
 			<port name="clk">clk</port>
 		</clocks>
-		<block name="$auto$alumacc.cc:548:replace_alu$31.slice[11].add" instance="fle[0]" mode="arithmetic">
+		<block name="$auto$alumacc.cc:548:replace_alu$31.slice[11].add" instance="fle[0]" mode="dd">
 			<inputs>
-				<port name="in">open fle[0].out[0]-&gt;crossbar open open open open</port>
+				<port name="in">open open open open open fle[0].out[0]-&gt;crossbar</port>
 				<port name="cin">clb.cin[0]-&gt;carry_in</port>
 				<port name="ce">open</port>
 				<port name="sr">clb.sr[0]-&gt;sr</port>
@@ -865,7 +885,7 @@
 				<parameters />
 				<inputs>
 					<port name="a">open</port>
-					<port name="b">fle.in[1]-&gt;b</port>
+					<port name="b">fle.in[5]-&gt;b</port>
 					<port name="cin">fle.cin[0]-&gt;cin</port>
 				</inputs>
 				<outputs>
@@ -889,10 +909,11 @@
 					<port name="C">fle.clk[0]-&gt;ff_c</port>
 				</clocks>
 			</block>
+			<block name="open" instance="bled[0]" />
 		</block>
 		<block name="ffd35" instance="fle[1]" mode="frac">
 			<inputs>
-				<port name="in">clb.I[1]-&gt;crossbar clb.I[0]-&gt;crossbar open open open open</port>
+				<port name="in">clb.I[7]-&gt;crossbar open clb.I[1]-&gt;crossbar open open open</port>
 				<port name="cin">open</port>
 				<port name="ce">open</port>
 				<port name="sr">clb.sr[0]-&gt;sr</port>
@@ -906,7 +927,7 @@
 			</clocks>
 			<block name="ffd34" instance="blef[0]" mode="default">
 				<inputs>
-					<port name="in">fle.in[0]-&gt;in0 open open open open</port>
+					<port name="in">open open fle.in[2]-&gt;in0 open open</port>
 					<port name="ce">open</port>
 					<port name="sr">fle.sr[0]-&gt;sr</port>
 				</inputs>
@@ -918,7 +939,7 @@
 				</clocks>
 				<block name="ffd34" instance="lutf[0]" mode="lutf">
 					<inputs>
-						<port name="in">blef.in[0]-&gt;lut_in open open open open</port>
+						<port name="in">open open blef.in[2]-&gt;lut_in open open</port>
 					</inputs>
 					<outputs>
 						<port name="out">lut[0].out[0]-&gt;direct:lutf</port>
@@ -928,8 +949,8 @@
 						<attributes />
 						<parameters />
 						<inputs>
-							<port name="in">lutf.in[0]-&gt;direct:lutf open open open open</port>
-							<port_rotation_map name="in">0 open open open open</port_rotation_map>
+							<port name="in">open open lutf.in[2]-&gt;direct:lutf open open</port>
+							<port_rotation_map name="in">open open 0 open open</port_rotation_map>
 						</inputs>
 						<outputs>
 							<port name="out">ffd34</port>
@@ -955,7 +976,7 @@
 			</block>
 			<block name="ffd35" instance="blef[1]" mode="default">
 				<inputs>
-					<port name="in">open fle.in[1]-&gt;in1 open open open</port>
+					<port name="in">fle.in[0]-&gt;in1 open open open open</port>
 					<port name="ce">open</port>
 					<port name="sr">fle.sr[0]-&gt;sr</port>
 				</inputs>
@@ -967,7 +988,7 @@
 				</clocks>
 				<block name="ffd35" instance="lutf[0]" mode="lutf">
 					<inputs>
-						<port name="in">open blef.in[1]-&gt;lut_in open open open</port>
+						<port name="in">blef.in[0]-&gt;lut_in open open open open</port>
 					</inputs>
 					<outputs>
 						<port name="out">lut[0].out[0]-&gt;direct:lutf</port>
@@ -977,8 +998,8 @@
 						<attributes />
 						<parameters />
 						<inputs>
-							<port name="in">open lutf.in[1]-&gt;direct:lutf open open open</port>
-							<port_rotation_map name="in">open 0 open open open</port_rotation_map>
+							<port name="in">lutf.in[0]-&gt;direct:lutf open open open open</port>
+							<port_rotation_map name="in">0 open open open open</port_rotation_map>
 						</inputs>
 						<outputs>
 							<port name="out">ffd35</port>
@@ -1005,7 +1026,7 @@
 		</block>
 		<block name="n21" instance="fle[2]" mode="lut">
 			<inputs>
-				<port name="in">fle[3].out[1]-&gt;crossbar clb.I[6]-&gt;crossbar clb.I[5]-&gt;crossbar clb.I[1]-&gt;crossbar clb.I[8]-&gt;crossbar clb.I[7]-&gt;crossbar</port>
+				<port name="in">clb.I[6]-&gt;crossbar clb.I[9]-&gt;crossbar clb.I[8]-&gt;crossbar clb.I[5]-&gt;crossbar fle[3].out[1]-&gt;crossbar clb.I[1]-&gt;crossbar</port>
 				<port name="cin">open</port>
 				<port name="ce">open</port>
 				<port name="sr">open</port>
@@ -1042,7 +1063,7 @@
 						<parameters />
 						<inputs>
 							<port name="in">lut.in[0]-&gt;direct:lut lut.in[1]-&gt;direct:lut lut.in[2]-&gt;direct:lut lut.in[3]-&gt;direct:lut lut.in[4]-&gt;direct:lut lut.in[5]-&gt;direct:lut</port>
-							<port_rotation_map name="in">0 5 3 2 4 1</port_rotation_map>
+							<port_rotation_map name="in">5 4 1 3 0 2</port_rotation_map>
 						</inputs>
 						<outputs>
 							<port name="out">n21</port>
@@ -1055,7 +1076,7 @@
 		</block>
 		<block name="n22" instance="fle[3]" mode="frac">
 			<inputs>
-				<port name="in">clb.I[0]-&gt;crossbar fle[2].out[0]-&gt;crossbar clb.I[4]-&gt;crossbar clb.I[3]-&gt;crossbar clb.I[2]-&gt;crossbar open</port>
+				<port name="in">clb.I[7]-&gt;crossbar fle[2].out[0]-&gt;crossbar clb.I[3]-&gt;crossbar clb.I[2]-&gt;crossbar clb.I[4]-&gt;crossbar open</port>
 				<port name="cin">open</port>
 				<port name="ce">open</port>
 				<port name="sr">clb.sr[0]-&gt;sr</port>
@@ -1069,7 +1090,7 @@
 			</clocks>
 			<block name="ffd37" instance="blef[0]" mode="default">
 				<inputs>
-					<port name="in">open open open fle.in[3]-&gt;in0 open</port>
+					<port name="in">open open fle.in[2]-&gt;in0 open open</port>
 					<port name="ce">open</port>
 					<port name="sr">fle.sr[0]-&gt;sr</port>
 				</inputs>
@@ -1081,7 +1102,7 @@
 				</clocks>
 				<block name="ffd37" instance="lutf[0]" mode="lutf">
 					<inputs>
-						<port name="in">open open open blef.in[3]-&gt;lut_in open</port>
+						<port name="in">open open blef.in[2]-&gt;lut_in open open</port>
 					</inputs>
 					<outputs>
 						<port name="out">lut[0].out[0]-&gt;direct:lutf</port>
@@ -1091,8 +1112,8 @@
 						<attributes />
 						<parameters />
 						<inputs>
-							<port name="in">open open open lutf.in[3]-&gt;direct:lutf open</port>
-							<port_rotation_map name="in">open open open 0 open</port_rotation_map>
+							<port name="in">open open lutf.in[2]-&gt;direct:lutf open open</port>
+							<port_rotation_map name="in">open open 0 open open</port_rotation_map>
 						</inputs>
 						<outputs>
 							<port name="out">ffd37</port>
@@ -1141,7 +1162,7 @@
 						<parameters />
 						<inputs>
 							<port name="in">lutf.in[0]-&gt;direct:lutf lutf.in[1]-&gt;direct:lutf lutf.in[2]-&gt;direct:lutf lutf.in[3]-&gt;direct:lutf lutf.in[4]-&gt;direct:lutf</port>
-							<port_rotation_map name="in">2 4 1 0 3</port_rotation_map>
+							<port_rotation_map name="in">2 4 0 3 1</port_rotation_map>
 						</inputs>
 						<outputs>
 							<port name="out">n22</port>
@@ -1181,7 +1202,7 @@
 		<clocks>
 			<port name="clk">open</port>
 		</clocks>
-		<block name="bob_gen1" instance="fle[0]" mode="arithmetic">
+		<block name="bob_gen1" instance="fle[0]" mode="dd">
 			<inputs>
 				<port name="in">open open open open open open</port>
 				<port name="cin">open</port>
@@ -1210,10 +1231,11 @@
 				<clocks />
 			</block>
 			<block name="open" instance="ff[0]" />
+			<block name="open" instance="bled[0]" />
 		</block>
-		<block name="$auto$alumacc.cc:548:replace_alu$28.slice[0].add" instance="fle[1]" mode="arithmetic">
+		<block name="$auto$alumacc.cc:548:replace_alu$28.slice[0].add" instance="fle[1]" mode="dd">
 			<inputs>
-				<port name="in">open clb.I[6]-&gt;crossbar open open open open</port>
+				<port name="in">open open open open open clb.I[6]-&gt;crossbar</port>
 				<port name="cin">fle[0].cout[0]-&gt;carry_link</port>
 				<port name="ce">open</port>
 				<port name="sr">open</port>
@@ -1230,7 +1252,7 @@
 				<parameters />
 				<inputs>
 					<port name="a">open</port>
-					<port name="b">fle.in[1]-&gt;b</port>
+					<port name="b">fle.in[5]-&gt;b</port>
 					<port name="cin">fle.cin[0]-&gt;cin</port>
 				</inputs>
 				<outputs>
@@ -1240,10 +1262,11 @@
 				<clocks />
 			</block>
 			<block name="open" instance="ff[0]" />
+			<block name="open" instance="bled[0]" />
 		</block>
-		<block name="$auto$alumacc.cc:548:replace_alu$28.slice[1].add" instance="fle[2]" mode="arithmetic">
+		<block name="$auto$alumacc.cc:548:replace_alu$28.slice[1].add" instance="fle[2]" mode="dd">
 			<inputs>
-				<port name="in">open clb.I[2]-&gt;crossbar open open open open</port>
+				<port name="in">open open open open open clb.I[2]-&gt;crossbar</port>
 				<port name="cin">fle[1].cout[0]-&gt;carry_link</port>
 				<port name="ce">open</port>
 				<port name="sr">open</port>
@@ -1260,7 +1283,7 @@
 				<parameters />
 				<inputs>
 					<port name="a">open</port>
-					<port name="b">fle.in[1]-&gt;b</port>
+					<port name="b">fle.in[5]-&gt;b</port>
 					<port name="cin">fle.cin[0]-&gt;cin</port>
 				</inputs>
 				<outputs>
@@ -1270,10 +1293,11 @@
 				<clocks />
 			</block>
 			<block name="open" instance="ff[0]" />
+			<block name="open" instance="bled[0]" />
 		</block>
-		<block name="$auto$alumacc.cc:548:replace_alu$28.slice[2].add" instance="fle[3]" mode="arithmetic">
+		<block name="$auto$alumacc.cc:548:replace_alu$28.slice[2].add" instance="fle[3]" mode="dd">
 			<inputs>
-				<port name="in">open clb.I[5]-&gt;crossbar open open open open</port>
+				<port name="in">open open open open open clb.I[5]-&gt;crossbar</port>
 				<port name="cin">fle[2].cout[0]-&gt;carry_link</port>
 				<port name="ce">open</port>
 				<port name="sr">open</port>
@@ -1290,7 +1314,7 @@
 				<parameters />
 				<inputs>
 					<port name="a">open</port>
-					<port name="b">fle.in[1]-&gt;b</port>
+					<port name="b">fle.in[5]-&gt;b</port>
 					<port name="cin">fle.cin[0]-&gt;cin</port>
 				</inputs>
 				<outputs>
@@ -1300,6 +1324,7 @@
 				<clocks />
 			</block>
 			<block name="open" instance="ff[0]" />
+			<block name="open" instance="bled[0]" />
 		</block>
 	</block>
 	<block name="$auto$alumacc.cc:548:replace_alu$28.slice[11].add" instance="clb[7]" mode="default">
@@ -1316,9 +1341,9 @@
 		<clocks>
 			<port name="clk">clk</port>
 		</clocks>
-		<block name="$auto$alumacc.cc:548:replace_alu$28.slice[11].add" instance="fle[0]" mode="arithmetic">
+		<block name="$auto$alumacc.cc:548:replace_alu$28.slice[11].add" instance="fle[0]" mode="dd">
 			<inputs>
-				<port name="in">open fle[2].out[1]-&gt;crossbar open open open open</port>
+				<port name="in">open open open open open fle[2].out[1]-&gt;crossbar</port>
 				<port name="cin">clb.cin[0]-&gt;carry_in</port>
 				<port name="ce">open</port>
 				<port name="sr">open</port>
@@ -1335,7 +1360,7 @@
 				<parameters />
 				<inputs>
 					<port name="a">open</port>
-					<port name="b">fle.in[1]-&gt;b</port>
+					<port name="b">fle.in[5]-&gt;b</port>
 					<port name="cin">fle.cin[0]-&gt;cin</port>
 				</inputs>
 				<outputs>
@@ -1345,10 +1370,11 @@
 				<clocks />
 			</block>
 			<block name="open" instance="ff[0]" />
+			<block name="open" instance="bled[0]" />
 		</block>
 		<block name="ffd28" instance="fle[1]" mode="frac">
 			<inputs>
-				<port name="in">clb.I[0]-&gt;crossbar open open clb.I[5]-&gt;crossbar open open</port>
+				<port name="in">open open clb.I[5]-&gt;crossbar clb.I[0]-&gt;crossbar open open</port>
 				<port name="cin">open</port>
 				<port name="ce">open</port>
 				<port name="sr">clb.sr[0]-&gt;sr</port>
@@ -1362,7 +1388,7 @@
 			</clocks>
 			<block name="ffd27" instance="blef[0]" mode="default">
 				<inputs>
-					<port name="in">open open open fle.in[3]-&gt;in0 open</port>
+					<port name="in">open open fle.in[2]-&gt;in0 open open</port>
 					<port name="ce">open</port>
 					<port name="sr">fle.sr[0]-&gt;sr</port>
 				</inputs>
@@ -1374,7 +1400,7 @@
 				</clocks>
 				<block name="ffd27" instance="lutf[0]" mode="lutf">
 					<inputs>
-						<port name="in">open open open blef.in[3]-&gt;lut_in open</port>
+						<port name="in">open open blef.in[2]-&gt;lut_in open open</port>
 					</inputs>
 					<outputs>
 						<port name="out">lut[0].out[0]-&gt;direct:lutf</port>
@@ -1384,8 +1410,8 @@
 						<attributes />
 						<parameters />
 						<inputs>
-							<port name="in">open open open lutf.in[3]-&gt;direct:lutf open</port>
-							<port_rotation_map name="in">open open open 0 open</port_rotation_map>
+							<port name="in">open open lutf.in[2]-&gt;direct:lutf open open</port>
+							<port_rotation_map name="in">open open 0 open open</port_rotation_map>
 						</inputs>
 						<outputs>
 							<port name="out">ffd27</port>
@@ -1411,7 +1437,7 @@
 			</block>
 			<block name="ffd28" instance="blef[1]" mode="default">
 				<inputs>
-					<port name="in">fle.in[0]-&gt;in1 open open open open</port>
+					<port name="in">open open open fle.in[3]-&gt;in1 open</port>
 					<port name="ce">open</port>
 					<port name="sr">fle.sr[0]-&gt;sr</port>
 				</inputs>
@@ -1423,7 +1449,7 @@
 				</clocks>
 				<block name="ffd28" instance="lutf[0]" mode="lutf">
 					<inputs>
-						<port name="in">blef.in[0]-&gt;lut_in open open open open</port>
+						<port name="in">open open open blef.in[3]-&gt;lut_in open</port>
 					</inputs>
 					<outputs>
 						<port name="out">lut[0].out[0]-&gt;direct:lutf</port>
@@ -1433,8 +1459,8 @@
 						<attributes />
 						<parameters />
 						<inputs>
-							<port name="in">lutf.in[0]-&gt;direct:lutf open open open open</port>
-							<port_rotation_map name="in">0 open open open open</port_rotation_map>
+							<port name="in">open open open lutf.in[3]-&gt;direct:lutf open</port>
+							<port_rotation_map name="in">open open open 0 open</port_rotation_map>
 						</inputs>
 						<outputs>
 							<port name="out">ffd28</port>
@@ -1461,7 +1487,7 @@
 		</block>
 		<block name="ffd38" instance="fle[2]" mode="frac">
 			<inputs>
-				<port name="in">clb.I[1]-&gt;crossbar clb.I[3]-&gt;crossbar open open open open</port>
+				<port name="in">open open clb.I[1]-&gt;crossbar clb.I[3]-&gt;crossbar open open</port>
 				<port name="cin">open</port>
 				<port name="ce">open</port>
 				<port name="sr">clb.sr[0]-&gt;sr</port>
@@ -1475,7 +1501,7 @@
 			</clocks>
 			<block name="ffd36" instance="blef[0]" mode="default">
 				<inputs>
-					<port name="in">open fle.in[1]-&gt;in0 open open open</port>
+					<port name="in">open open open fle.in[3]-&gt;in0 open</port>
 					<port name="ce">open</port>
 					<port name="sr">fle.sr[0]-&gt;sr</port>
 				</inputs>
@@ -1487,7 +1513,7 @@
 				</clocks>
 				<block name="ffd36" instance="lutf[0]" mode="lutf">
 					<inputs>
-						<port name="in">open blef.in[1]-&gt;lut_in open open open</port>
+						<port name="in">open open open blef.in[3]-&gt;lut_in open</port>
 					</inputs>
 					<outputs>
 						<port name="out">lut[0].out[0]-&gt;direct:lutf</port>
@@ -1497,8 +1523,8 @@
 						<attributes />
 						<parameters />
 						<inputs>
-							<port name="in">open lutf.in[1]-&gt;direct:lutf open open open</port>
-							<port_rotation_map name="in">open 0 open open open</port_rotation_map>
+							<port name="in">open open open lutf.in[3]-&gt;direct:lutf open</port>
+							<port_rotation_map name="in">open open open 0 open</port_rotation_map>
 						</inputs>
 						<outputs>
 							<port name="out">ffd36</port>
@@ -1524,7 +1550,7 @@
 			</block>
 			<block name="ffd38" instance="blef[1]" mode="default">
 				<inputs>
-					<port name="in">fle.in[0]-&gt;in1 open open open open</port>
+					<port name="in">open open fle.in[2]-&gt;in1 open open</port>
 					<port name="ce">open</port>
 					<port name="sr">fle.sr[0]-&gt;sr</port>
 				</inputs>
@@ -1536,7 +1562,7 @@
 				</clocks>
 				<block name="ffd38" instance="lutf[0]" mode="lutf">
 					<inputs>
-						<port name="in">blef.in[0]-&gt;lut_in open open open open</port>
+						<port name="in">open open blef.in[2]-&gt;lut_in open open</port>
 					</inputs>
 					<outputs>
 						<port name="out">lut[0].out[0]-&gt;direct:lutf</port>
@@ -1546,8 +1572,8 @@
 						<attributes />
 						<parameters />
 						<inputs>
-							<port name="in">lutf.in[0]-&gt;direct:lutf open open open open</port>
-							<port_rotation_map name="in">0 open open open open</port_rotation_map>
+							<port name="in">open open lutf.in[2]-&gt;direct:lutf open open</port>
+							<port_rotation_map name="in">open open 0 open open</port_rotation_map>
 						</inputs>
 						<outputs>
 							<port name="out">ffd38</port>
@@ -1574,7 +1600,7 @@
 		</block>
 		<block name="n17" instance="fle[3]" mode="lut">
 			<inputs>
-				<port name="in">clb.I[2]-&gt;crossbar clb.I[3]-&gt;crossbar clb.I[1]-&gt;crossbar clb.I[4]-&gt;crossbar clb.I[0]-&gt;crossbar fle[0].out[0]-&gt;crossbar</port>
+				<port name="in">clb.I[1]-&gt;crossbar clb.I[0]-&gt;crossbar clb.I[2]-&gt;crossbar fle[0].out[0]-&gt;crossbar clb.I[3]-&gt;crossbar clb.I[4]-&gt;crossbar</port>
 				<port name="cin">open</port>
 				<port name="ce">open</port>
 				<port name="sr">open</port>
@@ -1611,7 +1637,7 @@
 						<parameters />
 						<inputs>
 							<port name="in">lut.in[0]-&gt;direct:lut lut.in[1]-&gt;direct:lut lut.in[2]-&gt;direct:lut lut.in[3]-&gt;direct:lut lut.in[4]-&gt;direct:lut lut.in[5]-&gt;direct:lut</port>
-							<port_rotation_map name="in">3 0 4 1 2 5</port_rotation_map>
+							<port_rotation_map name="in">4 2 3 5 0 1</port_rotation_map>
 						</inputs>
 						<outputs>
 							<port name="out">n17</port>

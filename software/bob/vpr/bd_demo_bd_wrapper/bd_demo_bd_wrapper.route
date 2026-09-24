@@ -1,4 +1,4 @@
-Placement_File: bd_demo_bd_wrapper.place Placement_ID: SHA256:b74382e9a7130f2b388209fdedaa5ddf1b0a5cbff4f68688e19869372147c0de
+Placement_File: bd_demo_bd_wrapper.place Placement_ID: SHA256:bc8510dead9b4f949e8ee2eeeb4a797fd19692cdd3101c195109ce85408bcf03
 Array size: 14 x 12 logic blocks.
 
 Routing:
@@ -56,12 +56,13 @@ Node:	1679	  SINK (1,3,0)  Class: 2  Switch: -1 Net_pin_index: 1
 
 Net 5 (led[1])
 
-Node:	1668	SOURCE (1,3,0)  Class: 4  Switch: 0
-Node:	1685	  OPIN (1,3,0)  Pin: 19   clb.O[0] Switch: 2
-Node:	7965	 CHANY (1,1,0) to (1,3,0)  Track: 21  Switch: 2
-Node:	5994	 CHANX (2,0,0) to (5,0,0)  Track: 8  Switch: 2
-Node:	6022	 CHANX (5,0,0) to (8,0,0)  Track: 0  Switch: 2
-Node:	6056	 CHANX (8,0,0) to (11,0,0)  Track: 16  Switch: 2
+Node:	1673	SOURCE (1,3,0)  Class: 9  Switch: 0
+Node:	1688	  OPIN (1,3,0)  Pin: 24   clb.O[5] Switch: 2
+Node:	6282	 CHANX (1,2,0) to (2,2,0)  Track: 2  Switch: 2
+Node:	8081	 CHANY (2,1,0) to (2,2,0)  Track: 11  Switch: 2
+Node:	6004	 CHANX (3,0,0) to (6,0,0)  Track: 8  Switch: 2
+Node:	6032	 CHANX (6,0,0) to (9,0,0)  Track: 0  Switch: 2
+Node:	6042	 CHANX (7,0,0) to (10,0,0)  Track: 0  Switch: 2
 Node:	6076	 CHANX (10,0,0) to (12,0,0)  Track: 16  Switch: 2
 Node:	9346	 CHANY (12,1,0) to (12,4,0)  Track: 16  Switch: 1
 Node:	1663	  IPIN (13,2,0)  Pad: 0  Switch: 0
@@ -70,10 +71,12 @@ Node:	1661	  SINK (13,2,0)  Pad: 0  Switch: -1 Net_pin_index: 1
 
 Net 6 (led[0])
 
-Node:	1669	SOURCE (1,3,0)  Class: 5  Switch: 0
-Node:	1687	  OPIN (1,3,0)  Pin: 20   clb.O[1] Switch: 2
-Node:	6280	 CHANX (1,2,0) to (2,2,0)  Track: 0  Switch: 2
-Node:	8073	 CHANY (2,1,0) to (2,2,0)  Track: 3  Switch: 2
+Node:	1675	SOURCE (1,3,0)  Class: 11  Switch: 0
+Node:	1683	  OPIN (1,3,0)  Pin: 26   clb.O[7] Switch: 2
+Node:	6464	 CHANX (1,3,0)  Track: 6  Switch: 2
+Node:	7989	 CHANY (1,2,0) to (1,3,0)  Track: 35  Switch: 2
+Node:	6138	 CHANX (2,1,0)  Track: 0  Switch: 2
+Node:	8103	 CHANY (2,1,0)  Track: 33  Switch: 2
 Node:	6006	 CHANX (3,0,0) to (6,0,0)  Track: 16  Switch: 2
 Node:	6038	 CHANX (6,0,0) to (9,0,0)  Track: 24  Switch: 2
 Node:	6052	 CHANX (8,0,0) to (11,0,0)  Track: 0  Switch: 2

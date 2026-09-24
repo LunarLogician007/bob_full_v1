@@ -508,6 +508,26 @@ def run(top, seed=1, work=None, pcf=None, name=None):
     return work
 
 
+ROUTE_TRIES = 4
+
+
+def run_retry(top, seed=1, work=None, pcf=None, name=None, tries=ROUTE_TRIES):
+    """run(), and when only the router gave up, again with the next seeds: a placement that
+    leaves a few wires overused at 50 iterations routes with another one (M24: fir16 with
+    Double Duty's denser packing, 9 overused nodes on seed 1, every seed 2-5 routes).
+    -> (work, the seed that routed)"""
+    for s in range(seed, seed + tries):
+        try:
+            return run(top, s, work, pcf, name), s
+        except VprError as e:
+            if "Routing failed" not in open(os.path.join(work or os.path.join(ROOT, "build", "vpr",
+                                                                               name or top), "vpr.log")).read() \
+                    or s == seed + tries - 1:
+                raise
+            print(f"  {name or top}: seed {s} did not route, trying seed {s + 1}", flush=True)
+    raise VprError("unreachable")
+
+
 def commit(top, work, seed, name=None, pcf=None):
     """copy the result VPR produced into software/bob/vpr/<name>/ (committed, so the
     rest of the flow - FASM, chain, simulations, hwtest - needs no Docker). name
@@ -600,14 +620,14 @@ def main():
     for name in args.tops or EXAMPLES + list(VARIANTS):
         top, pcf = VARIANTS.get(name, (name, None))
         try:
-            work = run(top, args.seed, pcf=pcf, name=name)
+            work, seed = run_retry(top, args.seed, pcf=pcf, name=name)
             s = summary(work, name)
-            again = ""
+            again = f" (seed {seed})" if seed != args.seed else ""
             if args.repeat:
-                s2 = summary(run(top, args.seed, work + "_repeat", pcf, name), name)
-                again = ", same seed repeats: " + ("yes" if s2["result_sha"] == s["result_sha"] else "NO")
+                s2 = summary(run(top, seed, work + "_repeat", pcf, name), name)
+                again += ", same seed repeats: " + ("yes" if s2["result_sha"] == s["result_sha"] else "NO")
                 fails += s2["result_sha"] != s["result_sha"]
-            where = os.path.relpath(work if args.no_commit else commit(top, work, args.seed, name, pcf), ROOT)
+            where = os.path.relpath(work if args.no_commit else commit(top, work, seed, name, pcf), ROOT)
         except VprError as e:
             print(f"FAIL  {name}: {e}")
             fails += 1

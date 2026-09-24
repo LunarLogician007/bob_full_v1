@@ -1,6 +1,6 @@
 top gates
 pcf work/examples/gates/gates_swapped.pcf
-arch_sha256 0c74fabde218c005b68cb31d04e61af27b9ece8067008d272d79f2164748f9a1
+arch_sha256 1cdc99c12f22df499eb983d4a1f7d88b5ddbf52549d2d735f96ff4364816f153
 eblif_sha256 8e806ef632e328de5e6d2761344663d8d7ace668fb96cd599657b9ea46ed8a72
 seed 1
 image ghcr.io/lnis-uofu/openfpga-master@sha256:2467ffa99296516cc1bcbb07542633c90723ae17ca3f67a175f61cb9f131abbb

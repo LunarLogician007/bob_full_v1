@@ -79,7 +79,7 @@ def write_net(path, name, packed):
             for e, el in enumerate(cl.elems):
                 if el is None:
                     continue
-                mode = {"lut": "lut", "frac": "frac", "arith": "arithmetic"}[el.mode]
+                mode = {"lut": "lut", "frac": "frac", "arith": "dd"}[el.mode]       # M24: dd
                 fle = ET.SubElement(blk, "block", name=el.outs[0] or el.outs[1] or f"{cname}.e{e}",
                                     instance=f"fle[{e}]", mode=mode)
                 src = []
@@ -103,6 +103,10 @@ def write_net(path, name, packed):
                 else:
                     _leaf(fle, el.add, "add[0]")
                     _leaf(fle, el.ffs[0], "ff[0]")
+                    if el.luts:                          # M24: the LUT beside the adder (dd)
+                        ble = ET.SubElement(fle, "block", name=el.luts[0].name, instance="bled[0]")
+                        _leaf(ble, el.luts[0], "lutd[0]", _rot(el.luts[0], el.ins[:K - 2], K - 1))
+                        _leaf(ble, el.ffs[1], "ff[0]")
         elif cl.type in ("bram", "dsp"):
             ET.SubElement(blk, "block", name=cl.atoms["prim"].name, instance=f"{cl.type}_prim[0]")
     ET.ElementTree(top).write(path, encoding="unicode")

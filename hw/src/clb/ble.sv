@@ -2,6 +2,7 @@
 // ble.sv -- one logic element of the cluster (OpenFPGA k6_frac_N10's fle)
 //
 //   LUTK (fracturable)  ->  carry chain (MUXCY/XORCY)  ->  two flops (FDRE/FDSE)
+//   M24: or the carry chain on two bypass inputs beside a LUT(K-2) (Double Duty)
 //
 // Grown from clb.sv (M4-M20, one element per CLB), which stays as the reference:
 //   * FRAC: input K-1 reads 1, so the LUT is two LUT(K-1)s over i[K-2:0] sharing
@@ -61,6 +62,7 @@ module ble #(
   wire ff2_rstval = cfg[`BOB_ELE_FF2_RSTVAL];
   wire ff2_ce_en  = cfg[`BOB_ELE_FF2_CE_EN];
   wire ff2_sr_en  = cfg[`BOB_ELE_FF2_SR_EN];
+  wire dd         = cfg[`BOB_ELE_DD];
 
   // ---- LUT ------------------------------------------------------------------
   wire [4:0] la;                                   // CFGLUT5 address: i[K-2:0]
@@ -81,9 +83,15 @@ module ble #(
   wire lut_o6 = (i[K-1] | frac) ? hi6 : lo6;        // MUXF7
   wire lut_o5 = lo6;
 
-  // ---- carry chain (clb.sv, unchanged) ---------------------------------------
-  wire di      = cy_di_sel ? lut_o5 : i[0];
-  wire prop    = lut_o6;
+  // ---- carry chain (clb.sv) ---------------------------------------------------
+  // M24 Double Duty (Pun, Dai, Zgheib, Iyer, Boutros, Betz, Abdelfattah, FPL 2025): with dd
+  // the adder's operands bypass the LUT, A = i[K-2] (also the generate input DI) and
+  // B = i[K-1], prop = A ^ B ^ INV_B (cy_di_sel, unused as a DI select in this mode). The LUT
+  // is then free for independent logic on out[1]: O5, a LUT(K-2) over i[K-3:0] (the
+  // bitstream repeats its table over A). The paper bypasses 4 inputs into an ALM's 2 adders;
+  // bob's element has one adder, so 2.
+  wire di      = dd ? i[K-2] : (cy_di_sel ? lut_o5 : i[0]);
+  wire prop    = dd ? (i[K-2] ^ i[K-1] ^ cy_di_sel) : lut_o6;
   wire cy_mux  = prop ? cin : di;   // MUXCY
   wire cy_sum  = prop ^ cin;        // XORCY
 
