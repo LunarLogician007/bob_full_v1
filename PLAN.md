@@ -57,6 +57,7 @@ The 8×8 profile (48 CLBs, 9400 bits, `0x9BEEF093`) is frozen in `release/M7_8x8
 | M21 | the cluster CLB: 49 CLBs × 4 logic elements (fracturable LUT6, carry, 2 FFs) behind a full crossbar = 196 LUTs, N and the crossbar measured first (`docs/reports/M21/cluster_sweep.md`); readback from a BRAM shadow (the 256:1 readback mux removed); autostep a TCK after the pad update (M20 `bob-fir`), `clock_ctrl` period/gap registered (M20 WNS −0.919 ns); fir16, bob's cluster packer; the XDC stops timing the empty fabric (sysclk multicycle 16384, gap back to 512) and `timing.contract()` refuses any build or load whose critical path exceeds its gce spacing; IDCODE `0x0B021093` | **passed on hardware 2026-09-23** (66/66; third build closed: sysclk WNS +0.570 ns, tck +4990 ns) (`make hwtest M=M21`). Checklist `docs/hwtest/M21.md` |
 | M22 | LUT contents and the crossbar in AMD CFGLUT5 (ZUMA-style), measured first (a CLB: 469 LUTs + 424 config FFs → 193 LUTs + 48 FFs, yosys); 9 × 9 = 81 CLBs = 324 LUTs; `lut_loader.v` shifts each written frame into its CLB's CFGLUT5s, `lut_expand.v` expands the compact selects, JPROGRAM sweeps zeros; nothing on the wire changes; IDCODE `0x0B022093` | **on the board 2026-09-24: 65/67**; the two failed fir16 live checks rerun 12/12 (one interactive rerun pending). Vivado WNS +0.172 ns, 38,184 LUTs (71.8%), SLICEM 70.6%. Checklist `docs/hwtest/M22.md`, spec `docs/superpowers/specs/2026-09-23-m22-lutram-design.md` |
 | M23 | the grid sweep (`software/bob/gridsweep.py`: SLICEM slices were the wall), crossbar roots as a fixed OR in a plain LUT (`lxor.v`: 152 → 128 CFGLUT5 per CLB), routing muxes as LUT6 + MUXF7/MUXF8 primitives; **10 × 10 = 100 CLBs = 400 LUTs**, W 36, fc_in 0.10; 24-bit chain count; IDCODE `0x0B023093` | **passed on the board 2026-09-24: 68/68 automatic + manual**; Vivado WNS +0.048 ns, 36,710 LUTs (69.0%), slices 88.0%, SLICEM 92.6%. First build (12 × 11, O5/O6-shared leaves) did not place: a dual-output CFGLUT5 is two LUT sites. yosys: 25,691 LUT + 12,800 CFGLUT5 + 26,787 FF. Checklist `docs/hwtest/M23.md` |
+| M24 | **Double Duty elements** (Pun et al., FPL 2025): flag `dd` feeds the adder from two bypass inputs (A = in[K-2], B = in[K-1]) so the LUT stays free for out[1]; VPR mode `dd` replaces `arithmetic`; bob's packer fills adder elements' LUTs; `vpr_run` retries seeds when only routing fails; IDCODE `0x0B024093` | code done on branch `m24`; elements vs M23: VPR −4.7%, bob's packer −13.2%; host +120 LUTs. Checklist `docs/hwtest/M24.md` |
 
 Hardware results are in `docs/hwtest/results.log`; Vivado reports are in `docs/reports/Mx/`; per-design guest reports in `docs/reports/M11/designs.md`.
 
@@ -244,6 +245,34 @@ holds one CLB's, and Vivado packed 3.37 per slice (84% of the SLICEMs at 81 CLBs
   (`BOB_LKIND`/`BOB_LMASKS`); wide bench literals are chunked (`sim/vlit.py`); `lint.sh`
   raises the stack for verilator.
 - **Board check:** `xbar-pins`, the snake on every pin, ANDed with const1 on the others.
+
+### M24: Double Duty elements
+
+Pun, Dai, Zgheib, Iyer, Boutros, Betz and Abdelfattah, *Double Duty* (FPL 2025): an
+element's adder normally reads its operands through the LUT, so an adder bit uses the
+whole element. Feeding the adder from element inputs directly frees the LUT.
+
+- **RTL** (`ble.sv`): flag `dd` (with `cy_en`): prop = in[K-2] ^ in[K-1] ^ INV_B
+  (`cy_di_sel`), DI = in[K-2]; O5 (a LUT(K-2) over in[K-3:0], its table repeated over
+  in[K-2]) drives out[1]. The paper bypasses 4 inputs into 2 adders; bob has 1 adder per
+  element, so 2.
+- **VPR:** mode `dd` (bob_add on in[K-2]/in[K-1] + a LUT on in[K-3:0]) replaces `arithmetic`
+  (two modes cannot share the chain's pack pattern). The LUT is declared K-1 wide with its top
+  pin unconnected: VPR's packer prefers the smallest primitive, and a K-2 LUT drew lone LUTs
+  here instead of into frac pairs (fir16 +22% elements). Sharing A with the LUT failed: a
+  constant adder input is no net in VPR, so it routed a LUT net onto that pin (wide, big
+  broke in the model check).
+- **bob's packer** (`pnr/pack.py`) fills each adder element's LUT with the LUT sharing the
+  most nets with its chain, a choice VPR cannot express. Elements over the examples: VPR 295 →
+  281 (−4.7%), bob's packer 256 (−13.2%). `vpr_run.run_retry` tries the next seeds when
+  only the router fails (fir16 routes with seed 2).
+- **Checks:** `tb_clb` with dd chains; the new `dd` design in DESIGNS (selftest, tb_bob);
+  hwtest `double-duty` with FakeBob(ignore_dd); mutants `dd-ignored`, `dd-no-inv`,
+  `dd-di-from-b`.
+- **Not done:** mapping general logic onto the carry chain (Kim & Anderson, FPL 2021: MIG
+  majority logic). The hardware now allows it (a dd chain computes XOR3 sums and MAJ3 carries
+  of routed signals, as `d_dd` shows), but it needs a synthesis pass (MIG extraction in
+  yosys/ABC): a milestone of its own.
 
 ## 3. How the user wants this done (non-negotiable)
 

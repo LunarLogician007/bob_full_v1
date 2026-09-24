@@ -5,7 +5,23 @@ This file is the live state: what is finished, what is in flight, and exactly wh
 
 ---
 
-## 0. Next agent: start here (2026-09-24, after the M23 merge)
+## 0. Next agent: start here (2026-09-24, M24 on branch `m24`)
+
+- `main` matches the board (M23, IDCODE `0x0B023093`). **M24 is in the worktree
+  `/Users/sk/work/bob/bob_full_v1_m24`, branch `m24`**; merge and tag only after its board test.
+- The user chose (2026-09-24) option 4 of the paper list: more logic per element, "carry chain
+  and Double Duty". Done: Double Duty, end to end (PLAN §2 M24). Not done: general logic on
+  the carry chain via MIG (Kim & Anderson, FPL 2021). The fabric supports it now, but it needs
+  a synthesis pass; this is the natural M25.
+- Results: tb_clb 4048 PASS; every VPR example and the Python PnR pass the model check;
+  elements −4.7% (VPR) / −13.2% (bob's packer); yosys 25,811 LUT (+120); fake-board
+  double-duty pass and fail; `dd-*` mutants killed. `make check`: see the latest `m24` commit.
+- Next: the user builds M24 in Vivado (`docs/hwtest/M24.md`), then `make hwtest M=M24`.
+- Still missing from M23: `docs/reports/M23/{delay_paths.rpt, sysclk_1cycle.txt, drc.rpt,
+  build_info.txt}`.
+
+## 0z. The M23 state (kept for reference)
+ (2026-09-24, after the M23 merge)
 
 ### Where things are
 - **One checkout:** `/Users/sk/work/bob/bob_full_v1`, branch `main`, holds everything through

@@ -2198,6 +2198,46 @@ MILESTONE["M23"] = (
     [("xbar-pins", check_xbar_pins)] +
     [MILESTONE["M22"][-1]])
 
+# --- M24: Double Duty elements (the adder on two bypass inputs beside a LUT) -------------
+
+
+def check_double_duty(p, ctx):
+    """M24: designs.d_dd, loaded as frames and then over the chain: element 0 of clb(2,2)
+    adds SW0 + SW1 on its bypass inputs (LD0 = sum), element 1 passes the carry (LD1 =
+    SW0 & SW1), and element 0's own LUT computes BTN0 AND SW0 beside the adder (LD2). All 8
+    input vectors against the truth written out here (not the model): a fabric that
+    ignores dd, or whose adder still reads the LUT, gets LD0/LD1 wrong."""
+    import cfgplane
+    import fpga
+    from bitstream import CHAIN_W
+    from designs import d_dd
+    word = d_dd().build().to_int()
+    want = [((v & 1) ^ (v >> 1 & 1)) | (((v & 1) & (v >> 1 & 1)) << 1) | (((v >> 2 & 1) & (v & 1)) << 2)
+            for v in range(8)]
+    txt = []
+    for how in ("frames", "chain"):
+        if how == "frames":
+            ok, msg = cfgplane.load_frames(p, word)
+        else:
+            cfgplane.jprogram(p)
+            ok, msg = cfgplane.load(p, word, CHAIN_W)
+        if not ok:
+            fpga.go_live(p)
+            return False, f"{how} load: {msg}"
+        got = [g & 7 for g in fpga.intest_sweep(p, list(range(8)))]
+        if got != want:
+            fpga.go_live(p)
+            return False, f"{how}: LD2..0 for BTN0,SW1,SW0 = 000..111: {got}, want {want}"
+        txt.append(f"{how} 8/8")
+    fpga.go_live(p)
+    return True, "adder sum/carry and the LUT beside it in one element: " + ", ".join(txt)
+
+
+MILESTONE["M24"] = (
+    MILESTONE["M23"][:-1] +
+    [("double-duty", check_double_duty)] +
+    [MILESTONE["M23"][-1]])
+
 # --- runner ------------------------------------------------------------------
 
 def manual_steps(milestone):

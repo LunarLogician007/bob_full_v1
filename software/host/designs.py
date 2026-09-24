@@ -134,6 +134,31 @@ def d_cross():
 
 
 # (key, description, builder, input sweep, LUT inputs needed)
+DD_AT = (2, 2)          # M24: a CLB whose carry-in is the (unconfigured, cout 0) CLB below
+
+
+def d_dd():
+    """M24 Double Duty (hw/src/clb/ble.sv dd): element 0 of clb(2,2) adds SW0 + SW1 on its
+    bypass inputs (A = in[K-2], B = in[K-1]): LD0 = the sum, SW0 ^ SW1. Element 1 is a Double
+    Duty adder on two zeros, so its sum is element 0's carry out, SW0 & SW1 (LD1). And in
+    element 0 itself, beside the adder, its LUT computes BTN0 AND SW0 on in[0], in[1] -> O5 ->
+    out[1] (LD2): the adder and an unrelated function in one element."""
+    K = LUT_K
+    x, y = DD_AT
+    d = Design()
+    sw0, sw1, btn0 = d.input(0), d.input(1), d.input(2)
+    lo = 1 << (K - 1)
+    t = [(a & 1) & ((a >> 1) & 1) for a in range(4)]          # in0 & in1
+    init = sum(t[a & 3] << a for a in range(lo))                # O5: the table over in[1:0], repeated
+    ins = [btn0, sw0] + [Const(0)] * (K - 4) + [sw0, sw1]
+    d.lut(x, y, init, ins, e=0, cy_en=1, dd=1)
+    d.lut(x, y, 0, [Const(0)] * K, e=1, cy_en=1, dd=1)
+    d.output(0, Cell(x, y, "o", 0))
+    d.output(1, Cell(x, y, "o", 1))
+    d.output(2, Cell(x, y, "o5", 0))
+    return d
+
+
 _ALL = [
     ("and",     "AND at clb(1,1), routed East across the grid to LD0",        d_and,        range(4),  2),
     ("or",      "OR at clb(1,1)",                                             d_or,         range(4),  2),
@@ -147,6 +172,8 @@ _ALL = [
     ("const",   "constant sources: const0 and const1 through two CLBs",       d_consts,     range(1),  1),
     ("showcase", "AND, OR and XOR of the two switches on the three LEDs",     d_showcase,   range(4),  2),
     ("cross",   "AND/INV/XOR on opposite corners: routes cross the BRAM and DSP columns", d_cross, range(4), 2),
+    ("dd",      "M24 Double Duty at clb(2,2): SW0+SW1 on e0's adder (LD0 sum, LD1 carry via e1) "
+                "beside BTN0 AND SW0 in e0's own LUT (LD2)",                        d_dd,         range(8),  4),
 ]
 
 # Designs wider than the LUT size are left out (M4: K is a parameter).

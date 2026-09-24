@@ -337,3 +337,16 @@ Status: **same** = byte-identical to `bob/`, **moved** = same content at a new p
 | architecture | `software/bob/device.py` `ARCH_M23`, `cfglut5_per_clb` | modified: 12 × 10 core, W 36, fc_in 0.10 |
 | board check | `software/host/hwtest.py` `check_xbar_pins`, `designs.d_snake_pins`, `FakeBob(dead_xbar_pin=j)` | **new**, on the M22 snake |
 | mutants | `sim/mutate_fabric.sh` | modified: OR-root, expander and primitive-mux mutants; `lxmux-root-no-ce` retired with its file |
+
+
+## M24: Double Duty elements (2026-09-24)
+
+| what | where | reused / new |
+|---|---|---|
+| element | `hw/src/clb/ble.sv` | modified: flag `dd`, the adder on in[K-2]/in[K-1] (Pun et al., FPL 2025) |
+| architecture | `software/bob/vpr_arch.py` `_add_body`, `_add_mode`; `device.py` ELEMENT_FIELDS `dd` | modified: mode `dd` replaces `arithmetic` |
+| FASM, model, timing | `fasm_from_vpr.py`, `model.py` `clb_comb`, `timing.py` | modified |
+| Python packer | `software/bob/pnr/pack.py`, `write.py` | modified: fills adder elements' LUTs; writes `dd` |
+| VPR retries | `software/bob/vpr_run.py` `run_retry` (used by `flow.py` and `make vpr`) | **new** |
+| design and board check | `designs.d_dd`, `hwtest.check_double_duty`, `FakeBob(ignore_dd=True)` | **new** |
+| mutants | `sim/mutate_fabric.sh` `dd-*` | **new** |

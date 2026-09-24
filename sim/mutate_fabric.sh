@@ -140,6 +140,11 @@ run mux-f8-select       src/fabric/bob_mux.v    's/\.S\(s\[3\]\)/.S(s[2])/'
 run mux-leaf-init       src/fabric/bob_mux.v    's/64.hFF00F0F0CCCCAAAA/64'"'"'hFF00CCCCF0F0AAAA/'
 run mux-top-select      src/fabric/bob_mux.v    's/assign o = top\[s\[SW-1:4\]\];/assign o = top[0];/'
 
+# M24: Double Duty (ble.sv dd: the adder on i[K-2], i[K-1] beside the LUT)
+run dd-ignored          src/clb/ble.sv          's/wire dd         = cfg\[`BOB_ELE_DD\];/wire dd         = 1'"'"'b0;/'
+run dd-no-inv           src/clb/ble.sv          's/\(i\[K-2\] \^ i\[K-1\] \^ cy_di_sel\)/(i[K-2] ^ i[K-1])/'
+run dd-di-from-b        src/clb/ble.sv          's/wire di      = dd \? i\[K-2\]/wire di      = dd ? i[K-1]/'
+
 wait
 cat "$WORK"/*.out
 survivors=$(cat "$WORK"/*.n | awk '{s += $1} END {print s + 0}')

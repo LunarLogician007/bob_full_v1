@@ -57,6 +57,20 @@ _XF = {f["name"]: (f["offset"], f["width"]) for f in B.DEVICE["tile_types"]["clb
        if f["group"] == "xbar"}
 
 
+_DD = next((f["offset"], f["width"]) for f in B.DEVICE["tile_types"]["clb"]["fields"]
+           if f["name"] == "e0.dd")
+_DD_STRIDE = next(f["offset"] for f in B.DEVICE["tile_types"]["clb"]["fields"] if f["name"] == "e1.dd") - _DD[0]
+
+
+def _no_dd(word):
+    """M24: a fabric without Double Duty: every element's dd flag reads 0"""
+    for b in B.DEVICE["blocks"]:
+        if b["type"] == "clb":
+            for e in range(B.CLB_N):
+                word &= ~(1 << (b["chain_lo"] + _DD[0] + e * _DD_STRIDE))
+    return word
+
+
 def _dead_pin(word, j):
     """every CLB's element input j reads const0 (a crossbar mux whose leaves never load)"""
     for b in B.DEVICE["blocks"]:
@@ -73,13 +87,15 @@ class FakeBob:
 
     def _fabric_word(self, word):
         """what the fabric runs: the configuration, less the L-frames on a broken loader"""
+        if self.ignore_dd:
+            word = _no_dd(word)
         if self.dead_xbar_pin is not None:
             word = _dead_pin(word, self.dead_xbar_pin)
         return word & ~LBIT_MASK if self.lose_lframes else word
 
     def __init__(self, corrupt_capture=False, corrupt_sample=False, rate_scale=1.0, switches=lambda t: 0,
                  ignore_freeze=False, wipe_on_partial=False, lose_clocks=0, max_hz=None,
-                 budget=None, stale_shadow=False, lose_lframes=False, dead_xbar_pin=None):
+                 budget=None, stale_shadow=False, lose_lframes=False, dead_xbar_pin=None, ignore_dd=False):
         self.ir = "IDCODE"
         self.chain = 0
         self.expected = 0
@@ -108,6 +124,7 @@ class FakeBob:
         # fills; broken board: the loader never shifts, so every L-frame reads zero
         self.lose_lframes = lose_lframes
         self.dead_xbar_pin = dead_xbar_pin
+        self.ignore_dd = ignore_dd
         # One simulated edge is a model.settle() - a Python fixed point over every mux,
         # about a millisecond at 100 CLBs - so a fast free-running clock asks for more
         # edges than this can run and the backlog grows without end. With a budget (in
