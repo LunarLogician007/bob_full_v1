@@ -5,12 +5,15 @@ This file is the live state: what is finished, what is in flight, and exactly wh
 
 ---
 
-## 0. Next agent: start here (2026-09-24, M23 on branch `m23`)
+## 0. Next agent: start here (2026-09-24, after the M23 merge)
 
 ### Where things are
-- `main` (`/Users/sk/work/bob/bob_full_v1`) holds everything through M22 and matches the
-  board (IDCODE `0x0B022093`). **M23 lives in the worktree `/Users/sk/work/bob/bob_full_v1_m23`,
-  branch `m23`.** Do not merge it until the M23 board test passes; tag `m23` only then.
+- **One checkout:** `/Users/sk/work/bob/bob_full_v1`, branch `main`, holds everything through
+  M23 and matches the board (IDCODE `0x0B023093`). The `m23` worktree was merged and removed
+  (branch kept); tags `m21`, `m22`, `m23` are set.
+- Uncommitted and the user's: `docs/bob_full_v1_report.tex` (never commit it),
+  `docs/reports/M20/`, `docs/reports/M21/` (`timing.rpt`, `util.rpt`, `bob_top.bit`).
+- For the next milestone, work in a new worktree again.
 - The user asked (2026-09-24, before sleeping): the delay fix, then the M23 sweep, then the
   biggest grid that fits (10 × 10 or more), then papers on new FPGA ideas bob could use.
 
