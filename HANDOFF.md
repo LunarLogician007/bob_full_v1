@@ -73,9 +73,12 @@ This file is the live state: what is finished, what is in flight, and exactly wh
 - **`make hwtest M=M23`: 68/68 automatic checks PASS** (9 min), including lutram-snake and
   xbar-pins over all 400 elements, frames and chain, partial reconfiguration, the fir16
   live checks and clock-margin 5.00x on silicon.
-- Still to do: the interactive part (`--manual`: the live-fir16 goals and the M23.md
-  steps); the rest of `out\M23\` (`delay_paths.rpt`, `sysclk_1cycle.txt`, `drc.rpt`,
-  `build_info.txt`) for the delay fold.
+- **Manual steps done by the user (2026-09-24, reported: "manual over").** M23 passed; `m23`
+  merged into `main` and tagged.
+- Still missing from `docs/reports/M23/`: `delay_paths.rpt`, `sysclk_1cycle.txt`, `drc.rpt`,
+  `build_info.txt` (in `E:\bob_full_v1\bob_vivado\out\M23\`). When they arrive, run
+  `software/bob/delays.py fold docs/reports/M23/delay_paths.rpt` (the first build with the
+  rename fix; `delays.json` is still provisional) and `tests/test_reports.py`.
 
 ### Next
 1. The user runs the M23 Vivado build (`docs/hwtest/M23.md`). Watch "Phase 1.3" for the
