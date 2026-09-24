@@ -330,6 +330,7 @@ Status: **same** = byte-identical to `bob/`, **moved** = same content at a new p
 | expander | `hw/src/core/lut_expand.v` | modified: leaves only, no root table |
 | routing mux | `hw/src/fabric/bob_mux.v` | modified: LUT6 4:1 leaves + MUXF7/MUXF8 (UG474 "Multiplexers") in place of a behavioural table; the value mapping (and the table the mutants edit) unchanged |
 | primitive models | `hw/tb/prims/LUT6.v`, `MUXF7.v`, `MUXF8.v` | **new**, sim only, beside M22's CFGLUT5 (X handling as UNISIM) |
+| routing mux bench | `sim/gen_mux_tb.py`, `sim/run_mux_sim.sh` (`make sim`; first stop for `bob_mux` mutants) | **new**: bob_mux against M22's behavioural table, every width up to 40 inputs |
 | chain count | `hw/src/core/cfg_ctrl.v`, `software/host/cfgplane.py`, `fakeboard.py`, `hw/tb/tb_bob.v` | modified: 24-bit count; CFG_CTRL keeps its 64-bit format and reports the low 16 bits |
 | L-bit mask | `software/bob/device.py` `lmask_kinds`, `cfg_store.v` `LKIND`/`LMASKS` | modified: a frame → kind table instead of one chain-wide constant |
 | wide literals | `sim/vlit.py`, used by `gen_vectors`, `gen_frame_vectors`, `gen_synth_vectors`, `gen_cosim` | **new** |

@@ -39,6 +39,12 @@ run_one() {
             if [[ $v != pass ]]; then echo "  killed  $name (tb_clb)$(killed_note "$v")"; return; fi
         fi
     fi
+    # M23: the routing mux has its own bench over every width (tb_bob only meets this fabric's)
+    if [[ "$file" == src/fabric/bob_mux.v ]]; then
+        if ! sim/run_mux_sim.sh "$mut" "$WORK/$name-mux" > "$WORK/$name-mux.log" 2>&1; then
+            echo "  killed  $name (tb_mux)"; return
+        fi
+    fi
     if ! iverilog -g2012 -DSIMULATION -Ihw/src/generated -Ihw/tb -s tb_bob -o "$WORK/$name.vvp" \
             "${SRC[@]}" hw/tb/tb_bob.v 2>"$WORK/$name.err"; then
         echo "  ERROR   $name: does not compile"; sed 's/^/          /' "$WORK/$name.err" | head -5
