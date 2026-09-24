@@ -21,8 +21,15 @@ This file is the live state: what is finished, what is in flight, and exactly wh
   M23's). `delays.json` is still the provisional M16 estimate x 2; silicon has shown a 5x
   margin (clock-margin). Folding measured delays (`delays.py fold`, 1.25x guard band)
   should make every design's clock 2-4x faster.
-- Next: the user builds M25 (`docs/hwtest/M25.md`), then `make hwtest M=M25`; the gradual
-  learning page and the docs refresh.
+- **`make check` on m25 (2026-09-25, 3 h 14 min):** every simulation passes - tb_clb 4048,
+  tb_mux 164,992, BRAM 5292, DSP 1344, tb_bob 680, cfg 180, K=4 4048 + 550, synth 972,
+  cosim 7026, frames 82 (with [19] GRESTORE) + 17 + 17 - lint is clean, pytest 549 passed. The
+  only 2 failures, test_reports[M23] and [M24], need `sysclk_1cycle.txt` from those builds
+  (not yet copied from `out\M23\` and `out\M24\`).
+- Docs done: `docs/learn/layer_by_layer.html` (volume 2, gradual build-up; artifact
+  https://claude.ai/artifact/H7Sk39vinJtqpqwThZsNNK), volume 1 links it, and REPORT and GUIDE
+  are brought through M25.
+- Next: the user builds M25 (`docs/hwtest/M25.md`), then `make hwtest M=M25`.
 
 ## 0y. The M24 state (kept for reference)
  (2026-09-24, M24 on branch `m24`)
