@@ -53,8 +53,9 @@ This file is the live state: what is finished, what is in flight, and exactly wh
 - tb_clb 4032 PASS. VPR: all 39 steps PASS. Fake-board M22/M23 tests 10/10. Crossbar
   mutants all killed by tb_clb: `lxor-root-and`, `lxor-drop-leaf0`, `expand-leaf-index`,
   `expand-no-const1`, `expand-bit-order`.
-- tb_bob, lint, the routing-mux mutants and the full `make check`: see the latest `m23`
-  commits. The 12 × 11 run passed tb_bob 672/672, cfg, K=4 and synth before it was
+- **tb_bob 671/671 PASS** (20 min) and **lint clean** on 10 × 10. The routing-mux mutants
+  and the full `make check` (cosim takes hours with the primitive models): see the latest
+  `m23` commits. The 12 × 11 run passed tb_bob 672/672, cfg, K=4 and synth before it was
   stopped. cosim is slow with the primitive mux models (more than 3 h at 12 × 11).
 
 ### Next
