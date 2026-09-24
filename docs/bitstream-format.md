@@ -496,7 +496,7 @@ frames, the same CRC, the same FASM.
   the word, and the JPROGRAM sweep; every chip-level bench loads over JTAG, through the
   loader. Mutants `expand-bit-order`, `lut-halves-swapped`, `loader-31-shifts`,
   `loader-no-sweep`, and from M23 `pair-outputs-swapped`, `pair-i4-low`, `pair-root-and`,
-  `expand-half-select`, `expand-const1-leaf` (`sim/mutate_fabric.sh`). On the board,
+  `expand-half-select`, `expand-no-const1` (`sim/mutate_fabric.sh`). On the board,
   `lutram-snake` chains every element (docs/hwtest/M22.md) and `xbar-pairs` does it on
   every pin (docs/hwtest/M23.md).
 - **M23 masks.** `BOB_LFRAME_MASK` became `BOB_LKIND` (a kind per frame) and `BOB_LMASKS`

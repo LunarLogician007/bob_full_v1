@@ -128,7 +128,8 @@ run pair-outputs-swapped src/clb/lxpair.v       's/\.O5\(la\[g\]\), \.O6\(lb\[g\
 run pair-i4-low         src/clb/lxpair.v        's/\.I4\(1.b1\)/.I4(1'"'"'b0)/'
 run pair-root-and       src/clb/lxpair.v        's/assign oa = \|la;/assign oa = \&la;/'
 run expand-half-select  src/core/lut_expand.v   's/= a\[4\] \? hb/= ~a[4] ? hb/'
-run expand-const1-leaf  src/core/lut_expand.v   's/\(one && g == 0\)/(one \&\& g == 1)/'
+# (const1 in leaf 1 instead of leaf 0 is equivalent under the OR root: this one drops it)
+run expand-no-const1    src/core/lut_expand.v   's/\(one && g == 0\)/(1'"'"'b0 \&\& g == 0)/'
 run mux-f7-select       src/fabric/bob_mux.v    's/\.S\(s\[2\]\)/.S(s[1])/'
 run mux-f8-select       src/fabric/bob_mux.v    's/\.S\(s\[3\]\)/.S(s[2])/'
 run mux-leaf-init       src/fabric/bob_mux.v    's/64.hFF00F0F0CCCCAAAA/64'"'"'hFF00CCCCF0F0AAAA/'
