@@ -42,7 +42,8 @@ def device():
         "cfglut5": c["lutram"]["cfglut5_per_clb"], "elem_w": c["element_width"],
         "frames": d["frames"]["count"], "frame_bits": d["frames"]["bits"], "chain": d["chain"]["width"],
         "far_cols": [[col["x"], col["count"]] for col in d["frames"]["columns"]],
-        "muxes": len(d["rr"]["muxes"]), "pads": d["pads"]["count"],
+        "muxes": len(d["rr"]["muxes"]) - sum(1 for b in d["blocks"] if b["type"] == "clb") * c["n"] * d["lut_k"],
+        "xbar_muxes": sum(1 for b in d["blocks"] if b["type"] == "clb") * c["n"] * d["lut_k"], "pads": d["pads"]["count"],
         "nclb": sum(1 for b in d["blocks"] if b["type"] == "clb"),
         "idcode": d.get("clock", {}).get("idcode"),
     }

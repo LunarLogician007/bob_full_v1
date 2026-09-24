@@ -610,7 +610,7 @@ stage("st-memory", "0 0 640 400", [
       });
       T(g, 240, 58, "one CLB tile", { class: "lbl" });
     } },
-  { say: `Across the chip there are ${fmt(D.muxes)} routing multiplexers, each with its select bits, stored in the tile where the multiplexer sits.`,
+  { say: `Across the chip there are ${fmt(D.muxes)} routing multiplexers (and ${fmt(D.xbar_muxes)} crossbar ones inside the CLBs), each with its select bits, stored in the tile where it sits.`,
     draw(g) { R(g, 240, 160, 360, 30, "cfgbit"); T(g, 420, 180, `${fmt(D.muxes)} routing multiplexers`, { class: "small", "text-anchor": "middle" }); } },
   { say: `Everything is cut into <b>frames</b> of ${D.frame_bits} bits, column by column (UG470). Each bar is one column of the grid, as tall as its number of frames.`,
     draw(g) {
