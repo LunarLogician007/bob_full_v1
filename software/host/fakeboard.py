@@ -52,16 +52,34 @@ for _b in B.DEVICE["blocks"]:
         LBIT_MASK |= _TMASK << _b["chain_lo"]
 
 
+# M23: the select fields of one crossbar input of every element, per CLB
+_XF = {f["name"]: (f["offset"], f["width"]) for f in B.DEVICE["tile_types"]["clb"]["fields"]
+       if f["group"] == "xbar"}
+
+
+def _dead_pin(word, j):
+    """every CLB's element input j reads const0 (a crossbar mux whose leaves never load)"""
+    for b in B.DEVICE["blocks"]:
+        if b["type"] != "clb":
+            continue
+        for e in range(B.CLB_N):
+            o, w = _XF[f"e{e}.x{j}"]
+            word &= ~(((1 << w) - 1) << (o + b["chain_lo"]))
+    return word
+
+
 class FakeBob:
     BUDGET = None                                   # seconds of simulation per scan; None: no bound
 
     def _fabric_word(self, word):
         """what the fabric runs: the configuration, less the L-frames on a broken loader"""
+        if self.dead_xbar_pin is not None:
+            word = _dead_pin(word, self.dead_xbar_pin)
         return word & ~LBIT_MASK if self.lose_lframes else word
 
     def __init__(self, corrupt_capture=False, corrupt_sample=False, rate_scale=1.0, switches=lambda t: 0,
                  ignore_freeze=False, wipe_on_partial=False, lose_clocks=0, max_hz=None,
-                 budget=None, stale_shadow=False, lose_lframes=False):
+                 budget=None, stale_shadow=False, lose_lframes=False, dead_xbar_pin=None):
         self.ir = "IDCODE"
         self.chain = 0
         self.expected = 0
@@ -89,6 +107,7 @@ class FakeBob:
         # M22: the LUT contents and crossbar selects live in CFGLUT5s that lut_loader.v
         # fills; broken board: the loader never shifts, so every L-frame reads zero
         self.lose_lframes = lose_lframes
+        self.dead_xbar_pin = dead_xbar_pin
         # One simulated edge is a model.settle() - a Python fixed point over every mux,
         # about a millisecond at 100 CLBs - so a fast free-running clock asks for more
         # edges than this can run and the backlog grows without end. With a budget (in
@@ -221,7 +240,7 @@ class FakeBob:
             self.frames.mem = mem
             return packets.to_jtag(words)[1] & ((1 << n) - 1)
         if ir == "CFG_CTRL":
-            out = (self.expected | (self.count << 32) | (int(chainbits.crc32c_bits(self.chain, B.CHAIN_W)
+            out = (self.expected | ((self.count & 0xFFFF) << 32) | (int(chainbits.crc32c_bits(self.chain, B.CHAIN_W)
                    == self.expected) << 48) | (self.committed << 51) | (self.done << 55)
                    | (chainbits.CTRL_VERSION << 56))
             if din >> 56 == chainbits.CTRL_KEY:          # only the expected CRC (cfg_ctrl.v)

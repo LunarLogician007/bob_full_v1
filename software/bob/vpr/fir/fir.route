@@ -1,268 +1,289 @@
-Placement_File: fir.place Placement_ID: SHA256:a60cdac3f4917b751b178138b6935edf0f89eba5a91031da4b47928f2fa61849
-Array size: 13 x 11 logic blocks.
+Placement_File: fir.place Placement_ID: SHA256:72bd6d76f114d4fa4d6da9e124068fe9f048b64b3442d4f6d8d14d7710673081
+Array size: 14 x 12 logic blocks.
 
 Routing:
 
 Net 0 (btn[2])
 
-Node:	2364	SOURCE (0,5,0)  Pad: 1  Switch: 0
-Node:	2366	  OPIN (0,5,0)  Pad: 1  Switch: 2
-Node:	6833	 CHANY (0,5,0) to (0,8,0)  Track: 0  Switch: 2
-Node:	6335	 CHANX (1,7,0) to (2,7,0)  Track: 32  Switch: 2
-Node:	7109	 CHANY (2,8,0) to (2,9,0)  Track: 24  Switch: 2
-Node:	6541	 CHANX (3,8,0) to (6,8,0)  Track: 32  Switch: 2
-Node:	6547	 CHANX (4,8,0) to (7,8,0)  Track: 16  Switch: 2
-Node:	7436	 CHANY (5,5,0) to (5,8,0)  Track: 15  Switch: 2
-Node:	6045	 CHANX (6,5,0) to (7,5,0)  Track: 8  Switch: 2
-Node:	7652	 CHANY (7,2,0) to (7,5,0)  Track: 39  Switch: 1
-Node:	996	  IPIN (8,3,0)  Pin: 2   dsp.a[2] Switch: 0
-Node:	606	  SINK (8,3,0)  Class: 2  Switch: -1 Net_pin_index: 2
-Node:	6547	 CHANX (4,8,0) to (7,8,0)  Track: 16  Switch: 2
-Node:	7676	 CHANY (7,5,0) to (7,8,0)  Track: 15  Switch: 1
-Node:	3291	  IPIN (8,6,0)  Pin: 1   dsp.a[1] Switch: 0
-Node:	2925	  SINK (8,6,0)  Class: 1  Switch: -1 Net_pin_index: 1
+Node:	2540	SOURCE (0,5,0)  Pad: 1  Switch: 0
+Node:	2542	  OPIN (0,5,0)  Pad: 1  Switch: 2
+Node:	7884	 CHANY (0,5,0) to (0,8,0)  Track: 0  Switch: 2
+Node:	6846	 CHANX (1,5,0) to (2,5,0)  Track: 32  Switch: 2
+Node:	6854	 CHANX (2,5,0) to (5,5,0)  Track: 16  Switch: 2
+Node:	6874	 CHANX (4,5,0) to (7,5,0)  Track: 16  Switch: 2
+Node:	8782	 CHANY (7,6,0) to (7,9,0)  Track: 24  Switch: 2
+Node:	8796	 CHANY (7,8,0) to (7,10,0)  Track: 0  Switch: 1
+Node:	3918	  IPIN (8,8,0)  Pin: 2   dsp.a[2] Switch: 0
+Node:	3540	  SINK (8,8,0)  Class: 2  Switch: -1 Net_pin_index: 2
+Node:	6874	 CHANX (4,5,0) to (7,5,0)  Track: 16  Switch: 2
+Node:	8739	 CHANY (7,2,0) to (7,5,0)  Track: 15  Switch: 2
+Node:	8703	 CHANY (7,1,0) to (7,2,0)  Track: 3  Switch: 1
+Node:	967	  IPIN (8,2,0)  Pin: 1   dsp.a[1] Switch: 0
+Node:	609	  SINK (8,2,0)  Class: 1  Switch: -1 Net_pin_index: 1
 
 
 Net 1 (btn[3])
 
-Node:	3499	SOURCE (0,6,0)  Pad: 1  Switch: 0
-Node:	3501	  OPIN (0,6,0)  Pad: 1  Switch: 2
-Node:	6818	 CHANY (0,3,0) to (0,6,0)  Track: 23  Switch: 2
-Node:	5819	 CHANX (1,4,0) to (4,4,0)  Track: 16  Switch: 2
-Node:	5857	 CHANX (3,4,0) to (6,4,0)  Track: 16  Switch: 2
-Node:	5865	 CHANX (4,4,0) to (7,4,0)  Track: 8  Switch: 2
-Node:	7681	 CHANY (7,5,0) to (7,8,0)  Track: 32  Switch: 1
-Node:	3316	  IPIN (8,7,0)  Pin: 2   dsp.a[2] Switch: 0
-Node:	2926	  SINK (8,7,0)  Class: 2  Switch: -1 Net_pin_index: 1
-Node:	5819	 CHANX (1,4,0) to (4,4,0)  Track: 16  Switch: 2
-Node:	7146	 CHANY (3,1,0) to (3,4,0)  Track: 23  Switch: 2
-Node:	5509	 CHANX (4,2,0) to (7,2,0)  Track: 16  Switch: 2
-Node:	7606	 CHANY (7,1,0) to (7,2,0)  Track: 3  Switch: 1
-Node:	971	  IPIN (8,2,0)  Pin: 1   dsp.a[1] Switch: 0
-Node:	605	  SINK (8,2,0)  Class: 1  Switch: -1 Net_pin_index: 2
+Node:	2978	SOURCE (0,6,0)  Pad: 1  Switch: 0
+Node:	2980	  OPIN (0,6,0)  Pad: 1  Switch: 2
+Node:	7869	 CHANY (0,3,0) to (0,6,0)  Track: 23  Switch: 2
+Node:	6652	 CHANX (1,4,0) to (2,4,0)  Track: 16  Switch: 2
+Node:	8018	 CHANY (1,5,0) to (1,6,0)  Track: 32  Switch: 2
+Node:	6852	 CHANX (2,5,0) to (5,5,0)  Track: 8  Switch: 2
+Node:	8532	 CHANY (5,6,0) to (5,7,0)  Track: 32  Switch: 2
+Node:	7054	 CHANX (6,6,0) to (7,6,0)  Track: 8  Switch: 2
+Node:	8786	 CHANY (7,7,0) to (7,10,0)  Track: 0  Switch: 1
+Node:	3897	  IPIN (8,7,0)  Pin: 1   dsp.a[1] Switch: 0
+Node:	3539	  SINK (8,7,0)  Class: 1  Switch: -1 Net_pin_index: 2
+Node:	6652	 CHANX (1,4,0) to (2,4,0)  Track: 16  Switch: 2
+Node:	8101	 CHANY (2,1,0) to (2,4,0)  Track: 31  Switch: 2
+Node:	6004	 CHANX (3,0,0) to (6,0,0)  Track: 8  Switch: 2
+Node:	8474	 CHANY (5,1,0) to (5,3,0)  Track: 26  Switch: 2
+Node:	6550	 CHANX (6,3,0) to (7,3,0)  Track: 0  Switch: 2
+Node:	8705	 CHANY (7,1,0) to (7,3,0)  Track: 5  Switch: 1
+Node:	988	  IPIN (8,3,0)  Pin: 2   dsp.a[2] Switch: 0
+Node:	610	  SINK (8,3,0)  Class: 2  Switch: -1 Net_pin_index: 1
 
 
 Net 2 (n32)
 
-Node:	2237	SOURCE (9,4,0)  Class: 10  Switch: 0
-Node:	2253	  OPIN (9,4,0)  Pin: 25   clb.O[6] Switch: 2
-Node:	7785	 CHANY (8,4,0) to (8,7,0)  Track: 8  Switch: 2
-Node:	7799	 CHANY (8,5,0) to (8,8,0)  Track: 24  Switch: 1
-Node:	3281	  IPIN (8,6,0)  Pin: 25   dsp.b[0] Switch: 0
-Node:	2949	  SINK (8,6,0)  Class: 25  Switch: -1 Net_pin_index: 1
+Node:	1932	SOURCE (9,3,0)  Class: 10  Switch: 0
+Node:	1948	  OPIN (9,3,0)  Pin: 25   clb.O[6] Switch: 2
+Node:	8839	 CHANY (8,1,0) to (8,3,0)  Track: 13  Switch: 2
+Node:	6400	 CHANX (9,2,0) to (12,2,0)  Track: 8  Switch: 2
+Node:	9239	 CHANY (11,1,0) to (11,2,0)  Track: 35  Switch: 2
+Node:	9221	 CHANY (11,1,0)  Track: 17  Switch: 2
+Node:	6057	 CHANX (8,0,0) to (11,0,0)  Track: 23  Switch: 2
+Node:	8702	 CHANY (7,1,0) to (7,3,0)  Track: 2  Switch: 1
+Node:	969	  IPIN (8,2,0)  Pin: 25   dsp.b[0] Switch: 0
+Node:	633	  SINK (8,2,0)  Class: 25  Switch: -1 Net_pin_index: 1
 
 
 Net 3 (n33)
 
-Node:	1319	SOURCE (5,2,0)  Class: 11  Switch: 0
-Node:	1327	  OPIN (5,2,0)  Pin: 26   clb.O[7] Switch: 2
-Node:	5520	 CHANX (4,2,0) to (5,2,0)  Track: 27  Switch: 2
-Node:	7299	 CHANY (4,3,0) to (4,6,0)  Track: 24  Switch: 2
-Node:	5879	 CHANX (5,4,0) to (8,4,0)  Track: 24  Switch: 2
-Node:	5891	 CHANX (6,4,0) to (9,4,0)  Track: 32  Switch: 1
-Node:	2257	  IPIN (9,4,0)  Pin: 13   clb.I[13] Switch: 0
-Node:	2240	  SINK (9,4,0)  Class: 0  Switch: -1 Net_pin_index: 2
-Node:	5879	 CHANX (5,4,0) to (8,4,0)  Track: 24  Switch: 2
-Node:	7797	 CHANY (8,5,0) to (8,8,0)  Track: 16  Switch: 2
-Node:	7805	 CHANY (8,6,0) to (8,9,0)  Track: 8  Switch: 1
-Node:	3306	  IPIN (8,7,0)  Pin: 26   dsp.b[1] Switch: 0
-Node:	2950	  SINK (8,7,0)  Class: 26  Switch: -1 Net_pin_index: 1
+Node:	1409	SOURCE (6,2,0)  Class: 11  Switch: 0
+Node:	1417	  OPIN (6,2,0)  Pin: 26   clb.O[7] Switch: 2
+Node:	6378	 CHANX (6,2,0) to (7,2,0)  Track: 24  Switch: 2
+Node:	8622	 CHANY (6,3,0) to (6,6,0)  Track: 8  Switch: 2
+Node:	6906	 CHANX (7,5,0) to (10,5,0)  Track: 24  Switch: 2
+Node:	8891	 CHANY (8,4,0) to (8,5,0)  Track: 35  Switch: 2
+Node:	6580	 CHANX (9,3,0) to (11,3,0)  Track: 10  Switch: 1
+Node:	1950	  IPIN (9,3,0)  Pin: 5   clb.I[5] Switch: 0
+Node:	1935	  SINK (9,3,0)  Class: 0  Switch: -1 Net_pin_index: 2
+Node:	8622	 CHANY (6,3,0) to (6,6,0)  Track: 8  Switch: 2
+Node:	7066	 CHANX (7,6,0)  Track: 16  Switch: 2
+Node:	8751	 CHANY (7,3,0) to (7,6,0)  Track: 23  Switch: 1
+Node:	990	  IPIN (8,3,0)  Pin: 26   dsp.b[1] Switch: 0
+Node:	634	  SINK (8,3,0)  Class: 26  Switch: -1 Net_pin_index: 1
 
 
 Net 4 (n12)
 
-Node:	2828	SOURCE (8,5,0) to (8,8,0)  Class: 172  Switch: 0
-Node:	3097	  OPIN (8,5,0)  Pin: 172   dsp.p[0] Switch: 2
-Node:	7768	 CHANY (8,2,0) to (8,5,0)  Track: 23  Switch: 2
-Node:	7744	 CHANY (8,1,0) to (8,3,0)  Track: 21  Switch: 1
-Node:	1875	  IPIN (9,3,0)  Pin: 8   clb.I[8] Switch: 0
-Node:	1845	  SINK (9,3,0)  Class: 0  Switch: -1 Net_pin_index: 1
+Node:	512	SOURCE (8,1,0) to (8,5,0)  Class: 172  Switch: 0
+Node:	873	  OPIN (8,5,0)  Pin: 172   dsp.p[0] Switch: 2
+Node:	8737	 CHANY (7,2,0) to (7,5,0)  Track: 7  Switch: 2
+Node:	8707	 CHANY (7,1,0) to (7,4,0)  Track: 7  Switch: 2
+Node:	6060	 CHANX (8,0,0) to (9,0,0)  Track: 32  Switch: 2
+Node:	8980	 CHANY (9,1,0) to (9,2,0)  Track: 28  Switch: 1
+Node:	1516	  IPIN (9,2,0)  Pin: 6   clb.I[6] Switch: 0
+Node:	1497	  SINK (9,2,0)  Class: 0  Switch: -1 Net_pin_index: 1
 
 
 Net 5 (n16)
 
-Node:	2829	SOURCE (8,5,0) to (8,8,0)  Class: 173  Switch: 0
-Node:	3112	  OPIN (8,6,0)  Pin: 173   dsp.p[1] Switch: 2
-Node:	7778	 CHANY (8,3,0) to (8,6,0)  Track: 23  Switch: 2
-Node:	5569	 CHANX (9,2,0)  Track: 6  Switch: 1
-Node:	1871	  IPIN (9,3,0)  Pin: 15   clb.I[15] Switch: 0
-Node:	1845	  SINK (9,3,0)  Class: 0  Switch: -1 Net_pin_index: 1
+Node:	513	SOURCE (8,1,0) to (8,5,0)  Class: 173  Switch: 0
+Node:	781	  OPIN (8,1,0)  Pin: 173   dsp.p[1] Switch: 2
+Node:	8844	 CHANY (8,1,0) to (8,3,0)  Track: 18  Switch: 1
+Node:	1526	  IPIN (9,2,0)  Pin: 4   clb.I[4] Switch: 0
+Node:	1497	  SINK (9,2,0)  Class: 0  Switch: -1 Net_pin_index: 1
 
 
 Net 6 (n20)
 
-Node:	2830	SOURCE (8,5,0) to (8,8,0)  Class: 174  Switch: 0
-Node:	3122	  OPIN (8,7,0)  Pin: 174   dsp.p[2] Switch: 2
-Node:	7788	 CHANY (8,4,0) to (8,7,0)  Track: 23  Switch: 2
-Node:	5749	 CHANX (9,3,0)  Track: 6  Switch: 1
-Node:	1860	  IPIN (9,3,0)  Pin: 5   clb.I[5] Switch: 0
-Node:	1845	  SINK (9,3,0)  Class: 0  Switch: -1 Net_pin_index: 1
+Node:	514	SOURCE (8,1,0) to (8,5,0)  Class: 174  Switch: 0
+Node:	793	  OPIN (8,2,0)  Pin: 174   dsp.p[2] Switch: 2
+Node:	8862	 CHANY (8,2,0) to (8,5,0)  Track: 0  Switch: 1
+Node:	1525	  IPIN (9,2,0)  Pin: 0   clb.I[0] Switch: 0
+Node:	1497	  SINK (9,2,0)  Class: 0  Switch: -1 Net_pin_index: 1
 
 
 Net 7 (n24)
 
-Node:	2831	SOURCE (8,5,0) to (8,8,0)  Class: 175  Switch: 0
-Node:	3184	  OPIN (8,8,0)  Pin: 175   dsp.p[3] Switch: 2
-Node:	7798	 CHANY (8,5,0) to (8,8,0)  Track: 23  Switch: 2
-Node:	5919	 CHANX (9,4,0) to (11,4,0)  Track: 24  Switch: 1
-Node:	2256	  IPIN (9,4,0)  Pin: 9   clb.I[9] Switch: 0
-Node:	2240	  SINK (9,4,0)  Class: 0  Switch: -1 Net_pin_index: 1
+Node:	515	SOURCE (8,1,0) to (8,5,0)  Class: 175  Switch: 0
+Node:	801	  OPIN (8,3,0)  Pin: 175   dsp.p[3] Switch: 2
+Node:	8872	 CHANY (8,3,0) to (8,6,0)  Track: 0  Switch: 1
+Node:	1963	  IPIN (9,3,0)  Pin: 0   clb.I[0] Switch: 0
+Node:	1935	  SINK (9,3,0)  Class: 0  Switch: -1 Net_pin_index: 1
 
 
 Net 8 (n28)
 
-Node:	2832	SOURCE (8,5,0) to (8,8,0)  Class: 176  Switch: 0
-Node:	3102	  OPIN (8,5,0)  Pin: 176   dsp.p[4] Switch: 2
-Node:	5903	 CHANX (8,4,0) to (11,4,0)  Track: 0  Switch: 2
-Node:	7850	 CHANY (9,1,0) to (9,4,0)  Track: 7  Switch: 1
-Node:	2261	  IPIN (9,4,0)  Pin: 14   clb.I[14] Switch: 0
-Node:	2240	  SINK (9,4,0)  Class: 0  Switch: -1 Net_pin_index: 1
+Node:	516	SOURCE (8,1,0) to (8,5,0)  Class: 176  Switch: 0
+Node:	809	  OPIN (8,4,0)  Pin: 176   dsp.p[4] Switch: 2
+Node:	8849	 CHANY (8,1,0) to (8,4,0)  Track: 23  Switch: 2
+Node:	6584	 CHANX (9,3,0)  Track: 14  Switch: 1
+Node:	1952	  IPIN (9,3,0)  Pin: 13   clb.I[13] Switch: 0
+Node:	1935	  SINK (9,3,0)  Class: 0  Switch: -1 Net_pin_index: 1
 
 
 Net 9 (clk): global net connecting:
 
 Block clk (#8) at (1,0,0), Pin class 1.
-Block $mul$work/examples/fir/fir.v:20$3 (#0) at (8,5,0), Pin class 268.
-Block $mul$work/examples/fir/fir.v:20$4 (#1) at (8,1,0), Pin class 268.
-Block bob_gen1 (#2) at (9,3,0), Pin class 13.
-Block $auto$alumacc.cc:548:replace_alu$26.slice[3].add (#3) at (9,4,0), Pin class 13.
-Block ffd8 (#4) at (5,2,0), Pin class 13.
+Block $mul$work/examples/fir/fir.v:20$3 (#0) at (8,1,0), Pin class 268.
+Block $mul$work/examples/fir/fir.v:20$4 (#1) at (8,6,0), Pin class 268.
+Block bob_gen1 (#2) at (9,2,0), Pin class 13.
+Block $auto$alumacc.cc:548:replace_alu$26.slice[3].add (#3) at (9,3,0), Pin class 13.
+Block ffd8 (#4) at (6,2,0), Pin class 13.
 
 
 Net 10 (n34)
 
-Node:	2238	SOURCE (9,4,0)  Class: 11  Switch: 0
-Node:	2246	  OPIN (9,4,0)  Pin: 26   clb.O[7] Switch: 2
-Node:	5890	 CHANX (6,4,0) to (9,4,0)  Track: 31  Switch: 2
-Node:	7370	 CHANY (5,1,0) to (5,4,0)  Track: 7  Switch: 2
-Node:	5211	 CHANX (6,0,0) to (9,0,0)  Track: 32  Switch: 2
-Node:	7735	 CHANY (8,1,0) to (8,2,0)  Track: 12  Switch: 1
-Node:	961	  IPIN (8,2,0)  Pin: 25   dsp.b[0] Switch: 0
-Node:	629	  SINK (8,2,0)  Class: 25  Switch: -1 Net_pin_index: 1
+Node:	1933	SOURCE (9,3,0)  Class: 11  Switch: 0
+Node:	1941	  OPIN (9,3,0)  Pin: 26   clb.O[7] Switch: 2
+Node:	6576	 CHANX (9,3,0)  Track: 6  Switch: 2
+Node:	9008	 CHANY (9,4,0) to (9,7,0)  Track: 0  Switch: 2
+Node:	7292	 CHANX (10,7,0) to (12,7,0)  Track: 24  Switch: 2
+Node:	9176	 CHANY (10,8,0) to (10,10,0)  Track: 8  Switch: 2
+Node:	7763	 CHANX (7,10,0) to (10,10,0)  Track: 23  Switch: 2
+Node:	8791	 CHANY (7,7,0) to (7,10,0)  Track: 23  Switch: 1
+Node:	3899	  IPIN (8,7,0)  Pin: 25   dsp.b[0] Switch: 0
+Node:	3563	  SINK (8,7,0)  Class: 25  Switch: -1 Net_pin_index: 1
 
 
 Net 11 (n35)
 
-Node:	2236	SOURCE (9,4,0)  Class: 9  Switch: 0
-Node:	2251	  OPIN (9,4,0)  Pin: 24   clb.O[5] Switch: 2
-Node:	5765	 CHANX (9,3,0)  Track: 22  Switch: 2
-Node:	7856	 CHANY (9,1,0) to (9,3,0)  Track: 13  Switch: 2
-Node:	5392	 CHANX (9,1,0)  Track: 9  Switch: 2
-Node:	7769	 CHANY (8,2,0) to (8,5,0)  Track: 24  Switch: 1
-Node:	986	  IPIN (8,3,0)  Pin: 26   dsp.b[1] Switch: 0
-Node:	630	  SINK (8,3,0)  Class: 26  Switch: -1 Net_pin_index: 1
+Node:	1931	SOURCE (9,3,0)  Class: 9  Switch: 0
+Node:	1946	  OPIN (9,3,0)  Pin: 24   clb.O[5] Switch: 2
+Node:	6401	 CHANX (9,2,0)  Track: 9  Switch: 2
+Node:	8878	 CHANY (8,3,0) to (8,6,0)  Track: 24  Switch: 2
+Node:	6885	 CHANX (5,5,0) to (8,5,0)  Track: 23  Switch: 2
+Node:	8776	 CHANY (7,6,0) to (7,9,0)  Track: 0  Switch: 1
+Node:	3920	  IPIN (8,8,0)  Pin: 26   dsp.b[1] Switch: 0
+Node:	3564	  SINK (8,8,0)  Class: 26  Switch: -1 Net_pin_index: 1
 
 
 Net 12 (n13)
 
-Node:	508	SOURCE (8,1,0) to (8,4,0)  Class: 172  Switch: 0
-Node:	777	  OPIN (8,1,0)  Pin: 172   dsp.p[0] Switch: 2
-Node:	7723	 CHANY (8,1,0) to (8,4,0)  Track: 0  Switch: 2
-Node:	5775	 CHANX (9,3,0) to (11,3,0)  Track: 32  Switch: 1
-Node:	1859	  IPIN (9,3,0)  Pin: 1   clb.I[1] Switch: 0
-Node:	1845	  SINK (9,3,0)  Class: 0  Switch: -1 Net_pin_index: 1
+Node:	3442	SOURCE (8,6,0) to (8,10,0)  Class: 172  Switch: 0
+Node:	3803	  OPIN (8,10,0)  Pin: 172   dsp.p[0] Switch: 2
+Node:	8801	 CHANY (7,8,0) to (7,10,0)  Track: 23  Switch: 2
+Node:	8773	 CHANY (7,5,0) to (7,8,0)  Track: 31  Switch: 2
+Node:	6914	 CHANX (8,5,0) to (11,5,0)  Track: 16  Switch: 2
+Node:	8991	 CHANY (9,2,0) to (9,5,0)  Track: 15  Switch: 1
+Node:	1517	  IPIN (9,2,0)  Pin: 10   clb.I[10] Switch: 0
+Node:	1497	  SINK (9,2,0)  Class: 0  Switch: -1 Net_pin_index: 1
 
 
 Net 13 (n17)
 
-Node:	509	SOURCE (8,1,0) to (8,4,0)  Class: 173  Switch: 0
-Node:	792	  OPIN (8,2,0)  Pin: 173   dsp.p[1] Switch: 2
-Node:	7763	 CHANY (8,2,0) to (8,5,0)  Track: 0  Switch: 1
-Node:	1874	  IPIN (9,3,0)  Pin: 4   clb.I[4] Switch: 0
-Node:	1845	  SINK (9,3,0)  Class: 0  Switch: -1 Net_pin_index: 1
+Node:	3443	SOURCE (8,6,0) to (8,10,0)  Class: 173  Switch: 0
+Node:	3711	  OPIN (8,6,0)  Pin: 173   dsp.p[1] Switch: 2
+Node:	8877	 CHANY (8,3,0) to (8,6,0)  Track: 23  Switch: 2
+Node:	8855	 CHANY (8,1,0) to (8,3,0)  Track: 29  Switch: 2
+Node:	6236	 CHANX (9,1,0)  Track: 22  Switch: 1
+Node:	1522	  IPIN (9,2,0)  Pin: 11   clb.I[11] Switch: 0
+Node:	1497	  SINK (9,2,0)  Class: 0  Switch: -1 Net_pin_index: 1
 
 
 Net 14 (n21)
 
-Node:	510	SOURCE (8,1,0) to (8,4,0)  Class: 174  Switch: 0
-Node:	802	  OPIN (8,3,0)  Pin: 174   dsp.p[2] Switch: 2
-Node:	7773	 CHANY (8,3,0) to (8,6,0)  Track: 0  Switch: 1
-Node:	1873	  IPIN (9,3,0)  Pin: 0   clb.I[0] Switch: 0
-Node:	1845	  SINK (9,3,0)  Class: 0  Switch: -1 Net_pin_index: 1
+Node:	3444	SOURCE (8,6,0) to (8,10,0)  Class: 174  Switch: 0
+Node:	3723	  OPIN (8,7,0)  Pin: 174   dsp.p[2] Switch: 2
+Node:	8887	 CHANY (8,4,0) to (8,7,0)  Track: 23  Switch: 2
+Node:	8867	 CHANY (8,2,0) to (8,5,0)  Track: 23  Switch: 1
+Node:	1527	  IPIN (9,2,0)  Pin: 8   clb.I[8] Switch: 0
+Node:	1497	  SINK (9,2,0)  Class: 0  Switch: -1 Net_pin_index: 1
 
 
 Net 15 (n25)
 
-Node:	511	SOURCE (8,1,0) to (8,4,0)  Class: 175  Switch: 0
-Node:	864	  OPIN (8,4,0)  Pin: 175   dsp.p[3] Switch: 2
-Node:	7746	 CHANY (8,1,0) to (8,4,0)  Track: 23  Switch: 1
-Node:	2270	  IPIN (9,4,0)  Pin: 8   clb.I[8] Switch: 0
-Node:	2240	  SINK (9,4,0)  Class: 0  Switch: -1 Net_pin_index: 1
+Node:	3445	SOURCE (8,6,0) to (8,10,0)  Class: 175  Switch: 0
+Node:	3731	  OPIN (8,8,0)  Pin: 175   dsp.p[3] Switch: 2
+Node:	8897	 CHANY (8,5,0) to (8,8,0)  Track: 23  Switch: 2
+Node:	8885	 CHANY (8,4,0) to (8,7,0)  Track: 15  Switch: 2
+Node:	8833	 CHANY (8,1,0) to (8,4,0)  Track: 7  Switch: 1
+Node:	1964	  IPIN (9,3,0)  Pin: 4   clb.I[4] Switch: 0
+Node:	1935	  SINK (9,3,0)  Class: 0  Switch: -1 Net_pin_index: 1
 
 
 Net 16 (n29)
 
-Node:	512	SOURCE (8,1,0) to (8,4,0)  Class: 176  Switch: 0
-Node:	782	  OPIN (8,1,0)  Pin: 176   dsp.p[4] Switch: 2
-Node:	5223	 CHANX (8,0,0) to (11,0,0)  Track: 0  Switch: 2
-Node:	8117	 CHANY (11,1,0) to (11,3,0)  Track: 34  Switch: 2
-Node:	5758	 CHANX (9,3,0) to (11,3,0)  Track: 15  Switch: 1
-Node:	2264	  IPIN (9,4,0)  Pin: 7   clb.I[7] Switch: 0
-Node:	2240	  SINK (9,4,0)  Class: 0  Switch: -1 Net_pin_index: 1
+Node:	3446	SOURCE (8,6,0) to (8,10,0)  Class: 176  Switch: 0
+Node:	3739	  OPIN (8,9,0)  Pin: 176   dsp.p[4] Switch: 2
+Node:	8907	 CHANY (8,6,0) to (8,9,0)  Track: 23  Switch: 2
+Node:	7090	 CHANX (9,6,0) to (11,6,0)  Track: 18  Switch: 2
+Node:	9001	 CHANY (9,3,0) to (9,6,0)  Track: 15  Switch: 1
+Node:	1955	  IPIN (9,3,0)  Pin: 10   clb.I[10] Switch: 0
+Node:	1935	  SINK (9,3,0)  Class: 0  Switch: -1 Net_pin_index: 1
 
 
 Net 17 (led[0])
 
-Node:	1842	SOURCE (9,3,0)  Class: 10  Switch: 0
-Node:	1858	  OPIN (9,3,0)  Pin: 25   clb.O[6] Switch: 2
-Node:	7736	 CHANY (8,1,0) to (8,3,0)  Track: 13  Switch: 2
-Node:	5571	 CHANX (9,2,0) to (11,2,0)  Track: 8  Switch: 2
-Node:	8086	 CHANY (11,1,0) to (11,2,0)  Track: 3  Switch: 2
-Node:	8084	 CHANY (11,1,0)  Track: 1  Switch: 1
-Node:	1178	  IPIN (12,1,0)  Pad: 0  Switch: 0
-Node:	1176	  SINK (12,1,0)  Pad: 0  Switch: -1 Net_pin_index: 1
+Node:	1494	SOURCE (9,2,0)  Class: 10  Switch: 0
+Node:	1510	  OPIN (9,2,0)  Pin: 25   clb.O[6] Switch: 2
+Node:	8837	 CHANY (8,1,0) to (8,2,0)  Track: 11  Switch: 2
+Node:	6064	 CHANX (9,0,0) to (12,0,0)  Track: 8  Switch: 2
+Node:	6092	 CHANX (12,0,0)  Track: 0  Switch: 2
+Node:	9330	 CHANY (12,1,0) to (12,4,0)  Track: 0  Switch: 1
+Node:	1225	  IPIN (13,1,0)  Pad: 0  Switch: 0
+Node:	1223	  SINK (13,1,0)  Pad: 0  Switch: -1 Net_pin_index: 1
 
 
 Net 18 (cy5)
 
-Node:	1844	SOURCE (9,3,0)  Class: 12  Switch: 0
-Node:	1852	  OPIN (9,3,0)  Pin: 27   clb.cout[0] Switch: 0
-Node:	2267	  IPIN (9,4,0)  Pin: 18   clb.cin[0] Switch: 0
-Node:	2243	  SINK (9,4,0)  Class: 3  Switch: -1 Net_pin_index: 1
+Node:	1496	SOURCE (9,2,0)  Class: 12  Switch: 0
+Node:	1504	  OPIN (9,2,0)  Pin: 27   clb.cout[0] Switch: 0
+Node:	1962	  IPIN (9,3,0)  Pin: 18   clb.cin[0] Switch: 0
+Node:	1938	  SINK (9,3,0)  Class: 3  Switch: -1 Net_pin_index: 1
 
 
 Net 19 (sw[0])
 
-Node:	44	SOURCE (0,1,0)  Pad: 1  Switch: 0
-Node:	46	  OPIN (0,1,0)  Pad: 1  Switch: 2
-Node:	6763	 CHANY (0,1,0) to (0,4,0)  Track: 0  Switch: 2
-Node:	5839	 CHANX (1,4,0) to (2,4,0)  Track: 36  Switch: 2
-Node:	5851	 CHANX (2,4,0) to (5,4,0)  Track: 32  Switch: 2
-Node:	5881	 CHANX (5,4,0) to (8,4,0)  Track: 32  Switch: 2
-Node:	5887	 CHANX (6,4,0) to (9,4,0)  Track: 16  Switch: 1
-Node:	2255	  IPIN (9,4,0)  Pin: 5   clb.I[5] Switch: 0
-Node:	2240	  SINK (9,4,0)  Class: 0  Switch: -1 Net_pin_index: 1
+Node:	48	SOURCE (0,1,0)  Pad: 1  Switch: 0
+Node:	50	  OPIN (0,1,0)  Pad: 1  Switch: 2
+Node:	7835	 CHANY (0,1,0)  Track: 17  Switch: 2
+Node:	5974	 CHANX (1,0,0) to (3,0,0)  Track: 18  Switch: 2
+Node:	6008	 CHANX (3,0,0) to (6,0,0)  Track: 24  Switch: 2
+Node:	6034	 CHANX (6,0,0) to (9,0,0)  Track: 8  Switch: 2
+Node:	8852	 CHANY (8,1,0) to (8,3,0)  Track: 26  Switch: 2
+Node:	6596	 CHANX (9,3,0) to (11,3,0)  Track: 26  Switch: 1
+Node:	1949	  IPIN (9,3,0)  Pin: 1   clb.I[1] Switch: 0
+Node:	1935	  SINK (9,3,0)  Class: 0  Switch: -1 Net_pin_index: 1
 
 
 Net 20 (led[1])
 
-Node:	2231	SOURCE (9,4,0)  Class: 4  Switch: 0
-Node:	2248	  OPIN (9,4,0)  Pin: 19   clb.O[0] Switch: 2
-Node:	7866	 CHANY (9,1,0) to (9,4,0)  Track: 23  Switch: 2
-Node:	5431	 CHANX (10,1,0) to (11,1,0)  Track: 32  Switch: 2
-Node:	8129	 CHANY (11,2,0) to (11,5,0)  Track: 24  Switch: 1
-Node:	1573	  IPIN (12,2,0)  Pad: 0  Switch: 0
-Node:	1571	  SINK (12,2,0)  Pad: 0  Switch: -1 Net_pin_index: 1
+Node:	1926	SOURCE (9,3,0)  Class: 4  Switch: 0
+Node:	1943	  OPIN (9,3,0)  Pin: 19   clb.O[0] Switch: 2
+Node:	8973	 CHANY (9,1,0) to (9,3,0)  Track: 21  Switch: 2
+Node:	6256	 CHANX (10,1,0) to (12,1,0)  Track: 24  Switch: 2
+Node:	6270	 CHANX (12,1,0)  Track: 0  Switch: 2
+Node:	9366	 CHANY (12,2,0) to (12,5,0)  Track: 0  Switch: 1
+Node:	1663	  IPIN (13,2,0)  Pad: 0  Switch: 0
+Node:	1661	  SINK (13,2,0)  Pad: 0  Switch: -1 Net_pin_index: 1
 
 
 Net 21 (led[2])
 
-Node:	2233	SOURCE (9,4,0)  Class: 6  Switch: 0
-Node:	2252	  OPIN (9,4,0)  Pin: 21   clb.O[2] Switch: 2
-Node:	7783	 CHANY (8,4,0) to (8,7,0)  Track: 0  Switch: 2
-Node:	6275	 CHANX (9,6,0) to (11,6,0)  Track: 32  Switch: 2
-Node:	8138	 CHANY (11,3,0) to (11,6,0)  Track: 23  Switch: 2
-Node:	8112	 CHANY (11,1,0) to (11,3,0)  Track: 29  Switch: 1
-Node:	1968	  IPIN (12,3,0)  Pad: 0  Switch: 0
-Node:	1966	  SINK (12,3,0)  Pad: 0  Switch: -1 Net_pin_index: 1
+Node:	1928	SOURCE (9,3,0)  Class: 6  Switch: 0
+Node:	1947	  OPIN (9,3,0)  Pin: 21   clb.O[2] Switch: 2
+Node:	8880	 CHANY (8,3,0) to (8,4,0)  Track: 32  Switch: 2
+Node:	6772	 CHANX (9,4,0) to (12,4,0)  Track: 24  Switch: 2
+Node:	6794	 CHANX (11,4,0) to (12,4,0)  Track: 0  Switch: 2
+Node:	9337	 CHANY (12,1,0) to (12,4,0)  Track: 7  Switch: 2
+Node:	9335	 CHANY (12,1,0) to (12,3,0)  Track: 5  Switch: 1
+Node:	2101	  IPIN (13,3,0)  Pad: 0  Switch: 0
+Node:	2099	  SINK (13,3,0)  Pad: 0  Switch: -1 Net_pin_index: 1
 
 
 Net 22 (sw[1])
 
-Node:	1179	SOURCE (0,2,0)  Pad: 1  Switch: 0
-Node:	1181	  OPIN (0,2,0)  Pad: 1  Switch: 2
-Node:	6803	 CHANY (0,2,0) to (0,5,0)  Track: 0  Switch: 2
-Node:	5835	 CHANX (1,4,0) to (4,4,0)  Track: 32  Switch: 2
-Node:	7274	 CHANY (4,1,0) to (4,4,0)  Track: 31  Switch: 1
-Node:	1351	  IPIN (5,2,0)  Pin: 8   clb.I[8] Switch: 0
-Node:	1321	  SINK (5,2,0)  Class: 0  Switch: -1 Net_pin_index: 1
+Node:	1226	SOURCE (0,2,0)  Pad: 1  Switch: 0
+Node:	1228	  OPIN (0,2,0)  Pad: 1  Switch: 2
+Node:	7837	 CHANY (0,1,0) to (0,2,0)  Track: 19  Switch: 2
+Node:	5976	 CHANX (1,0,0) to (2,0,0)  Track: 20  Switch: 2
+Node:	5998	 CHANX (2,0,0) to (5,0,0)  Track: 24  Switch: 2
+Node:	8478	 CHANY (5,1,0)  Track: 30  Switch: 2
+Node:	6194	 CHANX (6,1,0) to (7,1,0)  Track: 0  Switch: 1
+Node:	1434	  IPIN (6,2,0)  Pin: 3   clb.I[3] Switch: 0
+Node:	1411	  SINK (6,2,0)  Class: 0  Switch: -1 Net_pin_index: 1

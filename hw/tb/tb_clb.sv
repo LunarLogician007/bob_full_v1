@@ -35,7 +35,7 @@ module tb_clb;
     localparam integer FB  = `BOB_FRAME_BITS;
     localparam integer LFN = `BOB_LF_N;
     localparam integer NS  = `BOB_XBAR_N;
-    localparam integer NL  = ((NS + 4) / 5 > 1) ? (NS + 4) / 5 + 1 : 1;
+    localparam integer NL  = (NS + 4) / 5;                 // M23: leaves per crossbar mux (lxor.v)
     reg           lck = 1'b0;
     reg  [LFN-1:0] lce = '0;
     reg  [FB-1:0] lbuf = '0;

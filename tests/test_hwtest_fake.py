@@ -27,6 +27,8 @@ import cfgplane  # noqa: E402
 import hwtest  # noqa: E402
 import model  # noqa: E402
 from fakeboard import FakeBob  # noqa: E402
+from bitstream import CLB_N, LUT_K  # noqa: E402
+from designs import snake_order  # noqa: E402
 
 IR = {v: k for k, v in cfgplane.IR.items()}
 
@@ -404,7 +406,7 @@ def test_m21_list_is_the_m20_regression_plus_the_cluster():
 def test_m22_lutram_snake_passes_on_a_good_board():
     ok, msg = hwtest.check_lutram_snake(FakeBob(), {})
     assert ok, msg
-    assert "324 elements" in msg
+    assert f"{len(snake_order())} elements" in msg
 
 
 def test_m22_lutram_snake_fails_when_the_loader_misses_the_tables():
@@ -416,3 +418,38 @@ def test_m22_runs_the_full_m21_list_first():
     names = [n for n, _f in hwtest.MILESTONE["M22"]]
     assert names[:len(hwtest.MILESTONE["M21"]) - 1] == [n for n, _f in hwtest.MILESTONE["M21"]][:-1]
     assert "lutram-snake" in names
+
+
+def test_m23_xbar_pins_passes_on_a_healthy_board():
+    ok, msg = hwtest.check_xbar_pins(FakeBob(), {})
+    assert ok, msg
+    assert f"{len(snake_order())} elements" in msg
+
+
+@pytest.mark.parametrize("j", [0, LUT_K - 1])
+def test_m23_xbar_pins_fails_when_a_crossbar_input_is_dead(j):
+    ok, msg = hwtest.check_xbar_pins(FakeBob(dead_xbar_pin=j), {})
+    assert not ok, msg
+
+
+def test_m23_lutram_snake_alone_misses_a_dead_last_pin():
+    """why xbar-pins exists: the M22 snake only uses pin 0"""
+    ok, msg = hwtest.check_lutram_snake(FakeBob(dead_xbar_pin=LUT_K - 1), {})
+    assert ok, msg
+
+
+def test_m23_xbar_pins_fails_when_the_loader_misses_the_tables():
+    ok, msg = hwtest.check_xbar_pins(FakeBob(lose_lframes=True), {})
+    assert not ok, msg
+
+
+def test_m23_the_snake_pins_cover_every_pin_of_every_element():
+    from designs import snake_pin
+    seen = {(k % CLB_N, snake_pin(k)) for k in range(len(snake_order()))}
+    assert seen == {(e, j) for e in range(CLB_N) for j in range(LUT_K)}
+
+
+def test_m23_runs_the_full_m22_list_first():
+    names = [n for n, _f in hwtest.MILESTONE["M23"]]
+    assert names[:len(hwtest.MILESTONE["M22"]) - 1] == [n for n, _f in hwtest.MILESTONE["M22"]][:-1]
+    assert "xbar-pins" in names

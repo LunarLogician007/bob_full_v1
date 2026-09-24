@@ -24,7 +24,13 @@ echo
 
 # The IDCODE's version nibble says which design is in the PL.
 rc=1
-if   grep -qi "6beef093" /tmp/ofl-detect.$$ /tmp/urj-out.$$; then
+if   grep -qiE "0x0b0[0-9]{2}093" /tmp/ofl-detect.$$ /tmp/urj-out.$$; then
+    # From M20 the part field names the milestone in readable digits: 0x0B0<MM>093 (hw/build.cfg)
+    mm=$(grep -hoiE "0x0b0[0-9]{2}093" /tmp/ofl-detect.$$ /tmp/urj-out.$$ | head -1 | cut -c6-7)
+    echo "RESULT: IDCODE 0x0B0${mm}093 - bob M${mm} is alive (hw/build.cfg says idcode = $(grep -E '^idcode' "$(dirname "$0")/../../hw/build.cfg" | awk '{print $3}'))."
+    echo "        test it with: make hwtest M=M${mm}"
+    rc=0
+elif grep -qi "6beef093" /tmp/ofl-detect.$$ /tmp/urj-out.$$; then
     echo "RESULT: IDCODE 0x6beef093 - the 4x4 fabric with user clock and routed CE/SR (M4) is alive."
     echo "        drive it with: ./host/fpga.py --load showcase   (6-bit AMD IR)"
     rc=0

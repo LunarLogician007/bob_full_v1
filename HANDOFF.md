@@ -1,11 +1,93 @@
-# Handoff — bob_full_v1, 2026-09-23
+# Handoff — bob_full_v1, 2026-09-24
 
 **Read `CLAUDE.md` first (the rules), then `PLAN.md` §2 (status) and §3 (how the user wants this done).**
 This file is the live state: what is finished, what is in flight, and exactly what to do next.
 
 ---
 
-## 0. Next agent: start here (2026-09-24, after the M22 merge)
+## 0. Next agent: start here (2026-09-24, M23 on branch `m23`)
+
+### Where things are
+- `main` (`/Users/sk/work/bob/bob_full_v1`) holds everything through M22 and matches the
+  board (IDCODE `0x0B022093`). **M23 lives in the worktree `/Users/sk/work/bob/bob_full_v1_m23`,
+  branch `m23`.** Do not merge it until the M23 board test passes; tag `m23` only then.
+- The user asked (2026-09-24, before sleeping): the delay fix, then the M23 sweep, then the
+  biggest grid that fits (10 × 10 or more), then papers on new FPGA ideas bob could use.
+
+### Done on `m23`
+1. **Delay extraction fix** (`0447b6a`). M22's 1100 samples were all NOPATH because Vivado
+   renamed the hierarchy (`u_core/u_store/u_fabric/...`). `extract_delays.tcl` now indexes
+   every `*u_fabric/*` net/cell and finds a sample by its path below `u_fabric`;
+   `delays.py` normalises the same way. `tests/test_build_tcl.py` has a renamed-netlist stub
+   (`BOB_STUB_RENAME=1`), and the test fails with either half of the fix removed.
+2. **The sweep** (`software/bob/gridsweep.py`, `docs/reports/M23/grid_sweep.md`). The model
+   reproduces M22 exactly (38,218 LUTs). **The wall was SLICEM slices:** the four CFGLUT5s of
+   a SLICEM share a shift enable (per CLB), so Vivado packed 3.37 per slice, and the SLICEMs
+   were 84% full at 81 CLBs.
+3. **Two cheaper building blocks:**
+   - `hw/src/clb/lxor.v`: a crossbar mux keeps its CFGLUT5 leaves (O6 only), and the root is
+     a fixed OR in a plain LUT. 152 → 128 CFGLUT5 per CLB.
+   - `hw/src/fabric/bob_mux.v`: LUT6 4:1 leaves + MUXF7/MUXF8. It equals the M22 mux over 80
+     sizes (iverilog), and yosys counts equal `gridsweep.hand_luts()`.
+4. **10 × 10 = 100 CLBs = 400 LUTs** (`ARCH_M23`: 12 × 10 core, BRAM x=3 and DSP x=8 of
+   height 5, W 36, fc_in 0.10, 44 pads, 532 frames, 68,096 bits). Every example routes in
+   VPR (fir16 needs 34). SLICEM slices 87% at M22's packing; 11 × 10 would be 96%.
+   Whole-design yosys: 25,691 LUT + 12,800 CFGLUT5 + 26,787 FF, 1.9 GB.
+5. **The first M23 build failed to place (2026-09-24, 12 × 11).** That design shared each
+   crossbar leaf between two muxes via O5/O6 (80 CFGLUT5 per CLB on paper). Vivado maps a
+   dual-output CFGLUT5 to SRL16E + SRLC32E, two LUT sites. The placer reported "Weighted
+   LUTRAM utilization is more than 100" and hung in Phase 3.2; the user stopped it. **Never
+   use a CFGLUT5's O5 in bob.** The watch-items are in `docs/hwtest/M23.md`.
+6. **Limits found on the way:**
+   - `cfg_ctrl.v`'s 16-bit chain counter would have refused every chain load. It is 24 bits
+     now; CFG_CTRL reports the low 16 and `len_err` does the full comparison. The host, the
+     fake board and `tb_bob` follow.
+   - The chain-wide L mask was split into `BOB_LKIND`/`BOB_LMASKS` (iverilog constant limit).
+   - Bench literals are chunked (`sim/vlit.py`; iverilog's 16k-character lines).
+   - `lint.sh` raises the stack (verilator segfaulted at 8 MB).
+7. **Board check `xbar-pins`** (`docs/hwtest/M23.md`): the snake on every pin, ANDed with
+   const1 on the others. The fake board has pass and fail cases (`dead_xbar_pin`,
+   `lose_lframes`), plus a test that the M22 snake alone misses a dead pin.
+
+### Verification state (10 × 10)
+- tb_clb 4032 PASS. VPR: all 39 steps PASS. Fake-board M22/M23 tests 10/10. Crossbar
+  mutants all killed by tb_clb: `lxor-root-and`, `lxor-drop-leaf0`, `expand-leaf-index`,
+  `expand-no-const1`, `expand-bit-order`.
+- **tb_bob 671/671 PASS** (20 min) and **lint clean** on 10 × 10.
+- **Routing-mux mutants all killed** by the new `sim/run_mux_sim.sh` (tb_mux: bob_mux vs
+  the behavioural table, 80 widths up to 40 inputs, 164,992 checks, 4 s; in `make sim`).
+  Under tb_bob alone `mux-top-select` survived: this fabric's widest mux has 14 values, so
+  the wide branch (sel[W-1:4]) is never instantiated, and `mux-leaf-init` only died as a
+  45-min hang.
+- **`make check` green on 10 × 10 (2026-09-24, 3 h 7 min).** tb_clb 4032, tb_mux 164,992,
+  BRAM 5292, DSP 1344, tb_bob 671, cfg 180, K=4 4032 + 541, synth 972, cosim 7026, frames
+  73 + 17 + 17, lint clean, pytest 521 passed / 23 skipped. Mutants: every M23 mutant
+  killed. The 12 × 11 run passed tb_bob 672/672, cfg, K=4 and synth before it was
+  stopped. cosim is slow with the primitive mux models (more than 3 h at 12 × 11).
+
+### M23 on the board (2026-09-24)
+- **Vivado:** timing closed, WNS +0.048 ns (WHS +0.075). 36,710 LUTs (69.0%; logic 23,982,
+  LUT as memory 12,728 = 73.2% of SLICEM LUTs), 26,960 FFs, F7 5,638 / F8 1,634, slices
+  11,709 (88.0%), SLICEMs 4,029 of 4,350 (92.6%). Slices came out fuller than the model's
+  66-76%; **10 x 10 is the ceiling for this CLB on the XC7Z020.**
+- **`make hwtest M=M23`: 68/68 automatic checks PASS** (9 min), including lutram-snake and
+  xbar-pins over all 400 elements, frames and chain, partial reconfiguration, the fir16
+  live checks and clock-margin 5.00x on silicon.
+- **Manual steps done by the user (2026-09-24, reported: "manual over").** M23 passed; `m23`
+  merged into `main` and tagged.
+- Still missing from `docs/reports/M23/`: `delay_paths.rpt`, `sysclk_1cycle.txt`, `drc.rpt`,
+  `build_info.txt` (in `E:\bob_full_v1\bob_vivado\out\M23\`). When they arrive, run
+  `software/bob/delays.py fold docs/reports/M23/delay_paths.rpt` (the first build with the
+  rename fix; `delays.json` is still provisional) and `tests/test_reports.py`.
+
+### Next
+1. The user runs the M23 Vivado build (`docs/hwtest/M23.md`). Watch "Phase 1.3" for the
+   weighted-LUTRAM warning and "Phase 3.2" for time; the fallback is 10 × 9.
+2. `delays.py fold docs/reports/M23/delay_paths.rpt`: the first build with the rename fix.
+3. `make hwtest M=M23`, then merge `m23` into `main` and tag `m23`.
+4. Paper ideas for M24+ are in `docs/research/2026-09-24-fpga-ideas.md`.
+
+## 0a. After the M22 merge (2026-09-24), kept for reference
 
 ### Where things are
 - **One checkout again:** `/Users/sk/work/bob/bob_full_v1`, branch `main`, holds everything

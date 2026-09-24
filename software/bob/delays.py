@@ -75,9 +75,17 @@ def _cls(node):
     return {"IPIN": "mux_ipin", "EIN": "mux_xbar"}.get(KIND.get(node), "mux_chan")
 
 
+def _norm(net):
+    """M23: the flattened netlist may file a fabric net under another block's hierarchy
+    (the M21 build's phys_opt named u_core/u_store/u_fabric/r5691): anything with
+    u_fabric/ in it is taken as the fabric's own u_core/u_fabric/ net."""
+    i = net.find("u_fabric/")
+    return PREFIX + net[i + len("u_fabric/"):] if i >= 0 else net
+
+
 def _node(net):
     """u_core/u_fabric/r123 -> 123, u_core/u_fabric/u_clb_x1y1/x3[2] -> its EIN node"""
-    return NODE_OF_NET.get(net)
+    return NODE_OF_NET.get(_norm(net))
 
 
 HARD = re.compile(r"\b(DSP48E1|RAMB\w*|CARRY4|FD[RSCP]E\w*)\b")
@@ -87,10 +95,13 @@ def _clean(net):
     """An intermediate net that can sit inside one bob mux: an anonymous net of the
     flattened fabric itself - not the configuration store, not a hard block's, not another
     named fabric signal (dsp_p, bram do ...)."""
+    net = _norm(net)
     if not net.startswith(PREFIX):
         return False
     rest = net[len(PREFIX):]
-    rest = re.sub(r"^u_clb_x\d+y\d+/(u_e\d+/(u_lut/)?)?", "", rest)   # M21: inside one CLB / element
+    if re.match(r"^u_clb_x\d+y\d+/", rest):
+        return True                     # M22: anything inside one CLB (the element's CFGLUT5
+                                        # halves and MUXF7, a crossbar's CFGLUT5 tree) is one hop
     return "/" not in rest and re.search(r"(_n_\d+|_i_\d+.*|\[\d+\]_i_\w*|^t\[\d+\])$", rest) is not None
 
 
@@ -214,16 +225,17 @@ def ff_samples(text):
     """The ffq / ffd sections of an extract_delays.tcl report -> {"ff_clk_q": [...],
     "ffd": [...]} in ns: clock-to-Q plus the output wire, and input wire -> D plus setup."""
     out = {"ff_clk_q": [], "ffd": []}
-    for sec in text.split("\n### ")[1:]:
+    for sec in re.split(r"(?m)^### ", text)[1:]:        # M23: the first section counts too
         head, _, body = sec.partition("\n")
         f = head.split()
-        if len(f) < 3 or f[-1] == "NOPATH" or f[0] not in ("ffq", "ffd"):
+        if len(f) < 3 or f[-1] in ("NOPATH", "NONET") or f[0] not in ("ffq", "ffd"):
             continue
+        f = [f[0]] + [_norm(x) for x in f[1:3]]
         nets = {}
         for line in body.splitlines():
             m = NET.match(line)
             if m:
-                nets[m.group(3)] = float(m.group(2))
+                nets[_norm(m.group(3))] = float(m.group(2))
         if f[0] == "ffq":
             m = CELL_Q.search(body)
             if m and f[2] in nets:

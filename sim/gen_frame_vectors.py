@@ -12,6 +12,8 @@ import random
 import re
 import sys
 
+import vlit  # noqa: E402  (sim/, this script's directory)
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "software", "host"))
 sys.path.insert(0, os.path.join(HERE, "..", "software", "bob"))
@@ -27,7 +29,7 @@ SW = 4096 * ((W + W // 16 + 4096) // 4096 + 1)
 
 
 def hexw(v, w=W):
-    return f"{w}'h{v:0{(w + 3) // 4}x}"
+    return vlit.hexw(v, w)
 
 
 def chunked(lines, limit=8000, piece=2048):

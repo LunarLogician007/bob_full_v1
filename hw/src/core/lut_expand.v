@@ -8,10 +8,10 @@
 //
 //   INIT slot s (bits [s*2**K +: 2**K] of an INIT frame): the lo CFGLUT5 takes
 //       INIT[a] and the hi one INIT[2**(K-1) + a], for a < 2**(K-1) (0 above: K < 6)
-//   crossbar slot t (bits [t*XW +: XW] of a crossbar frame, select value v): lxmux.v's
-//       tree. v = 0 const0 (all zero), v = 1 const1 (all-ones root, or the only leaf),
-//       v = 2 + i picks source i: leaf i/5 = address bit i%5, root = address bit i/5.
-//       Values past the last source read const0, as bob_mux.v's padding did.
+//   crossbar slot t (bits [t*XW +: XW] of a crossbar frame, select value v): lxor.v's
+//       leaves (M23; M22's tree had a CFGLUT5 root too). v = 0 const0 (all zero), v = 1
+//       const1 (leaf 0 all ones), v = 2 + i picks source i: leaf i/5 holds address bit i%5,
+//       the others zero. Values past the last source read const0, as bob_mux.v's padding does.
 // -----------------------------------------------------------------------------
 
 `timescale 1ns / 1ps
@@ -24,13 +24,12 @@ module lut_expand #(
     parameter integer XW   = 5,        // crossbar select width
     parameter integer NX   = 25,       // crossbar slots per crossbar frame
     parameter integer S    = 24,       // crossbar sources
-    parameter integer L    = (S + 4) / 5,
-    parameter integer NL   = (L > 1) ? L + 1 : 1
+    parameter integer L    = (S + 4) / 5   // leaves per crossbar mux
 )(
     input  wire [FB-1:0]     lbuf,
     input  wire [4:0]        cnt,
     output wire [2*NI-1:0]   cdi_init,     // slot s: [2s] lo, [2s+1] hi
-    output wire [NX*NL-1:0]  cdi_x         // slot t: [t*NL +: NL] as lxmux.v's lcdi
+    output wire [NX*L-1:0]   cdi_x         // slot t: [t*L +: L] as lxor.v's lcdi
 );
 
     localparam integer IW   = 1 << K;
@@ -63,13 +62,8 @@ module lut_expand #(
             /* verilator lint_off UNUSEDSIGNAL */
             wire [31:0]   bt  = i32 % 5;          // its address bit there (0..4)
             /* verilator lint_on UNUSEDSIGNAL */
-            if (L > 1) begin : g_tree
-                for (g = 0; g < L; g = g + 1) begin : g_leaf
-                    assign cdi_x[t*NL + g] = src && (lf == g) && a[bt[2:0]];
-                end
-                assign cdi_x[t*NL + L] = one || (src && a[lf[2:0]]);
-            end else begin : g_single
-                assign cdi_x[t*NL] = one || (src && a[bt[2:0]]);
+            for (g = 0; g < L; g = g + 1) begin : g_leaf
+                assign cdi_x[t*L + g] = (one && g == 0) || (src && lf == g && a[bt[2:0]]);
             end
         end
     endgenerate

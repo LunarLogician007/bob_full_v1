@@ -13,6 +13,8 @@ import argparse
 import os
 import sys
 
+import vlit  # noqa: E402  (sim/, this script's directory)
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "software", "host"))
 sys.path.insert(0, os.path.join(HERE, "..", "software", "bob"))
@@ -45,7 +47,7 @@ def main():
         word = bs.to_int()
         out.append(f"    // ---- {top}: {what}")
         out.append(f'    dname  = "{top}";')
-        out.append(f"    cfgw   = {W}'h{word:0{(W + 3) // 4}x};")
+        out.append(f"    cfgw   = {vlit.hexw(word, W, define=False)};")
         out.append(f"    cfgcrc = 32'h{crc32c_bits(word, W):08x};")
         out.append("    commit_config;")
         for b, words in sorted(contents.items()):

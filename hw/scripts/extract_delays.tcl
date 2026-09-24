@@ -20,6 +20,37 @@
 # fold counts them. A sample whose net or cell is not in the netlist is "### ... NONET".
 # No sample changes the design: this only reads timing.
 # -----------------------------------------------------------------------------
+# M23: the flattened netlist does not keep every net where the RTL put it. The M21 build's
+# phys_opt log names fabric wires u_core/u_store/u_fabric/r5691, not u_core/u_fabric/r5691,
+# so M22's exact-name lookups found nothing and every sample came back NOPATH. Look an
+# object up by its exact name first, then by its path from u_fabric/ on, anywhere in the
+# hierarchy. One pass indexes every fabric net and cell by that path (built the first time
+# an exact lookup misses); a path that two objects share counts as not found.
+array set bob_idx {}
+set bob_idx_built 0
+proc bob_index {} {
+    global bob_idx bob_idx_built
+    foreach kind {nets cells} {
+        foreach o [get_$kind -quiet -hierarchical -filter {NAME =~ *u_fabric/*}] {
+            set n [get_property NAME $o]
+            set k "$kind:[string range $n [string first u_fabric/ $n] end]"
+            if {[info exists bob_idx($k)]} { set bob_idx($k) {} } else { set bob_idx($k) $o }
+        }
+    }
+    set bob_idx_built 1
+    puts "extract_delays: indexed [array size bob_idx] fabric nets and cells"
+}
+proc bob_find {kind name} {
+    global bob_idx bob_idx_built
+    set x [get_$kind -quiet $name]
+    if {[llength $x]} { return $x }
+    set i [string first "u_fabric/" $name]
+    if {$i < 0} { return {} }
+    if {!$bob_idx_built} { bob_index }
+    set k "$kind:[string range $name $i end]"
+    if {[info exists bob_idx($k)]} { return $bob_idx($k) }
+    return {}
+}
 set samples [file join [file dirname [info script]] delay_samples.txt]
 if {![file exists $samples]} {
     puts "extract_delays: no $samples - run software/bob/delays.py plan on the Mac; skipped"
@@ -39,20 +70,20 @@ foreach line $lines {
     set s ""
     # M22: every sample of the first M22 build came back NOPATH. Say which objects were
     # not found at all (a naming change in the netlist) apart from ones found with no path.
-    set objs [expr {$cls eq "ffq" ? [llength [get_cells -quiet $a]] : [llength [get_nets -quiet $a]]}]
-    set objs [expr {$objs && ($cls eq "ffd" ? [llength [get_cells -quiet $b]] : [llength [get_nets -quiet $b]])}]
-    if {!$objs} {
+    set oa [bob_find [expr {$cls eq "ffq" ? "cells" : "nets"}] $a]
+    set ob [bob_find [expr {$cls eq "ffd" ? "cells" : "nets"}] $b]
+    if {![llength $oa] || ![llength $ob]} {
         incr miss; incr nonet
         puts $fh "### $cls $a $b NONET"
         continue
     }
     set err [catch {
         switch -- $cls {
-            ffq     { set s [report_timing -quiet -from [get_cells -quiet $a] -through [get_nets -quiet $b] \
+            ffq     { set s [report_timing -quiet -from $oa -through $ob \
                              -delay_type max -max_paths 1 -input_pins -return_string] }
-            ffd     { set s [report_timing -quiet -through [get_nets -quiet $a] -to [get_cells -quiet $b] \
+            ffd     { set s [report_timing -quiet -through $oa -to $ob \
                              -delay_type max -max_paths 1 -input_pins -return_string] }
-            default { set s [report_timing -quiet -through [get_nets -quiet $a] -through [get_nets -quiet $b] \
+            default { set s [report_timing -quiet -through $oa -through $ob \
                              -delay_type max -max_paths 1 -input_pins -return_string] }
         }
     } msg]

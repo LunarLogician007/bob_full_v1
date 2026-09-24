@@ -319,3 +319,21 @@ Status: **same** = byte-identical to `bob/`, **moved** = same content at a new p
 | board check | `software/host/hwtest.py` `check_lutram_snake`, `designs.d_snake`, `FakeBob(lose_lframes=True)` | **new** check on the existing INTEST sweep; a new fault switch beside the others |
 | mutant fixes | `sim/mutate_fabric.sh`, `sim/mutate_lib.sh` (`MUTATE_ONLY`) | modified |
 
+
+
+## M23: crossbar OR roots, routing muxes from primitives, 10 × 10 CLBs (2026-09-24)
+
+| what | where | reused / new |
+|---|---|---|
+| grid sweep | `software/bob/gridsweep.py`, `docs/reports/M23/grid_sweep.md` | **new**, over `sweep.py`'s VPR runs and `device.Device`: every grid × fc_in × W where the examples route, priced from its rr graph's mux sizes and the M21/M22 Vivado calibration |
+| crossbar mux | `hw/src/clb/lxor.v` | **new**, replaces M22's `lxmux.v`: the same CFGLUT5 leaves (O6 only), the root a fixed OR in a plain LUT; 152 → 128 CFGLUT5 per CLB |
+| expander | `hw/src/core/lut_expand.v` | modified: leaves only, no root table |
+| routing mux | `hw/src/fabric/bob_mux.v` | modified: LUT6 4:1 leaves + MUXF7/MUXF8 (UG474 "Multiplexers") in place of a behavioural table; the value mapping (and the table the mutants edit) unchanged |
+| primitive models | `hw/tb/prims/LUT6.v`, `MUXF7.v`, `MUXF8.v` | **new**, sim only, beside M22's CFGLUT5 (X handling as UNISIM) |
+| routing mux bench | `sim/gen_mux_tb.py`, `sim/run_mux_sim.sh` (`make sim`; first stop for `bob_mux` mutants) | **new**: bob_mux against M22's behavioural table, every width up to 40 inputs |
+| chain count | `hw/src/core/cfg_ctrl.v`, `software/host/cfgplane.py`, `fakeboard.py`, `hw/tb/tb_bob.v` | modified: 24-bit count; CFG_CTRL keeps its 64-bit format and reports the low 16 bits |
+| L-bit mask | `software/bob/device.py` `lmask_kinds`, `cfg_store.v` `LKIND`/`LMASKS` | modified: a frame → kind table instead of one chain-wide constant |
+| wide literals | `sim/vlit.py`, used by `gen_vectors`, `gen_frame_vectors`, `gen_synth_vectors`, `gen_cosim` | **new** |
+| architecture | `software/bob/device.py` `ARCH_M23`, `cfglut5_per_clb` | modified: 12 × 10 core, W 36, fc_in 0.10 |
+| board check | `software/host/hwtest.py` `check_xbar_pins`, `designs.d_snake_pins`, `FakeBob(dead_xbar_pin=j)` | **new**, on the M22 snake |
+| mutants | `sim/mutate_fabric.sh` | modified: OR-root, expander and primitive-mux mutants; `lxmux-root-no-ce` retired with its file |

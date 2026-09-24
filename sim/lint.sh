@@ -13,6 +13,8 @@
 #                 on the bitstream, not on the RTL; the router never makes one.
 set -euo pipefail
 cd "$(dirname "$0")"
+# M23: the 12 x 11 fabric overflows verilator's parser stack at the default 8 MB (exit 139)
+ulimit -s 65520 2>/dev/null || true
 
 SRC=(); while read -r l; do SRC+=("$l"); done < <(./hwfiles.sh --sim)
 
@@ -23,7 +25,7 @@ verilator --lint-only -Wall --timing -I../hw/src/generated \
 
 echo "-- complete FPGA (generated fabric) --"
 verilator --lint-only -Wall --timing -I../hw/src/generated \
-    -Wno-PROCASSINIT -Wno-UNUSEDPARAM -Wno-UNOPTFLAT --replication-limit 65536 \
+    -Wno-PROCASSINIT -Wno-UNUSEDPARAM -Wno-UNOPTFLAT --replication-limit 131072 \
     -DSIMULATION --top-module bob_top "${SRC[@]}"
 
 echo "-- M2 configuration plane --"

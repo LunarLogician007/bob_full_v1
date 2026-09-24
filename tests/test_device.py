@@ -58,8 +58,8 @@ def test_chain_fields_chain_round_trip(k):
         assert dev.encode(dev.decode(w)) == w
 
 
-SIZES = {"grid": (13, 11, 40), "blocks": {"io": 40, "clb": 81, "bram": 2, "dsp": 2},
-         "cluster": (4, 16, "full"), "chain": {6: 56448, 4: 35840}}
+SIZES = {"grid": (14, 12, 36), "blocks": {"io": 44, "clb": 100, "bram": 2, "dsp": 2},
+         "cluster": (4, 16, "full"), "chain": {6: 68096, 4: 42496}}
 
 
 @pytest.mark.parametrize("k", [6, 4])
@@ -73,6 +73,8 @@ def test_sizes(k):
     (software/bob/sweep.py, docs/reports/M21/cluster_sweep.md).
     M22: 11x9 core, 81 CLBs (324 LUTs), LUT contents and crossbar in CFGLUT5: 441 frames;
     each CLB tile frame aligned: selects + flags, 2 INIT frames, the remaining selects.
+    M23: 12x10 core, 100 CLBs (400 LUTs), W 36, fc_in 0.10, 44 pads: 532 frames
+    (software/bob/gridsweep.py, docs/reports/M23/grid_sweep.md; 12x11 did not place).
     The 8x8 profile (48 CLBs, 9400 bits) is frozen in release/M7_8x8."""
     dev = DEVICES[k]
     assert (dev.width, dev.height, dev.arch["chan_width"]) == SIZES["grid"]
@@ -205,7 +207,7 @@ def test_arch_keeps_the_reference_routing():
     assert '<switch_block type="wilton" fs="3"/>' in xml
     assert re.search(r'<segment name="L4"[^>]*length="4" type="unidir"', xml)
     fc = re.search(r'<fc in_type="frac" in_val="([0-9.]+)" out_type="frac" out_val="([0-9.]+)"', xml)
-    assert fc and (float(fc.group(1)), float(fc.group(2))) == (0.15, 0.10)
+    assert fc and (float(fc.group(1)), float(fc.group(2))) == (0.10, 0.10)    # M23: fc_in 0.10 (the sweep)
     assert '<perimeter type="io"' in xml and '<corners type="EMPTY"' in xml
 
 
@@ -267,7 +269,7 @@ def test_generated_fabric_has_every_mux_and_block():
     assert len(re.findall(r"^\s*bob_mux #.* m\d+ ", text, re.M)) == len(rr)
     # M21: one bob_clb module holds the crossbar (one mux per element input) and N elements
     body = text[text.index("module bob_clb"):]
-    assert len(re.findall(r"^\s*lxmux #", body, re.M)) == dev.cluster["n"] * dev.lut_k    # M22
+    assert len(re.findall(r"^\s*lxor #", body, re.M)) == dev.cluster["n"] * dev.lut_k    # M23 (M22: lxmux)
     assert len(re.findall(r"^\s*ble u_e\d+ ", body, re.M)) == dev.cluster["n"]
     assert len(re.findall(r"^\s*bob_clb u_clb_x\d+y\d+ ", text, re.M)) == len(dev.by_type["clb"])
     assert len(re.findall(r"^\s*bram_block u_bram\d ", text, re.M)) == 2
@@ -451,11 +453,18 @@ def test_l_frame_slots_are_the_same_in_every_clb(k):
 
 def test_the_lbit_mask_names_the_l_bits():
     vh = open(os.path.join(ROOT, "hw", "src", "generated", "bob_params.vh")).read()
-    m = re.search(r"`define BOB_LBIT_MASK\s+(\d+)'h([0-9a-f]+)", vh)
-    assert m
+    d = {k: (int(w), int(v, 16)) for k, w, v in
+         re.findall(r"`define BOB_(LKIND|LMASKS)\s+(\d+)'h([0-9a-f]+)", vh)}
+    kw = int(re.search(r"`define BOB_LKIND_W\s+(\d+)", vh).group(1))
     dev = DEVICES[6]
-    assert int(m.group(1)) == dev.chain_width < 65536        # iverilog's widest constant
-    assert int(m.group(2), 16) == dev.lbits
+    from device import FRAME_BITS
+    assert d["LKIND"][0] == kw * dev.nframes < 65536 and d["LMASKS"][0] == FRAME_BITS << kw
+    # M23: the per-frame kinds and masks put back together are the L bits, frame by frame
+    lbits = 0
+    for f in range(dev.nframes):
+        k = (d["LKIND"][1] >> (kw * f)) & ((1 << kw) - 1)
+        lbits |= ((d["LMASKS"][1] >> (FRAME_BITS * k)) & ((1 << FRAME_BITS) - 1)) << (FRAME_BITS * f)
+    assert lbits == dev.lbits
     # every L bit is inside an L-frame, and every CLB's INIT and crossbar bits are L bits
     from device import FRAME_BITS
     lf = {x["frame"] for x in dev.lframes}

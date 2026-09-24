@@ -94,14 +94,16 @@ def table():
         ("CLBs", f"{f['clb']} × {f['n']} logic elements = {f['clb'] * f['n']} LUTs (columns x = {f['clb_cols']}); "
                  f"each element LUT{f['lut_k']} (or two LUT{f['lut_k'] - 1}), MUXCY/XORCY carry, two FDRE/FDSE; "
                  f"{f['ci']} inputs and a {f['xbar']} crossbar per CLB"
-                 + ("; LUT contents and crossbar in CFGLUT5 (M22)" if f["lframes"] else "")),
+                 + ("; LUT contents and crossbar leaves in CFGLUT5 (M22), crossbar roots a plain OR (M23)"
+                    if f["lframes"] else "")),
         ("BRAM", f"{f['bram']} × 1024×18 true dual port (column x = {f['bram_col']}, "
                  f"{f['bram_h']} rows tall); contents as frames (FAR type 001) or over USER4"),
         ("DSP", f"{f['dsp']} × DSP48E1-style slices (column x = {f['dsp_col']}, "
                 f"{f['dsp_h']} rows tall), PCOUT→PCIN cascade"),
         ("I/O", f"{f['pads']} pads; board switches, buttons and LEDs on fixed pads, LD3 = DONE"),
         ("Routing", f"L{f['seg']} unidirectional, W = {f['chan_w']}, {f['sb'].replace('wilton fs=', 'Wilton Fs = ')} "
-                    f"(from OpenFPGA's k6_frac_N10 tileable arch); {f['muxes']} muxes"),
+                    f"(from OpenFPGA's k6_frac_N10 tileable arch); {f['muxes']} muxes, each LUT6 4:1 leaves "
+                    "+ MUXF7/MUXF8 (M23)"),
         ("Configuration", f"{f['chain_w']} bits = {f['frames']} frames of {f['fwords']} × 32"
                           + (f" ({f['lframes']} of them held only in CFGLUT5s)" if f["lframes"] else "") + "; "
                           "UG470-style packets on CFG_IN/CFG_OUT (CRC-32C, IDCODE, partial "

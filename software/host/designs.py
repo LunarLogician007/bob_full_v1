@@ -14,7 +14,7 @@ Each entry is (key, description, builder, input_sweep). The builder returns a
 Design; the sweep is the set of pad_i values worth checking.
 """
 
-from bitstream import BRAM_PINS, CLB_AT, CLB_N, DSP_CTRL_NAMES, Cell, Design, LUT, LUT_K
+from bitstream import BRAM_PINS, CLB_AT, CLB_N, DSP_CTRL_NAMES, Cell, Const, Design, LUT, LUT_K
 
 # the grid's extent, so designs follow device.py's ARCH (6x4 core now, 8x8 later)
 CLB_COLS = sorted({x for x, _y in CLB_AT})
@@ -387,5 +387,31 @@ def d_snake(invert=0):
     s = d.input(0)
     for k, (x, y, e) in enumerate(snake_order()):
         s = d.lut(x, y, LUT.inv(0) if (invert >> k) & 1 else LUT.buf(0), [s], e=e)
+    d.output(0, s)
+    return d
+
+
+def snake_pin(k):
+    """M23: the input pin element k of snake_order() takes the chain on: CLB c's element e
+    uses pin (c + e) % K, so every element meets every pin somewhere on the chip"""
+    return (k // CLB_N + k % CLB_N) % LUT_K
+
+
+def d_snake_pins(invert=0):
+    """M23: d_snake, but element k reads the chain on pin snake_pin(k), every other pin of it
+    is const1, and the element is the AND of them all (the chain bit, or its inverse, and the
+    const1 pins). So every crossbar mux of every CLB carries the chain once somewhere on the
+    chip, and every other mux must deliver const1 (lxor.v: leaf 0 all ones, OR root): a
+    crossbar input that does not load breaks the chain or sticks LD0 at 0."""
+    from bitstream import lut
+    d = Design()
+    s = d.input(0)
+    for k, (x, y, e) in enumerate(snake_order()):
+        j = snake_pin(k)
+        ins = [Const(1)] * LUT_K
+        ins[j] = s
+        inv = (invert >> k) & 1
+        init = lut(lambda *b, j=j, inv=inv: (b[j] ^ inv) and all(b[m] for m in range(LUT_K) if m != j))
+        s = d.lut(x, y, init, ins, e=e)
     d.output(0, s)
     return d

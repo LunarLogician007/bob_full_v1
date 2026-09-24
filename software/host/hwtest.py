@@ -180,7 +180,7 @@ def check_len_reject(p, ctx):
     cfgplane.cfg_in(p, b, n)
     st = cfgplane.status(p)
     back = cfgplane.cfg_out(p, M2_CHAIN_W)
-    ok = st["len_err"] and not st["crc_err"] and st["count"] == n and back == a
+    ok = st["len_err"] and not st["crc_err"] and st["count"] == n & 0xFFFF and back == a
     return ok, (f"len_err={st['len_err']} crc_err={st['crc_err']} count={st['count']} "
                 f"previous kept={back == a}")
 
@@ -2155,6 +2155,48 @@ MILESTONE["M22"] = (
     MILESTONE["M21"][:-1] +
     [("lutram-snake", check_lutram_snake)] +
     [MILESTONE["M21"][-1]])
+
+# --- M23: crossbar OR roots, routing muxes from primitives, 10 x 10 CLBs -----------------------
+
+
+def check_xbar_pins(p, ctx):
+    """M23: the snake again (every element in one chain, SW0 -> LD0), but element k reads the
+    chain on pin snake_pin(k) and ANDs it with its other pins, all const1
+    (designs.d_snake_pins): every crossbar mux of every CLB (lxor.v: CFGLUT5 leaves, an OR
+    root) carries the chain somewhere on the chip, and all the others must deliver const1.
+    Loaded as frames, then its complement over the chain; LD0 must be SW0 xor the mask's
+    parity both times."""
+    import random
+    import cfgplane
+    import fpga
+    from bitstream import CHAIN_W
+    from designs import d_snake_pins, snake_order
+    n = len(snake_order())
+    mask = random.Random(SNAKE_SEED + 1).getrandbits(n)
+    runs = []
+    for m, how in ((mask, "frames"), (mask ^ ((1 << n) - 1), "chain")):
+        word = d_snake_pins(m).build().to_int()
+        if how == "frames":
+            ok, msg = cfgplane.load_frames(p, word)
+        else:
+            cfgplane.jprogram(p)
+            ok, msg = cfgplane.load(p, word, CHAIN_W)
+        if not ok:
+            fpga.go_live(p)
+            return False, f"{how} load: {msg}"
+        got = [v & 1 for v in fpga.intest_sweep(p, [0, 1])]
+        par = bin(m).count("1") & 1
+        runs.append((how, got, [par, 1 ^ par]))
+    fpga.go_live(p)
+    bad = [r for r in runs if r[1] != r[2]]
+    txt = "; ".join(f"{how}: LD0 for SW0 = 0/1 {got} (want {want})" for how, got, want in runs)
+    return not bad, f"{n} elements, every pin; {txt}"
+
+
+MILESTONE["M23"] = (
+    MILESTONE["M22"][:-1] +
+    [("xbar-pins", check_xbar_pins)] +
+    [MILESTONE["M22"][-1]])
 
 # --- runner ------------------------------------------------------------------
 

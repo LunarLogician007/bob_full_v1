@@ -22,6 +22,8 @@ import json
 import os
 import sys
 
+import vlit  # noqa: E402  (sim/, this script's directory)
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, os.path.join(ROOT, "software", "host"))
@@ -109,7 +111,7 @@ def main():
         runs.append(f"    // ---- {label}: {pnr} place and route, {len(cmap)} registers on CAPTURE, "
                     f"pins {os.path.relpath(pcf, ROOT) if pcf else 'default'}")
         runs.append(f'    dname = "{label}"; cur = {k};')
-        runs.append(f"    cfgw   = {W}'h{c['word']:0{(W + 3) // 4}x};")
+        runs.append(f"    cfgw   = {vlit.hexw(c['word'], W, define=False)};")
         runs.append(f"    cfgcrc = 32'h{crc32c_bits(c['word'], W):08x};")
         runs.append("    commit_config;")
         for b, words in sorted(c["brams"].items()):

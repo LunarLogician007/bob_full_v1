@@ -53,6 +53,7 @@ device:
 sim:
 	sim/run_sim.sh
 	sim/run_clb_sim.sh
+	sim/run_mux_sim.sh
 	sim/run_bram_sim.sh
 	sim/run_dsp_sim.sh
 	sim/run_fabric_sim.sh

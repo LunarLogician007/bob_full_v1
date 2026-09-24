@@ -338,7 +338,9 @@ def load(p, word, width, start=True, fast_first=True):
         write_expected(p, crc)
         cfg_in(p, word, width, fast=fast)
         st = status(p)
-        if not (st["committed"] and st["crc_ok"] and st["count"] == width):
+        # CFG_CTRL reports the low 16 bits of the chip's bit count (M23: the chain is wider);
+        # the full comparison is the chip's len_err
+        if not (st["committed"] and st["crc_ok"] and not st["len_err"] and st["count"] == width & 0xFFFF):
             msg = (f"commit refused after {how} transfer: count={st['count']} "
                    f"crc_err={st['crc_err']} len_err={st['len_err']} "
                    f"chip crc=0x{st['crc']:08X} host crc=0x{crc:08X}")
