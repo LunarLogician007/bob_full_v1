@@ -61,7 +61,7 @@ USER_CE, USER_SR, USER_CIN, USER_STEP, USER_AUTOSTEP = 0, 1, 2, 3, 4
 IDCODE_EXPECTED = 0x2BEEF093      # the M0 single-CLB top; the fabric's is fpga.IDCODE_FABRIC
 
 
-MAX_TCK_KHZ = 100          # M13: the XDC constrains TCK at 10 us; never drive it faster
+MAX_TCK_KHZ = 1000         # M25: the XDC constrains TCK at 1 us (M13-M24: 10 us); never drive it faster
 
 
 class Probe:

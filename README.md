@@ -43,6 +43,7 @@ crossbar leaves in CFGLUT5 with plain OR roots, routing muxes from LUT6/MUXF7/MU
 | M18–M20 | studio projects and block designs, the desktop app and waveform viewer, the per-design user clock | on the board 2026-09-23: 57/58 (`bob-fir`: autostep race, fixed in M21); Vivado WNS −0.919 ns in `clock_ctrl.v` (fixed in M21) |
 | **M21** | **the cluster CLB** (N = 4 elements, full crossbar, measured against N = 6/8/10), **BRAM-shadow readback**, fir16, the timing contract | **passed on the board 2026-09-23** (66/66; WNS +0.570 ns, 35 882 LUTs) |
 | M22 | LUT contents and the crossbar in CFGLUT5 (ZUMA-style), 9 × 9 = 81 CLBs = 324 LUTs | **passed on the board 2026-09-24** (65/67; the two fir16 live checks rerun 12/12; WNS +0.172 ns) |
+| M25 | time-travel debugging (snapshot, UG470 GRESTORE restore, the simulator hand-off, `bob snap`); TCK constrained at 1 MHz | code done on branch `m25`; Vivado build next (`docs/hwtest/M25.md`) |
 | M24 | Double Duty elements (FPL 2025): the adder on two bypass inputs beside a free LUT; elements −4.7% (VPR) / −13.2% (bob's packer) | **passed on the board 2026-09-25** (69/69; WNS +0.562 ns, 38 193 LUTs, slices 85.5%) |
 | M23 | the grid sweep; crossbar roots as a fixed OR (152 → 128 CFGLUT5 per CLB); routing muxes as LUT6 + MUXF7/MUXF8; **10 × 10 = 100 CLBs = 400 LUTs** | **passed on the board 2026-09-24** (68/68 + manual; WNS +0.048 ns, 36 710 LUTs) |
 
@@ -64,8 +65,7 @@ Generated from `software/bob/device.json` by `software/bob/devtable.py`; `tests/
 | Routing | L4 unidirectional, W = 36, Wilton Fs = 3 (from OpenFPGA's k6_frac_N10 tileable arch); 5695 muxes, each LUT6 4:1 leaves + MUXF7/MUXF8 (M23) |
 | Configuration | 68096 bits = 532 frames of 4 × 32 (400 of them held only in CFGLUT5s); UG470-style packets on CFG_IN/CFG_OUT (CRC-32C, IDCODE, partial reconfiguration, BRAM content frames) or the streamed chain on CHAIN_IN/CHAIN_OUT; GSR → GTS → GWE → DONE startup |
 | User clock | one sysclk enable at a time, spaced by each design's own timing (clk_gap from software/bob/timing.py, never under 2 cycles = 62.5 MHz); unset, at least 2**9 = 512 cycles apart (a word is loaded only if its critical path fits its spacing), at most 244 kHz |
-| JTAG | 6-bit AMD 7-series IR, IDCODE `0x0B024093` (M24) |
-| Host utilisation (Vivado, M24) | 38 193 LUTs (71.79%), 27 372 FFs (25.73%), 2 RAMB18, 2 DSP48E1, WNS +0.562 ns |
+| JTAG | 6-bit AMD 7-series IR, IDCODE `0x0B025093` (M25) |
 
 <!-- device:end -->
 

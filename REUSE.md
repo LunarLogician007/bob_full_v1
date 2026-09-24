@@ -350,3 +350,14 @@ Status: **same** = byte-identical to `bob/`, **moved** = same content at a new p
 | VPR retries | `software/bob/vpr_run.py` `run_retry` (used by `flow.py` and `make vpr`) | **new** |
 | design and board check | `designs.d_dd`, `hwtest.check_double_duty`, `FakeBob(ignore_dd=True)` | **new** |
 | mutants | `sim/mutate_fabric.sh` `dd-*` | **new** |
+
+
+## M25: time-travel debugging, TCK at 1 MHz (2026-09-25)
+
+| what | where | reused / new |
+|---|---|---|
+| GRESTORE | `hw/src/core/cfg_frames.v`, `hw/src/fabric/bob_fpga.v` | modified: UG470 CMD 10 pulses the fabric's GSR (frozen or before startup only) |
+| snapshots | `software/host/snapshot.py`, `packets.restore_streams`, `cli.py` `bob snap` | **new** (Attia & Betz, TRETS 2022, on bob's configuration plane) |
+| fake board | `fakeboard.py` USER1 step, GRESTORE hook, `no_grestore` | modified |
+| TCK | `hw/constr/pynq_z2.xdc`, `device.py` `XDC_TCK_PERIOD_NS`, `dirtyjtag.MAX_TCK_KHZ` | modified: 1 MHz |
+| checks | `hwtest.check_time_travel`, `check_fast_tck`, `tb_frames` [19], `tests/test_snapshot.py`, mutants `grestore-*` | **new** |

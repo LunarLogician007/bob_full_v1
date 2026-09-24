@@ -58,6 +58,7 @@ The 8×8 profile (48 CLBs, 9400 bits, `0x9BEEF093`) is frozen in `release/M7_8x8
 | M22 | LUT contents and the crossbar in AMD CFGLUT5 (ZUMA-style), measured first (a CLB: 469 LUTs + 424 config FFs → 193 LUTs + 48 FFs, yosys); 9 × 9 = 81 CLBs = 324 LUTs; `lut_loader.v` shifts each written frame into its CLB's CFGLUT5s, `lut_expand.v` expands the compact selects, JPROGRAM sweeps zeros; nothing on the wire changes; IDCODE `0x0B022093` | **on the board 2026-09-24: 65/67**; the two failed fir16 live checks rerun 12/12 (one interactive rerun pending). Vivado WNS +0.172 ns, 38,184 LUTs (71.8%), SLICEM 70.6%. Checklist `docs/hwtest/M22.md`, spec `docs/superpowers/specs/2026-09-23-m22-lutram-design.md` |
 | M23 | the grid sweep (`software/bob/gridsweep.py`: SLICEM slices were the wall), crossbar roots as a fixed OR in a plain LUT (`lxor.v`: 152 → 128 CFGLUT5 per CLB), routing muxes as LUT6 + MUXF7/MUXF8 primitives; **10 × 10 = 100 CLBs = 400 LUTs**, W 36, fc_in 0.10; 24-bit chain count; IDCODE `0x0B023093` | **passed on the board 2026-09-24: 68/68 automatic + manual**; Vivado WNS +0.048 ns, 36,710 LUTs (69.0%), slices 88.0%, SLICEM 92.6%. First build (12 × 11, O5/O6-shared leaves) did not place: a dual-output CFGLUT5 is two LUT sites. yosys: 25,691 LUT + 12,800 CFGLUT5 + 26,787 FF. Checklist `docs/hwtest/M23.md` |
 | M24 | **Double Duty elements** (Pun et al., FPL 2025): flag `dd` feeds the adder from two bypass inputs (A = in[K-2], B = in[K-1]) so the LUT stays free for out[1]; VPR mode `dd` replaces `arithmetic`; bob's packer fills adder elements' LUTs; `vpr_run` retries seeds when only routing fails; IDCODE `0x0B024093` | **passed on the board 2026-09-25: 69/69**; WNS +0.562 ns, 38,193 LUTs, slices 85.5%; elements vs M23: VPR −4.7%, bob's packer −13.2%. Checklist `docs/hwtest/M24.md` |
+| M25 | **time-travel debugging**: UG470 GRESTORE in the frame parser; `snapshot.py` captures a frozen design's flip-flops, restores them (INIT bits := state, GRESTORE, INIT back, verified while frozen) and hands them to `model.py` and back; `bob snap`; TCK constrained at 1 MHz (10x faster loads, board default 100 kHz until proven); IDCODE `0x0B025093` | code done on branch `m25`; Vivado build next. Checklist `docs/hwtest/M25.md` |
 
 Hardware results are in `docs/hwtest/results.log`; Vivado reports are in `docs/reports/Mx/`; per-design guest reports in `docs/reports/M11/designs.md`.
 
@@ -273,6 +274,26 @@ whole element. Feeding the adder from element inputs directly frees the LUT.
   majority logic). The hardware now allows it (a dd chain computes XOR3 sums and MAJ3 carries
   of routed signals, as `d_dd` shows), but it needs a synthesis pass (MIG extraction in
   yosys/ABC): a milestone of its own.
+
+### M25: time-travel debugging, TCK at 1 MHz
+
+After Attia & Betz (TRETS 2022): checkpoint a running design, restore it, move it into the
+simulator and back.
+- **RTL:** `cfg_frames.v` CMD GRESTORE (UG470 CMD 10) pulses the fabric's GSR for one packet
+  word (32 TCK), only while frozen (AGHIGH) or before startup; otherwise WR_ERROR. Version
+  0x16. `bob_fpga.v` ORs it into `clock_ctrl`'s GSR input.
+- **Software:** `software/host/snapshot.py` has `snapshot` (freeze, CAPTURE, resume),
+  `restore` (`packets.restore_streams`: INIT frames, GRESTORE, original frames, then
+  CAPTURE while frozen, then CRC and LFRM) and `to_model`/`from_model`. `bob snap
+  save|restore|list|sim`.
+- **Limits:** CLB flip-flops only. BRAM contents are untouched. GRESTORE resets BRAM output
+  and DSP pipeline registers, as AMD's does.
+- **TCK at 1 MHz:** `XDC_TCK_PERIOD_NS` = 1000 in `device.py`; the XDC and `dirtyjtag.MAX_TCK_KHZ`
+  follow it (`tests/test_layout.py`). The empty-mesh path (5.46 µs) fits the 16-period
+  multicycle. The default stays 100 kHz until hwtest `fast-tck` passes.
+- **Checks:** tb_frames [19] restores a running counter on the RTL; `tests/test_snapshot.py`;
+  hwtest `time-travel` (FakeBob `no_grestore` fails it) and `fast-tck`; mutants
+  `grestore-never`, `grestore-unguarded`.
 
 ## 3. How the user wants this done (non-negotiable)
 

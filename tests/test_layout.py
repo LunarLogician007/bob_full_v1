@@ -184,3 +184,13 @@ def test_the_free_running_clock_cannot_outrun_the_gap():
     assert c["div_min_shift"] >= c["gce_min_gap_shift"], (
         f"DIV_MIN_SHIFT {c['div_min_shift']} < GCE_MIN_GAP_SHIFT {c['gce_min_gap_shift']}: "
         "the free-running clock would beat the timing exception")
+
+
+def test_the_tck_period_is_the_one_device_py_names_and_the_probe_obeys():
+    """M25: TCK constrained at 1 MHz: the XDC period, device.py and the probe's ceiling agree"""
+    want = _device()["clock"]["xdc_tck_period_ns"]
+    m = re.search(r"^create_clock\s+-period\s+([\d.]+)\s+-name\s+tck", _xdc(), re.M)
+    assert m and float(m.group(1)) == want, f"XDC tck period {m and m.group(1)}, device.py {want}"
+    sys.path.insert(0, os.path.join(ROOT, "software", "host"))
+    import dirtyjtag
+    assert dirtyjtag.MAX_TCK_KHZ == round(1e6 / want)

@@ -2305,9 +2305,36 @@ def B_from(word):
     return B.Bitstream(word)
 
 
+def check_fast_tck(p, ctx):
+    """M25: TCK at 1 MHz (the XDC's new period, 10x the M13-M24 limit): every self-test design
+    loaded as frames (CRC, FDRO readback) and swept through INTEST against the model, then the
+    time-travel restore of the counter, all at 1 MHz; timed against the same loads at 100 kHz.
+    Back to 100 kHz afterwards whatever happens."""
+    import time
+    import fpga
+    from designs import DESIGNS
+
+    def run():
+        t0 = time.time()
+        ok = all(fpga.verify(p, k, d, f, s) for k, d, f, s in DESIGNS)
+        return ok, time.time() - t0
+    try:
+        slow_ok, t_slow = run()
+        p.set_freq_khz(1000)
+        fast_ok, t_fast = run()
+        tt_ok, tt_msg = check_time_travel(p, ctx)
+    finally:
+        p.set_freq_khz(100)
+        fpga.go_live(p)
+    ok = slow_ok and fast_ok and tt_ok
+    return ok, (f"{len(DESIGNS)} designs at 100 kHz {'ok' if slow_ok else 'FAIL'} in {t_slow:.1f} s, "
+                f"at 1 MHz {'ok' if fast_ok else 'FAIL'} in {t_fast:.1f} s "
+                f"({t_slow / max(t_fast, 1e-6):.1f}x); time travel at 1 MHz {'ok' if tt_ok else 'FAIL: ' + tt_msg}")
+
+
 MILESTONE["M25"] = (
     MILESTONE["M24"][:-1] +
-    [("time-travel", check_time_travel)] +
+    [("time-travel", check_time_travel), ("fast-tck", check_fast_tck)] +
     [MILESTONE["M24"][-1]])
 
 # --- runner ------------------------------------------------------------------

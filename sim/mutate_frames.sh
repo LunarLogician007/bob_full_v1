@@ -87,6 +87,9 @@ run gap-field-ignored   src/core/clock_ctrl.v 's/wire \[31:0\] want_gap = \(gp_m
 run gap-floor-dropped   src/core/clock_ctrl.v 's/wire \[31:0\] min_gap_c = \(\(want_gap < GAP_FLOOR\) \? GAP_FLOOR : want_gap\) - 32.h1;/wire [31:0] min_gap_c = want_gap - 32'"'"'h1;/' tb_clock_gap
 run period-reg-stale    src/core/clock_ctrl.v 's/        last_q  <= last;/        last_q  <= last_q;/' tb_clock_gap
 run period-no-prescale  src/core/clock_ctrl.v 's/wire \[31:0\] per32    = \{\{\(32-PERIOD_W\)\{1.b0\}\}, per_m1\} << psh;/wire [31:0] per32    = {{(32-PERIOD_W){1'"'"'b0}}, per_m1};/' tb_clock_gap
+# M25: UG470 GRESTORE (tb_frames [19])
+run grestore-never      src/core/cfg_frames.v   's/if \(id_ok \&\& \(frozen \|\| !gwe\)\) grestore <= 1.b1;/if (1'"'"'b0) grestore <= 1'"'"'b1;/'
+run grestore-unguarded  src/core/cfg_frames.v   's/if \(id_ok \&\& \(frozen \|\| !gwe\)\) grestore <= 1.b1;/if (1'"'"'b1) grestore <= 1'"'"'b1;/'
 
 wait
 cat "$WORK"/*.out

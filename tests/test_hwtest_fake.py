@@ -486,3 +486,14 @@ def test_m25_runs_the_full_m24_list_first():
     names = [n for n, _f in hwtest.MILESTONE["M25"]]
     assert names[:len(hwtest.MILESTONE["M24"]) - 1] == [n for n, _f in hwtest.MILESTONE["M24"]][:-1]
     assert "time-travel" in names
+
+
+def test_m25_fast_tck_passes_on_a_healthy_board():
+    ok, msg = hwtest.check_fast_tck(FakeBob(), {})
+    assert ok, msg
+    assert "at 1 MHz ok" in msg
+
+
+def test_m25_fast_tck_fails_when_loads_break():
+    ok, msg = hwtest.check_fast_tck(FakeBob(no_grestore=True), {})
+    assert not ok, msg
