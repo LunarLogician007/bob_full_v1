@@ -12,7 +12,7 @@ an FPGA-within-an-FPGA whose bitstreams are loaded from main memory at run time,
 performance overhead.
 
 **In bob.** bob is already an FPGA-within-an-FPGA, but it loads only over JTAG from a Pico
-at 100 kHz TCK, so a full 89k-bit load takes about a second. The PYNQ-Z2 has a dual-core ARM
+at 100 kHz TCK, so a full 68k-bit load takes about a second. The PYNQ-Z2 has a dual-core ARM
 next to the PL. Give `cfg_store.v` a second write port: an AXI-Lite (or AXI-Stream) slave
 that takes UG470 frames from DDR. It is the same packet parser (`cfg_frames.v`) with a word
 input instead of TDI. Then:
@@ -20,7 +20,7 @@ input instead of TDI. Then:
 - the ARM can swap designs (or LUT-network weights, idea 2) in a loop
 
 The CFGLUT5 loader needs 32 cycles per frame whichever clock drives it, so a 100 MHz port
-loads the 697 frames in about 0.2 ms.
+loads the 532 frames in about 0.2 ms.
 
 **Cost.** One milestone: an AXI slave, a PS block design in `build.tcl` (the first one
 bob would have), a PYNQ overlay script, and the partial-reconfiguration checks rerun over
@@ -46,7 +46,7 @@ frame by frame. A LUT network's weights are those truth tables, so:
   elements, skipping yosys (the connections are the learned sparsity)
 - changing weights is a partial reconfiguration of the INIT frames only; the routing stays
 
-528 LUT6s is small (MNIST needs ~4000), but a TreeLUT-sized classifier or a jet-tagging net
+400 LUT6s is small (MNIST needs ~4000), but a TreeLUT-sized classifier or a jet-tagging net
 fits. With idea 1 the ARM swaps models in microseconds. It makes a strong demo: "the
 weights are the bitstream".
 

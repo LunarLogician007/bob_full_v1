@@ -218,21 +218,22 @@ ARCH_M22 = {
 }
 
 # M23: the host cost of a CLB falls twice (software/bob/gridsweep.py, docs/reports/M23/grid_sweep.md).
-# The crossbar muxes go in pairs sharing dual-output CFGLUT5 leaves with fixed OR roots
-# (lxpair.v: 80 CFGLUT5 per CLB, not 152; M22 packed 3.37 per SLICEM, 84% of them at 81 CLBs),
+# Each crossbar mux keeps its CFGLUT5 leaves but its root becomes a fixed OR in a plain LUT
+# (lxor.v: 128 CFGLUT5 per CLB, not 152; M22 packed 3.37 per SLICEM, 84% of them at 81 CLBs),
 # and the routing muxes are LUT6 + MUXF7/MUXF8 primitives (bob_mux.v; Vivado made 18.5k LUTs of
-# M22's routing, the primitives ~11k). The sweep over grids x fc_in x W: 12 x 11 = 132 CLBs
-# (528 LUTs, 1.63x M22) predicted at 39.2k LUTs (74%), 84% of slices, 72% of the SLICEMs;
-# 12 x 12 would sit at 91%. fc_in 0.10 and W 36: fir16 needs 34, every other example 20.
+# M22's routing). 10 x 10 = 100 CLBs (400 LUTs, 1.23x M22): predicted 35.3k LUTs (66%), 76% of
+# slices, 87% of the SLICEMs at M22's packing. fc_in 0.10 and W 36: fir16 needs 34, the rest 20.
+# The first M23 build tried 12 x 11 with crossbar pairs sharing dual-output CFGLUT5 leaves; Vivado
+# maps such a CFGLUT5 to SRL16E + SRLC32E (two LUT sites) and could not place the LUTRAM.
 ARCH_M23 = {
-    "nx": 14, "ny": 11,
+    "nx": 12, "ny": 10,
     "chan_width": 36,
     "segment_length": 4,
     "fs": 3,
     "fc_in": 0.10, "fc_out": 0.10,
     "io_capacity": 1,
     "columns": [{"type": "bram", "x": 3, "height": 5},
-                {"type": "dsp", "x": 10, "height": 5}],
+                {"type": "dsp", "x": 8, "height": 5}],
     "cluster": CLUSTER_N4,
 }
 
@@ -1129,10 +1130,10 @@ class Device:
         return kinds, idx
 
     def cfglut5_per_clb(self):
-        """CFGLUT5 primitives in one CLB: two per element LUT, ceil(S/4) shared leaves per
-        pair of crossbar muxes (hw/src/clb/lxpair.v, M23)."""
+        """CFGLUT5 primitives in one CLB: two per element LUT, ceil(S/5) leaves per crossbar
+        mux (hw/src/clb/lxor.v, M23: the root is a plain LUT)."""
         s = len(self.xbar_sources(0, 0))
-        return self.cluster["n"] * 2 + self.cluster["n"] * self.lut_k // 2 * -(-s // 4)
+        return self.cluster["n"] * 2 + self.cluster["n"] * self.lut_k * -(-s // 5)
 
 
 def generated(lut_k=6, out_dir=None, arch_only=False):

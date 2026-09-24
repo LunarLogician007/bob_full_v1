@@ -94,8 +94,8 @@ def table():
         ("CLBs", f"{f['clb']} × {f['n']} logic elements = {f['clb'] * f['n']} LUTs (columns x = {f['clb_cols']}); "
                  f"each element LUT{f['lut_k']} (or two LUT{f['lut_k'] - 1}), MUXCY/XORCY carry, two FDRE/FDSE; "
                  f"{f['ci']} inputs and a {f['xbar']} crossbar per CLB"
-                 + ("; LUT contents and crossbar in CFGLUT5 (M22), crossbar muxes in pairs sharing "
-                    "dual-output leaves (M23)" if f["lframes"] else "")),
+                 + ("; LUT contents and crossbar leaves in CFGLUT5 (M22), crossbar roots a plain OR (M23)"
+                    if f["lframes"] else "")),
         ("BRAM", f"{f['bram']} × 1024×18 true dual port (column x = {f['bram_col']}, "
                  f"{f['bram_h']} rows tall); contents as frames (FAR type 001) or over USER4"),
         ("DSP", f"{f['dsp']} × DSP48E1-style slices (column x = {f['dsp_col']}, "

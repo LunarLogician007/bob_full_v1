@@ -25,8 +25,8 @@ For the working plan, conventions, gotchas and every milestone, read [`PLAN.md`]
 
 **M0–M22 passed on the board.** The board runs **M22**: LUT contents and crossbar in
 CFGLUT5, 9 × 9 = 81 CLBs (324 LUTs), IDCODE `0x0B022093`; WNS +0.172 ns, 38 184 LUTs.
-**M23** (12 × 11 = 132 CLBs = 528 LUTs: crossbar pairs sharing CFGLUT5 leaves, routing muxes
-from LUT6/MUXF7/MUXF8) is built and simulated on branch `m23` and waits for its Vivado build
+**M23** (10 × 10 = 100 CLBs = 400 LUTs: crossbar roots as a plain OR, routing muxes from
+LUT6/MUXF7/MUXF8) is built and simulated on branch `m23` and waits for its Vivado build
 (`HANDOFF.md`).
 
 | Milestone | What | Status |
@@ -45,7 +45,7 @@ from LUT6/MUXF7/MUXF8) is built and simulated on branch `m23` and waits for its 
 | M18–M20 | studio projects and block designs, the desktop app and waveform viewer, the per-design user clock | on the board 2026-09-23: 57/58 (`bob-fir`: autostep race, fixed in M21); Vivado WNS −0.919 ns in `clock_ctrl.v` (fixed in M21) |
 | **M21** | **the cluster CLB** (N = 4 elements, full crossbar, measured against N = 6/8/10), **BRAM-shadow readback**, fir16, the timing contract | **passed on the board 2026-09-23** (66/66; WNS +0.570 ns, 35 882 LUTs) |
 | M22 | LUT contents and the crossbar in CFGLUT5 (ZUMA-style), 9 × 9 = 81 CLBs = 324 LUTs | **passed on the board 2026-09-24** (65/67; the two fir16 live checks rerun 12/12; WNS +0.172 ns) |
-| M23 | the grid sweep; crossbar pairs sharing dual-output CFGLUT5 leaves (152 → 80 per CLB); routing muxes as LUT6 + MUXF7/MUXF8; **12 × 11 = 132 CLBs = 528 LUTs** | code and simulation on branch `m23`; Vivado build next (`docs/hwtest/M23.md`) |
+| M23 | the grid sweep; crossbar roots as a fixed OR (152 → 128 CFGLUT5 per CLB); routing muxes as LUT6 + MUXF7/MUXF8; **10 × 10 = 100 CLBs = 400 LUTs** | code and simulation on branch `m23`; Vivado build next (`docs/hwtest/M23.md`) |
 
 After M7 the Vivado bitstream stayed the same through M11: those milestones only load new configuration chains over JTAG. M12a (Python PnR) needed no rebuild either. The board now runs M22 (IDCODE `0x0B022093`).
 
@@ -57,13 +57,13 @@ Generated from `software/bob/device.json` by `software/bob/devtable.py`; `tests/
 
 | | |
 |---|---|
-| VPR grid | 16 × 13 (14 × 11 core inside an I/O ring, corners empty) |
-| CLBs | 132 × 4 logic elements = 528 LUTs (columns x = 1, 2, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14); each element LUT6 (or two LUT5), MUXCY/XORCY carry, two FDRE/FDSE; 16 inputs and a full crossbar per CLB; LUT contents and crossbar in CFGLUT5 (M22), crossbar muxes in pairs sharing dual-output leaves (M23) |
+| VPR grid | 14 × 12 (12 × 10 core inside an I/O ring, corners empty) |
+| CLBs | 100 × 4 logic elements = 400 LUTs (columns x = 1, 2, 4, 5, 6, 7, 9, 10, 11, 12); each element LUT6 (or two LUT5), MUXCY/XORCY carry, two FDRE/FDSE; 16 inputs and a full crossbar per CLB; LUT contents and crossbar leaves in CFGLUT5 (M22), crossbar roots a plain OR (M23) |
 | BRAM | 2 × 1024×18 true dual port (column x = 3, 5 rows tall); contents as frames (FAR type 001) or over USER4 |
-| DSP | 2 × DSP48E1-style slices (column x = 10, 5 rows tall), PCOUT→PCIN cascade |
-| I/O | 50 pads; board switches, buttons and LEDs on fixed pads, LD3 = DONE |
-| Routing | L4 unidirectional, W = 36, Wilton Fs = 3 (from OpenFPGA's k6_frac_N10 tileable arch); 7064 muxes, each LUT6 4:1 leaves + MUXF7/MUXF8 (M23) |
-| Configuration | 89216 bits = 697 frames of 4 × 32 (528 of them held only in CFGLUT5s); UG470-style packets on CFG_IN/CFG_OUT (CRC-32C, IDCODE, partial reconfiguration, BRAM content frames) or the streamed chain on CHAIN_IN/CHAIN_OUT; GSR → GTS → GWE → DONE startup |
+| DSP | 2 × DSP48E1-style slices (column x = 8, 5 rows tall), PCOUT→PCIN cascade |
+| I/O | 44 pads; board switches, buttons and LEDs on fixed pads, LD3 = DONE |
+| Routing | L4 unidirectional, W = 36, Wilton Fs = 3 (from OpenFPGA's k6_frac_N10 tileable arch); 5695 muxes, each LUT6 4:1 leaves + MUXF7/MUXF8 (M23) |
+| Configuration | 68096 bits = 532 frames of 4 × 32 (400 of them held only in CFGLUT5s); UG470-style packets on CFG_IN/CFG_OUT (CRC-32C, IDCODE, partial reconfiguration, BRAM content frames) or the streamed chain on CHAIN_IN/CHAIN_OUT; GSR → GTS → GWE → DONE startup |
 | User clock | one sysclk enable at a time, spaced by each design's own timing (clk_gap from software/bob/timing.py, never under 2 cycles = 62.5 MHz); unset, at least 2**9 = 512 cycles apart (a word is loaded only if its critical path fits its spacing), at most 244 kHz |
 | JTAG | 6-bit AMD 7-series IR, IDCODE `0x0B023093` (M23) |
 

@@ -1,13 +1,13 @@
-Netlist_File: counter.net Netlist_ID: SHA256:b99090e25fd2219f2c9f6cb0ee1e3799be26f56ffc8c7316b55ce37dd46cbe89
-Array size: 16 x 13 logic blocks
+Netlist_File: counter.net Netlist_ID: SHA256:c2c6afe0f68ffc8829cdcdd78aca8596821dd88f492d29e24ead1d77804d70e9
+Array size: 14 x 12 logic blocks
 
 #block name	x	y	subblk	layer	block number
 #----------	--	--	------	-----	------------
-bob_gen1	11	2	0	0	#0
-$auto$alumacc.cc:548:replace_alu$16.slice[3].add	11	3	0	0	#1
-out:led[0]	15	1	0	0	#2
-out:led[1]	15	2	0	0	#3
-out:led[2]	15	3	0	0	#4
+bob_gen1	10	2	0	0	#0
+$auto$alumacc.cc:548:replace_alu$16.slice[3].add	10	3	0	0	#1
+out:led[0]	13	1	0	0	#2
+out:led[1]	13	2	0	0	#3
+out:led[2]	13	3	0	0	#4
 clk		1	0	0	0	#5
 btn[0]		0	3	0	0	#6
 btn[1]		0	4	0	0	#7

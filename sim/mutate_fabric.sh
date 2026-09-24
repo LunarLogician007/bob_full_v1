@@ -32,7 +32,7 @@ run_one() {
     # every crossbar select, both flip-flops): seconds, where tb_bob takes minutes, so first
     local v
     if [[ "$file" == src/clb/ble.sv || "$file" == src/generated/bob_fabric.v ||
-          "$file" == src/clb/lxpair.v || "$file" == src/core/lut_expand.v ]]; then   # M22, M23 too
+          "$file" == src/clb/lxor.v || "$file" == src/core/lut_expand.v ]]; then   # M22, M23 too
         if iverilog -g2012 -DSIMULATION -Ihw/src/generated -Ihw/tb -s tb_clb -o "$WORK/$name-clb.vvp" \
                 "${SRC[@]}" hw/tb/tb_clb.sv 2>/dev/null; then
             v=$(vvp_verdict "$WORK" "$name-clb.vvp")
@@ -122,12 +122,11 @@ run lut-halves-swapped  src/clb/ble.sv          's/\? hi6 : lo6;/? lo6 : hi6;/'
 run loader-31-shifts    src/core/lut_loader.v   's/if \(cnt == 5.d31\) begin/if (cnt == 5'"'"'d30) begin/'
 run loader-no-sweep     src/core/lut_loader.v   's/clr  <= 1.b1;/clr  <= 1'"'"'b0;/'
 
-# M23: the crossbar pairs (shared dual-output leaves, OR roots) and the routing muxes as
+# M23: the crossbar OR roots (lxor.v) and the routing muxes as
 # primitives (bob_mux.v: LUT6 leaves on sel[1:0], MUXF7 on sel[2], MUXF8 on sel[3])
-run pair-outputs-swapped src/clb/lxpair.v       's/\.O5\(la\[g\]\), \.O6\(lb\[g\]\)/.O5(lb[g]), .O6(la[g])/'
-run pair-i4-low         src/clb/lxpair.v        's/\.I4\(1.b1\)/.I4(1'"'"'b0)/'
-run pair-root-and       src/clb/lxpair.v        's/assign oa = \|la;/assign oa = \&la;/'
-run expand-half-select  src/core/lut_expand.v   's/= a\[4\] \? hb/= ~a[4] ? hb/'
+run lxor-root-and      src/clb/lxor.v          's/assign o = \|leaf;/assign o = \&leaf;/'
+run lxor-drop-leaf0     src/clb/lxor.v          's/assign o = \|leaf;/assign o = \|leaf[L-1:1];/'
+run expand-leaf-index   src/core/lut_expand.v   's/src && lf == g/src \&\& lf + 1 == g/'
 # (const1 in leaf 1 instead of leaf 0 is equivalent under the OR root: this one drops it)
 run expand-no-const1    src/core/lut_expand.v   's/\(one && g == 0\)/(1'"'"'b0 \&\& g == 0)/'
 run mux-f7-select       src/fabric/bob_mux.v    's/\.S\(s\[2\]\)/.S(s[1])/'

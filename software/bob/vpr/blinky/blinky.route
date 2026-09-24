@@ -1,56 +1,56 @@
-Placement_File: blinky.place Placement_ID: SHA256:392ce43c4a84e8f6da299d808d5eb203224895e21a182b7ff034378a37d599a9
-Array size: 16 x 13 logic blocks.
+Placement_File: blinky.place Placement_ID: SHA256:5445d9785d5e6b15b5b8cae7a40d05f956c982a1991cbacb07cbfce74ae53a87
+Array size: 14 x 12 logic blocks.
 
 Routing:
 
 Net 0 (cy5)
 
-Node:	1281	SOURCE (14,1,0)  Class: 12  Switch: 0
-Node:	1289	  OPIN (14,1,0)  Pin: 27   clb.cout[0] Switch: 0
-Node:	1833	  IPIN (14,2,0)  Pin: 18   clb.cin[0] Switch: 0
-Node:	1809	  SINK (14,2,0)  Class: 3  Switch: -1 Net_pin_index: 1
+Node:	1187	SOURCE (12,1,0)  Class: 12  Switch: 0
+Node:	1195	  OPIN (12,1,0)  Pin: 27   clb.cout[0] Switch: 0
+Node:	1653	  IPIN (12,2,0)  Pin: 18   clb.cin[0] Switch: 0
+Node:	1629	  SINK (12,2,0)  Class: 3  Switch: -1 Net_pin_index: 1
 
 
 Net 1 (led[0])
 
-Node:	1801	SOURCE (14,2,0)  Class: 8  Switch: 0
-Node:	1815	  OPIN (14,2,0)  Pin: 23   clb.O[4] Switch: 2
-Node:	11527	 CHANY (14,1,0) to (14,2,0)  Track: 19  Switch: 1
-Node:	1319	  IPIN (15,1,0)  Pad: 0  Switch: 0
-Node:	1317	  SINK (15,1,0)  Pad: 0  Switch: -1 Net_pin_index: 1
+Node:	1621	SOURCE (12,2,0)  Class: 8  Switch: 0
+Node:	1635	  OPIN (12,2,0)  Pin: 23   clb.O[4] Switch: 2
+Node:	9349	 CHANY (12,1,0) to (12,2,0)  Track: 19  Switch: 1
+Node:	1225	  IPIN (13,1,0)  Pad: 0  Switch: 0
+Node:	1223	  SINK (13,1,0)  Pad: 0  Switch: -1 Net_pin_index: 1
 
 
 Net 2 (led[1])
 
-Node:	1803	SOURCE (14,2,0)  Class: 10  Switch: 0
-Node:	1819	  OPIN (14,2,0)  Pin: 25   clb.O[6] Switch: 2
-Node:	11414	 CHANY (13,2,0) to (13,5,0)  Track: 24  Switch: 2
-Node:	7916	 CHANX (14,2,0)  Track: 32  Switch: 2
-Node:	11511	 CHANY (14,1,0) to (14,2,0)  Track: 3  Switch: 1
-Node:	1843	  IPIN (15,2,0)  Pad: 0  Switch: 0
-Node:	1841	  SINK (15,2,0)  Pad: 0  Switch: -1 Net_pin_index: 1
+Node:	1623	SOURCE (12,2,0)  Class: 10  Switch: 0
+Node:	1639	  OPIN (12,2,0)  Pin: 25   clb.O[6] Switch: 2
+Node:	9246	 CHANY (11,2,0) to (11,5,0)  Track: 24  Switch: 2
+Node:	6456	 CHANX (12,2,0)  Track: 32  Switch: 2
+Node:	9333	 CHANY (12,1,0) to (12,2,0)  Track: 3  Switch: 1
+Node:	1663	  IPIN (13,2,0)  Pad: 0  Switch: 0
+Node:	1661	  SINK (13,2,0)  Pad: 0  Switch: -1 Net_pin_index: 1
 
 
 Net 3 (cy9)
 
-Node:	1805	SOURCE (14,2,0)  Class: 12  Switch: 0
-Node:	1813	  OPIN (14,2,0)  Pin: 27   clb.cout[0] Switch: 0
-Node:	2357	  IPIN (14,3,0)  Pin: 18   clb.cin[0] Switch: 0
-Node:	2333	  SINK (14,3,0)  Class: 3  Switch: -1 Net_pin_index: 1
+Node:	1625	SOURCE (12,2,0)  Class: 12  Switch: 0
+Node:	1633	  OPIN (12,2,0)  Pin: 27   clb.cout[0] Switch: 0
+Node:	2091	  IPIN (12,3,0)  Pin: 18   clb.cin[0] Switch: 0
+Node:	2067	  SINK (12,3,0)  Class: 3  Switch: -1 Net_pin_index: 1
 
 
 Net 4 (clk): global net connecting:
 
 Block clk (#6) at (1,0,0), Pin class 1.
-Block $auto$alumacc.cc:548:replace_alu$9.slice[3].add (#0) at (14,2,0), Pin class 13.
-Block bob_gen1 (#1) at (14,1,0), Pin class 13.
-Block $auto$alumacc.cc:548:replace_alu$9.slice[7].add (#2) at (14,3,0), Pin class 13.
+Block $auto$alumacc.cc:548:replace_alu$9.slice[3].add (#0) at (12,2,0), Pin class 13.
+Block bob_gen1 (#1) at (12,1,0), Pin class 13.
+Block $auto$alumacc.cc:548:replace_alu$9.slice[7].add (#2) at (12,3,0), Pin class 13.
 
 
 Net 5 (led[2])
 
-Node:	2321	SOURCE (14,3,0)  Class: 4  Switch: 0
-Node:	2338	  OPIN (14,3,0)  Pin: 19   clb.O[0] Switch: 2
-Node:	11554	 CHANY (14,3,0) to (14,6,0)  Track: 0  Switch: 1
-Node:	2367	  IPIN (15,3,0)  Pad: 0  Switch: 0
-Node:	2365	  SINK (15,3,0)  Pad: 0  Switch: -1 Net_pin_index: 1
+Node:	2055	SOURCE (12,3,0)  Class: 4  Switch: 0
+Node:	2072	  OPIN (12,3,0)  Pin: 19   clb.O[0] Switch: 2
+Node:	9376	 CHANY (12,3,0) to (12,6,0)  Track: 0  Switch: 1
+Node:	2101	  IPIN (13,3,0)  Pad: 0  Switch: 0
+Node:	2099	  SINK (13,3,0)  Pad: 0  Switch: -1 Net_pin_index: 1

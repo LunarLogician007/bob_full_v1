@@ -469,13 +469,12 @@ frames, the same CRC, the same FASM.
   `bob_params.vh` carries `BOB_LFRAME_MASK`.
 - **The element's LUT** is two CFGLUT5: lo = INIT[2^(K-1)-1:0], hi = the upper half, both
   over i[K-2:0]; O6 = (i[K-1] | frac) ? hi : lo (a MUXF7), O5 = lo - UG474's LUT6_2 fracture.
-- **Crossbar muxes come in pairs** (M23, `lxpair.v`; M22's `lxmux.v` was a CFGLUT5 tree
-  with a CFGLUT5 root). Muxes 2p and 2p+1 of a CLB (element e input j is mux e*K + j) share
-  ceil(S/4) leaves over the same sources, I4 tied high. Bits 15:0 of leaf g are mux 2p's
-  (O5) and bits 31:16 mux 2p+1's (O6). Select 2+i puts "address bit i%4" in leaf i/4's half;
-  select 1 (const1) is an all-ones half in leaf 0; 0 (and values past the sources) all zeros.
-  Each mux output is the OR of its halves, a fixed LUT6. Pairs never straddle a frame (the
-  head count is even). On the wire nothing changes: still one 5-bit select per mux.
+- **A crossbar mux** (M23, `lxor.v`) is ceil(S/5) CFGLUT5 leaves over the sources, each on
+  O6 only, and a fixed OR of the leaves in a plain LUT (M22's `lxmux.v` had a CFGLUT5 root).
+  Select 2+i puts "address bit i%5" in leaf i/5 and zeros in the others; select 1 (const1)
+  is an all-ones leaf 0; 0 (and values past the sources) all zeros. On the wire nothing
+  changes. (Sharing a leaf between two muxes through O5/O6 is not used: Vivado maps a
+  dual-output CFGLUT5 to SRL16E + SRLC32E, two LUT sites.)
 - **Loading.** Every write - chain or FDRI, full or partial - reaches memory from
   `cfg_store.v`'s frame buffer on a falling TCK edge. On that edge `lut_loader.v` copies the
   buffer and the frame index and shifts for 32 TCK cycles; each CLB compares the index with
@@ -492,13 +491,12 @@ frames, the same CRC, the same FASM.
   changes with the fabric frozen).
 - **Verification:** `tb_clb` loads every configuration through `lut_expand.v` and 32 shift
   clocks per L-frame (4032 checks against `model.py`); `tb_bob` checks CLB (1,1)'s tables
-  and one crossbar pair's leaves against contents `sim/gen_vectors.py` computes independently from
+  and one crossbar mux's leaves against contents `sim/gen_vectors.py` computes independently from
   the word, and the JPROGRAM sweep; every chip-level bench loads over JTAG, through the
   loader. Mutants `expand-bit-order`, `lut-halves-swapped`, `loader-31-shifts`,
-  `loader-no-sweep`, and from M23 `pair-outputs-swapped`, `pair-i4-low`, `pair-root-and`,
-  `expand-half-select`, `expand-no-const1` (`sim/mutate_fabric.sh`). On the board,
-  `lutram-snake` chains every element (docs/hwtest/M22.md) and `xbar-pairs` does it on
-  every pin (docs/hwtest/M23.md).
+  `loader-no-sweep`, and from M23 `lxor-root-and`, `lxor-drop-leaf0`, `expand-leaf-index`,
+  `expand-no-const1` (`sim/mutate_fabric.sh`). On the board, `lutram-snake` chains every
+  element (docs/hwtest/M22.md) and `xbar-pins` does it on every pin (docs/hwtest/M23.md).
 - **M23 masks.** `BOB_LFRAME_MASK` became `BOB_LKIND` (a kind per frame) and `BOB_LMASKS`
-  (the distinct per-frame masks): at 12 × 11 the chain is 89,216 bits, past iverilog's
+  (the distinct per-frame masks): at 10 × 10 the chain is 68,096 bits, past iverilog's
   widest constant. `cfg_ctrl.v`'s chain count is 24 bits; CFG_CTRL still reports its low 16.

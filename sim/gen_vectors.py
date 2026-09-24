@@ -61,27 +61,21 @@ def lutram_expect(name, word):
     half = 1 << (B.LUT_K - 1)
     lo, hi = init & ((1 << half) - 1), init >> half
     s = len(B.XBAR_SOURCES[0][0])
-    # the first crossbar mux that passes a real source, preferring one past leaf 0; M23: its
-    # pair (lxpair.v: muxes 2p, 2p+1 share the leaves, 2p in bits 15:0 and 2p+1 in 31:16)
+    # the first crossbar mux that passes a real source, preferring one past leaf 0 (M23:
+    # lxor.v, leaves only; the root is a fixed OR)
     cands = [(e, j) for e in range(B.CLB_N) for j in range(B.LUT_K) if 2 <= get(f"e{e}.x{j}") < s + 2]
-    cands.sort(key=lambda ej: (get(f"e{ej[0]}.x{ej[1]}") - 2) // 4 == 0)
+    cands.sort(key=lambda ej: (get(f"e{ej[0]}.x{ej[1]}") - 2) // 5 == 0)
     e, j = cands[0]
-    p = (e * B.LUT_K + j) // 2
-    va, vb = (get(f"e{m // B.LUT_K}.x{m % B.LUT_K}") for m in (2 * p, 2 * p + 1))
-    leaves = (s + 3) // 4
+    v = get(f"e{e}.x{j}")
+    i = v - 2
+    leaves = (s + 4) // 5
     table = lambda fn: sum(fn(a) << a for a in range(32))                                    # noqa: E731
-
-    def half(v, g, a):
-        i = v - 2
-        return int((v == 1 and g == 0) or (2 <= v < s + 2 and i // 4 == g and (a >> (i % 4)) & 1))
-
     out = [f"`define {name}_E0_LO 32'h{lo:08x}", f"`define {name}_E0_HI 32'h{hi:08x}"]
     for g in range(leaves):
-        out.append(f"`define {name}_X0_LEAF{g} 32'h"
-                   f"{table(lambda a: half(vb, g, a & 15) if a >> 4 else half(va, g, a)):08x}")
-    out.append(f"`define {name}_X0_G {(get(f'e{e}.x{j}') - 2) // 4}")
-    out.append(f"`define {name}_X0_SEL {get(f'e{e}.x{j}')}")
-    out.append(f"`define {name}_X0_MUX m{p}")
+        out.append(f"`define {name}_X0_LEAF{g} 32'h{table(lambda a: int(i // 5 == g and (a >> (i % 5)) & 1)):08x}")
+    out.append(f"`define {name}_X0_G {i // 5}")
+    out.append(f"`define {name}_X0_SEL {v}")
+    out.append(f"`define {name}_X0_MUX m{e}_{j}")
     return out
 
 

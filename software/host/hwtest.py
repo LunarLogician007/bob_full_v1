@@ -2156,16 +2156,16 @@ MILESTONE["M22"] = (
     [("lutram-snake", check_lutram_snake)] +
     [MILESTONE["M21"][-1]])
 
-# --- M23: paired crossbar leaves, routing muxes from primitives, 12 x 11 CLBs -------------------
+# --- M23: crossbar OR roots, routing muxes from primitives, 10 x 10 CLBs -----------------------
 
 
-def check_xbar_pairs(p, ctx):
+def check_xbar_pins(p, ctx):
     """M23: the snake again (every element in one chain, SW0 -> LD0), but element k reads the
-    chain on pin snake_pin(k) with its other pins at const1 (designs.d_snake_pins): every
-    crossbar pair (lxpair.v) holds a source in one half of its shared CFGLUT5 leaves and
-    const1 in the other, each half both ways round, loaded as frames and then as the chain.
-    LD0 must be SW0 xor the mask's parity: a half loaded into, or read from, the wrong side
-    sticks it at 1."""
+    chain on pin snake_pin(k) and ANDs it with its other pins, all const1
+    (designs.d_snake_pins): every crossbar mux of every CLB (lxor.v: CFGLUT5 leaves, an OR
+    root) carries the chain somewhere on the chip, and all the others must deliver const1.
+    Loaded as frames, then its complement over the chain; LD0 must be SW0 xor the mask's
+    parity both times."""
     import random
     import cfgplane
     import fpga
@@ -2195,7 +2195,7 @@ def check_xbar_pairs(p, ctx):
 
 MILESTONE["M23"] = (
     MILESTONE["M22"][:-1] +
-    [("xbar-pairs", check_xbar_pairs)] +
+    [("xbar-pins", check_xbar_pins)] +
     [MILESTONE["M22"][-1]])
 
 # --- runner ------------------------------------------------------------------

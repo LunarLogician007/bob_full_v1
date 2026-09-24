@@ -59,7 +59,7 @@ module cfg_ctrl #(
     localparam [31:0] CRC_INIT     = 32'hFFFFFFFF;
     localparam [7:0]  CTRL_VERSION = 8'h02;
     localparam [7:0]  CTRL_KEY     = 8'hC5;
-    // M23: the count is as wide as the chain needs (89,216 bits at 12 x 11 overflowed M22's 16);
+    // M23: the count is as wide as the chain needs (68,096 bits at 10 x 10 overflowed M22's 16);
     // CFG_CTRL still reports its low 16 bits, and len_err is the full comparison
     localparam integer CW          = 24;
     localparam [CW-1:0] WANT_COUNT = CHAIN_W[CW-1:0];

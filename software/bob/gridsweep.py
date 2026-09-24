@@ -51,11 +51,11 @@ LIMITS = {"luts": 0.85, "slicem": 0.90, "slices": 0.95}
 A_ROUTING, B_REST = 0.785, 0.551
 REST_FIXED, REST_PER_CLB = 4000, 116          # M22: 13,382 yosys LUTs besides routing, 81 CLBs
 CFGLUT5_PER_CLB = 152
-# M23: the crossbar muxes go in pairs over the same 24 sources. Each leaf is one CFGLUT5 with I4
-# tied high: O5 = bits 15:0 (mux a), O6 = bits 31:16 (mux b), two 4:1 tables over one set of
-# inputs (UG953). An unselected leaf holds zeros, so each root is a fixed OR of 6 leaves in a plain
-# LUT6. Per CLB: 12 pairs x 6 leaves + 8 halves = 80 CFGLUT5, 24 OR roots.
-CFGLUT5_PER_CLB_M23, OR_ROOTS_PER_CLB = 80, 24
+# M23: each crossbar mux keeps its five CFGLUT5 leaves, and its root becomes a fixed OR in a
+# plain LUT (an unselected leaf holds zeros): 24 x 5 + 8 = 128 CFGLUT5 per CLB, 24 OR roots.
+# (Sharing a leaf between two muxes through O5/O6 looked like 80 per CLB, but Vivado maps a
+# dual-output CFGLUT5 to SRL16E + SRLC32E, two LUT sites: the first M23 build did not place.)
+CFGLUT5_PER_CLB_M23, OR_ROOTS_PER_CLB = 128, 24
 SLICEMS = 4350
 CFGLUT5_PER_SLICEM = 12282 / 3640              # M22's packing (one shift enable per CLB)
 LUTS_PER_SLICE = 38184 / 10939                # M22's packing
@@ -261,7 +261,7 @@ def report(res):
              "",
              "The **hand** columns price every routing mux as M23 builds it from primitives (LUT6 4:1 leaves,",
              "MUXF7/MUXF8 inside the slice; `hand_luts()`), which Vivado keeps one for one, and every crossbar",
-             "pair sharing dual-output CFGLUT5 leaves with fixed OR roots in plain LUTs (80 CFGLUT5 per CLB, not 152).",
+             "root as a fixed OR in a plain LUT (the leaves stay CFGLUT5: 128 per CLB, not 152).",
              "",
              "| grid | CLBs | LUTs (guest) | fc_in | W needed | W | routing muxes | host LUTs | slices % | fits | host LUTs, hand | LUT %, hand | slices %, hand | SLICEM slices % | SLICEM slices %, hand | config bits | fits, hand |",
              "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]

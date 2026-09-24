@@ -590,13 +590,12 @@ module tb_bob;
         idle(40);                                     // the loader's last 32 shifts
         check("CFGLUT5: clb(1,1) e0 INIT lo", {32'h0, dut.u_fabric.u_clb_x1y1.u_e0.u_lo.r}, {32'h0, `RT_E0_LO});
         check("CFGLUT5: clb(1,1) e0 INIT hi", {32'h0, dut.u_fabric.u_clb_x1y1.u_e0.u_hi.r}, {32'h0, `RT_E0_HI});
-        // M23: a crossbar pair's six shared leaves (both halves)
+        // M23: a crossbar mux's five leaves (lxor.v; the root is a fixed OR)
         check("CFGLUT5: clb(1,1) crossbar leaf 0", {32'h0, dut.u_fabric.u_clb_x1y1.`RT_X0_MUX.g_leaf[0].u.r}, {32'h0, `RT_X0_LEAF0});
         check("CFGLUT5: clb(1,1) crossbar leaf 1", {32'h0, dut.u_fabric.u_clb_x1y1.`RT_X0_MUX.g_leaf[1].u.r}, {32'h0, `RT_X0_LEAF1});
         check("CFGLUT5: clb(1,1) crossbar leaf 2", {32'h0, dut.u_fabric.u_clb_x1y1.`RT_X0_MUX.g_leaf[2].u.r}, {32'h0, `RT_X0_LEAF2});
         check("CFGLUT5: clb(1,1) crossbar leaf 3", {32'h0, dut.u_fabric.u_clb_x1y1.`RT_X0_MUX.g_leaf[3].u.r}, {32'h0, `RT_X0_LEAF3});
         check("CFGLUT5: clb(1,1) crossbar leaf 4", {32'h0, dut.u_fabric.u_clb_x1y1.`RT_X0_MUX.g_leaf[4].u.r}, {32'h0, `RT_X0_LEAF4});
-        check("CFGLUT5: clb(1,1) crossbar leaf 5", {32'h0, dut.u_fabric.u_clb_x1y1.`RT_X0_MUX.g_leaf[5].u.r}, {32'h0, `RT_X0_LEAF5});
         shift_ir(IR_CHAIN_OUT, irc);
         shift_chain({CFG_W{1'b0}});
         check("CFG_OUT readback == chain", {63'h0, (cfgrx === `RT_WORD)}, 64'h1);

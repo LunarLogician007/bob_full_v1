@@ -1,11 +1,11 @@
 top ram
 pcf -
-arch_sha256 aa16725911ba09e6df661a37a7f3a32d8b53d76a6a69716a61b95ffeec9ba456
+arch_sha256 0c74fabde218c005b68cb31d04e61af27b9ece8067008d272d79f2164748f9a1
 eblif_sha256 f3fab52eaff77c865fbe20abd7e92e99c0f0bb0fd9a319fa228e05bd622ce2e6
 seed 1
 image ghcr.io/lnis-uofu/openfpga-master@sha256:2467ffa99296516cc1bcbb07542633c90723ae17ca3f67a175f61cb9f131abbb
-command vpr arch.xml ram.eblif --device bob14x11 --route_chan_width 36 --read_rr_graph rr.xml --fix_clusters ram.pins --seed 1 --absorb_buffer_luts off --const_gen_inference none --sweep_dangling_primary_ios off --sweep_dangling_nets off --sweep_dangling_blocks off --sweep_constant_primary_outputs off --pack --place --route --analysis
-wirelength 136
-cpd_ns 1.99252
-fmax_mhz 598.395
-result_sha eaf208491057234a
+command vpr arch.xml ram.eblif --device bob12x10 --route_chan_width 36 --read_rr_graph rr.xml --fix_clusters ram.pins --seed 1 --absorb_buffer_luts off --const_gen_inference none --sweep_dangling_primary_ios off --sweep_dangling_nets off --sweep_dangling_blocks off --sweep_constant_primary_outputs off --pack --place --route --analysis
+wirelength 134
+cpd_ns 1.94591
+fmax_mhz 634.037
+result_sha 4a147ed5db9bb949

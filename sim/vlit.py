@@ -1,7 +1,7 @@
 """Verilog literals for the generated benches (M23).
 
-iverilog's scanner holds one line in 16k characters, and at 12 x 11 CLBs the chain is 89,216
-bits (22,304 hex digits): a wide constant is written as a concatenation of CHUNK-bit literals,
+iverilog's scanner holds one line in 16k characters, and at 10 x 10 CLBs the chain is 68,096
+bits (17,024 hex digits): a wide constant is written as a concatenation of CHUNK-bit literals,
 one per line (continued with a backslash inside a `define, which a statement must not have).
 """
 

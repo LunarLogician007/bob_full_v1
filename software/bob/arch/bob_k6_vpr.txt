@@ -1,9 +1,9 @@
 Warning 1: To use RLPlace for WLdriven placements, the reward function should be basic or nonPenalizing_basic.
-FPGA sized to 16 x 13: 208 grid tiles (bob14x11)
+FPGA sized to 14 x 12: 168 grid tiles (bob12x10)
 Warning 2: Treated 0 constant nets as global which will not be routed (to see net names increase packer verbosity).
-Warning 3: Found 26 nodes with no out-going switches. Run VTR with route_verbosity > 1 to see details.
-Warning 4: in check_rr_graph: fringe node 7556 CHANX at (1,1) has no fanin.
-FPGA sized to 16 x 13: 208 grid tiles (bob14x11)
+Warning 3: Found 25 nodes with no out-going switches. Run VTR with route_verbosity > 1 to see details.
+Warning 4: in check_rr_graph: fringe node 6136 CHANX at (1,1) has no fanin.
+FPGA sized to 14 x 12: 168 grid tiles (bob12x10)
 Warning 5: Found no more sample locations for SOURCE in io
 Warning 6: Found no more sample locations for OPIN in io
 Warning 7: Found no more sample locations for SOURCE in clb
@@ -13,10 +13,10 @@ Warning 10: Found no more sample locations for OPIN in bram
 Warning 11: Found no more sample locations for SOURCE in dsp
 Warning 12: Found no more sample locations for OPIN in dsp
 Circuit successfully routed with a channel width factor of 36.
-	Total wirelength: 18, average net length: 6.00000
+	Total wirelength: 20, average net length: 6.66667
 	Total logic block area (Warning, need to add pitch of routing to blocks with height > 3): 0
                            ---- ---- -----------
-                             L4    0     0.00117
+                             L4    0     0.00143
 Flow timing analysis took 0 seconds (0 STA, 0 slack) (0 full updates: 0 setup, 0 hold, 0 combined).
 VPR succeeded
-The entire flow of VPR took 0.96 seconds (max_rss 80.5 MiB)
+The entire flow of VPR took 0.90 seconds (max_rss 80.6 MiB)

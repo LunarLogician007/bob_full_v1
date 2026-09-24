@@ -420,19 +420,26 @@ def test_m22_runs_the_full_m21_list_first():
     assert "lutram-snake" in names
 
 
-def test_m23_xbar_pairs_passes_on_a_healthy_board():
-    ok, msg = hwtest.check_xbar_pairs(FakeBob(), {})
+def test_m23_xbar_pins_passes_on_a_healthy_board():
+    ok, msg = hwtest.check_xbar_pins(FakeBob(), {})
     assert ok, msg
     assert f"{len(snake_order())} elements" in msg
 
 
-def test_m23_xbar_pairs_fails_when_the_pair_halves_swap():
-    ok, msg = hwtest.check_xbar_pairs(FakeBob(swap_halves=True), {})
+@pytest.mark.parametrize("j", [0, LUT_K - 1])
+def test_m23_xbar_pins_fails_when_a_crossbar_input_is_dead(j):
+    ok, msg = hwtest.check_xbar_pins(FakeBob(dead_xbar_pin=j), {})
     assert not ok, msg
 
 
-def test_m23_xbar_pairs_fails_when_the_loader_misses_the_tables():
-    ok, msg = hwtest.check_xbar_pairs(FakeBob(lose_lframes=True), {})
+def test_m23_lutram_snake_alone_misses_a_dead_last_pin():
+    """why xbar-pins exists: the M22 snake only uses pin 0"""
+    ok, msg = hwtest.check_lutram_snake(FakeBob(dead_xbar_pin=LUT_K - 1), {})
+    assert ok, msg
+
+
+def test_m23_xbar_pins_fails_when_the_loader_misses_the_tables():
+    ok, msg = hwtest.check_xbar_pins(FakeBob(lose_lframes=True), {})
     assert not ok, msg
 
 
@@ -445,4 +452,4 @@ def test_m23_the_snake_pins_cover_every_pin_of_every_element():
 def test_m23_runs_the_full_m22_list_first():
     names = [n for n, _f in hwtest.MILESTONE["M23"]]
     assert names[:len(hwtest.MILESTONE["M22"]) - 1] == [n for n, _f in hwtest.MILESTONE["M22"]][:-1]
-    assert "xbar-pairs" in names
+    assert "xbar-pins" in names

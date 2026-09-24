@@ -1,12 +1,12 @@
-Netlist_File: blinky.net Netlist_ID: SHA256:fbedfb0db12049a7bf7330fdd4a5f2e264360aec753fa28ba946cb8c82c29f3b
-Array size: 16 x 13 logic blocks
+Netlist_File: blinky.net Netlist_ID: SHA256:308e753fd36eff76e8d8a752745e0c067642c25c1e1fc404b0bced3c90a89559
+Array size: 14 x 12 logic blocks
 
 #block name	x	y	subblk	layer	block number
 #----------	--	--	------	-----	------------
-$auto$alumacc.cc:548:replace_alu$9.slice[3].add	14	2	0	0	#0
-bob_gen1	14	1	0	0	#1
-$auto$alumacc.cc:548:replace_alu$9.slice[7].add	14	3	0	0	#2
-out:led[0]	15	1	0	0	#3
-out:led[1]	15	2	0	0	#4
-out:led[2]	15	3	0	0	#5
+$auto$alumacc.cc:548:replace_alu$9.slice[3].add	12	2	0	0	#0
+bob_gen1	12	1	0	0	#1
+$auto$alumacc.cc:548:replace_alu$9.slice[7].add	12	3	0	0	#2
+out:led[0]	13	1	0	0	#3
+out:led[1]	13	2	0	0	#4
+out:led[2]	13	3	0	0	#5
 clk		1	0	0	0	#6

@@ -58,8 +58,8 @@ def test_chain_fields_chain_round_trip(k):
         assert dev.encode(dev.decode(w)) == w
 
 
-SIZES = {"grid": (16, 13, 36), "blocks": {"io": 50, "clb": 132, "bram": 2, "dsp": 2},
-         "cluster": (4, 16, "full"), "chain": {6: 89216, 4: 55424}}
+SIZES = {"grid": (14, 12, 36), "blocks": {"io": 44, "clb": 100, "bram": 2, "dsp": 2},
+         "cluster": (4, 16, "full"), "chain": {6: 68096, 4: 42496}}
 
 
 @pytest.mark.parametrize("k", [6, 4])
@@ -73,8 +73,8 @@ def test_sizes(k):
     (software/bob/sweep.py, docs/reports/M21/cluster_sweep.md).
     M22: 11x9 core, 81 CLBs (324 LUTs), LUT contents and crossbar in CFGLUT5: 441 frames;
     each CLB tile frame aligned: selects + flags, 2 INIT frames, the remaining selects.
-    M23: 14x11 core, 132 CLBs (528 LUTs), W 36, fc_in 0.10, 50 pads: 697 frames
-    (software/bob/gridsweep.py, docs/reports/M23/grid_sweep.md).
+    M23: 12x10 core, 100 CLBs (400 LUTs), W 36, fc_in 0.10, 44 pads: 532 frames
+    (software/bob/gridsweep.py, docs/reports/M23/grid_sweep.md; 12x11 did not place).
     The 8x8 profile (48 CLBs, 9400 bits) is frozen in release/M7_8x8."""
     dev = DEVICES[k]
     assert (dev.width, dev.height, dev.arch["chan_width"]) == SIZES["grid"]
@@ -269,7 +269,7 @@ def test_generated_fabric_has_every_mux_and_block():
     assert len(re.findall(r"^\s*bob_mux #.* m\d+ ", text, re.M)) == len(rr)
     # M21: one bob_clb module holds the crossbar (one mux per element input) and N elements
     body = text[text.index("module bob_clb"):]
-    assert len(re.findall(r"^\s*lxpair #", body, re.M)) == dev.cluster["n"] * dev.lut_k // 2    # M23 (M22: lxmux)
+    assert len(re.findall(r"^\s*lxor #", body, re.M)) == dev.cluster["n"] * dev.lut_k    # M23 (M22: lxmux)
     assert len(re.findall(r"^\s*ble u_e\d+ ", body, re.M)) == dev.cluster["n"]
     assert len(re.findall(r"^\s*bob_clb u_clb_x\d+y\d+ ", text, re.M)) == len(dev.by_type["clb"])
     assert len(re.findall(r"^\s*bram_block u_bram\d ", text, re.M)) == 2

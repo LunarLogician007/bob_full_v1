@@ -1,11 +1,11 @@
 top switches
 pcf -
-arch_sha256 aa16725911ba09e6df661a37a7f3a32d8b53d76a6a69716a61b95ffeec9ba456
+arch_sha256 0c74fabde218c005b68cb31d04e61af27b9ece8067008d272d79f2164748f9a1
 eblif_sha256 b5b7808943ee0a777b964b67168130c81da8eb35267695a312646d564b186d55
 seed 1
 image ghcr.io/lnis-uofu/openfpga-master@sha256:2467ffa99296516cc1bcbb07542633c90723ae17ca3f67a175f61cb9f131abbb
-command vpr arch.xml switches.eblif --device bob14x11 --route_chan_width 36 --read_rr_graph rr.xml --fix_clusters switches.pins --seed 1 --absorb_buffer_luts off --const_gen_inference none --sweep_dangling_primary_ios off --sweep_dangling_nets off --sweep_dangling_blocks off --sweep_constant_primary_outputs off --pack --place --route --analysis
-wirelength 110
-cpd_ns 1.83818
-fmax_mhz 699.278
-result_sha c845ef122957cda0
+command vpr arch.xml switches.eblif --device bob12x10 --route_chan_width 36 --read_rr_graph rr.xml --fix_clusters switches.pins --seed 1 --absorb_buffer_luts off --const_gen_inference none --sweep_dangling_primary_ios off --sweep_dangling_nets off --sweep_dangling_blocks off --sweep_constant_primary_outputs off --pack --place --route --analysis
+wirelength 103
+cpd_ns 1.68044
+fmax_mhz 773.228
+result_sha 612de565d77504bd

@@ -187,14 +187,14 @@
     </tile>
   </tiles>
   <layout tileable="true" through_channel="false" concat_pass_wire="true">
-    <fixed_layout name="bob14x11" width="16" height="13">
+    <fixed_layout name="bob12x10" width="14" height="12">
       <perimeter type="io" priority="100"/>
       <corners type="EMPTY" priority="101"/>
       <fill type="clb" priority="10"/>
       <col type="bram" startx="3" starty="1" priority="20"/>
       <col type="EMPTY" startx="3" starty="1" priority="19"/>
-      <col type="dsp" startx="10" starty="1" priority="20"/>
-      <col type="EMPTY" startx="10" starty="1" priority="19"/>
+      <col type="dsp" startx="8" starty="1" priority="20"/>
+      <col type="EMPTY" startx="8" starty="1" priority="19"/>
     </fixed_layout>
   </layout>
   <device>

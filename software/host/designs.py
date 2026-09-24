@@ -398,17 +398,20 @@ def snake_pin(k):
 
 
 def d_snake_pins(invert=0):
-    """M23: d_snake, but element k reads the chain on pin snake_pin(k) and every other pin of
-    it is const1. A crossbar pair (lxpair.v: muxes 2p and 2p+1 of a CLB share CFGLUT5 leaves,
-    O5 the low half, O6 the high half) then holds the chain's source in one half and const1
-    (leaf 0 all ones) in the other, both ways round over the chip: a half written into the
-    wrong place, or read from the wrong output, sticks LD0 at 1 or breaks the chain."""
+    """M23: d_snake, but element k reads the chain on pin snake_pin(k), every other pin of it
+    is const1, and the element is the AND of them all (the chain bit, or its inverse, and the
+    const1 pins). So every crossbar mux of every CLB carries the chain once somewhere on the
+    chip, and every other mux must deliver const1 (lxor.v: leaf 0 all ones, OR root): a
+    crossbar input that does not load breaks the chain or sticks LD0 at 0."""
+    from bitstream import lut
     d = Design()
     s = d.input(0)
     for k, (x, y, e) in enumerate(snake_order()):
         j = snake_pin(k)
         ins = [Const(1)] * LUT_K
         ins[j] = s
-        s = d.lut(x, y, LUT.inv(j) if (invert >> k) & 1 else LUT.buf(j), ins, e=e)
+        inv = (invert >> k) & 1
+        init = lut(lambda *b, j=j, inv=inv: (b[j] ^ inv) and all(b[m] for m in range(LUT_K) if m != j))
+        s = d.lut(x, y, init, ins, e=e)
     d.output(0, s)
     return d

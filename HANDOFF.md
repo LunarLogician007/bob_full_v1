@@ -23,34 +23,43 @@ This file is the live state: what is finished, what is in flight, and exactly wh
 2. **The sweep** (`software/bob/gridsweep.py`, `docs/reports/M23/grid_sweep.md`). The model
    reproduces M22 exactly (38,218 LUTs). **The wall was SLICEM slices:** the four CFGLUT5s of
    a SLICEM share a shift enable (per CLB), so Vivado packed 3.37 per slice, and the SLICEMs
-   were 84% full at 81 CLBs. With M22's CLB, 103 CLBs was the ceiling.
-3. **Two new building blocks**, so the grid can grow:
-   - `hw/src/clb/lxpair.v`: two crossbar muxes share dual-output CFGLUT5 leaves (I4 high;
-     O5 = bits 15:0, O6 = bits 31:16), with fixed OR roots. 152 → 80 CFGLUT5 per CLB.
+   were 84% full at 81 CLBs.
+3. **Two cheaper building blocks:**
+   - `hw/src/clb/lxor.v`: a crossbar mux keeps its CFGLUT5 leaves (O6 only), and the root is
+     a fixed OR in a plain LUT. 152 → 128 CFGLUT5 per CLB.
    - `hw/src/fabric/bob_mux.v`: LUT6 4:1 leaves + MUXF7/MUXF8. It equals the M22 mux over 80
      sizes (iverilog), and yosys counts equal `gridsweep.hand_luts()`.
-4. **12 × 11 = 132 CLBs = 528 LUTs** (`ARCH_M23`: 14 × 11 core, BRAM x=3 and DSP x=10 of
-   height 5, W 36, fc_in 0.10, 50 pads, 697 frames, 89,216 bits). Every example routes in
-   VPR (fir16 needs 34). Prediction: 39.2k LUTs (74%), 84% of slices, 72% of SLICEMs.
-   Whole-design yosys: 31,856 LUT + 10,560 CFGLUT5 + 33,550 FF, 1.8 GB.
-5. **Limits found on the way:**
+4. **10 × 10 = 100 CLBs = 400 LUTs** (`ARCH_M23`: 12 × 10 core, BRAM x=3 and DSP x=8 of
+   height 5, W 36, fc_in 0.10, 44 pads, 532 frames, 68,096 bits). Every example routes in
+   VPR (fir16 needs 34). SLICEM slices 87% at M22's packing; 11 × 10 would be 96%.
+   Whole-design yosys: 25,691 LUT + 12,800 CFGLUT5 + 26,787 FF, 1.9 GB.
+5. **The first M23 build failed to place (2026-09-24, 12 × 11).** That design shared each
+   crossbar leaf between two muxes via O5/O6 (80 CFGLUT5 per CLB on paper). Vivado maps a
+   dual-output CFGLUT5 to SRL16E + SRLC32E, two LUT sites. The placer reported "Weighted
+   LUTRAM utilization is more than 100" and hung in Phase 3.2; the user stopped it. **Never
+   use a CFGLUT5's O5 in bob.** The watch-items are in `docs/hwtest/M23.md`.
+6. **Limits found on the way:**
    - `cfg_ctrl.v`'s 16-bit chain counter would have refused every chain load. It is 24 bits
      now; CFG_CTRL reports the low 16 and `len_err` does the full comparison. The host, the
      fake board and `tb_bob` follow.
    - The chain-wide L mask was split into `BOB_LKIND`/`BOB_LMASKS` (iverilog constant limit).
    - Bench literals are chunked (`sim/vlit.py`; iverilog's 16k-character lines).
    - `lint.sh` raises the stack (verilator segfaulted at 8 MB).
-6. **Board check `xbar-pairs`** (`docs/hwtest/M23.md`), with pass and fail cases on the fake
-   board (`swap_halves`, `lose_lframes`). There are new mutants in `sim/mutate_fabric.sh`.
+7. **Board check `xbar-pins`** (`docs/hwtest/M23.md`): the snake on every pin, ANDed with
+   const1 on the others. The fake board has pass and fail cases (`dead_xbar_pin`,
+   `lose_lframes`), plus a test that the M22 snake alone misses a dead pin.
 
-### Verification state
-- tb_clb 4032 PASS; lint clean; VPR all examples PASS; pytest 519 (after the pinned-size
-  updates). tb_bob: rerun after the count fix, inside `make check` (`build/check_m23.log`).
-- See the commit log on `m23` for the final `make check` and mutant results.
+### Verification state (10 × 10)
+- tb_clb 4032 PASS. VPR: all 39 steps PASS. Fake-board M22/M23 tests 10/10. Crossbar
+  mutants all killed by tb_clb: `lxor-root-and`, `lxor-drop-leaf0`, `expand-leaf-index`,
+  `expand-no-const1`, `expand-bit-order`.
+- tb_bob, lint, the routing-mux mutants and the full `make check`: see the latest `m23`
+  commits. The 12 × 11 run passed tb_bob 672/672, cfg, K=4 and synth before it was
+  stopped. cosim is slow with the primitive mux models (more than 3 h at 12 × 11).
 
 ### Next
-1. The user runs the M23 Vivado build (`docs/hwtest/M23.md`). If slices or SLICEMs run out,
-   step down `ARCH_M23` to 12 × 10 or 11 × 11 (in the sweep), then `make rrgraph device vpr`.
+1. The user runs the M23 Vivado build (`docs/hwtest/M23.md`). Watch "Phase 1.3" for the
+   weighted-LUTRAM warning and "Phase 3.2" for time; the fallback is 10 × 9.
 2. `delays.py fold docs/reports/M23/delay_paths.rpt`: the first build with the rename fix.
 3. `make hwtest M=M23`, then merge `m23` into `main` and tag `m23`.
 4. Paper ideas for M24+ are in `docs/research/2026-09-24-fpga-ideas.md`.
