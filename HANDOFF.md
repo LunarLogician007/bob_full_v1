@@ -23,7 +23,10 @@ This file is the live state: what is finished, what is in flight, and exactly wh
   the 13th flag costs K=4 tiles a frame; 11 K=4 designs; dd's truth table) and pass on rerun.
   **The fourth stays red until the user copies the file:** `test_reports[M23]` needs
   `docs/reports/M23/sysclk_1cycle.txt`, not yet copied from `out\M23\`.
-- Next: the user builds M24 in Vivado (`docs/hwtest/M24.md`), then `make hwtest M=M24`.
+- **On the board 2026-09-25: `make hwtest M=M24` 69/69** (double-duty frames 8/8 + chain 8/8,
+  selftest 13/13, bob-/pnr-fir16, clock-margin 5.00x). Vivado: WNS +0.562 ns, 38,193 LUTs
+  (71.8%), slices 85.5% (M23 88.0%), SLICEM 3,733 (85.8%, M23 92.6%). Merged into `main`,
+  tagged `m24`. The two hand steps in `docs/hwtest/M24.md` are still to do.
 - Still missing from M23: `docs/reports/M23/{delay_paths.rpt, sysclk_1cycle.txt, drc.rpt,
   build_info.txt}`.
 
