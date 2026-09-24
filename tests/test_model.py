@@ -30,6 +30,8 @@ TRUTH = {
     "const": lambda *r: 0b10,
     "showcase": lambda a, b, *r: (a & b) | ((a | b) << 1) | ((a ^ b) << 2),
     "cross": lambda a, b, *r: ((1 - (a & b)) ^ a) | ((a & b) << 1) | ((1 - (a & b)) << 2),
+    # M24 Double Duty: LD0 = SW0 + SW1's sum, LD1 = its carry, LD2 = BTN0 AND SW0 (the LUT beside)
+    "dd": lambda a, b, c, *r: (a ^ b) | ((a & b) << 1) | ((c & a) << 2),
 }
 
 

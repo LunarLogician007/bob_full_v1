@@ -15,7 +15,14 @@ This file is the live state: what is finished, what is in flight, and exactly wh
   a synthesis pass; this is the natural M25.
 - Results: tb_clb 4048 PASS; every VPR example and the Python PnR pass the model check;
   elements −4.7% (VPR) / −13.2% (bob's packer); yosys 25,811 LUT (+120); fake-board
-  double-duty pass and fail; `dd-*` mutants killed. `make check`: see the latest `m24` commit.
+  double-duty pass and fail; `dd-*` mutants killed.
+- **`make check` on m24 (2026-09-24, 3 h 15 min):** every simulation passes - tb_clb 4048,
+  tb_mux 164,992, BRAM 5292, DSP 1344, tb_bob 680 (671 + the dd design), cfg 180, K=4
+  4048 + 550, synth 972, cosim 7026, frames 73 + 17 + 17 - and lint is clean. pytest had 4
+  failures: three were M24's own, fixed afterwards (the K=4 chain 42,496 -> 55,296, because
+  the 13th flag costs K=4 tiles a frame; 11 K=4 designs; dd's truth table) and pass on rerun.
+  **The fourth stays red until the user copies the file:** `test_reports[M23]` needs
+  `docs/reports/M23/sysclk_1cycle.txt`, not yet copied from `out\M23\`.
 - Next: the user builds M24 in Vivado (`docs/hwtest/M24.md`), then `make hwtest M=M24`.
 - Still missing from M23: `docs/reports/M23/{delay_paths.rpt, sysclk_1cycle.txt, drc.rpt,
   build_info.txt}`.

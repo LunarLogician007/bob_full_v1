@@ -59,7 +59,7 @@ def test_chain_fields_chain_round_trip(k):
 
 
 SIZES = {"grid": (14, 12, 36), "blocks": {"io": 44, "clb": 100, "bram": 2, "dsp": 2},
-         "cluster": (4, 16, "full"), "chain": {6: 68096, 4: 42496}}
+         "cluster": (4, 16, "full"), "chain": {6: 68096, 4: 55296}}
 
 
 @pytest.mark.parametrize("k", [6, 4])
@@ -75,6 +75,9 @@ def test_sizes(k):
     each CLB tile frame aligned: selects + flags, 2 INIT frames, the remaining selects.
     M23: 12x10 core, 100 CLBs (400 LUTs), W 36, fc_in 0.10, 44 pads: 532 frames
     (software/bob/gridsweep.py, docs/reports/M23/grid_sweep.md; 12x11 did not place).
+    M24: a 13th element flag (dd) leaves frame 0 room for 15 crossbar selects, not 16. At
+    K=6 the tile already had a tail frame (unchanged, 68096); at K=4 (16 selects) each CLB
+    gains one: 42496 -> 55296.
     The 8x8 profile (48 CLBs, 9400 bits) is frozen in release/M7_8x8."""
     dev = DEVICES[k]
     assert (dev.width, dev.height, dev.arch["chan_width"]) == SIZES["grid"]
@@ -369,7 +372,7 @@ def test_bitstream_engine_at_k4(tmp_path):
     env = dict(os.environ, BOB_DEVICE_JSON=str(gen / "device.json"))
     r = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, env=env,
                        cwd=os.path.join(ROOT, "software", "host"))
-    assert "K4_OK 10" in r.stdout, r.stdout + r.stderr
+    assert "K4_OK 11" in r.stdout, r.stdout + r.stderr          # M24: + dd (a LUT2 beside the adder)
     assert json.load(open(gen / "device.json"))["lut_k"] == 4
 
 
