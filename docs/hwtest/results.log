@@ -1191,3 +1191,72 @@
 2026-09-24 03:57:15  M22  tag=M22 top=bob_top
     PASS  idcode           0x0B022093, build.cfg expects 0x0B022093
     PASS  fast-fir16       130 live samples LEDs == model(registers, pins), 1 input vectors, 1 register states, 0 bursts skipped (moving); goals not checked (not a terminal: run `make hwtest` interactively); readback while running == .bit
+2026-09-24 15:05:00  M23  tag=M23 top=bob_top
+    PASS  idcode           0x0B023093, build.cfg expects 0x0B023093
+    PASS  bypass           measured 1 bit(s)
+    PASS  selftest         12/12 designs match the model
+    PASS  usercode         0x00000017, build.cfg expects 0x00000017
+    PASS  chain-length     68096 bits, design intact after the marker scan
+    PASS  ir-status        {'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0, 'lsb01': True}
+    PASS  crc-reject-live  crc_err=1 DONE=1 config kept=True showcase vectors wrong=0
+    PASS  gts              outputs before JSTART=000, after=011, model=011
+    PASS  gsr-gwe          q: GSR=1 (INIT 1), GSR off+GWE 0=1 (frozen 1, gsr=0 gwe=0), running=0 (D 0); DONE before/after JSTART=0/1
+    PASS  capture-user1    CAPTURE=0x0000 USER1[19:4]=0x0000 (switches must not move during the check)
+    PASS  jprogram         DONE=0 GTS=1 chain zero=True outputs=000
+    PASS  showcase-live    pad_i=000001 LD2..0=110 model=110
+    PASS  ce-sr            CE loads, SR clears (beats CE), both low holds - 7 steps match model.py
+    PASS  counter-step     counts [15, 4, 9, 14, 3, 8] (steps [5, 5, 5, 5, 5], want 5 each); ce off: [11, 11, 11] (want constant)
+    PASS  counter-run      10 counts in 3.06 s = 3.26/s (expected 3.73)
+    PASS  bram-init        64/64 words read back
+    PASS  bram-locked      err=1 gwe=1
+    PASS  bram-rom         LEDs ['110', '100', '111', '011'] contents ['110', '100', '111', '011']
+    PASS  bram-modes       72/72 stepped operations match model.py
+    PASS  dsp-modes        60/60 stepped operations match model.py 
+    PASS  dsp-mult         LEDs ['000', '011', '110', '001'] expected ['000', '011', '110', '001']
+    PASS  dsp-accum        P0 0 -> 11 in 3.03 s = 3.63/s (expected 3.73)
+    PASS  bram-select      16 words each read back from bram0 and bram1; SELECT 9 ignored (target 0)
+    PASS  pipeline         LEDs ['000', '010', '110', '001', '010', '000', '001', '110'] model ['000', '010', '110', '001', '010', '000', '001', '110']
+    PASS  counter8         counts [15, 52, 25, 62, 35, 8, 45, 18, 55, 28, 1, 38] (steps [37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37], want 37 each)
+    PASS  frames-load      loaded 532 frames (2128 words) through CFG_IN, CRC 6D6D7075, FDRO readback verified; CHAIN_OUT == word: True; DONE=1; 4/4 vectors == model
+    PASS  frames-crc-reject CRC_ERROR=1 START_OK=0 DONE=0 INIT_B=0
+    PASS  frames-idcode-reject ID_ERROR=1 memory empty=True
+    PASS  frames-live-refused frames: WR_ERROR=1 memory kept=True; chain while running kept=True; DONE=1; showcase 4/4 vectors == model
+    PASS  frames-vs-chain  chain load -> FDRO == word: True; frame load -> CHAIN_OUT == word: True
+    PASS  bob-gates        loaded 532 frames (2128 words) through CFG_IN, CRC 71FAD75E, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 0 CAPTUREs x 0 registers == golden
+    PASS  bob-counter      loaded 532 frames (2128 words) through CFG_IN, CRC A0DB1E94, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 6 registers == golden
+    PASS  bob-ram          loaded 532 frames (2128 words) through CFG_IN + 256 BRAM content frames (1 BRAM, all 1024 words), CRC B1BF17A4, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 0 CAPTUREs x 0 registers == golden
+    PASS  bob-mult         loaded 532 frames (2128 words) through CFG_IN, CRC 8310E095, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 7 registers == golden
+    PASS  bob-fir          loaded 532 frames (2128 words) through CFG_IN, CRC 4CDD2BF6, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 7 registers == golden
+    PASS  pnr-switches     loaded 532 frames (2128 words) through CFG_IN, CRC E63BA7A0, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 3 registers == golden
+    PASS  ram-readback     64 clocks (50 with BTN0 write), bram0[0..15] = [2, 2, 4, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] read back after JPROGRAM == model (all 1024 words were written at load, so no earlier design's words remain); chain readback == .bit
+    PASS  blinky-rate      31 counts in 4.18 s = 7.41 Hz (expected 7.45)
+    PASS  bob-wide         loaded 532 frames (2128 words) through CFG_IN, CRC B1495B3C, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 20 registers == golden
+    PASS  pnr-wide         loaded 532 frames (2128 words) through CFG_IN, CRC 5215EB9B, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 20 registers == golden
+    PASS  partial-swap     1 of 532 frames rewritten; counter 5 -> 5 across the partial -> 8 after 3 clocks; LD1 A (AND) [0, 0, 0, 1] (model [0, 0, 0, 1]), B (OR) [0, 1, 1, 1] (model [0, 1, 1, 1]); DONE=1
+    PASS  partial-live     before: counting=True; frozen (GHIGH_B=0): 2 -> 2 over 1.2 s; 1 frame(s) written; released (GHIGH_B=1): 2 -> 5; LD1 [0, 1, 1, 1] (OR model [0, 1, 1, 1])
+    PASS  partial-bad-crc  refused=True CRC_ERROR=1 GHIGH_B=0; frozen counter 0 -> 0; DONE=1; JPROGRAM + full load counts again=True
+    PASS  partial-guest    partial: 35 of 532 frames rewritten with the design running, released; LEDs [0, 2, 3, 5] == gates_swapped model [0, 2, 3, 5]: True (35 frames differ)
+    PASS  frames-bram-load loaded 532 frames (2128 words) through CFG_IN + 512 BRAM content frames (2 BRAMs, all 1024 words), CRC 669813EC, FDRO readback verified; USER4 reads the same words: True; ROM LEDs [3, 0, 5, 5] == mem[SW] [3, 0, 5, 5]
+    PASS  frames-bram-live-refused WR_ERROR=1; bram0[0..31] after JPROGRAM unchanged=True
+    PASS  ram-readback-frames bram0[0..15] = [2, 2, 4, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] over FDRO block type 1 after JPROGRAM == model, == USER4
+    PASS  bob-big          loaded 532 frames (2128 words) through CFG_IN, CRC 084017FA, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 40 registers == golden
+    PASS  pnr-big          loaded 532 frames (2128 words) through CFG_IN, CRC 3108F8C3, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 40 registers == golden
+    PASS  bob-bd_demo      loaded 532 frames (2128 words) through CFG_IN, CRC 43B02CFF, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 5 registers == golden
+    PASS  pnr-bd_demo      loaded 532 frames (2128 words) through CFG_IN, CRC 4B904BEC, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 5 registers == golden
+    PASS  live-bd_demo     140 live samples LEDs == model(registers, pins), 1 input vectors, 1 register states, 0 bursts skipped (moving); goals not checked (not a terminal: run `make hwtest` interactively); readback while running == .bit
+    PASS  wave-step        120 clocks captured == source Verilog (5 LED values, 210.0 samples/s), VCD 9 time steps
+    PASS  wave-live        400 live samples, LD0 == SW0 xor SW1 in all, 1 switch settings
+    PASS  clock-rate       clk_period 47 x 2**16: 169 counts in 4.18 s = 40.40 Hz (expected 40.58)
+    PASS  clock-fmax       critical path 77.424 ns -> every 20 sysclk cycles = 6.250 MHz: 1 s with no error, registers moving
+    PASS  clock-fmax-py    critical path 83.482 ns -> every 21 sysclk cycles = 5.952 MHz: 1 s with no error, registers moving
+    PASS  clock-margin     computed 20 cycles (6.250 MHz); first failure at 4 (31.250 MHz): margin 5.00x on silicon
+    PASS  shadow-readback  frames: FDRO == showcase; JPROGRAM: FDRO and CHAIN_OUT all zeros; chain load: CHAIN_OUT == FDRO == the counter (532 frames)
+    PASS  partial-cluster  1 of 532 frames rewritten inside clb(1,1); counter 5 -> 5 -> 7; LD1 AND [0, 0, 0, 1] (model [0, 0, 0, 1]), OR [0, 1, 1, 1] (model [0, 1, 1, 1]); FDRO == B: True; DONE=1
+    PASS  bob-fir16        loaded 532 frames (2128 words) through CFG_IN, CRC DA0E09AD, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 58 registers == golden
+    PASS  pnr-fir16        loaded 532 frames (2128 words) through CFG_IN, CRC F7737CE8, FDRO readback verified; readback == FASM; 64 clocks LEDs == source, 64 CAPTUREs x 58 registers == golden
+    PASS  live-fir16       109 live samples LEDs == model(registers, pins), 1 input vectors, 1 register states, 0 bursts skipped (moving); goals not checked (not a terminal: run `make hwtest` interactively); readback while running == .bit
+    PASS  fast-fir16       110 live samples LEDs == model(registers, pins), 1 input vectors, 1 register states, 0 bursts skipped (moving); goals not checked (not a terminal: run `make hwtest` interactively); readback while running == .bit
+    PASS  fmax-cluster     critical path 77.424 ns -> every 20 sysclk cycles = 6.250 MHz: 1 s with no error, registers moving
+    PASS  lutram-snake     400 elements in one chain; frames: LD0 for SW0 = 0/1 [0, 1] (want [0, 1]); chain: LD0 for SW0 = 0/1 [0, 1] (want [0, 1])
+    PASS  xbar-pins        400 elements, every pin; frames: LD0 for SW0 = 0/1 [0, 1] (want [0, 1]); chain: LD0 for SW0 = 0/1 [0, 1] (want [0, 1])
+    PASS  pipeline-live    SW1..0 = 00/01/10/11 should light LD0 / LD1 / LD2 / all three

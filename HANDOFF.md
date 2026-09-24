@@ -65,6 +65,18 @@ This file is the live state: what is finished, what is in flight, and exactly wh
   killed. The 12 × 11 run passed tb_bob 672/672, cfg, K=4 and synth before it was
   stopped. cosim is slow with the primitive mux models (more than 3 h at 12 × 11).
 
+### M23 on the board (2026-09-24)
+- **Vivado:** timing closed, WNS +0.048 ns (WHS +0.075). 36,710 LUTs (69.0%; logic 23,982,
+  LUT as memory 12,728 = 73.2% of SLICEM LUTs), 26,960 FFs, F7 5,638 / F8 1,634, slices
+  11,709 (88.0%), SLICEMs 4,029 of 4,350 (92.6%). Slices came out fuller than the model's
+  66-76%; **10 x 10 is the ceiling for this CLB on the XC7Z020.**
+- **`make hwtest M=M23`: 68/68 automatic checks PASS** (9 min), including lutram-snake and
+  xbar-pins over all 400 elements, frames and chain, partial reconfiguration, the fir16
+  live checks and clock-margin 5.00x on silicon.
+- Still to do: the interactive part (`--manual`: the live-fir16 goals and the M23.md
+  steps); the rest of `out\M23\` (`delay_paths.rpt`, `sysclk_1cycle.txt`, `drc.rpt`,
+  `build_info.txt`) for the delay fold.
+
 ### Next
 1. The user runs the M23 Vivado build (`docs/hwtest/M23.md`). Watch "Phase 1.3" for the
    weighted-LUTRAM warning and "Phase 3.2" for time; the fallback is 10 × 9.
