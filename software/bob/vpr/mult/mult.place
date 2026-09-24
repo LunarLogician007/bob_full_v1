@@ -1,4 +1,4 @@
-Netlist_File: mult.net Netlist_ID: SHA256:8b3fdc74ecd2c8523900b21332994e3cfb32d672ac6bf48e683c2be6bf7cfd09
+Netlist_File: mult.net Netlist_ID: SHA256:557bfe2dfd01fe0c69edb02a6f41bb18e4b6a05a85bf23584965783f0a4d9a2f
 Array size: 14 x 12 logic blocks
 
 #block name	x	y	subblk	layer	block number

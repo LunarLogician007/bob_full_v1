@@ -1,6 +1,6 @@
 top mult
 pcf -
-arch_sha256 0c74fabde218c005b68cb31d04e61af27b9ece8067008d272d79f2164748f9a1
+arch_sha256 1cdc99c12f22df499eb983d4a1f7d88b5ddbf52549d2d735f96ff4364816f153
 eblif_sha256 5299e993cf09a6f07fc2ba4c2da2e4a0788ea55da753ac1935fe2a203ce420da
 seed 1
 image ghcr.io/lnis-uofu/openfpga-master@sha256:2467ffa99296516cc1bcbb07542633c90723ae17ca3f67a175f61cb9f131abbb

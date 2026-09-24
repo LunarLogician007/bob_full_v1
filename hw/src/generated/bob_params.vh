@@ -10,10 +10,10 @@
 
 `define BOB_LUT_K              6
 `define BOB_LUT_INIT_W         64
-`define BOB_CLB_CFG_W          424
+`define BOB_CLB_CFG_W          429
 `define BOB_CLB_N              4
 `define BOB_CLB_I              16
-`define BOB_ELE_W              12
+`define BOB_ELE_W              13
 `define BOB_XBAR_W             5
 `define BOB_XBAR_N             24
 `define BOB_ELE_FRAC           0
@@ -28,8 +28,9 @@
 `define BOB_ELE_FF2_RSTVAL     9
 `define BOB_ELE_FF2_CE_EN      10
 `define BOB_ELE_FF2_SR_EN      11
-`define BOB_CLB_FLAGS_LO       80
-`define BOB_LF_XHEAD           16
+`define BOB_ELE_DD             12
+`define BOB_CLB_FLAGS_LO       76
+`define BOB_LF_XHEAD           15
 `define BOB_LF_INIT            2
 `define BOB_LF_XBAR            2
 `define BOB_LF_N               4
@@ -86,6 +87,6 @@
 // frame f's mask is BOB_LMASKS[BOB_LKIND[f*BOB_LKIND_W +: BOB_LKIND_W]*FRAME_BITS +: FRAME_BITS]
 `define BOB_LKIND_W  2
 `define BOB_LKIND    1064'h0e93a4e93a4e93a4e93a4e93a43a4e93a4e93a4e93a4e93a4e90e93a4e93a4e93a4e93a4e93a43a4e93a4e93a4e93a4e93a4e9000000e93a4e93a4e93a4e93a4e93a43a4e93a4e93a4e93a4e93a4e90e93a4e93a4e93a4e93a4e93a43a4e93a4e93a4e93a4e93a4e900003a4e93a4e93a4e93a4e93a4e90e93a4e93a4e93a4e93a4e93a400
-`define BOB_LMASKS   512'h0000000000000000000000ffffffffffffffffffffffffffffffffffffffffff000000000000ffffffffffffffffffff00000000000000000000000000000000
+`define BOB_LMASKS   512'h000000000000000000001fffffffffffffffffffffffffffffffffffffffffff0000000000000fffffffffffffffffff00000000000000000000000000000000
 
 `endif

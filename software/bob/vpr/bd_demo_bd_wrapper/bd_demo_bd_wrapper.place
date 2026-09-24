@@ -1,4 +1,4 @@
-Netlist_File: bd_demo_bd_wrapper.net Netlist_ID: SHA256:31ede95498c1a827b69f9c9ef4a0a0bd8a341db3693967837d6ce192d6cd327e
+Netlist_File: bd_demo_bd_wrapper.net Netlist_ID: SHA256:9c4fda5eb5d35837e453c1802f5fb9c9095dc3b9e0d9c973ad6a69571f6a4fdf
 Array size: 14 x 12 logic blocks
 
 #block name	x	y	subblk	layer	block number

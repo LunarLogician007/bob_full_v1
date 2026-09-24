@@ -11,7 +11,7 @@ software/bob/model.py's element functions, evaluated through the crossbar exactl
 device.json describes it. What the configurations cover, on purpose:
 
   every element flag     each of the 12 flags alone on element 0, then random mixes
-  the three modes        LUT K (frac 0), two LUT K-1 (frac 1), carry (cy_en) with both
+  the modes              LUT K (frac 0), two LUT K-1 (frac 1), carry (cy_en) with both
                          generate sources
   every crossbar source  each element input selects const0, const1, a CLB input or a
                          feedback output; over the run every select value of every
@@ -88,6 +88,8 @@ def random_cfg(rng, t, flags_on=None):
                 f[name] = int(e == 0 and name == flags_on)
         if t % 5 == 0:                            # a carry chain through every element
             f["cy_en"] = 1
+        if t % 10 == 5:                           # M24: a Double Duty chain through every element
+            f["cy_en"] = f["dd"] = 1
         cfg.append(f)
     def legal(e, v, j):
         if v < 2:

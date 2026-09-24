@@ -448,6 +448,9 @@ class Device:
         ("ff2_rstval", 1, "flag", "second FF: INIT and sync reset value"),
         ("ff2_ce_en", 1, "flag", "second FF honours the routed CE"),
         ("ff2_sr_en", 1, "flag", "second FF honours the routed SR"),
+        ("dd", 1, "flag", "M24 Double Duty (with cy_en): the adder's operands come straight from "
+                          "i[K-2] (A, also DI) and i[K-1] (B), prop = A ^ B ^ cy_di_sel (INV_B), so "
+                          "the LUT stays free: out[1] = O5 = a LUT(K-2) over i[K-3:0]"),
     )
 
     @property

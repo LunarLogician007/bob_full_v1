@@ -500,3 +500,15 @@ frames, the same CRC, the same FASM.
 - **M23 masks.** `BOB_LFRAME_MASK` became `BOB_LKIND` (a kind per frame) and `BOB_LMASKS`
   (the distinct per-frame masks): at 10 × 10 the chain is 68,096 bits, past iverilog's
   widest constant. `cfg_ctrl.v`'s chain count is 24 bits; CFG_CTRL still reports its low 16.
+
+
+## 16. M24: Double Duty elements
+
+A new element flag, `dd` (bit 12 of the element's flags, after `ff2_sr_en`), used with
+`cy_en`. The adder reads A = element input K-2 and B = input K-1 directly: propagate =
+A ^ B ^ `cy_di_sel` (INV_B, for subtraction), generate/DI = A. The LUT does not feed the
+adder, so its O5 half (INIT[2**(K-1)-1:0], addressed by inputs K-2..0) drives out[1] as an
+independent function. VPR's `dd` mode puts a LUT on inputs K-3..0 there, and FASM repeats its
+table over input K-2. Pun et al., FPL 2025 (arXiv 2507.11709). The 13th flag moves one
+crossbar select from frame 0 into the tile's last frame (`lutram_layout` `xbar_head` 16 → 15);
+the chain width is unchanged.

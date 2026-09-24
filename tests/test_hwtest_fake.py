@@ -453,3 +453,20 @@ def test_m23_runs_the_full_m22_list_first():
     names = [n for n, _f in hwtest.MILESTONE["M23"]]
     assert names[:len(hwtest.MILESTONE["M22"]) - 1] == [n for n, _f in hwtest.MILESTONE["M22"]][:-1]
     assert "xbar-pins" in names
+
+
+def test_m24_double_duty_passes_on_a_healthy_board():
+    ok, msg = hwtest.check_double_duty(FakeBob(), {})
+    assert ok, msg
+    assert "frames 8/8" in msg and "chain 8/8" in msg
+
+
+def test_m24_double_duty_fails_on_a_fabric_without_dd():
+    ok, msg = hwtest.check_double_duty(FakeBob(ignore_dd=True), {})
+    assert not ok, msg
+
+
+def test_m24_runs_the_full_m23_list_first():
+    names = [n for n, _f in hwtest.MILESTONE["M24"]]
+    assert names[:len(hwtest.MILESTONE["M23"]) - 1] == [n for n, _f in hwtest.MILESTONE["M23"]][:-1]
+    assert "double-duty" in names

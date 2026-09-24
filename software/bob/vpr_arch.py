@@ -235,8 +235,17 @@ def _fle_pb(k, n, delays):
       lut       ble: LUT k -> optional FF -> out[0]
       frac      blef[0], blef[1]: two LUT k-1 over in[k-2:0] (in[k-1] reads 1 in the
                 fabric), each -> optional FF; blef[0] (O6) -> out[0], blef[1] (O5) -> out[1]
-      arithmetic  bob_add (the LUT computing A^B plus MUXCY/XORCY, DI = I0 = A) ->
-                optional FF -> out[0]; cin/cout on the chain through the cluster
+      dd        M24 Double Duty (Pun et al., FPL 2025): bob_add on in[k-2] (A) and in[k-1]
+                (B), bypassing the LUT -> optional FF -> out[0], cin/cout on the chain
+                through the cluster; beside it bled: a LUT on in[k-3:0] (the O5 half, which
+                the fabric addresses with in[k-2:0]: FASM repeats the table over A) ->
+                optional FF -> out[1], so an adder bit no longer costs the whole element.
+                The LUT is declared with k-1 pins, the top one unconnected: VPR's packer
+                prefers the smallest primitive, and a k-2 LUT drew lone small LUTs here
+                instead of into frac's pair. It cannot share A with the adder: a constant
+                adder input is no net in VPR, which would route a LUT's net onto that pin. It replaces M7-M23's arithmetic mode (bob_add on in[0], in[1]
+                through the LUT, out[1] unused), which it covers: two modes cannot share
+                the chain's pack pattern (VPR: multi-fanout pattern nets).
     """
     ctl = ['    <direct name="ce" input="fle.ce" output="{0}.ce"/>',
            '    <direct name="sr" input="fle.sr" output="{0}.sr"/>',
@@ -269,43 +278,58 @@ def _fle_pb(k, n, delays):
             '      <complete name="clk" input="fle.clk" output="blef[1:0].clk"/>',
             '      <direct name="out" input="blef[1:0].out" output="fle.out[1:0]"/>',
             '    </interconnect>',
-            '  </mode>',
-            '  <mode name="arithmetic">',
-            '    <pb_type name="add" blif_model=".subckt bob_add" num_pb="1">',
-            '      <input name="a" num_pins="1"/>',
-            '      <input name="b" num_pins="1"/>',
-            '      <input name="cin" num_pins="1"/>',
-            '      <output name="cout" num_pins="1"/>',
-            '      <output name="sumout" num_pins="1"/>']
+            '  </mode>']
+    out += _add_mode(k, delays)
+    out += ['</pb_type>']
+    return out
+
+
+def _add_body(delays, a, b, extra=()):
+    """bob_add with its operands on fle.in[a], fle.in[b], the carry through the cluster,
+    sumout -> optional FF -> out[0]; extra: more interconnect lines (the dd mode's LUT)"""
+    out = ['    <pb_type name="add" blif_model=".subckt bob_add" num_pb="1">',
+           '      <input name="a" num_pins="1"/>',
+           '      <input name="b" num_pins="1"/>',
+           '      <input name="cin" num_pins="1"/>',
+           '      <output name="cout" num_pins="1"/>',
+           '      <output name="sumout" num_pins="1"/>']
     for i in ("a", "b", "cin"):
         for o in ("sumout", "cout"):
             dly = delays["carry"] if (i, o) == ("cin", "cout") else delays["lut"]
             out.append(f'      <delay_constant max="{dly}" in_port="add.{i}" out_port="add.{o}"/>')
     out.append('    </pb_type>')
     out += ["  " + x for x in _ff_pb()]
-    out += ['    <interconnect>',
-            '      <direct name="a" input="fle.in[0]" output="add.a"/>',
-            '      <direct name="b" input="fle.in[1]" output="add.b"/>',
-            '      <direct name="cin" input="fle.cin" output="add.cin">',
-            '        <pack_pattern name="chain" in_port="fle.cin" out_port="add.cin"/>',
-            '      </direct>',
-            '      <direct name="cout" input="add.cout" output="fle.cout">',
-            '        <pack_pattern name="chain" in_port="add.cout" out_port="fle.cout"/>',
-            '      </direct>',
-            '      <direct name="ff_d" input="add.sumout" output="ff.D">',
-            '        <pack_pattern name="chain" in_port="add.sumout" out_port="ff.D"/>',
-            '      </direct>',
-            '      <direct name="ff_ce" input="fle.ce" output="ff.CE"/>',
-            '      <direct name="ff_sr" input="fle.sr" output="ff.SR"/>',
-            '      <direct name="ff_c" input="fle.clk" output="ff.C"/>',
-            '      <mux name="o" input="ff.Q add.sumout" output="fle.out[0]">',
-            '        <delay_constant max="25e-12" in_port="add.sumout" out_port="fle.out[0]"/>',
-            '        <delay_constant max="45e-12" in_port="ff.Q" out_port="fle.out[0]"/>',
-            '      </mux>',
-            '    </interconnect>',
-            '  </mode>',
-            '</pb_type>']
-    return out
+    return out, ['    <interconnect>',
+                 f'      <direct name="a" input="fle.in[{a}]" output="add.a"/>',
+                 f'      <direct name="b" input="fle.in[{b}]" output="add.b"/>',
+                 '      <direct name="cin" input="fle.cin" output="add.cin">',
+                 '        <pack_pattern name="chain" in_port="fle.cin" out_port="add.cin"/>',
+                 '      </direct>',
+                 '      <direct name="cout" input="add.cout" output="fle.cout">',
+                 '        <pack_pattern name="chain" in_port="add.cout" out_port="fle.cout"/>',
+                 '      </direct>',
+                 '      <direct name="ff_d" input="add.sumout" output="ff.D">',
+                 '        <pack_pattern name="chain" in_port="add.sumout" out_port="ff.D"/>',
+                 '      </direct>',
+                 '      <direct name="ff_ce" input="fle.ce" output="ff.CE"/>',
+                 '      <direct name="ff_sr" input="fle.sr" output="ff.SR"/>',
+                 '      <direct name="ff_c" input="fle.clk" output="ff.C"/>',
+                 '      <mux name="o" input="ff.Q add.sumout" output="fle.out[0]">',
+                 '        <delay_constant max="25e-12" in_port="add.sumout" out_port="fle.out[0]"/>',
+                 '        <delay_constant max="45e-12" in_port="ff.Q" out_port="fle.out[0]"/>',
+                 '      </mux>'] + list(extra) + ['    </interconnect>']
+
+
+def _add_mode(k, delays):
+    """M24: the Double Duty mode (see _fle_pb)"""
+    body, ic = _add_body(delays, k - 2, k - 1, extra=[
+        f'      <direct name="din" input="fle.in[{k - 3}:0]" output="bled.in[{k - 3}:0]"/>',
+        '      <direct name="dce" input="fle.ce" output="bled.ce"/>',
+        '      <direct name="dsr" input="fle.sr" output="bled.sr"/>',
+        '      <direct name="dclk" input="fle.clk" output="bled.clk"/>',
+        '      <direct name="dout" input="bled.out" output="fle.out[1]"/>'])
+    return (['  <mode name="dd">'] + body + ["    " + x for x in _ble("bled", "lutd", k - 1, "bled", delays)]
+            + ic + ['  </mode>'])
 
 
 def _clb_pb(dev, delays):

@@ -115,6 +115,8 @@ def graph(word):
             used = [ins[j] for j in range(k - 1) if _depends(hi_init, j, k - 1)]
         else:
             used = [ins[j] for j in range(k) if _depends(init, j, k)]
+        if fl.get("dd"):                    # M24: the adder reads i[K-2], i[K-1] directly
+            used = [ins[k - 2], ins[k - 1]]
         comb_in = [(n, "lut") for n in used]
         if fl["cy_en"]:
             comb_in.append((p["cin"], "carry"))

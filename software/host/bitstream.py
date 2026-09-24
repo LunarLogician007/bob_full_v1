@@ -62,7 +62,7 @@ ELE_W = CLUSTER["element_width"]
 ELE_FIELD = {n[3:]: (off, w) for n, (off, w) in FIELD.items() if n.startswith("e0.")}   # element 0's
 XBAR_SOURCES = CLUSTER["xbar_sources"]                            # [e][j] -> ['I[3]', 'O[5]', ...]
 FLAG_NAMES = ("frac", "ff_en", "ff_rstval", "ff_ce_en", "ff_sr_en", "cy_en", "cy_di_sel", "ff_d_sel",
-              "ff2_en", "ff2_rstval", "ff2_ce_en", "ff2_sr_en")
+              "ff2_en", "ff2_rstval", "ff2_ce_en", "ff2_sr_en", "dd")
 ELEMENTS = DEVICE["elements"]                                     # CAPTURE order: 2 bits each
 ELEM = {el["name"]: el for el in ELEMENTS}
 ELEM_AT = {(el["x"], el["y"], el["e"]): el["name"] for el in ELEMENTS}

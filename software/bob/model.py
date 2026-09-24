@@ -38,14 +38,19 @@ FLAGS = B.FLAG_NAMES
 # --- one logic element (M21: hw/src/clb/ble.sv; until M20 the whole CLB, clb.sv) ---------
 
 def clb_comb(init, f, i, cin):
-    """-> (o6, o5, comb, cout) for LUT input address i (frac: input K-1 reads 1)."""
+    """-> (o6, o5, comb, cout) for LUT input address i (frac: input K-1 reads 1 in the LUT;
+    M24 dd: the adder reads the element's own inputs K-2 and K-1, frac or not)."""
+    a, b = (i >> (B.LUT_K - 2)) & 1, (i >> (B.LUT_K - 1)) & 1
     if f.get("frac"):
         i |= 1 << (B.LUT_K - 1)
     o6 = (init >> i) & 1
     o5 = (init >> (i & ((1 << (B.LUT_K - 1)) - 1))) & 1
-    di = o5 if f["cy_di_sel"] else (i & 1)
-    comb = (o6 ^ cin) if f["cy_en"] else (o5 if f["ff_d_sel"] else o6)
-    cout = (cin if o6 else di) if f["cy_en"] else 0
+    if f.get("dd"):                    # M24 Double Duty: the adder on i[K-2], i[K-1], not the LUT
+        prop, di = a ^ b ^ f["cy_di_sel"], a
+    else:
+        prop, di = o6, (o5 if f["cy_di_sel"] else (i & 1))
+    comb = (prop ^ cin) if f["cy_en"] else (o5 if f["ff_d_sel"] else o6)
+    cout = (cin if prop else di) if f["cy_en"] else 0
     return o6, o5, comb, cout
 
 
