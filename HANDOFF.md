@@ -59,8 +59,10 @@ This file is the live state: what is finished, what is in flight, and exactly wh
   Under tb_bob alone `mux-top-select` survived: this fabric's widest mux has 14 values, so
   the wide branch (sel[W-1:4]) is never instantiated, and `mux-leaf-init` only died as a
   45-min hang.
-- The full `make check`: see the latest `m23` commit (cosim takes hours with the
-  primitive models). The 12 × 11 run passed tb_bob 672/672, cfg, K=4 and synth before it was
+- **`make check` green on 10 × 10 (2026-09-24, 3 h 7 min).** tb_clb 4032, tb_mux 164,992,
+  BRAM 5292, DSP 1344, tb_bob 671, cfg 180, K=4 4032 + 541, synth 972, cosim 7026, frames
+  73 + 17 + 17, lint clean, pytest 521 passed / 23 skipped. Mutants: every M23 mutant
+  killed. The 12 × 11 run passed tb_bob 672/672, cfg, K=4 and synth before it was
   stopped. cosim is slow with the primitive mux models (more than 3 h at 12 × 11).
 
 ### Next
