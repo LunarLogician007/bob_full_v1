@@ -1,0 +1,582 @@
+<title>bob, tool by tool</title>
+<meta name="description" content="Volume 4 of the bob tour: follow one design through every tool of ./bob build. What yosys reads, how it maps onto bob's cells, one LUT's truth table, the equivalence proof, packing, a live simulated-annealing placement, routing, FASM, the critical path and the model check.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Unbounded:wght@500;700&display=swap">
+<!--STYLE-->
+<style>
+svg .src { font-family: var(--f-mono); font-size: 11.5px; fill: var(--ink); white-space: pre; }
+svg .src.dim { fill: var(--muted); opacity: 0.55; }
+svg .ln { font-family: var(--f-mono); font-size: 10px; fill: var(--muted); }
+svg .cell { fill: var(--panel2); stroke: var(--line); stroke-width: 1.2; }
+svg .cell.add { fill: var(--hi-soft); stroke: var(--hi); } svg .cell.ff { fill: var(--cfg-soft); stroke: var(--cfg); }
+svg .cell.lut { fill: var(--acc-soft); stroke: var(--acc); } svg .cell.mux { fill: var(--panel2); stroke: var(--muted); }
+svg .cell.gone { opacity: 0.25; }
+svg .tbl { fill: var(--panel); stroke: var(--faint); }
+svg .tbl.one { fill: var(--acc-soft); stroke: var(--acc); }
+svg .sig { stroke: var(--ink); stroke-width: 1.5; fill: none; }
+svg .sig.led { stroke: var(--hi); stroke-width: 2; }
+svg .sig.net { stroke: var(--acc); stroke-width: 2; stroke-dasharray: 5 4; }
+svg .slot { fill: var(--clb); stroke: var(--line); }
+svg .blkc { fill: var(--acc); stroke: var(--panel); stroke-width: 1.5; }
+svg .blkio { fill: var(--hi); }
+svg .rat { stroke: var(--muted); stroke-width: 1; opacity: 0.55; }
+svg .bar { fill: var(--acc); }
+</style>
+
+<div class="wrap">
+<nav class="rail" aria-label="Chapters">
+  <div class="brand">bob, tool by tool</div>
+  <div class="vol">volume 4 · one design through every tool</div>
+  <div class="stack" id="stack"></div>
+  <a class="gl" href="https://claude.ai/artifact/LrqGTKGsLe9hJQzjfBVaDg">← volume 3: bob, frame by frame</a>
+  <a class="gl" href="https://claude.ai/artifact/H7Sk39vinJtqpqwThZsNNK">← volume 2: bob, layer by layer</a>
+</nav>
+
+<main>
+<header class="hero">
+  <h1>bob, <span class="ly">tool</span> by tool</h1>
+  <p>Volume 3 followed a configuration from the cable into the chip. This volume goes one step earlier: how <code>./bob build</code> turns Verilog into that configuration in the first place. It follows one design, <code>wide.v</code>, a 12-bit counter and an 8-bit shift register with a few XORs, through every tool, in the order they run.</p>
+  <p>Press <b>Next</b> (or →) to build each picture. The cells, the truth table, the waveforms, the packing, the routes, the FASM and the timing path are exactly what bob's tools produced for this design. The placement chapter also runs a small annealer live in your browser, on the design's real nets.</p>
+  <div class="facts" id="facts"></div>
+  <div class="legend">
+    <span><i class="sw" style="background:var(--hi)"></i>an adder bit, or data moving</span>
+    <span><i class="sw" style="background:var(--cfg)"></i>a flip-flop</span>
+    <span><i class="sw" style="background:var(--acc)"></i>a LUT, or the new thing</span>
+  </div>
+</header>
+
+<section class="ch" id="source">
+  <h2><span class="n">1</span>The source</h2>
+  <p class="lead">Twenty lines of Verilog. Everything after this is a tool translating it.</p>
+  <div class="cols">
+    <div class="txt">
+      <p><code>wide.v</code> has a 12-bit <b>counter</b> and an 8-bit <b>LFSR</b> (a shift register whose new bit is an XOR of old ones: a cheap random sequence). BTN0 steps both; BTN1 resets both.</p>
+      <p>The three LEDs show <b>parities</b>: whether an odd number of bits are 1 in parts of the counter and the LFSR, mixed with the switches, so every register reaches an output. A tool may delete any logic that reaches no output.</p>
+    </div>
+    <div class="stage" id="st-source" tabindex="0"></div>
+  </div>
+</section>
+
+<section class="ch" id="coarse">
+  <h2><span class="n">2</span>What yosys reads</h2>
+  <p class="lead">Synthesis starts by turning each line into generic cells: adders, multiplexers, XORs, flip-flops.</p>
+  <div class="cols">
+    <div class="txt">
+      <p><b>yosys</b> reads the Verilog and builds a netlist of <b>coarse cells</b>, each as wide as its signal: a 12-bit <code>$add</code> for <code>cnt + 1</code>, a <code>$dff</code> per register, a <code>$mux</code> for every <code>if</code>, XORs for <code>^</code>.</p>
+      <p>Nothing is tied to bob yet. These cells would suit any FPGA, or a chip.</p>
+      <p class="bob"><b>In bob</b>: <code>software/bob/synth.py</code> runs yosys with bob's own cell library (<code>software/bob/synth/</code>).</p>
+    </div>
+    <div class="stage" id="st-coarse" tabindex="0"></div>
+  </div>
+</section>
+
+<section class="ch" id="map">
+  <h2><span class="n">3</span>Mapping onto bob's cells</h2>
+  <p class="lead">The generic cells become the four kinds of cell bob actually has.</p>
+  <div class="cols">
+    <div class="txt">
+      <p>bob's elements offer a <b>LUT</b> (any function of up to 6 inputs), an <b>adder bit</b> on the carry chain, and <b>flip-flops</b> with a clock enable and a synchronous reset or set.</p>
+      <p>So the 12-bit adder becomes 12 adder bits in a chain. The multiplexers disappear: "if BTN1 reset, else if BTN0 step" is exactly a flip-flop's reset and enable. The XORs are packed into LUTs.</p>
+    </div>
+    <div class="stage" id="st-map" tabindex="0"></div>
+  </div>
+</section>
+
+<section class="ch" id="lut">
+  <h2><span class="n">4</span>One LUT, up close</h2>
+  <p class="lead">A LUT is a truth table. Here is one of the seven, bit by bit.</p>
+  <div class="cols">
+    <div class="txt">
+      <p>A 4-input LUT is 16 bits. The four inputs form an address from 0 to 15; the bit stored at that address is the output. yosys writes the 16 bits as <b>INIT</b>, the last bit first.</p>
+      <p>This one is the parity of four bits: the output is 1 exactly when an odd number of inputs are 1. That is <code>a ^ b ^ c ^ d</code>, one piece of an LED's parity.</p>
+      <p class="aside">bob's LUTs have 6 inputs (64 bits). A 4-input function fills 64 bits by repeating: the table ignores the unused inputs.</p>
+    </div>
+    <div class="stage" id="st-lut" tabindex="0"></div>
+  </div>
+</section>
+
+<section class="ch" id="equiv">
+  <h2><span class="n">5</span>Proving nothing changed</h2>
+  <p class="lead">Before anything goes further, bob checks that the mapped netlist still does what the Verilog says.</p>
+  <div class="cols">
+    <div class="txt">
+      <p><code>software/bob/equiv.py</code> simulates the <b>source</b> Verilog and the <b>mapped netlist</b> side by side in iverilog, with the same random switch and button inputs, for 300 clock cycles.</p>
+      <p>After every clock it compares every register and every output. If a single bit differs, the build stops right here, naming the cycle and the net: a bug in synthesis never reaches the board.</p>
+    </div>
+    <div class="stage" id="st-equiv" tabindex="0"></div>
+  </div>
+</section>
+
+<section class="ch" id="pack">
+  <h2><span class="n">6</span>Packing</h2>
+  <p class="lead">39 loose cells become elements, and elements become CLBs of four.</p>
+  <div class="cols">
+    <div class="txt">
+      <p><b>Packing</b> (VPR's first step) groups cells that belong together. An adder bit and the flip-flop it feeds share one <b>element</b>; four elements share one <b>CLB</b>, whose crossbar lets them reach each other cheaply.</p>
+      <p>Elements run in one of two modes. <b>dd</b> (Double Duty) uses the adder with its LUT still free for other logic; <b>frac</b> splits the LUT into two smaller ones.</p>
+    </div>
+    <div class="stage" id="st-pack" tabindex="0"></div>
+  </div>
+</section>
+
+<section class="ch" id="place">
+  <h2><span class="n">7</span>Placement</h2>
+  <p class="lead">Where on the grid should each CLB go? Close to the things it talks to.</p>
+  <div class="cols">
+    <div class="txt">
+      <p>The placer wants short wires. For each net it measures the box around the blocks it joins (<b>half-perimeter wirelength</b>); the total is the <b>cost</b>.</p>
+      <p><b>Simulated annealing</b>: start anywhere, then keep swapping blocks at random. A swap that lowers the cost is kept. One that raises it is sometimes kept too, while the "temperature" is high, so the search can climb out of a bad corner. The temperature falls, and the placement freezes into a good one.</p>
+      <p>The anneal on the right runs in your browser, on <code>wide</code>'s real nets. The last step is VPR's real result.</p>
+      <p class="aside">VPR also keeps the counter's CLBs stacked in one column, because the carry runs straight up; this small demo leaves that rule out.</p>
+    </div>
+    <div class="stage" id="st-place" tabindex="0"></div>
+  </div>
+</section>
+
+<section class="ch" id="route">
+  <h2><span class="n">8</span>Routing</h2>
+  <p class="lead">Every net needs a path of wires and switches from its source to its sinks.</p>
+  <div class="cols">
+    <div class="txt">
+      <p>Between the tiles run <b>channels</b> of wires (36 tracks each in bob). The router finds, for every net, a chain of wire segments and switches from the block that drives it to every block that reads it.</p>
+      <p>VPR's router (<b>PathFinder</b>) routes every net, then looks for wires two nets both want, makes those dearer, and routes again, until no wire is shared. On bob's thin routing that negotiation is what decides whether a big design fits at all.</p>
+    </div>
+    <div class="stage" id="st-route" tabindex="0"></div>
+  </div>
+</section>
+
+<section class="ch" id="fasm">
+  <h2><span class="n">9</span>FASM: the result as text</h2>
+  <p class="lead">Every switch that must be on, as one readable line.</p>
+  <div class="cols">
+    <div class="txt">
+      <p><b>FASM</b> (the FPGA Assembly format of the open-source FPGA tools) writes each configuration setting as <code>tile.feature = value</code>: an element's LUT table, its flags, a crossbar select, a routing multiplexer's choice.</p>
+      <p><code>software/bob/fasm_from_vpr.py</code> writes it from VPR's result and checks every line is legal for this device. <code>bitgen.py</code> then puts each value at its bits: volume 3's frames.</p>
+    </div>
+    <div class="stage" id="st-fasm" tabindex="0"></div>
+  </div>
+</section>
+
+<section class="ch" id="timing">
+  <h2><span class="n">10</span>The critical path</h2>
+  <p class="lead">How fast can the design run? As fast as its slowest path allows.</p>
+  <div class="cols">
+    <div class="txt">
+      <p><code>software/bob/timing.py</code> follows every path from a flip-flop to the next through the configured routing, adding each hop's delay: measured on the real chip for routing and crossbar hops, estimated for the rest.</p>
+      <p>The slowest one is the <b>critical path</b>. Here it is the counter's carry, climbing four CLBs up one column: bit 0 has to wait for nothing, bit 11 for all the others.</p>
+    </div>
+    <div class="stage" id="st-timing" tabindex="0"></div>
+  </div>
+</section>
+
+<section class="ch" id="model">
+  <h2><span class="n">11</span>The model check</h2>
+  <p class="lead">One last proof, on the bits themselves.</p>
+  <div class="cols">
+    <div class="txt">
+      <p><code>software/bob/model.py</code> is bob in software: it reads the configuration word and computes what every LUT, adder, flip-flop and routing multiplexer does. The build runs it on the new bits with the same inputs as step 5 and compares the LEDs with the source.</p>
+      <p>Only then is the <code>.bit</code> written. The next time it is checked is on the board: the LEDs against the same model.</p>
+    </div>
+    <div class="stage" id="st-model" tabindex="0"></div>
+  </div>
+</section>
+
+<footer>
+  Generated by <code>docs/learn/tools/gen.py</code> from the tools' own output for <code>work/examples/wide/wide.v</code>. Volume 3, how the configuration gets into the chip, is <a href="https://claude.ai/artifact/LrqGTKGsLe9hJQzjfBVaDg">bob, frame by frame</a>.
+</footer>
+</main>
+</div>
+
+<script>const DATA = /*DATA*/null;</script>
+<script>
+(function () {
+"use strict";
+const NS = "http://www.w3.org/2000/svg";
+const RM = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const D = DATA.dev;
+
+function E(tag, a, p) {
+  const e = document.createElementNS(NS, tag);
+  if (a) for (const k in a) e.setAttribute(k, a[k]);
+  if (p) p.appendChild(e);
+  return e;
+}
+function T(p, x, y, s, a) { const t = E("text", Object.assign({ x, y }, a || {}), p); t.textContent = s; return t; }
+function R(p, x, y, w, h, cls, extra) { return E("rect", Object.assign({ x, y, width: w, height: h, rx: 4, class: cls }, extra || {}), p); }
+function L(p, x1, y1, x2, y2, cls) { return E("line", { x1, y1, x2, y2, class: cls || "wire" }, p); }
+function P(p, d, cls) { return E("path", { d, class: cls || "wire" }, p); }
+function travel(p, d, dur, color, r) {
+  if (RM || !d) return;
+  const c = E("circle", { r: r || 5, class: "dot" }, p);
+  if (color) c.style.fill = color;
+  E("animateMotion", { dur: dur || "2.4s", repeatCount: "indefinite", path: d }, c);
+}
+function fmt(n) { return Number(n).toLocaleString("en-US"); }
+
+/* --- the stepper (volumes 2 and 3) ---------------------------------------------------------- */
+const stages = [];
+function stage(id, vb, steps, period) {
+  const host = document.getElementById(id);
+  const svg = E("svg", { viewBox: vb, role: "img", "aria-label": id.replace("st-", "") + " diagram" }, host);
+  const defs = E("defs", {}, svg);
+  const mk = E("marker", { id: "ah" + id, viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: "auto-start-reverse" }, defs);
+  E("path", { d: "M0 0 L10 5 L0 10 z", fill: "var(--muted)" }, mk);
+  const layer = E("g", {}, svg);
+  const say = document.createElement("p"); say.className = "say"; say.setAttribute("aria-live", "polite"); host.appendChild(say);
+  const ctl = document.createElement("div"); ctl.className = "ctl"; host.appendChild(ctl);
+  const back = document.createElement("button"); back.textContent = "← Back";
+  const next = document.createElement("button"); next.textContent = "Next →"; next.className = "primary";
+  const play = document.createElement("button"); play.textContent = "▶ Play";
+  const dots = document.createElement("span"); dots.className = "dots";
+  ctl.append(back, next, play, dots);
+  steps.forEach(() => dots.appendChild(document.createElement("i")));
+  let k = 0, timer = null;
+  function render(fresh) {
+    layer.replaceChildren();
+    const solo = steps[k].only;
+    steps.forEach((s, i) => {
+      if (i > k) return;
+      if ((solo || s.only) && i !== k) return;
+      const g = E("g", { class: fresh && i === k ? "fresh" : "" }, layer);
+      s.draw(g, i === k);
+    });
+    for (const a of layer.querySelectorAll(".arrow")) a.style.markerEnd = `url(#ah${id})`;
+    say.innerHTML = `<b>${k + 1}/${steps.length}</b>` + steps[k].say;
+    back.disabled = k === 0;
+    next.disabled = k === steps.length - 1;
+    [...dots.children].forEach((d, i) => d.classList.toggle("on", i <= k));
+  }
+  function go(n) { k = Math.max(0, Math.min(steps.length - 1, n)); render(true); }
+  function stop() { if (timer) { clearInterval(timer); timer = null; play.textContent = "▶ Play"; } }
+  back.onclick = () => { stop(); go(k - 1); };
+  next.onclick = () => { stop(); go(k + 1); };
+  play.onclick = () => {
+    if (timer) return stop();
+    if (k === steps.length - 1) go(0);
+    play.textContent = "❚❚ Pause";
+    timer = setInterval(() => { if (k >= steps.length - 1) stop(); else go(k + 1); }, period || 2800);
+  };
+  host.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight") { stop(); go(k + 1); e.preventDefault(); }
+    if (e.key === "ArrowLeft") { stop(); go(k - 1); e.preventDefault(); }
+  });
+  render(false);
+  stages.push({ id: id.replace("st-", "") });
+}
+
+/* --- numbers --------------------------------------------------------------------------------- */
+const count = (t) => DATA.cells.filter(c => c.type === t).length;
+const NLUT = count("$lut"), NADD = count("BOB_ADD"), NFF = count("BOB_FDRE") + count("BOB_FDSE");
+document.getElementById("facts").innerHTML = [
+  ["source lines", DATA.src.length], ["coarse cells", DATA.coarse.length], ["LUTs", NLUT], ["adder bits", NADD],
+  ["flip-flops", NFF], ["CLBs", DATA.clusters.length], ["nets", DATA.nets.length], ["FASM lines", DATA.fasm.length],
+  ["critical path", DATA.timing.cpd + " ns"],
+].map(([a, b]) => `<span>${a} <b>${b}</b></span>`).join("");
+
+/* ======================= 1. the source ======================================================= */
+function code(g, hl, x0, y0) {
+  DATA.src.forEach((ln, i) => {
+    const on = !hl || hl.includes(i + 1);
+    if (hl && on) R(g, x0 - 4, y0 + i * 17 - 12, 600, 16, "warm", { rx: 3 });
+    T(g, x0, y0 + i * 17, String(i + 1).padStart(2), { class: "ln" });
+    T(g, x0 + 22, y0 + i * 17, ln.slice(0, 92), { class: "src" + (on ? "" : " dim") });
+  });
+}
+const lineOf = (re) => DATA.src.findIndex(l => re.test(l)) + 1;
+const LREG = [lineOf(/reg \[11:0\]/), lineOf(/reg \[7:0\]/)], LALW = lineOf(/always/), LADD = lineOf(/cnt \+/), LLF = lineOf(/lfsr <= \{/), LLED = lineOf(/assign led/);
+const srcH = DATA.src.length * 17 + 20;
+stage("st-source", `0 0 640 ${srcH}`, [
+  { say: "The whole design. The first lines are comments; the module's ports follow bob's convention (clk, sw, btn, led), so it needs no pin file.", only: true, draw(g) { code(g, null, 10, 16); } },
+  { say: "Two registers: the 12-bit counter and the 8-bit LFSR, with their starting values.", only: true, draw(g) { code(g, LREG, 10, 16); } },
+  { say: "On every clock edge: if BTN1, reset both; otherwise if BTN0, step both.", only: true, draw(g) { code(g, [LALW, LALW + 1, LALW + 4, LALW + 7], 10, 16); } },
+  { say: "The counter steps by adding 1: <code>cnt + 12'd1</code>.", only: true, draw(g) { code(g, [LADD], 10, 16); } },
+  { say: "The LFSR shifts left and feeds back the XOR of four of its bits.", only: true, draw(g) { code(g, [LLF], 10, 16); } },
+  { say: "The LEDs: three parities (<code>^cnt[11:6]</code> is the XOR of six bits), each mixed with another signal.", only: true, draw(g) { code(g, [LLED], 10, 16); } },
+]);
+
+/* ======================= 2. coarse cells ===================================================== */
+const CKIND = { add: "add", dff: "ff", mux: "mux", xor: "lut", reduce_xor: "lut" };
+function coarseCells(g, upto) {
+  const byLine = {};
+  DATA.coarse.forEach(c => (byLine[c.line] = byLine[c.line] || []).push(c));
+  const lines = Object.keys(byLine).map(Number).sort((a, b) => a - b);
+  lines.forEach((ln, i) => {
+    const y = 30 + i * 62, on = upto == null || upto.includes(ln);
+    T(g, 10, y + 18, `line ${ln}`, { class: "ln" });
+    T(g, 60, y + 18, DATA.src[ln - 1].trim().slice(0, 34), { class: "src" + (on ? "" : " dim"), style: "font-size:10.5px" });
+    byLine[ln].forEach((c, j) => {
+      const x = 330 + j * 50;
+      R(g, x, y, 46, 30, "cell " + CKIND[c.type] + (on ? "" : " gone"));
+      T(g, x + 23, y + 13, c.type.replace("reduce_", "r"), { class: "mono", "text-anchor": "middle", style: "font-size:9.5px" });
+      T(g, x + 23, y + 25, `${c.w} bit${c.w > 1 ? "s" : ""}`, { class: "small", "text-anchor": "middle", style: "font-size:9px" });
+    });
+  });
+  return lines;
+}
+const CL = [...new Set(DATA.coarse.map(c => c.line))].sort((a, b) => a - b);
+stage("st-coarse", `0 0 660 ${30 + CL.length * 62}`, [
+  { say: `yosys's first pass: ${DATA.coarse.length} coarse cells, each labelled with the source line it came from.`, only: true, draw(g) { coarseCells(g, null); } },
+  { say: "The two registers become <code>$dff</code> cells, 12 and 8 bits wide, from the <code>always</code> block.", only: true, draw(g) { coarseCells(g, [CL[0]]); } },
+  { say: "Each <code>if</code> becomes a <code>$mux</code>: one choosing reset or not, one choosing step or hold, for each register.", only: true, draw(g) { coarseCells(g, CL.filter(l => DATA.coarse.some(c => c.line === l && c.type === "mux"))); } },
+  { say: "<code>cnt + 12'd1</code> is one 12-bit <code>$add</code>.", only: true, draw(g) { coarseCells(g, [LADD]); } },
+  { say: "The LFSR's feedback is three <code>$xor</code> cells; the LED parities are <code>$reduce_xor</code> (XOR of many bits) and more XORs.", only: true, draw(g) { coarseCells(g, [LLF, LLED]); } },
+]);
+
+/* ======================= 3. mapping ========================================================== */
+function mapped(g, show) {
+  T(g, 20, 24, "coarse", { class: "lbl" }); T(g, 330, 24, "bob's cells", { class: "lbl" });
+  const groups = [["dff", "2 registers (20 bits)", "ff"], ["mux", "4 multiplexers", "mux"], ["add", "1 adder (12 bits)", "add"], ["xor", "XORs and parities", "lut"]];
+  groups.forEach(([t, n, cls], i) => { R(g, 20, 44 + i * 70, 200, 50, "cell " + cls + (show.includes(t) && t === "mux" ? " gone" : "")); T(g, 120, 74 + i * 70, n, { class: "small", "text-anchor": "middle", style: "fill:var(--ink)" }); });
+  if (show.includes("add")) {
+    for (let i = 0; i < NADD; i++) { R(g, 330 + i * 24, 184, 20, 30, "cell add"); if (i) L(g, 330 + i * 24 - 4, 199, 330 + i * 24, 199, "wire hot"); }
+    T(g, 330, 234, `${NADD} adder bits, carry chained`, { class: "small" });
+    P(g, "M220 184 C280 184, 280 199, 328 199", "wire");
+  }
+  if (show.includes("dff")) {
+    for (let i = 0; i < NFF; i++) R(g, 330 + (i % 10) * 28, 44 + Math.floor(i / 10) * 34, 24, 28, "cell ff");
+    T(g, 330, 126, `${count("BOB_FDRE")} flip-flops with reset + ${count("BOB_FDSE")} with set (the LFSR's bit 0 starts at 1)`, { class: "small" });
+    P(g, "M220 69 C280 69, 280 69, 328 69", "wire");
+  }
+  if (show.includes("mux")) { P(g, "M220 139 C270 139, 300 110, 328 100", "wire on"); T(g, 240, 160, "→ each flip-flop's enable and reset", { class: "small", style: "fill:var(--acc)" }); }
+  if (show.includes("xor")) {
+    DATA.cells.filter(c => c.type === "$lut").forEach((c, i) => { R(g, 330 + i * 42, 264, 38, 30, "cell lut"); T(g, 349 + i * 42, 283, `LUT${c.k}`, { class: "mono", "text-anchor": "middle", style: "font-size:9.5px" }); });
+    T(g, 330, 314, `${NLUT} LUTs (k = number of inputs used)`, { class: "small" });
+    P(g, "M220 279 C280 279, 280 279, 328 279", "wire");
+  }
+}
+stage("st-map", "0 0 660 330", [
+  { say: "The coarse cells, grouped.", only: true, draw(g) { mapped(g, []); } },
+  { say: `The registers become ${NFF} single-bit flip-flops, bob's <code>BOB_FDRE</code> and <code>BOB_FDSE</code>.`, only: true, draw(g) { mapped(g, ["dff"]); } },
+  { say: "The multiplexers vanish: \"reset if BTN1, else step if BTN0\" is precisely a flip-flop's synchronous reset and clock enable, which bob's flip-flops have built in.", only: true, draw(g) { mapped(g, ["dff", "mux"]); } },
+  { say: `The adder becomes ${NADD} adder bits linked by the carry chain, which runs from element to element and CLB to CLB.`, only: true, draw(g) { mapped(g, ["dff", "mux", "add"]); } },
+  { say: `The XORs are cut into pieces of at most 6 inputs, one LUT each: ${NLUT} LUTs. From ${DATA.coarse.length} generic cells to ${DATA.cells.length} bob cells.`, only: true, draw(g) { mapped(g, ["dff", "mux", "add", "xor"]); } },
+]);
+
+/* ======================= 4. one LUT ========================================================== */
+const LUT = DATA.cells.find(c => c.type === "$lut" && c.k === 4) || DATA.cells.find(c => c.type === "$lut");
+const INIT = LUT.init, KK = LUT.k, NROW = 1 << KK;
+const outOf = (i) => Number(INIT[INIT.length - 1 - i]);
+function lutTable(g, upto, showOut) {
+  const x0 = 60, y0 = 36, rh = 16.5;
+  for (let b = KK - 1; b >= 0; b--) T(g, x0 + (KK - 1 - b) * 26 + 10, y0 - 10, `i${b}`, { class: "mono", "text-anchor": "middle" });
+  T(g, x0 + KK * 26 + 30, y0 - 10, "out", { class: "mono", "text-anchor": "middle" });
+  for (let i = 0; i < NROW; i++) {
+    const y = y0 + i * rh, on = i <= upto;
+    T(g, x0 - 16, y + 12, String(i), { class: "ln", "text-anchor": "end" });
+    for (let b = KK - 1; b >= 0; b--) { R(g, x0 + (KK - 1 - b) * 26, y, 22, rh - 2, "tbl", { rx: 2, style: on ? "" : "opacity:0.3" }); T(g, x0 + (KK - 1 - b) * 26 + 11, y + 11, String((i >> b) & 1), { class: "mono", "text-anchor": "middle", style: on ? "" : "opacity:0.3" }); }
+    if (showOut && on) { R(g, x0 + KK * 26 + 18, y, 24, rh - 2, "tbl" + (outOf(i) ? " one" : ""), { rx: 2 }); T(g, x0 + KK * 26 + 30, y + 11, String(outOf(i)), { class: "mono", "text-anchor": "middle" }); }
+  }
+}
+stage("st-lut", "0 0 640 320", [
+  { say: `One of the ${NLUT} LUTs, with ${KK} inputs: ${NROW} possible input combinations, one per row.`, only: true, draw(g) { lutTable(g, NROW - 1, false); } },
+  { say: `yosys stores its answers as INIT = <code>${INIT}</code>. Read from the right: bit 0 is the answer for row 0.`, only: true,
+    draw(g) { lutTable(g, NROW - 1, false); T(g, 330, 60, "INIT", { class: "lbl" }); INIT.split("").forEach((b, i) => { R(g, 330 + i * 17, 70, 15, 20, "tbl" + (b === "1" ? " one" : ""), { rx: 2 }); T(g, 337 + i * 17, 84, b, { class: "mono", "text-anchor": "middle" }); T(g, 337 + i * 17, 104, String(INIT.length - 1 - i), { class: "ln", "text-anchor": "middle", style: "font-size:8px" }); }); } },
+  { say: "Fill each row's output from its INIT bit. Row 0 (all inputs 0) → 0; row 1 (one input 1) → 1; row 3 (two) → 0…", only: true, draw(g) { lutTable(g, 3, true); } },
+  { say: "…all 16 rows. The output is 1 exactly when an odd number of inputs are 1: this LUT is a 4-input XOR, a parity.", only: true, draw(g) { lutTable(g, NROW - 1, true); } },
+  { say: "In the chip the LUT is a little memory: the inputs are its address, and the stored bit comes out. Change the 16 bits and the same LUT computes any other function of four inputs.",
+    draw(g) { R(g, 360, 150, 190, 120, "cell lut"); T(g, 455, 200, "16-bit memory", { class: "small", "text-anchor": "middle" }); T(g, 455, 222, "address = inputs", { class: "mono", "text-anchor": "middle" }); for (let b = 0; b < KK; b++) L(g, 330, 170 + b * 24, 360, 170 + b * 24, "wire hot"); L(g, 550, 210, 590, 210, "wire on"); travel(g, "M330 170 L360 170", "1s"); } },
+]);
+
+/* ======================= 5. equivalence ====================================================== */
+const TR = DATA.trace, NI = DATA.inputs.length;
+function wave(g, y, bits, cls, label, h) {
+  h = h || 14; let d = "", prev = null;
+  bits.forEach((b, i) => { const x = 110 + i * 16, yy = y + (b ? 0 : h); d += (prev === null ? `M${x} ${yy}` : (prev !== b ? ` L${x} ${yy}` : "")) + ` L${x + 16} ${yy}`; prev = b; });
+  P(g, d, cls); T(g, 100, y + h, label, { class: "mono", "text-anchor": "end", style: "font-size:10px" });
+}
+function waves(g, withNet, marks) {
+  DATA.inputs.forEach((n, j) => wave(g, 20 + j * 26, TR.map(r => (r[0] >> j) & 1), "sig", n));
+  for (let b = 2; b >= 0; b--) {
+    const y = 20 + NI * 26 + 14 + (2 - b) * 30;
+    wave(g, y, TR.map(r => (r[2] >> b) & 1), "sig led", `LD${b}`, 16);
+    if (withNet) wave(g, y, TR.map(r => (r[2] >> b) & 1), "sig net", "", 16);
+  }
+  if (marks) TR.forEach((r, i) => T(g, 118 + i * 16, 20 + NI * 26 + 120, "✓", { class: "small", "text-anchor": "middle", style: "fill:var(--acc)" }));
+}
+stage("st-equiv", `0 0 ${130 + TR.length * 16} ${20 + NI * 26 + 136}`, [
+  { say: `Random inputs, one row per clock: ${TR.length} of the 300 cycles the check runs.`, only: true,
+    draw(g) { DATA.inputs.forEach((n, j) => wave(g, 20 + j * 26, TR.map(r => (r[0] >> j) & 1), "sig", n)); } },
+  { say: "The <b>source</b> Verilog, simulated: its three LEDs after each clock (orange).", only: true, draw(g) { waves(g, false, false); } },
+  { say: "The <b>mapped netlist</b>, simulated with the same inputs (dashed): exactly on top of the source, cycle after cycle.", only: true, draw(g) { waves(g, true, false); } },
+  { say: "Every cycle matches, and so does every register inside, not only the LEDs: the build goes on. (It also saves these traces: step 11 uses them again.)", only: true, draw(g) { waves(g, true, true); } },
+]);
+
+/* ======================= 6. packing =========================================================== */
+const ATOM = { add: "add", ff: "ff", lut: "lut", lutd: "lut", lutf: "lut" };
+function packView(g, stage_) {
+  const cl = DATA.clusters;
+  if (stage_ === 0) {
+    let i = 0;
+    DATA.cells.forEach(c => { const t = c.type === "$lut" ? "lut" : c.type === "BOB_ADD" ? "add" : "ff"; R(g, 20 + (i % 13) * 46, 30 + Math.floor(i / 13) * 40, 40, 30, "cell " + t); T(g, 40 + (i % 13) * 46, 49 + Math.floor(i / 13) * 40, t, { class: "mono", "text-anchor": "middle", style: "font-size:9.5px" }); i++; });
+    return;
+  }
+  cl.forEach((c, i) => {
+    const x0 = 14 + i * 128, y0 = 20;
+    R(g, x0, y0, 120, 290, "clb");
+    T(g, x0 + 60, y0 + 16, `CLB (${c.xy.join(", ")})`, { class: "small", "text-anchor": "middle" });
+    c.elements.forEach(e => {
+      const ey = y0 + 26 + e.e * 64;
+      R(g, x0 + 8, ey, 104, 56, "box");
+      T(g, x0 + 14, ey + 13, `e${e.e} · ${e.mode}`, { class: "mono", style: "font-size:9.5px" });
+      e.atoms.forEach((a, j) => { R(g, x0 + 12 + (j % 3) * 33, ey + 18 + Math.floor(j / 3) * 18, 30, 15, "cell " + ATOM[a], { rx: 2 }); T(g, x0 + 27 + (j % 3) * 33, ey + 29 + Math.floor(j / 3) * 18, a === "lutd" || a === "lutf" ? "lut·" : a, { class: "mono", "text-anchor": "middle", style: "font-size:8.5px" }); });
+    });
+  });
+}
+stage("st-pack", "0 0 660 330", [
+  { say: `The ${DATA.cells.length} cells, loose: ${NLUT} LUTs, ${NADD} adder bits, ${NFF} flip-flops.`, only: true, draw(g) { packView(g, 0); } },
+  { say: `Packed: ${DATA.clusters.length} CLBs. Each adder bit sits with the flip-flop it feeds; the counter's 12 bits fill three CLBs, in carry order.`, only: true, draw(g) { packView(g, 1); } },
+  { say: "The mode is per element: <b>dd</b> elements hold an adder bit (their LUT stays free); <b>frac</b> elements split their LUT in two, for the XOR logic.", only: true, draw(g) { packView(g, 1); } },
+]);
+
+/* ======================= 7. placement: a live anneal ======================================== */
+const CS = 30, OX = 16, OY = 14;
+const gx = x => OX + x * CS, gy = y => OY + (D.h - 1 - y) * CS;
+const slots = D.cells.filter(c => c[2] === "clb").map(c => [c[0], c[1]]);
+const isClb = (x, y) => slots.some(s => s[0] === x && s[1] === y);
+const blkKeys = [...new Set(DATA.nets.flatMap(n => n.blocks.map(b => b.join(","))))];
+const movable = blkKeys.filter(k => isClb(...k.split(",").map(Number)));
+const netIdx = DATA.nets.map(n => n.blocks.map(b => blkKeys.indexOf(b.join(","))));
+function hpwl(pos) {
+  let c = 0;
+  for (const net of netIdx) { let x0 = 99, x1 = -1, y0 = 99, y1 = -1; for (const b of net) { const [x, y] = pos[b]; x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); } c += (x1 - x0) + (y1 - y0); }
+  return c;
+}
+const vprPos = blkKeys.map(k => k.split(",").map(Number));
+function rng(seed) { let s = seed >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
+function randomStart(seed) {
+  const r = rng(seed), pos = vprPos.map(p => p.slice()), free = slots.slice();
+  movable.forEach(k => { const i = blkKeys.indexOf(k), j = Math.floor(r() * free.length); pos[i] = free.splice(j, 1)[0].slice(); });
+  return pos;
+}
+function drawPlace(g, pos, cost, hist) {
+  D.cells.forEach(([x, y, t, h]) => R(g, gx(x) + 1, gy(y + h - 1) + 1, CS - 2, h * CS - 2, t === "clb" ? "slot" : t, { rx: 2, style: "opacity:0.6" }));
+  netIdx.forEach(net => { for (let i = 1; i < net.length; i++) { const [a, b] = [pos[net[0]], pos[net[i]]]; L(g, gx(a[0]) + CS / 2, gy(a[1]) + CS / 2, gx(b[0]) + CS / 2, gy(b[1]) + CS / 2, "rat"); } });
+  blkKeys.forEach((k, i) => { const [x, y] = pos[i]; const mv = movable.includes(k); E("circle", { cx: gx(x) + CS / 2, cy: gy(y) + CS / 2, r: mv ? 9 : 5, class: mv ? "blkc" : "blkio" }, g); });
+  const cx = gx(D.w) + 20;
+  T(g, cx, 30, "cost (wirelength)", { class: "small" });
+  T(g, cx, 58, String(cost), { class: "lbl", style: "font-size:22px" });
+  if (hist && hist.length > 1) {
+    const mx = Math.max(...hist), w = 150, h = 90;
+    P(g, hist.map((c, i) => `${i ? "L" : "M"}${cx + i / (hist.length - 1) * w} ${80 + h - c / mx * h}`).join(" "), "wire on");
+    L(g, cx, 80 + h, cx + w, 80 + h, "edge");
+    T(g, cx, 190, "swaps →", { class: "small" });
+  }
+}
+function annealStep(g) {
+  let pos = randomStart(7), cost = hpwl(pos), T0 = 6, hist = [cost];
+  const r = rng(11), mv = movable.map(k => blkKeys.indexOf(k));
+  const layer = E("g", {}, g);
+  drawPlace(layer, pos, cost, hist);
+  if (RM) return;
+  let it = 0;
+  const tick = () => {
+    if (!g.isConnected || it > 900) return;
+    for (let n = 0; n < 6; n++, it++) {
+      const temp = T0 * Math.pow(0.992, it);
+      const a = mv[Math.floor(r() * mv.length)];
+      const target = slots[Math.floor(r() * slots.length)];
+      const b = pos.findIndex(p => p[0] === target[0] && p[1] === target[1]);   // who sits there
+      if (b === a) continue;
+      const pa = pos[a], pb = b >= 0 ? pos[b] : null;
+      pos[a] = target.slice(); if (b >= 0) pos[b] = pa;                        // swap (or move)
+      const c2 = hpwl(pos), dc = c2 - cost;
+      if (dc <= 0 || r() < Math.exp(-dc / Math.max(temp, 0.01))) cost = c2;   // keep it
+      else { pos[a] = pa; if (b >= 0) pos[b] = pb; }                            // undo
+    }
+    hist.push(cost);
+    layer.replaceChildren(); drawPlace(layer, pos, cost, hist);
+    setTimeout(tick, 60);
+  };
+  setTimeout(tick, 400);
+}
+stage("st-place", `0 0 ${gx(D.w) + 190} ${gy(-1) + 6}`, [
+  { say: `bob's grid, and ${wideDesc()}: the ${movable.length} CLBs (green) and the pads they use (orange, fixed), with a thin line for each connection.`, only: true,
+    draw(g) { drawPlace(g, vprPos, hpwl(vprPos)); } },
+  { say: "Scatter the CLBs at random: long lines everywhere, a high cost.", only: true, draw(g) { const p = randomStart(7); drawPlace(g, p, hpwl(p)); } },
+  { say: "Anneal: random swaps, most bad ones refused as the temperature falls. Watch the cost come down. (It runs live, here, on the real nets.)", only: true, draw(g) { annealStep(g); } },
+  { say: `VPR's real result for <code>wide</code>: cost ${hpwl(vprPos)}, with the counter's CLBs stacked in grid column 2 so the carry runs straight up.`, only: true, draw(g) { drawPlace(g, vprPos, hpwl(vprPos)); } },
+]);
+function wideDesc() { return "<code>wide</code>'s blocks"; }
+
+/* ======================= 8. routing =========================================================== */
+const RS = 30, ROX = 16, ROY = 14;
+const rx = x => ROX + x * RS, ry = y => ROY + (D.h - 1 - y) * RS;
+function segPath(s) {
+  const [t, x1, y1, x2, y2, tr] = s, off = ((tr % 12) - 6) * 0.7;
+  if (t === "CHANX") return `M${rx(Math.min(x1, x2))} ${ry(y1) - 1 + off} L${rx(Math.max(x1, x2)) + RS} ${ry(y1) - 1 + off}`;
+  return `M${rx(x1) + RS - 1 + off} ${ry(Math.max(y1, y2))} L${rx(x1) + RS - 1 + off} ${ry(Math.min(y1, y2)) + RS}`;
+}
+const NETC = ["var(--net1)", "var(--net2)", "var(--net3)", "var(--net4)", "var(--net5)"];
+function routeView(g, nets) {
+  D.cells.forEach(([x, y, t, h]) => R(g, rx(x) + 4, ry(y + h - 1) + 4, RS - 8, h * RS - 8, t, { rx: 2, style: "opacity:0.55" }));
+  DATA.clusters.forEach(c => R(g, rx(c.xy[0]) + 4, ry(c.xy[1]) + 4, RS - 8, RS - 8, "pick", { rx: 2 }));
+  nets.forEach((n, i) => n.segs.forEach(s => { const p = P(g, segPath(s), "wire"); p.style.stroke = NETC[i % 5]; p.style.strokeWidth = 2; }));
+}
+const bigNets = DATA.nets.slice().sort((a, b) => b.segs.length - a.segs.length);
+stage("st-route", `0 0 ${rx(D.w) + 10} ${ry(-1) + 6}`, [
+  { say: "The placed CLBs (outlined) on the grid. Between every row and column of tiles runs a channel of wires.", only: true, draw(g) { routeView(g, []); } },
+  { say: `One net, <code>${bigNets[0].name}</code>: ${bigNets[0].segs.length} wire segments from its driver to every block that reads it.`, only: true, draw(g) { routeView(g, [bigNets[0]]); travel(g, segPath(bigNets[0].segs[0]), "1.4s"); } },
+  { say: "Five nets, each in its own colour and its own tracks: no wire is shared.", only: true, draw(g) { routeView(g, bigNets.slice(0, 5)); } },
+  { say: `All ${DATA.nets.length} nets that leave a CLB. The carry chain needs no wires at all: it is a direct link from each CLB to the one above.`, only: true, draw(g) { routeView(g, DATA.nets); } },
+]);
+
+/* ======================= 9. FASM ============================================================= */
+const FA = DATA.fasm;
+const lutLine = FA.find(l => /\.init = /.test(l)), xbarLine = FA.find(l => /\.x\d = /.test(l)), rrLine = FA.find(l => /^rr/.test(l)) || FA[FA.length - 1];
+function fasmList(g, hl) {
+  FA.slice(0, 16).forEach((l, i) => { if (hl && hl.test(l)) R(g, 16, 18 + i * 18, 600, 16, "warm", { rx: 3 }); T(g, 22, 30 + i * 18, l, { class: "src", style: "font-size:11px" }); });
+  T(g, 22, 30 + 16 * 18 + 8, `… ${FA.length} lines in all`, { class: "small" });
+}
+stage("st-fasm", "0 0 640 340", [
+  { say: `The first lines of <code>wide</code>'s ${FA.length}-line FASM: settings of the CLB at the top of the list, element by element.`, only: true, draw(g) { fasmList(g, null); } },
+  { say: "Flags: <code>ff_en</code> uses the flip-flop, <code>ff_ce_en</code> and <code>ff_sr_en</code> connect its enable and reset, <code>frac</code> splits the LUT.", only: true, draw(g) { fasmList(g, /ff_|frac/); } },
+  { say: `The LUT table, 64 bits in hex: <code>${lutLine ? lutLine.split("= ")[1] : ""}</code>.`, only: true, draw(g) { fasmList(g, /\.init = /); } },
+  { say: "Crossbar selects: <code>x0</code>…<code>x5</code> say which CLB pin or feedback each LUT input takes.", only: true, draw(g) { fasmList(g, /\.x\d = /); } },
+  { say: `And, further down, the routing: <code>${rrLine}</code> sets one routing multiplexer. bitgen turns every line into bits at their frame positions.`, only: true, draw(g) { fasmList(g, null); R(g, 16, 318, 600, 18, "pick", { rx: 3 }); T(g, 22, 331, rrLine, { class: "src", style: "font-size:11px" }); } },
+]);
+
+/* ======================= 10. timing ========================================================== */
+const TP = DATA.timing.path;
+const HOP = { OPIN: "leaves a CLB", IPIN: "enters a CLB", EIN: "element input", ECY: "carry", internal: "LUT, flip-flop" };
+function pathView(g, upto) {
+  D.cells.forEach(([x, y, t, h]) => R(g, rx(x) + 4, ry(y + h - 1) + 4, RS - 8, h * RS - 8, t, { rx: 2, style: "opacity:0.45" }));
+  const pts = TP.slice(0, upto + 1).filter(h => h.x != null);
+  if (pts.length > 1) P(g, pts.map((h, i) => `${i ? "L" : "M"}${rx(h.x) + RS / 2} ${ry(h.y) + RS / 2}`).join(" "), "wire hot");
+  pts.forEach(h => E("circle", { cx: rx(h.x) + RS / 2, cy: ry(h.y) + RS / 2, r: 4, class: "dot" }, g));
+  const bx = rx(D.w) + 16, bw = 230, mx = TP[TP.length - 1].at;
+  T(g, bx, 22, "arrival time (ns)", { class: "small" });
+  TP.slice(0, upto + 1).forEach((h, i) => {
+    const y = 32 + i * 17;
+    R(g, bx, y, Math.max(2, h.at / mx * bw), 12, "bar", { rx: 2, style: "opacity:0.8" });
+    T(g, bx + Math.max(2, h.at / mx * bw) + 4, y + 10, `${h.at.toFixed(1)} ${HOP[h.kind] || h.kind}`, { class: "mono", style: "font-size:9px" });
+  });
+}
+stage("st-timing", `0 0 ${rx(D.w) + 290} ${ry(-1) + 6}`, [
+  { say: `The critical path starts at a flip-flop's output in CLB (${TP[0].x}, ${TP[0].y}), ${TP[0].at} ns after the clock.`, only: true, draw(g) { pathView(g, 0); } },
+  { say: "Into an element's input through the crossbar, then along the carry chain inside the CLB: about 1 ns per element.", only: true, draw(g) { pathView(g, 4); } },
+  { say: "Out of the CLB, up into the next one: the carry chain continues through three CLBs stacked in one column.", only: true, draw(g) { pathView(g, 12); } },
+  { say: `…and ends at the last flip-flop: <b>${DATA.timing.cpd} ns</b>. With the ${DATA.timing.provisional ? "estimated" : "measured"} delays times a ${DATA.timing.margin}× safety margin, the fastest safe user clock is <b>${(DATA.timing.fmax / 1e6).toFixed(1)} MHz</b>.`, only: true, draw(g) { pathView(g, TP.length - 1); } },
+]);
+
+/* ======================= 11. model check ====================================================== */
+stage("st-model", `0 0 ${130 + TR.length * 16} ${20 + NI * 26 + 136}`, [
+  { say: "<code>model.py</code> loads the new configuration word and runs bob in software: every configured LUT, adder, flip-flop and routing multiplexer.", only: true,
+    draw(g) { R(g, 110, 60, 300, 90, "cell lut"); T(g, 260, 100, "model.py", { class: "lbl", "text-anchor": "middle" }); T(g, 260, 124, "the configuration word, simulated", { class: "small", "text-anchor": "middle" }); } },
+  { say: "It gets the same inputs as the equivalence check, and its LEDs are compared with the source's saved trace, cycle by cycle.", only: true, draw(g) { waves(g, true, false); } },
+  { say: "Equal on every sample (the build prints <i>600/600 samples == source trace</i>). Only now is the <code>.bit</code> written, and it goes to the board carrying proof that the bits do what the Verilog said.", only: true, draw(g) { waves(g, true, true); } },
+]);
+
+/* --- the rail ------------------------------------------------------------------------------ */
+const names = ["The source", "What yosys reads", "Mapping onto bob", "One LUT", "Proving nothing changed", "Packing",
+               "Placement", "Routing", "FASM", "The critical path", "The model check"];
+const stack = document.getElementById("stack");
+const links = stages.map((s, i) => { const a = document.createElement("a"); a.href = "#" + s.id; a.innerHTML = `<b>${i + 1}</b>${names[i]}`; stack.appendChild(a); return a; });
+const secsEl = stages.map(s => document.getElementById(s.id));
+function mark() {
+  let cur = 0; secsEl.forEach((s, i) => { if (s.getBoundingClientRect().top < window.innerHeight * 0.4) cur = i; });
+  links.forEach((a, i) => { a.classList.toggle("on", i === cur); a.classList.toggle("done", i < cur); });
+}
+window.addEventListener("scroll", mark, { passive: true }); mark();
+})();
+</script>
