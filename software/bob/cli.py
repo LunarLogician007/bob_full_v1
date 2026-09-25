@@ -270,7 +270,7 @@ def main():
     ld = sub.add_parser("load")
     ld.add_argument("bit")
     ld.add_argument("--watch", action="store_true", help="show the LEDs afterwards (fpga.py --watch)")
-    ld.add_argument("--freq", type=int, default=100, help="TCK kHz (at most 1000 from M25; 100 is the proven default)")
+    ld.add_argument("--freq", type=int, default=1000, help="TCK kHz (1000 from M25, proven on the board; 100 for an M24 or older bitstream)")
     ld.add_argument("--probe", default="usb", choices=("usb", "fake"),
                     help="the board: the Pico on PMODA, or the one in software (software/host/fakeboard.py)")
     ld.add_argument("--mode", default="frames", choices=("frames", "chain"),

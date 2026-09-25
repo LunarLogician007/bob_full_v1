@@ -2309,7 +2309,7 @@ def check_fast_tck(p, ctx):
     """M25: TCK at 1 MHz (the XDC's new period, 10x the M13-M24 limit): every self-test design
     loaded as frames (CRC, FDRO readback) and swept through INTEST against the model, then the
     time-travel restore of the counter, all at 1 MHz; timed against the same loads at 100 kHz.
-    Back to 100 kHz afterwards whatever happens."""
+    Back to the default rate afterwards whatever happens."""
     import time
     import fpga
     from designs import DESIGNS
@@ -2319,12 +2319,14 @@ def check_fast_tck(p, ctx):
         ok = all(fpga.verify(p, k, d, f, s) for k, d, f, s in DESIGNS)
         return ok, time.time() - t0
     try:
+        p.set_freq_khz(100)
         slow_ok, t_slow = run()
         p.set_freq_khz(1000)
         fast_ok, t_fast = run()
         tt_ok, tt_msg = check_time_travel(p, ctx)
     finally:
-        p.set_freq_khz(100)
+        import dirtyjtag
+        p.set_freq_khz(dirtyjtag.DEFAULT_TCK_KHZ)
         fpga.go_live(p)
     ok = slow_ok and fast_ok and tt_ok
     return ok, (f"{len(DESIGNS)} designs at 100 kHz {'ok' if slow_ok else 'FAIL'} in {t_slow:.1f} s, "
@@ -2367,7 +2369,7 @@ def main():
     ap.add_argument("--milestone", required=True)
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--manual", action="store_true")
-    ap.add_argument("--freq", type=int, default=100, help="TCK frequency in kHz")
+    ap.add_argument("--freq", type=int, default=1000, help="TCK frequency in kHz (M25: 1000; 100 for an M24 or older bitstream)")
     ap.add_argument("--only", metavar="CHECK[,CHECK]",
                     help="run only these milestone checks (idcode still runs first), e.g. --only live-fir")
     args = ap.parse_args()

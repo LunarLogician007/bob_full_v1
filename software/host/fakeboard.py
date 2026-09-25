@@ -344,7 +344,7 @@ class FakeBob:
 # --- choosing a board --------------------------------------------------------
 
 
-def probe(kind="usb", freq_khz=100, **kw):
+def probe(kind="usb", freq_khz=1000, **kw):
     """"usb": the Pico on PMODA. "fake": FakeBob. Anything else is an error."""
     if kind == "fake":
         return FakeBob(**kw)

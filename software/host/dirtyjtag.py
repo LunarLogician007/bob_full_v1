@@ -62,6 +62,8 @@ IDCODE_EXPECTED = 0x2BEEF093      # the M0 single-CLB top; the fabric's is fpga.
 
 
 MAX_TCK_KHZ = 1000         # M25: the XDC constrains TCK at 1 us (M13-M24: 10 us); never drive it faster
+DEFAULT_TCK_KHZ = 1000     # M25: bob's tools run TCK at 1 MHz since the board passed 71/71 at it (2026-09-25);
+                           # the M13-M24 bitstreams are constrained for 100 kHz only
 
 
 class Probe:

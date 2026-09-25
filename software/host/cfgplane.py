@@ -363,7 +363,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--width", type=int, default=TEST_TOP_CHAIN_W)
-    ap.add_argument("--freq", type=int, default=100, help="TCK kHz")
+    ap.add_argument("--freq", type=int, default=1000, help="TCK kHz (M25: 1000; 100 for an M24 or older bitstream)")
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("status")
     ld = sub.add_parser("load")

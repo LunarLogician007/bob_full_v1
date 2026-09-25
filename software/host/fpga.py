@@ -186,7 +186,7 @@ def main():
     ap.add_argument("--watch", action="store_true")
     ap.add_argument("--slow", action="store_true",
                     help="shift the config per-pulse instead of in bulk")
-    ap.add_argument("--freq", type=int, default=100, help="TCK frequency in kHz")
+    ap.add_argument("--freq", type=int, default=1000, help="TCK frequency in kHz (M25: 1000; 100 for an M24 or older bitstream)")
     args = ap.parse_args()
 
     if args.list:

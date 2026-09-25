@@ -29,7 +29,15 @@ This file is the live state: what is finished, what is in flight, and exactly wh
 - Docs done: `docs/learn/layer_by_layer.html` (volume 2, gradual build-up; artifact
   https://claude.ai/artifact/H7Sk39vinJtqpqwThZsNNK), volume 1 links it, and REPORT and GUIDE
   are brought through M25.
-- Next: the user builds M25 (`docs/hwtest/M25.md`), then `make hwtest M=M25`.
+- **M25 on the board 2026-09-25: 71/71** (time-travel 5 -> 11 -> 5 -> 8, model +4 -> 12, +1 -> 13;
+  fast-tck 13 designs at 1 MHz in 11.0 s instead of 28.3 s). The whole list at `--freq 1000`
+  also passed 71/71, in 7:57 instead of 10:03, so **1 MHz is the default TCK now**
+  (`dirtyjtag.DEFAULT_TCK_KHZ`; pass `--freq 100` for an M24 or older bitstream). Vivado: sysclk WNS
+  +0.732 ns, TCK WNS +489 ns at 1 MHz, 38,198 LUTs, slices 86.8%. Merged into `main`, tagged `m25`.
+  The hand steps in `docs/hwtest/M25.md` are still to do.
+- Still missing from the reports: `delay_paths.rpt` and `sysclk_1cycle.txt` for M23, M24 and M25
+  (`test_reports` fails on them). `delay_paths.rpt` is the design speed-up: `software/bob/delays.py
+  fold docs/reports/M25/delay_paths.rpt`.
 
 ## 0y. The M24 state (kept for reference)
  (2026-09-24, M24 on branch `m24`)
