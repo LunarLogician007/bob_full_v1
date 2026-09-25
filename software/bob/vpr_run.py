@@ -519,10 +519,12 @@ def run_retry(top, seed=1, work=None, pcf=None, name=None, tries=ROUTE_TRIES):
     for s in range(seed, seed + tries):
         try:
             return run(top, s, work, pcf, name), s
-        except VprError as e:
-            if "Routing failed" not in open(os.path.join(work or os.path.join(ROOT, "build", "vpr",
-                                                                               name or top), "vpr.log")).read() \
-                    or s == seed + tries - 1:
+        except VprError:
+            # a design refused before VPR ran (a port with no pin) has no vpr.log: its own
+            # message is the one to show, not a missing-file error
+            logf = os.path.join(work or os.path.join(ROOT, "build", "vpr", name or top), "vpr.log")
+            log = open(logf).read() if os.path.exists(logf) else ""
+            if "Routing failed" not in log or s == seed + tries - 1:
                 raise
             print(f"  {name or top}: seed {s} did not route, trying seed {s + 1}", flush=True)
     raise VprError("unreachable")

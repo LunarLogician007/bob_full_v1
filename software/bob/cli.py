@@ -1,34 +1,21 @@
 #!/usr/bin/env python3
 """
-bob - build a Verilog design for the bob FPGA and load it (M10).
+bob - build a Verilog design for the bob FPGA and run it (M10; the commands a person uses).
 
-  ./bob build work/examples/counter/counter.v [--top counter] [--pcf pins.pcf] [-o counter.bit]
-              [--clock jtag|run] [--div N] [--seed N] [--pnr vpr|python] [--json FILE]
-  ./bob build --project bob.proj             (the same settings, in one file)
-  ./bob build --project demo/demo.bobproj    (a bob studio project, M18: .bit into demo/build/)
-  ./bob build design.v --sdc clocks.sdc      (M20: create_clock -period 50 [get_ports clk];
-                                              the build fails if the design misses it)
-  ./bob load  counter.bit [--watch] [--probe usb|fake]
-  ./bob info  counter.bit
-  ./bob fasm  counter.bit                     the chain as FASM
-  ./bob studio [--probe fake|usb] [--browser] bob studio, as a desktop app (M19)
+  ./bob                          what bob can do, in short (ux.getting_started)
+  ./bob build design.v           Verilog -> .bit: every stage of software/bob/flow.py, checked
+  ./bob build blink              the same from a project folder or .bobproj (bob studio's)
+  ./bob run design.v             build, load and read the LEDs in one step
+  ./bob load x.bit               configure the board (--probe fake: the board in software)
+  ./bob new blink [--from ex]    a project folder with a design to start from
+  ./bob examples | pins | doctor the example designs, the board pins, a setup check
+  ./bob info x.bit | fasm x.bit  what a bitstream holds
+  ./bob snap save|restore|list|sim   time-travel debugging (M25)
+  ./bob studio                   bob studio, the desktop app (M19)
 
-build runs software/bob/flow.py: every step checked before the next, each one timed and
-reported. `--json` writes that record instead of prose.
-  1. synthesis   software/bob/synth.py (yosys onto bob cells)
-  2. equivalence software/bob/equiv.py: source == yosys netlist == golden netlist in
-                 iverilog; saves the source trace and every golden net per clock
-  3. place/route --pnr vpr (default): VPR on the committed rr graph (software/bob/vpr_run.py);
-                 a fresh committed result in software/bob/vpr/<name>/ is reused (no
-                 Docker), otherwise VPR runs in Docker into build/vpr/<name>/.
-                 --pnr python (M12): bob's own pack/place/route (software/bob/pnr/),
-                 same netlist, pins and output files, into build/pnr/<name>/
-  4. FASM        software/bob/fasm_from_vpr.py, legality-checked against device.json
-  5. bits        software/bob/bitgen.py; --clock sets the ctrl tile (jtag: stepped over
-                 JTAG, as the tests do; run: free-running, 125 MHz / 2**(div+9), or --hz auto|N (M20)
-  6. model       software/bob/model.py with these bits == the source trace (when the
-                 ports follow the examples' sw/btn/led convention)
-  7. .bit        chain + BRAM contents + META (docs/bitstream-format.md section 8)
+What the output says - usage, hints, the failing source line - comes from software/bob/ux.py,
+so bob studio explains a failure the same way. build() and load() stay the library calls the
+tests, hwtest and studio use.
 
 Pins: without --pcf, sw[1:0] -> SW1..0, btn[3:0] -> BTN3..0, led[2:0] -> LD2..0.
 A .pcf has `set_io <port bit> <SW0|SW1|BTN0..3|LD0..2|pad<N>>` lines.
@@ -66,7 +53,7 @@ def read_project(path):
 
     A .bobproj (M18, bob studio's New Project) is read by software/bob/project.py and also
     names where the .bit goes: <project>/build/<name>.bit."""
-    if path.endswith(".bobproj"):
+    if path.endswith(".bobproj") or os.path.isdir(path):
         import project
         try:
             return project.Project.open(path).flow_kwargs()
@@ -224,8 +211,7 @@ def snap_cmd(args):
         return 0
     import cfgplane
     import packets
-    from fakeboard import probe as open_probe
-    p = open_probe(args.probe)
+    p = open_board(args.probe)
     word = cfgplane.cfg_out(p, packets.NFRAMES * packets.FB)          # the design on the chip
     crc = f"{zlib.crc32(word.to_bytes((B.CHAIN_W + 7) // 8, 'little')):08x}"
     if args.action == "save":
@@ -245,54 +231,275 @@ def snap_cmd(args):
     return 0
 
 
-def main():
-    ap = argparse.ArgumentParser(prog="bob", description=__doc__,
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
-    sub = ap.add_subparsers(dest="cmd", required=True)
-    b = sub.add_parser("build")
-    b.add_argument("files", nargs="*")
-    b.add_argument("--top")
-    b.add_argument("--pcf")
-    b.add_argument("-o", "--output")
-    b.add_argument("--clock", choices=("jtag", "run"),
-                   help="jtag: stepped (default); run: free-running (the default with --sdc or --hz)")
-    b.add_argument("--div", type=int, default=0)
-    b.add_argument("--sdc", help="M20: a clock constraint, create_clock -period <ns> [get_ports clk]; "
-                                 "the build fails if the design does not meet it")
-    b.add_argument("--hz", help="M20, with --clock run: 'auto' = the fastest rate this design's timing "
-                                "allows, or a rate in Hz (refused if faster than that)")
-    b.add_argument("--seed", type=int, default=1)
-    b.add_argument("--name", help="result name (default top, or top_<pcf>)")
-    b.add_argument("--pnr", default="vpr", choices=("vpr", "python"), help="place and route with VPR or bob's own (M12)")
-    b.add_argument("--project", help="read files, top, pins and settings from a .proj or .bobproj file")
-    b.add_argument("--json", metavar="FILE", help="write the build record (stages, timings, "
-                                                  "diagnostics) as JSON; - for stdout")
-    ld = sub.add_parser("load")
+def open_board(kind="usb", freq=1000):
+    """the probe, or a BuildError that says what to check (dirtyjtag exits the process when
+    no Pico is plugged in: turn that into advice instead)"""
+    from fakeboard import probe as open_probe
+    try:
+        return open_probe(kind, freq_khz=freq) if kind == "usb" else open_probe(kind)
+    except SystemExit as e:
+        raise BuildError(f"{e} - plug the Pico (DirtyJTAG) in, or use --probe fake for the "
+                         "board in software; ./bob doctor checks the setup")
+    except ImportError as e:
+        raise BuildError(f"{e} - pip3 install pyusb (./bob doctor checks the setup)")
+
+
+def _project_path(files):
+    """a lone folder or .bobproj given as the design: a bob studio project"""
+    if len(files) == 1 and (files[0].endswith(".bobproj") or os.path.isdir(files[0])):
+        return files[0]
+    return None
+
+
+def build_cmd(args, quiet_next=False):
+    """./bob build and the first half of ./bob run -> (ok, Result or None)"""
+    import flow
+    import ux
+    kw = dict(files=args.files, top=args.top, pcf=args.pcf, name=args.name,
+              clock=args.clock, div=args.div, seed=args.seed, pnr=args.pnr, hz=args.hz,
+              sdc=args.sdc)
+    proj = args.project or _project_path(args.files)
+    if proj:
+        # the file supplies the defaults; anything given on the command line wins
+        given = {k: v for k, v in kw.items()
+                 if v not in (None, [], "jtag", 0, 1, "vpr") or k == "files" and v}
+        kw = {**{k: v for k, v in kw.items() if k != "files"}, **read_project(proj)}
+        kw.update({k: v for k, v in given.items() if k != "files" and v is not None})
+    if not kw.get("files"):
+        raise BuildError("no sources: ./bob build design.v (or a project folder); ./bob examples lists some")
+    kw["out"] = args.output or kw.get("out")
+    print(f"bob build {' '.join(ux.rel(f) for f in kw['files'])}")
+    try:
+        f = flow.Flow(**kw)
+    except flow.FlowError as e:
+        raise BuildError(str(e))
+    # a failed stage is told once, by ux.explain below, not also as its stage line
+    res = f.run(on_stage=lambda st: st.ok and print(f"  {st.name:8s} {st.detail}"))
+    if getattr(args, "json", None):
+        text = json.dumps(res.to_json(), indent=2)
+        if args.json == "-":
+            print(text)
+        else:
+            open(args.json, "w").write(text + "\n")
+            print(f"  json     {ux.rel(args.json)}")
+    if not res.ok:
+        print("\n".join(ux.explain(res)))
+        return False, res
+    print(ux.paint("  PASS  ", "ok") + f"built {ux.rel(res.bit)} in {res.seconds:.1f} s")
+    lines = ux.summary(res)
+    print("\n".join(lines[:-1] if quiet_next else lines))
+    return True, res
+
+
+def load_cmd(bit, probe="usb", freq=1000, mode="frames", partial=False, watch=False, show=False):
+    import fpga
+    import ux
+    why = contract(bitgen.read_bit(bit)["word"])           # refuse before touching hardware
+    if why:
+        raise BuildError(why)
+    p = open_board(probe, freq)
+    idcode = p.read_idcode()
+    if idcode != fpga.IDCODE_FABRIC:
+        raise BuildError(f"the board answers IDCODE 0x{idcode:08X}, not bob's 0x{fpga.IDCODE_FABRIC:08X}: "
+                         "program the bob bitstream onto the PYNQ-Z2 first "
+                         "(or add --freq 100 for a bob bitstream older than the 1 MHz one)")
+    ok, msg = load_partial(p, bit) if partial else load(p, bit, mode=mode)
+    fpga.go_live(p)
+    print((ux.paint("  PASS  ", "ok") if ok else ux.paint("  FAIL  ", "fail")) + f"load {ux.rel(bit)}: {msg}")
+    if ok and show and not watch:
+        try:
+            fpga.cfgplane.ir(p, "SAMPLE")
+            s = fpga.sample(p)
+            fpga.go_live(p)
+            print(f"    LEDs    LD2..0 = {s['leds']:03b}   (SW1..0 = {s['sw']:02b}, BTN3..0 = {s['btn']:04b});"
+                  f" add --watch to follow them")
+        except Exception:                                   # noqa: BLE001 - a reading is a bonus
+            pass
+    if ok and watch:
+        fpga.watch(p)
+    return ok
+
+
+def new_cmd(args):
+    import project
+    import ux
+    where = os.path.abspath(args.dir or ".")
+    try:
+        p = project.Project.create(where, args.name)
+        if args.src:
+            src = args.src
+            if not os.path.isfile(src):
+                ex = dict((n, path) for n, path, _ in ux.examples())
+                if src not in ex or not ex[src].endswith(".v"):
+                    raise project.ProjectError(f"--from {src}: not a file or an example "
+                                               f"({', '.join(n for n, path, _ in ux.examples() if path.endswith('.v'))})")
+                src = ex[src]
+            rel = p.add_source(src)
+            top = os.path.splitext(os.path.basename(src))[0]
+        else:
+            rel = p.new_source(args.name, ux.NEW_DESIGN.format(
+                name=args.name, path=ux.rel(os.path.join(p.dir))))
+            top = args.name
+        p.set_top(top)
+        p.save()
+    except project.ProjectError as e:
+        raise BuildError(str(e))
+    d = ux.rel(p.dir)
+    print(ux.paint("  PASS  ", "ok") + f"new design {args.name} in {d}/")
+    print(f"    source  {d}/{rel}")
+    print(f"    project {d}/{os.path.basename(p.path)}   (bob studio opens it: File > Open Project)")
+    print(f"    next    {ux.paint(f'./bob run {d} --probe fake', 'cmd')}   (drop --probe fake on the board)")
+    return 0
+
+
+def info_cmd(args):
+    import ux
+    c = bitgen.read_bit(args.bit)
+    F = bitgen.features_from_word(c["word"])
+    m = c["meta"]
+    if args.raw:
+        print(f"{args.bit}: device {c['name']}, {c['width']}-bit chain, crc 0x{c['crc']:08X}, "
+              f"file version {c['version']}, {len(F)} FASM features, "
+              f"BRAM contents {sorted(c['brams']) or 'none'}")
+        for k, v in sorted(m.items()):
+            print(f"  {k}: {v}")
+        return 0
+    import timing as T
+    print(ux.rel(args.bit))
+    src = ", ".join(ux.rel(os.path.normpath(os.path.join(ROOT, f))) for f in m.get("sources") or []) or "?"
+    print(f"    design  {m.get('design', '?')} (top module {m.get('top', '?')}), from {src}")
+    print(f"    device  {c['name']}: {c['width']}-bit configuration, CRC 0x{c['crc']:08X}, "
+          f"{len(F)} configuration settings")
+    print(f"    pins    {m['pcf'] if m.get('pcf') else 'the sw/btn/led defaults (./bob pins)'}")
+    print(f"    placed  {'bob own place and route' if m.get('pnr') == 'python' else 'VPR'}"
+          + (f" (result {m['vpr_result']})" if m.get("vpr_result") else ""))
+    brams = sorted(c["brams"])
+    print(f"    BRAM    {'contents for ' + ', '.join(f'bram{b}' for b in brams) if brams else 'none used'}")
+    try:
+        t = T.analyse(c["word"])
+        print(f"    timing  critical path {t['cpd_ns']} ns, up to {t['fmax_hz'] / 1e6:.3g} MHz"
+              f" ({'estimated' if t['provisional'] else 'measured'} delays x {t['margin']})")
+    except T.TimingError as e:
+        print(f"    timing  {e}")
+    if m.get("clock") == "run":
+        hz = B.guest_hz("run", m.get("pdiv") or m.get("div") or 0, m.get("period") or 0, m.get("gap") or 0)
+        print(f"    clock   free-running at {hz / 1e6:.4g} MHz" if hz >= 1e5 else f"    clock   free-running at {hz:.4g} Hz")
+    else:
+        print("    clock   stepped over JTAG (the host steps it)")
+    print(f"    next    {ux.paint(f'./bob load {ux.rel(args.bit)}', 'cmd')}   (--raw: every stored field)")
+    return 0
+
+
+EPILOG = """examples:
+  ./bob                                  what bob can do, in short
+  ./bob run work/examples/counter/counter.v --probe fake
+  ./bob new blink && ./bob run blink     a design of your own
+  ./bob doctor                           check the tools and the board
+more: docs/GETTING_STARTED.md"""
+
+
+def _parser():
+    ap = argparse.ArgumentParser(prog="bob", description="bob - build Verilog for the bob FPGA and run it "
+                                 "on the PYNQ-Z2 (or on the board in software).",
+                                 epilog=EPILOG, formatter_class=argparse.RawDescriptionHelpFormatter)
+    sub = ap.add_subparsers(dest="cmd", metavar="command")
+
+    def build_args(b):
+        b.add_argument("files", nargs="*", help="Verilog files, or a project folder / .bobproj")
+        b.add_argument("--top", help="the top module (default: the first file's name)")
+        b.add_argument("--pcf", help="a pin file, for ports other than clk/sw/btn/led (./bob pins)")
+        b.add_argument("-o", "--output", help="where the .bit goes (default build/bit/<name>.bit)")
+        b.add_argument("--clock", choices=("jtag", "run"),
+                       help="jtag: the host steps the clock (default); run: a free-running clock "
+                            "(the default with --sdc or --hz)")
+        b.add_argument("--div", type=int, default=0,
+                       help="with --clock run: 125 MHz / 2^(div+9)")
+        b.add_argument("--hz", help="with --clock run: 'auto' = the fastest this design's timing allows, "
+                                    "or a rate in Hz (refused if faster than that)")
+        b.add_argument("--sdc", help="a clock constraint (create_clock -period <ns> [get_ports clk]); "
+                                     "the build fails if the design does not meet it")
+        b.add_argument("--seed", type=int, default=1, help="placement seed (another one may route "
+                                                           "a design that did not)")
+        b.add_argument("--name", help="result name (default: the top module)")
+        b.add_argument("--pnr", default="vpr", choices=("vpr", "python"),
+                       help="place and route with VPR (default, in Docker) or bob's own (no Docker)")
+        b.add_argument("--project", help="read files, top, pins and settings from a .proj or .bobproj file")
+        b.add_argument("--json", metavar="FILE", help="write the build record (stages, timings, "
+                                                      "diagnostics) as JSON; - for stdout")
+
+    def board_args(x):
+        x.add_argument("--probe", default="usb", choices=("usb", "fake"),
+                       help="usb: the Pico on PMODA (default); fake: the board in software")
+        x.add_argument("--freq", type=int, default=1000,
+                       help="JTAG clock in kHz (default 1000; 100 for a bob bitstream older than the 1 MHz one)")
+
+    build_args(sub.add_parser("build", help="Verilog -> a bob bitstream (.bit)",
+                              description="synthesis, equivalence check, place and route, bitstream, "
+                                          "timing and a model check: every step checked before the next",
+                              epilog="examples:\n  ./bob build work/examples/counter/counter.v\n"
+                                     "  ./bob build blink                      (a project folder)\n"
+                                     "  ./bob build fast.v --clock run --hz auto\n"
+                                     "  ./bob build gates.v --pcf my_pins.pcf",
+                              formatter_class=argparse.RawDescriptionHelpFormatter))
+    r = sub.add_parser("run", help="build, load and show the LEDs, in one step",
+                       epilog="examples:\n  ./bob run work/examples/counter/counter.v --probe fake\n"
+                              "  ./bob run blink --watch",
+                       formatter_class=argparse.RawDescriptionHelpFormatter)
+    build_args(r)
+    board_args(r)
+    r.add_argument("--watch", action="store_true", help="follow the switches and LEDs until Ctrl-C")
+    ld = sub.add_parser("load", help="configure the board with a .bit",
+                        epilog="examples:\n  ./bob load build/bit/counter.bit\n"
+                               "  ./bob load build/bit/counter.bit --probe fake     (no board)\n"
+                               "  ./bob load new.bit --partial     (swap the running design, frames that differ)",
+                        formatter_class=argparse.RawDescriptionHelpFormatter)
     ld.add_argument("bit")
-    ld.add_argument("--watch", action="store_true", help="show the LEDs afterwards (fpga.py --watch)")
-    ld.add_argument("--freq", type=int, default=1000, help="TCK kHz (1000 from M25, proven on the board; 100 for an M24 or older bitstream)")
-    ld.add_argument("--probe", default="usb", choices=("usb", "fake"),
-                    help="the board: the Pico on PMODA, or the one in software (software/host/fakeboard.py)")
+    board_args(ld)
+    ld.add_argument("--watch", action="store_true", help="follow the switches and LEDs until Ctrl-C")
     ld.add_argument("--mode", default="frames", choices=("frames", "chain"),
-                    help="configuration path: UG470-style frames on CFG_IN (default) or the chain")
+                    help="configuration path: UG470-style frames (default) or the scan chain")
     ld.add_argument("--partial", action="store_true",
-                    help="M14: reconfigure the RUNNING design, only the changed frames, user clock held")
-    sn = sub.add_parser("snap", help="M25 time-travel debugging: save / restore the running design's "
-                                     "flip-flops, or run a snapshot on in the simulator")
+                    help="reconfigure the RUNNING design: only the frames that differ, clock held")
+    n = sub.add_parser("new", help="start a design of your own (a project folder)",
+                       epilog="examples:\n  ./bob new blink                (blink/src/blink.v from a template)\n"
+                              "  ./bob new mine --from counter  (a copy of an example)",
+                       formatter_class=argparse.RawDescriptionHelpFormatter)
+    n.add_argument("name", help="the design's name: letters, digits and _")
+    n.add_argument("--from", dest="src", metavar="EXAMPLE_OR_FILE", help="start from an example or a .v file")
+    n.add_argument("--dir", help="where the project folder goes (default: here)")
+    sub.add_parser("examples", help="the example designs, one line each")
+    sub.add_parser("pins", help="the board pins and the port names that need no pin file")
+    d = sub.add_parser("doctor", help="check the tools, Docker, the Pico and the board")
+    d.add_argument("--no-board", action="store_true", help="skip the USB and board checks")
+    i = sub.add_parser("info", help="what a .bit holds: design, pins, timing, clock")
+    i.add_argument("bit")
+    i.add_argument("--raw", action="store_true", help="every stored field as it is")
+    sub.add_parser("fasm", help="a .bit's configuration as FASM text").add_argument("bit")
+    sn = sub.add_parser("snap", help="time-travel debugging: save / restore the running design's "
+                                     "flip-flops, or run a snapshot on in the simulator",
+                        epilog="examples:\n  ./bob snap save before\n  ./bob snap sim before --steps 10 --save later\n"
+                               "  ./bob snap restore later\n  ./bob snap list",
+                        formatter_class=argparse.RawDescriptionHelpFormatter)
     sn.add_argument("action", choices=("save", "restore", "list", "sim"))
     sn.add_argument("name", nargs="?")
-    sn.add_argument("--steps", type=int, default=1, help="sim: user-clock steps in model.py")
-    sn.add_argument("--pads", type=lambda v: int(v, 0), default=0, help="sim: pad_i during the steps")
+    sn.add_argument("--steps", type=int, default=1, help="sim: user-clock steps in the simulator")
+    sn.add_argument("--pads", type=lambda v: int(v, 0), default=0, help="sim: the input pads during the steps")
     sn.add_argument("--save", metavar="NEW", help="sim: store the result as snapshot NEW")
-    sn.add_argument("--cin", type=int, default=0, help="sim: USER1 cin (the bottom carry-in) during the steps")
+    sn.add_argument("--cin", type=int, default=0, help="sim: the bottom carry-in during the steps")
     sn.add_argument("--probe", default="usb", choices=("usb", "fake"))
-    sub.add_parser("info").add_argument("bit")
-    sub.add_parser("fasm").add_argument("bit")
-    st = sub.add_parser("studio", help="bob studio: the desktop app (or --browser for a tab)")
+    st = sub.add_parser("studio", help="bob studio: editor, flow, device view, waveforms")
     st.add_argument("--probe", choices=("usb", "fake"), help="open a target at start (fake: no board)")
     st.add_argument("--browser", action="store_true", help="a browser tab instead of the app window")
     st.add_argument("--port", type=int)
-    args = ap.parse_args()
+    return ap
+
+
+def main(argv=None):
+    import ux
+    args = _parser().parse_args(argv)
+    if not args.cmd:
+        print(ux.getting_started())
+        return 0
 
     if args.cmd == "studio":
         sys.path.insert(0, os.path.join(ROOT, "software", "host"))
@@ -305,68 +512,38 @@ def main():
 
     try:
         if args.cmd == "build":
-            import flow
-            kw = dict(files=args.files, top=args.top, pcf=args.pcf, name=args.name,
-                      clock=args.clock, div=args.div, seed=args.seed, pnr=args.pnr, hz=args.hz,
-                      sdc=args.sdc)
-            if args.project:
-                # the file supplies the defaults; anything given on the command line wins
-                given = {k: v for k, v in kw.items()
-                         if v not in (None, [], "jtag", 0, 1, "vpr") or k == "files" and v}
-                kw = {**{k: v for k, v in kw.items() if k != "files"}, **read_project(args.project)}
-                kw.update({k: v for k, v in given.items() if k != "files" and v is not None})
-            if not kw.get("files"):
-                raise BuildError("no sources: give files, or --project")
-            kw["out"] = args.output or kw.get("out")
-            print(f"bob build {' '.join(kw['files'])}")
-            try:
-                f = flow.Flow(**kw)
-            except flow.FlowError as e:
-                raise BuildError(str(e))
-            res = f.run(on_stage=lambda st: print(f"  {st.name:8s} {st.detail}"))
-            if args.json:
-                text = json.dumps(res.to_json(), indent=2)
-                if args.json == "-":
-                    print(text)
-                else:
-                    open(args.json, "w").write(text + "\n")
-                    print(f"  json     {os.path.relpath(os.path.abspath(args.json), ROOT)}")
-            if not res.ok:
-                raise BuildError(res.error)
+            return 0 if build_cmd(args)[0] else 1
+        if args.cmd == "run":
+            ok, res = build_cmd(args, quiet_next=True)
+            if not ok:
+                return 1
+            return 0 if load_cmd(res.bit, args.probe, args.freq, watch=args.watch, show=True) else 1
+        if args.cmd == "load":
+            return 0 if load_cmd(args.bit, args.probe, args.freq, args.mode, args.partial,
+                                 args.watch, show=True) else 1
+        if args.cmd == "new":
+            return new_cmd(args)
+        if args.cmd == "examples":
+            print(ux.examples_text())
             return 0
+        if args.cmd == "pins":
+            print(ux.pins_text())
+            return 0
+        if args.cmd == "doctor":
+            rows = ux.doctor(board=not args.no_board)
+            print(ux.doctor_text(rows))
+            return 0 if all(r[0] is not False for r in rows) else 1
         if args.cmd == "snap":
             return snap_cmd(args)
         if args.cmd == "info":
-            c = bitgen.read_bit(args.bit)
-            F = bitgen.features_from_word(c["word"])
-            print(f"{args.bit}: device {c['name']}, {c['width']}-bit chain, crc 0x{c['crc']:08X}, "
-                  f"file version {c['version']}, {len(F)} FASM features, "
-                  f"BRAM contents {sorted(c['brams']) or 'none'}")
-            for k, v in sorted(c["meta"].items()):
-                print(f"  {k}: {v}")
-            return 0
+            return info_cmd(args)
         if args.cmd == "fasm":
             sys.stdout.write(FV.to_fasm(bitgen.features_from_word(bitgen.read_bit(args.bit)["word"])))
             return 0
-        if args.cmd == "load":
-            import fpga
-            from fakeboard import probe as open_probe
-            why = contract(bitgen.read_bit(args.bit)["word"])           # refuse before touching hardware
-            if why:
-                raise BuildError(why)
-            p = open_probe(args.probe, freq_khz=args.freq)
-            idcode = p.read_idcode()
-            if idcode != fpga.IDCODE_FABRIC:
-                print(f"IDCODE 0x{idcode:08X}, expected 0x{fpga.IDCODE_FABRIC:08X}: program the matching bob bitstream")
-                return 1
-            ok, msg = load_partial(p, args.bit) if args.partial else load(p, args.bit, mode=args.mode)
-            fpga.go_live(p)
-            print(f"{'PASS' if ok else 'FAIL'}  load {args.bit}: {msg}")
-            if ok and args.watch:
-                fpga.watch(p)
-            return 0 if ok else 1
     except (BuildError, FV.FasmError, chainbits.ChainFileError, vpr_run.VprError, RuntimeError, OSError) as e:
-        print(f"FAIL  {e}")
+        print(ux.paint("  FAIL  ", "fail") + str(e))
+        for tip in ux.hints(str(e)):
+            print(ux.paint(f"  hint  {tip}", "warn"))
         return 1
     return 1
 

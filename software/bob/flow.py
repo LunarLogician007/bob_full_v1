@@ -58,6 +58,26 @@ class FlowError(Exception):
     """A stage refused the design. The message is for the user, not a traceback."""
 
 
+# --- what the device holds ------------------------------------------------------
+#
+# Every element has one LUT, one flip-flop and one carry bit, so each is counted against
+# the element count; BRAM and DSP against their blocks. A design over any of these can
+# never place, so synth says so with the numbers instead of letting VPR fail later.
+RESOURCES = (("LUTs", "$lut", "elements"), ("flip-flops", "BOB_FDRE", "elements"),
+             ("carry bits", "BOB_ADD", "elements"), ("BRAMs", "BOB_BRAM18", "bram"),
+             ("DSPs", "BOB_DSP", "dsp"))
+
+
+def capacity():
+    return {"elements": len(B.ELEMENTS), "bram": B.NBRAM, "dsp": B.NDSP, "pads": B.NPAD}
+
+
+def usage(cells):
+    """synth's cell counts -> [{name, used, cap}] against this device"""
+    cap = capacity()
+    return [{"name": n, "used": cells.get(cell, 0), "cap": cap[k]} for n, cell, k in RESOURCES]
+
+
 # What a stage is allowed to fail with. The same set cli.py's main() catches: a tool
 # that could not run (yosys, iverilog, Docker) surfaces as RuntimeError/OSError, and
 # those are the user's problem to fix, not a bug to traceback on.
@@ -246,6 +266,8 @@ class Flow:
     def __init__(self, files, top=None, pcf=None, out=None, clock=None, div=0,
                  seed=1, name=None, pnr="vpr", hz=None, sdc=None):
         self.files = list(files)
+        if not self.files:
+            raise FlowError("no source files given")
         self.top = top or os.path.splitext(os.path.basename(self.files[0]))[0]
         self.pcf = pcf
         self.out = out
@@ -309,6 +331,11 @@ class Flow:
         import equiv
         from synth import summary
         st = Stage("synth").start(self)
+        # a missing file is named before yosys runs: its log would bury it at the end
+        for f in self.files:
+            if not os.path.isfile(f):
+                st.finish(False, f"{f}: no such file")
+                raise FlowError(f"{f}: no such file")
         yosys_log = os.path.join(ROOT, "build", "synth", self.top, f"{self.top}.log")
         try:
             ok, lines, mod = equiv.equiv(self.files, self.top)
@@ -333,8 +360,21 @@ class Flow:
         # time: a 3-bit `a` is a[0], a[1], a[2] on the wire, and a 1-bit one is just `a`.
         ports = [{"name": n, "width": len(p["bits"]), "dir": p.get("direction", "input")}
                  for n, p in sorted(mod["ports"].items())]
+        use = usage(cells)
+        over = [u for u in use if u["used"] > u["cap"]]
+        if over:
+            why = ", ".join(f"{u['used']} {u['name']} (bob has {u['cap']})" for u in over)
+            st.finish(False, f"{self.top} does not fit: {why}", cells=cells, usage=use)
+            raise FlowError(f"{self.top} does not fit bob: it needs {why}")
+        # a port with no pin can never be placed: say which, before place and route does
+        if self.pcf is None:
+            loose = sorted(set(mod["ports"]) - CONVENTION)
+            if loose:
+                st.finish(False, f"no pin for port(s) {', '.join(loose)}", cells=cells, usage=use)
+                raise FlowError(f"port(s) {', '.join(loose)} have no pin: name the ports clk, sw[1:0], "
+                                "btn[3:0], led[2:0], or give a pin file (--pcf; ./bob pins lists the pins)")
         return st.finish(True, f"{self.top}: {cells}; source == netlist == golden, 300 random cycles",
-                         cells=cells, equiv=True, equiv_cycles=300,
+                         cells=cells, usage=use, equiv=True, equiv_cycles=300,
                          ports=ports, port_names=sorted(mod["ports"]))
 
     def place_route(self):
