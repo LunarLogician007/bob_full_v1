@@ -1,0 +1,42 @@
+design: impl_1  top: bob_top
+fabric cell: u_core/u_fabric
+cells u_core/u_fabric/*: 5799
+nets  u_core/u_fabric/*: 31026
+nets  u_core/u_fabric/r*: u_core/u_fabric/r1000 u_core/u_fabric/r1016 u_core/u_fabric/r1018 u_core/u_fabric/r1021 u_core/u_fabric/r1026 u_core/u_fabric/r1031 {... (5246 in all)}
+pins  u_core/u_fabric/m3/*: {u_core/u_fabric/m3/chain_cfg[0]} {u_core/u_fabric/m3/chain_cfg[1]} {u_core/u_fabric/m3/chain_cfg[2]} {u_core/u_fabric/m3/fab_pad_out[0]} {u_core/u_fabric/m3/g_leaf[1].g_lut.u_0[0]} {u_core/u_fabric/m3/g_leaf[1].g_lut.u_0[1]} {... (8 in all)}
+--- mux_chan: r8477
+  get_nets exact:     u_core/u_fabric/r8477
+  get_nets escaped:   u_core/u_fabric/r8477
+  nets named */r8477: u_core/u_fabric/r8477
+    u_core/u_fabric/r8477  PARENT u_core/u_fabric/m8477/g_tree.g_f8s.g_f8[0].u_0
+  pin u_core/u_fabric/m8477/o: u_core/u_fabric/m8477/o
+    its net: u_core/u_fabric/r8499  PARENT u_core/u_fabric/m8499/g_tree.g_f8s.g_f8[0].u_0
+    segments: {u_core/u_fabric/m8499/g_tree.g_f8s.g_f8[0].u_0} u_core/u_fabric/r8499 {u_core/u_fabric/m2753/g_leaf[0].g_lut.u_0} {u_core/u_fabric/m2704/g_leaf[0].g_lut.u_1} {u_core/u_fabric/m1879/g_leaf[1].g_lut.u_0} {u_core/u_fabric/m6879/g_leaf[1].g_lut.u_0} {... (18 in all)}
+--- mux_ipin: r2229
+  get_nets exact:     u_core/u_fabric/r2229
+  get_nets escaped:   u_core/u_fabric/r2229
+  nets named */r2229: u_core/u_fabric/r2229
+    u_core/u_fabric/r2229  PARENT u_core/u_fabric/m2229/g_tree.g_f7[0].u_0
+  pin u_core/u_fabric/m2229/o: u_core/u_fabric/m2229/o
+    its net: u_core/u_fabric/r8203  PARENT u_core/u_fabric/m8203/o
+    segments: u_core/u_fabric/m8203/o u_core/u_fabric/r8203 {u_core/u_fabric/m6020/g_leaf[1].g_lut.u_0[0]} {u_core/u_fabric/m8201/g_leaf[1].g_lut.u_0[2]} {u_core/u_fabric/m8207/g_leaf[2].g_lut.u_0[2]} {u_core/u_fabric/m380/in[1]} {... (15 in all)}
+--- lut_out: r4706
+  get_nets exact:     
+  get_nets escaped:   
+  nets named */r4706: 
+  pin u_core/u_fabric/u_clb_x4y8/o[6]: 
+--- xbar: u_clb_x11y6/x0[4]
+  get_nets exact:     {u_core/u_fabric/u_clb_x11y6/x0[4]}
+  get_nets escaped:   
+  nets named */x0\[4\]: 
+  pin u_core/u_fabric/u_clb_x11y6/m0_4/o: 
+--- cout: r4700
+  get_nets exact:     u_core/u_fabric/r4700
+  get_nets escaped:   u_core/u_fabric/r4700
+  nets named */r4700: u_core/u_fabric/r4700 u_core/u_fabric/u_clb_x4y8/r4700 u_core/u_fabric/u_clb_x4y8/m3_4/r4700 u_core/u_fabric/u_clb_x4y9/r4700 u_core/u_fabric/u_clb_x4y9/u_e0/r4700
+    u_core/u_fabric/r4700  PARENT u_core/u_fabric/u_clb_x4y8/m3_4/r4700
+    u_core/u_fabric/u_clb_x4y8/r4700  PARENT u_core/u_fabric/u_clb_x4y8/m3_4/r4700
+    u_core/u_fabric/u_clb_x4y8/m3_4/r4700  PARENT u_core/u_fabric/u_clb_x4y8/m3_4/r4700
+  pin u_core/u_fabric/u_clb_x4y8/cout: 
+--- ffq cell u_clb_x6y4/u_e1/q_reg: u_core/u_fabric/u_clb_x6y4/u_e1/q_reg
+  cells under u_clb_x6y4/u_e1: u_core/u_fabric/u_clb_x6y4/u_e1/GND u_core/u_fabric/u_clb_x6y4/u_e1/VCC {u_core/u_fabric/u_clb_x6y4/u_e1/g_leaf[3].u_i_10__23} {u_core/u_fabric/u_clb_x6y4/u_e1/g_leaf[3].u_i_11__23} {u_core/u_fabric/u_clb_x6y4/u_e1/g_leaf[3].u_i_3__23} {u_core/u_fabric/u_clb_x6y4/u_e1/g_leaf[3].u_i_4__23} {... (12 in all)}

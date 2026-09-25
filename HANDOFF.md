@@ -45,6 +45,13 @@ This file is the live state: what is finished, what is in flight, and exactly wh
   `vivado -mode batch -source E:/bob_full_v1/hw/scripts/delays.tcl` opens the project's routed
   design and writes `out/<tag>/delay_paths.rpt` (no resynthesis). `hw/scripts/bob_cfg.tcl` holds
   the build.cfg reader both scripts share.
+- **The first M25 `delay_paths.rpt` was 1100 × NONET**; why is unknown (it predates the
+  report's diagnostics). `hw/scripts/probe_names.tcl` → `docs/reports/M25/probe_names.txt`
+  showed the names do exist (r8477, `u_clb_x11y6/x0[4]`, `u_e1/q_reg`; 5246 of 7228 `r` wires),
+  but a wire's flat net is PARENT-named inside its mux (`m8477/g_tree.g_f8s.g_f8[0].u_0`), which
+  is what a path report prints. So `extract_delays.tcl` (M25b) writes a header (open design,
+  `r*` count), `NONET <from|to|both>`, and `#= from/to` lines with every name of each end;
+  `delays.py fold` matches on those (`sample_hops`). Next: rerun `delays.tcl`, fold.
 - Still missing from the reports: `delay_paths.rpt` and `sysclk_1cycle.txt` for M23, M24 and M25
   (`test_reports` fails on them). `delay_paths.rpt` is the design speed-up: `software/bob/delays.py
   fold docs/reports/M25/delay_paths.rpt`.

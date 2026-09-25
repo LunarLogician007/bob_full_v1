@@ -149,12 +149,63 @@ def hops(text):
     return out
 
 
+def _sections(text):
+    """### sections of an extract_delays.tcl report -> (head fields, {"from"/"to": names}, body)"""
+    for sec in re.split(r"(?m)^### ", text)[1:]:
+        head, _, body = sec.partition("\n")
+        names = {}
+        for line in body.splitlines():
+            if line.startswith("#= "):
+                f = line.split()
+                names[f[1]] = {_norm(x) for x in f[2:]}
+        yield head.split(), names, body
+
+
+def sample_hops(text):
+    """M25: a report whose sections list every name of both ends ("#= from ..." / "#= to
+    ...", written by extract_delays.tcl since the probe showed a path report may print a
+    net under its flat PARENT name, m8477/g_tree..., not r8477): each sample's hop is
+    arrival(to) - arrival(from), found by those names. A path that passes a hard block or
+    another rr wire between the two is not one hop and is dropped."""
+    out = []
+    for f, names, body in _sections(text):
+        if len(f) != 3 or f[0] in ("ffq", "ffd") or "from" not in names or "to" not in names:
+            continue
+        cls = f[0]
+        ends = {_node(_norm(f[1])), _node(_norm(f[2]))}
+        ta = tb = None
+        clean = True
+        for line in body.splitlines():
+            if ta is not None and HARD.search(line):
+                clean = False
+            m = NET.match(line)
+            if not m:
+                continue
+            net = _norm(m.group(3))
+            if ta is None:
+                if net in names["from"]:
+                    ta = float(m.group(2))
+                continue
+            if net in names["to"]:
+                tb = float(m.group(2))
+                break
+            if _node(net) is not None and _node(net) not in ends:
+                clean = False                   # another rr wire: more than one hop
+        if ta is not None and tb is not None and clean:
+            out.append((cls, round(tb - ta, 3)))
+    return out
+
+
 def fold(texts, provisional, source):
     """reports -> the delays.json dict: the worst hop per class, with statistics."""
     found = {}
     for t in texts:
-        for cls, _a, _b, ns in hops(t):
-            found.setdefault(cls, []).append(ns)
+        if re.search(r"(?m)^#= ", t):
+            for cls, ns in sample_hops(t):
+                found.setdefault(cls, []).append(ns)
+        else:
+            for cls, _a, _b, ns in hops(t):
+                found.setdefault(cls, []).append(ns)
         for cls, v in ff_samples(t).items():
             if v:
                 found.setdefault(cls, []).extend(v)
@@ -225,28 +276,29 @@ def ff_samples(text):
     """The ffq / ffd sections of an extract_delays.tcl report -> {"ff_clk_q": [...],
     "ffd": [...]} in ns: clock-to-Q plus the output wire, and input wire -> D plus setup."""
     out = {"ff_clk_q": [], "ffd": []}
-    for sec in re.split(r"(?m)^### ", text)[1:]:        # M23: the first section counts too
-        head, _, body = sec.partition("\n")
-        f = head.split()
-        if len(f) < 3 or f[-1] in ("NOPATH", "NONET") or f[0] not in ("ffq", "ffd"):
+    for f, names, body in _sections(text):              # M23: the first section counts too
+        if len(f) < 3 or "NOPATH" in f[3:] or "NONET" in f[3:] or f[0] not in ("ffq", "ffd"):
             continue
         f = [f[0]] + [_norm(x) for x in f[1:3]]
         nets = {}
         for line in body.splitlines():
             m = NET.match(line)
             if m:
-                nets[_norm(m.group(3))] = float(m.group(2))
+                nets.setdefault(_norm(m.group(3)), float(m.group(2)))
+        # M25: the wire end by any of its names (#= lines), else by its RTL name
+        wire = names.get("to" if f[0] == "ffq" else "from") or {f[2] if f[0] == "ffq" else f[1]}
+        hit = [nets[n] for n in wire if n in nets]
         if f[0] == "ffq":
             m = CELL_Q.search(body)
-            if m and f[2] in nets:
+            if m and hit:
                 start = float(m.group(3)) - float(m.group(2))
-                out["ff_clk_q"].append(round(nets[f[2]] - start, 3))
+                out["ff_clk_q"].append(round(min(hit) - start, 3))
         else:
             m = re.search(r"^\s*(-?\d+\.\d+)\s+arrival time", body, re.M)
             su = SETUP.search(body)
-            if m and f[1] in nets:
+            if m and hit:
                 setup = abs(float(su.group(2))) if su else 0.0
-                out["ffd"].append(round(float(m.group(1)) - nets[f[1]] + setup, 3))
+                out["ffd"].append(round(float(m.group(1)) - min(hit) + setup, 3))
     return out
 
 

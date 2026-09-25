@@ -63,8 +63,26 @@ if {![file exists $samples]} {
     puts "extract_delays: no $samples - run software/bob/delays.py plan on the Mac; skipped"
     return
 }
+# M25: every name the netlist has for one net (its segments across the hierarchy). The
+# probe (probe_names.txt) showed r8477 exists by name but its flat net is PARENT
+# m8477/g_tree.g_f8s.g_f8[0].u_0, which is the name a path report may print: the report
+# says which names belong to each end, so delays.py fold never has to guess.
+proc bob_names {o} {
+    set r {}
+    if {[catch { set seg [get_nets -quiet -segments $o] }]} { set seg $o }
+    foreach x [concat $o $seg] {
+        lappend r [get_property NAME $x]
+        if {![catch { set p [get_property PARENT $x] }] && $p ne ""} { lappend r $p }
+    }
+    return [lsort -unique $r]
+}
 set out [file join $out_dir delay_paths.rpt]
 set fh [open $out w]
+# M25: the first M25 report was 1100 x NONET with no clue why: say what was open
+set bob_design "?"; catch { set bob_design [current_design] }
+puts $fh "# extract_delays M25b design=$bob_design fabric-r-nets=[llength [get_nets -quiet u_core/u_fabric/r*]]"
+puts "extract_delays: design $bob_design, [llength [get_nets -quiet u_core/u_fabric/r*]] nets u_core/u_fabric/r*"
+set bob_said 0
 set sf [open $samples r]
 set lines [split [read $sf] "\n"]
 close $sf
@@ -81,7 +99,9 @@ foreach line $lines {
     set ob [bob_find [expr {$cls eq "ffd" ? "cells" : "nets"}] $b]
     if {![llength $oa] || ![llength $ob]} {
         incr miss; incr nonet
-        puts $fh "### $cls $a $b NONET"
+        set side [expr {![llength $oa] ? ([llength $ob] ? "from" : "both") : "to"}]
+        puts $fh "### $cls $a $b NONET $side"
+        if {[incr bob_said] <= 5} { puts "extract_delays: no object for the $side end of: $cls $a $b" }
         continue
     }
     set err [catch {
@@ -100,6 +120,8 @@ foreach line $lines {
         continue
     }
     puts $fh "### $cls $a $b"
+    if {$cls ne "ffq"} { puts $fh "#= from [join [bob_names $oa] { }]" }
+    if {$cls ne "ffd"} { puts $fh "#= to [join [bob_names $ob] { }]" }
     puts $fh $s
     if {$n % 100 == 0} { puts "extract_delays: $n samples, [expr {[clock seconds] - $t0}] s" }
 }

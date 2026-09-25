@@ -217,6 +217,40 @@ def test_the_delays_are_measured_when_the_netlist_renames_the_fabric(site, monke
     assert d["ns"]["ff_clk_q"] == 1.2
 
 
+def test_the_delays_are_measured_when_reports_print_the_flat_net_name(site, monkeypatch):
+    """M25: the probe (docs/reports/M25/probe_names.txt) found r8477 by name, but its flat
+    net is PARENT m8477/g_tree.g_f8s.g_f8[0].u_0, the name a path report prints. The report
+    lists every name of both ends (#= lines) and the fold matches on those; without them
+    the same report measures no routing hop at all."""
+    import sys
+    sys.path.insert(0, os.path.join(os.path.dirname(HW), "software", "bob"))
+    import delays
+    hw, state = site
+    monkeypatch.setenv("BOB_STUB_PARENT", "1")
+    run_build(str(hw), "delays=1", state=state)
+    text = (hw.parent / "bob_vivado" / "out" / TAG / "delay_paths.rpt").read_text()
+    assert text.startswith("# extract_delays M25b design=")
+    assert "/g_tree.g_f8s.g_f8[0].u_0" in text and "NONET" not in text
+    d = delays.fold([text], False, "stub")
+    for cls in ("mux_chan", "mux_ipin", "carry"):
+        assert d["measured"][cls]["max"] == 1.5, cls
+    assert d["ns"]["ff_clk_q"] == 1.2
+    bare = "\n".join(ln for ln in text.splitlines() if not ln.startswith("#= "))
+    assert "mux_chan" not in delays.fold([bare], False, "stub")["measured"]
+
+
+def test_nonet_says_which_end_is_missing(site, tmp_path):
+    """M25: a NONET sample names the end that was not found, and the fold skips it."""
+    import sys
+    sys.path.insert(0, os.path.join(os.path.dirname(HW), "software", "bob"))
+    import delays
+    text = ("# extract_delays M25b design=impl_1 fabric-r-nets=0\n"
+            "### ffq u_core/u_fabric/u_clb_x1y1/u_e0/q_reg u_core/u_fabric/r5 NONET to\n"
+            "### mux_chan u_core/u_fabric/r1 u_core/u_fabric/r2 NONET both\n")
+    assert delays.ff_samples(text) == {"ff_clk_q": [], "ffd": []}
+    assert delays.sample_hops(text) == []
+
+
 def test_delays_0_skips_the_measurement(site):
     """M25: and 0 is the default - the measurement runs on its own (delays.tcl)"""
     hw, state = site
