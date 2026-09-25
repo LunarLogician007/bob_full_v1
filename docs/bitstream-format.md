@@ -512,3 +512,19 @@ independent function. VPR's `dd` mode puts a LUT on inputs K-3..0 there, and FAS
 table over input K-2. Pun et al., FPL 2025 (arXiv 2507.11709). The 13th flag moves one
 crossbar select from frame 0 into the tile's last frame (`lutram_layout` `xbar_head` 16 → 15);
 the chain width is unchanged.
+
+
+## 17. M25: GRESTORE and snapshots
+
+CMD register value 10, **GRESTORE** (UG470): pulses the fabric's GSR for one packet word
+(32 TCK). Every element flip-flop takes its INIT value (`ff_rstval` / `ff2_rstval`). It is
+accepted only after a matched IDCODE and with the fabric frozen (AGHIGH acknowledged) or
+before startup (GWE = 0); otherwise WR_ERROR and ST_ERR. STAT's version byte is 0x16.
+
+A restore (`packets.restore_streams(mem, init_mem)`) is one partial stream, in this order:
+
+    AGHIGH, WCFG, [FAR + FDRI of the frames init_mem changes], CMD GRESTORE, NOP,
+    [the same frames from mem], CRC over everything since RCRC, LFRM, DESYNC
+
+`software/host/snapshot.py` reads the state through CAPTURE between the second frame write and
+the CRC, while the fabric is still frozen.

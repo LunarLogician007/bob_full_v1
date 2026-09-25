@@ -13,7 +13,12 @@
 //                 (n < 256) holds addresses 4n..4n+3, word = {14'b0, data[17:0]}
 //            FDRI frame data: 4 words fill a frame; the 4th loads it into cfg_store's
 //                 frame buffer (frame_load) and the memory takes it on the falling edge
-//            CMD  NULL WCFG LFRM RCFG START RCRC AGHIGH DESYNC
+//            CMD  NULL WCFG LFRM RCFG START RCRC AGHIGH DESYNC GRESTORE
+//                 M25: GRESTORE (UG470 CMD 10) pulses the fabric's GSR for the next packet
+//                 word (32 TCK): every element flip-flop takes its INIT/reset value
+//                 (ff_rstval / ff2_rstval). Only while frozen (AGHIGH acknowledged) or before
+//                 startup; otherwise WR_ERROR. With the INIT bits rewritten to a snapshot
+//                 first, that restores a design's state (software/bob/snapshot.py).
 //            IDCODE must match before FDRI is accepted
 //   CFG_OUT  READ packets queue words (FDRO frames from FAR, STAT, FAR, IDCODE,
 //            CRC); each CFG_OUT scan shifts them out MSB first; with nothing
@@ -77,6 +82,7 @@ module cfg_frames #(
     output reg  [FIDX_W-1:0] frame_idx,
     output reg               start_ok,
     output reg               freeze,         // to clock_ctrl: hold the user clock (M14)
+    output reg               grestore,       // M25: GSR pulse to the fabric (UG470 GRESTORE)
     output wire              any_error,
     output wire              crc_error,
     output wire [31:0]       stat
@@ -88,10 +94,11 @@ module cfg_frames #(
     localparam [4:0]  R_CRC = 5'd0, R_FAR = 5'd1, R_FDRI = 5'd2, R_FDRO = 5'd3,
                       R_CMD = 5'd4, R_STAT = 5'd7, R_IDCODE = 5'd12;
     localparam [4:0]  C_NULL = 5'd0, C_WCFG = 5'd1, C_LFRM = 5'd3, C_RCFG = 5'd4,
-                      C_START = 5'd5, C_RCRC = 5'd7, C_AGHIGH = 5'd8, C_DESYNC = 5'd13;
+                      C_START = 5'd5, C_RCRC = 5'd7, C_AGHIGH = 5'd8, C_GRESTORE = 5'd10,
+                      C_DESYNC = 5'd13;
     localparam [1:0]  OP_NOP = 2'd0, OP_READ = 2'd1, OP_WRITE = 2'd2;
     localparam [1:0]  ST_HDR = 2'd0, ST_T2 = 2'd1, ST_DATA = 2'd2, ST_ERR = 2'd3;
-    localparam [7:0]  VERSION = 8'h15;
+    localparam [7:0]  VERSION = 8'h16;    // M25: GRESTORE
 
     // ---------------------------------------------------------------------
     // state
@@ -130,6 +137,7 @@ module cfg_frames #(
         bf_addr    = 10'd0;
         bf_data    = 72'd0;
         freeze     = 1'b0;
+        grestore   = 1'b0;
         frame_we   = 1'b0;
         frame_idx  = {FIDX_W{1'b0}};
         start_ok   = 1'b0;
@@ -265,6 +273,7 @@ module cfg_frames #(
 
         if (jprogram) begin
             freeze <= 1'b0;
+            grestore <= 1'b0;
             sh <= 32'h0; synced <= 1'b0; bitcnt <= 5'd0; st <= ST_HDR; op <= 2'd0; rsel <= 5'd0; cnt <= 27'd0;
             far <= 32'h0; crc <= 32'h0; bf_far <= 32'hFFFFFFFF;
             wcfg <= 1'b0; rcfg <= 1'b0; lfrm <= 1'b0; id_ok <= 1'b0; crc_ok <= 1'b0; data_seen <= 1'b0;
@@ -285,6 +294,7 @@ module cfg_frames #(
             end
 
             if (wv) begin
+                grestore <= 1'b0;                      // a GRESTORE pulse lasts one word
                 case (st)
                     ST_HDR: begin
                         if (w[31:29] == 3'b001) begin
@@ -352,6 +362,10 @@ module cfg_frames #(
                                     end
                                     C_AGHIGH: begin
                                         if (id_ok) freeze <= 1'b1;
+                                        else begin wr_err <= 1'b1; st <= ST_ERR; end
+                                    end
+                                    C_GRESTORE: begin
+                                        if (id_ok && (frozen || !gwe)) grestore <= 1'b1;
                                         else begin wr_err <= 1'b1; st <= ST_ERR; end
                                     end
                                     C_RCFG:   rcfg <= 1'b1;

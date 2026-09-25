@@ -27,6 +27,8 @@
 //  [15] AGHIGH without a matched IDCODE: WR_ERROR, nothing frozen
 //  [16] a partial with a bad CRC: CRC_ERROR, the fabric stays frozen
 //  [17] frames sent before the freeze is acknowledged: WR_ERROR, nothing written
+//  [19] M25: UG470 GRESTORE restores the running counter to 1010 through its INIT bits
+//       (frozen until LFRM, memory back to design A), then counts on; unfrozen: refused
 //  [18] M15 BRAM contents as frames (FAR block type 1) before startup: bram0 and, by FAR
 //       auto-increment past bram0's last frame, bram1; FDRO readback of the same frames
 //  [19] a BRAM content frame while the design runs: WR_ERROR, contents unchanged
@@ -138,6 +140,15 @@ module tb_frames;
         begin
             shift_ir(IR_PKT_IN, irc);
             shift_stream(n, v);
+        end
+    endtask
+
+    // M25: GRESTORE's GSR pulse reaches the fabric through sysclk synchronisers, so its
+    // stream is sent with sysclk running (as on the board, where it never stops)
+    task send_clk(input integer n, input [SW-1:0] v);
+        begin
+            shift_ir(IR_PKT_IN, irc);
+            shift_stream_clk(n, v);
         end
     endtask
 
@@ -393,6 +404,37 @@ module tb_frames;
         check("bram0[12] unchanged", {46'h0, dut.u_fabric.u_bram0.u_core.mem[12]}, {46'h0, `BR0_0});
 
         $display("");
+        $display("[19] M25: GRESTORE restores the running counter's flip-flops (time travel)");
+        jprogram;
+        send(`PRLOAD_N, `PRLOAD_V);
+        start;
+        write_user1(32'h4);                                   // cin: the counter counts
+        #400;
+        send(`GRFRZ_N, `GRFRZ_V);
+        send_clk(`GRBODY_N, `GRBODY_V);
+        read_stat(statw);
+        check("STAT after the body: frozen, no error", {32'h0, statw}, {32'h0, `GRBODY_STAT});
+        check("the counter holds the snapshot 1010", {60'h0, prq}, {60'h0, `GR_Q});
+        check("memory back to design A (INIT bits restored)", {63'h0, cfg_mem === `PRA_W}, 64'h1);
+        prq0 = prq; pulses = 0; count_en = 1'b1;
+        #400;
+        count_en = 1'b0;
+        check("frozen: still 1010", {60'h0, prq}, {60'h0, `GR_Q});
+        send(`GRTAIL_N, `GRTAIL_V);
+        read_stat(statw);
+        check("STAT after LFRM: released, no error", {32'h0, statw}, {32'h0, `GRTAIL_STAT});
+        prq0 = prq; pulses = 0; count_en = 1'b1;
+        #400;
+        count_en = 1'b0;
+        check("counts on from the snapshot", {60'h0, prq}, {60'h0, prq0 + pulses[3:0]});
+        check("  (enables after release)", {63'h0, pulses > 10}, 64'h1);
+        prq0 = prq;
+        send_clk(`GRLOOSE_N, `GRLOOSE_V);
+        read_stat(statw);
+        check("GRESTORE unfrozen: WR_ERROR", {32'h0, statw}, {32'h0, `GRLOOSE_STAT});
+        #400;
+        check("  the counter was not reset (still counting)", {63'h0, prq !== 4'h0 || prq0 === 4'h0}, 64'h1);
+
         $display("    %0d checks", checks);
         if (errors == 0) $display("=== ALL TESTS PASSED ===");
         else             $display("=== %0d CHECK(S) FAILED ===", errors);

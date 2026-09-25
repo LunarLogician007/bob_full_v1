@@ -95,7 +95,7 @@ class FakeBob:
 
     def __init__(self, corrupt_capture=False, corrupt_sample=False, rate_scale=1.0, switches=lambda t: 0,
                  ignore_freeze=False, wipe_on_partial=False, lose_clocks=0, max_hz=None,
-                 budget=None, stale_shadow=False, lose_lframes=False, dead_xbar_pin=None, ignore_dd=False):
+                 budget=None, stale_shadow=False, lose_lframes=False, dead_xbar_pin=None, ignore_dd=False, no_grestore=False):
         self.ir = "IDCODE"
         self.chain = 0
         self.expected = 0
@@ -125,6 +125,7 @@ class FakeBob:
         self.lose_lframes = lose_lframes
         self.dead_xbar_pin = dead_xbar_pin
         self.ignore_dd = ignore_dd
+        self.no_grestore = no_grestore            # broken board: GRESTORE does nothing
         # One simulated edge is a model.settle() - a Python fixed point over every mux,
         # about a millisecond at 100 CLBs - so a fast free-running clock asks for more
         # edges than this can run and the backlog grows without end. With a budget (in
@@ -141,6 +142,15 @@ class FakeBob:
 
     def _pins(self):
         return self.switches(time.time())
+
+    def _grestore(self, mem):
+        """M25: UG470 GRESTORE - every flip-flop takes its INIT value from the memory as it is
+        now (mid-stream, with a snapshot's INIT bits), as the fabric's GSR does"""
+        if self.fab is None or self.no_grestore:
+            return
+        tmp = model.Fabric(B.Bitstream(self._fabric_word(mem)))
+        tmp.clock(gsr=1)
+        self.fab.q, self.fab.q2 = dict(tmp.q), dict(tmp.q2)
 
     def _sync_brams_to_frames(self):
         """the frame model sees the BRAM contents as the design (or the last load) left them"""
@@ -228,6 +238,7 @@ class FakeBob:
             return 0
         if ir == "CFG_IN":                           # M13 frame path
             self.frames.gwe = int(self.done)
+            self.frames.on_grestore = self._grestore
             self.frames.mem = self.chain
             self._sync_brams_to_frames()
             before = [list(x) for x in self.frames.brams]
@@ -281,6 +292,12 @@ class FakeBob:
             low = (1 << B.CHAIN_W) - 1
             return (self.shadow & low) | ((din << fb) & ~low & ((1 << n) - 1))
         if ir == "USER1":
+            # USER1 step (bit 3): one user clock per rising edge in the JTAG-stepped mode,
+            # none while frozen (clock_ctrl.v step_rise; M25's checks step this way)
+            jtag_mode = not (self.chain >> B.CTRL_FIELD["clk_mode"][0]) & 1
+            if (din & 0b1000) and not (self.user1 & 0b1000) and self.done and self.fab \
+                    and jtag_mode and not self._held():
+                self.fab.clock(pad_i=self._pins(), cin=(din >> 2) & 1)
             self.user1 = din
             return 0
         if ir == "BRAM":
@@ -327,7 +344,7 @@ class FakeBob:
 # --- choosing a board --------------------------------------------------------
 
 
-def probe(kind="usb", freq_khz=100, **kw):
+def probe(kind="usb", freq_khz=1000, **kw):
     """"usb": the Pico on PMODA. "fake": FakeBob. Anything else is an error."""
     if kind == "fake":
         return FakeBob(**kw)

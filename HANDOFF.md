@@ -5,7 +5,42 @@ This file is the live state: what is finished, what is in flight, and exactly wh
 
 ---
 
-## 0. Next agent: start here (2026-09-24, M24 on branch `m24`)
+## 0. Next agent: start here (2026-09-25, M25 on branch `m25`)
+
+- `main` matches the board: M24, IDCODE `0x0B024093`, 69/69 on 2026-09-25, tag `m24`. **M25 is in
+  the worktree `/Users/sk/work/bob/bob_full_v1_m25`, branch `m25`.**
+- The user asked (2026-09-25):
+  1. time-travel debugging after M24 passed;
+  2. "make the FPGA faster";
+  3. update every doc, with animations that build up gradually from the basics (flow, what
+     happens, layout).
+- **M25 done in code:** GRESTORE, `snapshot.py`, `bob snap`, the checks (PLAN section 2 M25). TCK
+  is constrained at 1 MHz for 10x faster loads; hwtest `fast-tck` proves it before the
+  default moves from 100 kHz.
+- **Speed of the designs themselves:** blocked on `docs/reports/M24/delay_paths.rpt` (and
+  M23's). `delays.json` is still the provisional M16 estimate x 2; silicon has shown a 5x
+  margin (clock-margin). Folding measured delays (`delays.py fold`, 1.25x guard band)
+  should make every design's clock 2-4x faster.
+- **`make check` on m25 (2026-09-25, 3 h 14 min):** every simulation passes - tb_clb 4048,
+  tb_mux 164,992, BRAM 5292, DSP 1344, tb_bob 680, cfg 180, K=4 4048 + 550, synth 972,
+  cosim 7026, frames 82 (with [19] GRESTORE) + 17 + 17 - lint is clean, pytest 549 passed. The
+  only 2 failures, test_reports[M23] and [M24], need `sysclk_1cycle.txt` from those builds
+  (not yet copied from `out\M23\` and `out\M24\`).
+- Docs done: `docs/learn/layer_by_layer.html` (volume 2, gradual build-up; artifact
+  https://claude.ai/artifact/H7Sk39vinJtqpqwThZsNNK), volume 1 links it, and REPORT and GUIDE
+  are brought through M25.
+- **M25 on the board 2026-09-25: 71/71** (time-travel 5 -> 11 -> 5 -> 8, model +4 -> 12, +1 -> 13;
+  fast-tck 13 designs at 1 MHz in 11.0 s instead of 28.3 s). The whole list at `--freq 1000`
+  also passed 71/71, in 7:57 instead of 10:03, so **1 MHz is the default TCK now**
+  (`dirtyjtag.DEFAULT_TCK_KHZ`; pass `--freq 100` for an M24 or older bitstream). Vivado: sysclk WNS
+  +0.732 ns, TCK WNS +489 ns at 1 MHz, 38,198 LUTs, slices 86.8%. Merged into `main`, tagged `m25`.
+  The hand steps in `docs/hwtest/M25.md` are still to do.
+- Still missing from the reports: `delay_paths.rpt` and `sysclk_1cycle.txt` for M23, M24 and M25
+  (`test_reports` fails on them). `delay_paths.rpt` is the design speed-up: `software/bob/delays.py
+  fold docs/reports/M25/delay_paths.rpt`.
+
+## 0y. The M24 state (kept for reference)
+ (2026-09-24, M24 on branch `m24`)
 
 - `main` matches the board (M23, IDCODE `0x0B023093`). **M24 is in the worktree
   `/Users/sk/work/bob/bob_full_v1_m24`, branch `m24`**; merge and tag only after its board test.

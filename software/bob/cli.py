@@ -191,6 +191,60 @@ def load_partial(p, path, log=print):
     return ok, msg
 
 
+SNAP_DIR = os.path.join(ROOT, "build", "snapshots")
+
+
+def snap_cmd(args):
+    """M25: bob snap save|restore|list|sim (software/host/snapshot.py)"""
+    sys.path.insert(0, os.path.join(ROOT, "software", "host"))
+    import zlib
+    import snapshot as S
+    os.makedirs(SNAP_DIR, exist_ok=True)
+    path = lambda n: os.path.join(SNAP_DIR, f"{n}.json")                       # noqa: E731
+    if args.action == "list":
+        for f in sorted(os.listdir(SNAP_DIR)):
+            d = json.load(open(os.path.join(SNAP_DIR, f)))
+            print(f"{f[:-5]:20s} {len(d['state'])} flip-flops, design crc {d['design']}, {d['how']}")
+        return 0
+    if not args.name:
+        raise BuildError(f"bob snap {args.action} needs a name")
+    load_state = lambda d: {(i, w): v for i, w, v in d["state"]}              # noqa: E731
+    dump = lambda st: [[i, w, v] for (i, w), v in sorted(st.items())]          # noqa: E731
+    if args.action == "sim":
+        d = json.load(open(path(args.name)))
+        word = int(d["word"], 16)
+        m = S.to_model(word, load_state(d))
+        for _ in range(args.steps):
+            m.clock(pad_i=args.pads, cin=args.cin)
+        new = args.save or f"{args.name}+{args.steps}"
+        json.dump({**d, "state": dump(S.from_model(m, word)),
+                   "how": f"{args.name} + {args.steps} steps in model.py"}, open(path(new), "w"))
+        print(f"  {new}: {args.name} run {args.steps} user-clock steps in the simulator "
+              f"(bob snap restore {new} puts it on the chip)")
+        return 0
+    import cfgplane
+    import packets
+    from fakeboard import probe as open_probe
+    p = open_probe(args.probe)
+    word = cfgplane.cfg_out(p, packets.NFRAMES * packets.FB)          # the design on the chip
+    crc = f"{zlib.crc32(word.to_bytes((B.CHAIN_W + 7) // 8, 'little')):08x}"
+    if args.action == "save":
+        state, notes = S.snapshot(p, word)
+        json.dump({"design": crc, "word": f"{word:x}", "state": dump(state), "how": "captured on the chip",
+                   "notes": notes}, open(path(args.name), "w"))
+        print(f"  saved {args.name}: {len(state)} flip-flops" + (f" (not restorable: {', '.join(notes)})" if notes else ""))
+        return 0
+    d = json.load(open(path(args.name)))
+    if d["design"] != crc:
+        raise BuildError(f"snapshot {args.name} is of another design (crc {d['design']}, the chip has {crc})")
+    try:
+        n = S.restore(p, word, load_state(d))
+    except S.SnapshotError as e:
+        raise BuildError(f"restore {args.name}: {e}")
+    print(f"  restored {args.name}: {len(d['state'])} flip-flops ({n} frames rewritten twice, GRESTORE)")
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser(prog="bob", description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -216,13 +270,22 @@ def main():
     ld = sub.add_parser("load")
     ld.add_argument("bit")
     ld.add_argument("--watch", action="store_true", help="show the LEDs afterwards (fpga.py --watch)")
-    ld.add_argument("--freq", type=int, default=100, help="TCK kHz (at most 100)")
+    ld.add_argument("--freq", type=int, default=1000, help="TCK kHz (1000 from M25, proven on the board; 100 for an M24 or older bitstream)")
     ld.add_argument("--probe", default="usb", choices=("usb", "fake"),
                     help="the board: the Pico on PMODA, or the one in software (software/host/fakeboard.py)")
     ld.add_argument("--mode", default="frames", choices=("frames", "chain"),
                     help="configuration path: UG470-style frames on CFG_IN (default) or the chain")
     ld.add_argument("--partial", action="store_true",
                     help="M14: reconfigure the RUNNING design, only the changed frames, user clock held")
+    sn = sub.add_parser("snap", help="M25 time-travel debugging: save / restore the running design's "
+                                     "flip-flops, or run a snapshot on in the simulator")
+    sn.add_argument("action", choices=("save", "restore", "list", "sim"))
+    sn.add_argument("name", nargs="?")
+    sn.add_argument("--steps", type=int, default=1, help="sim: user-clock steps in model.py")
+    sn.add_argument("--pads", type=lambda v: int(v, 0), default=0, help="sim: pad_i during the steps")
+    sn.add_argument("--save", metavar="NEW", help="sim: store the result as snapshot NEW")
+    sn.add_argument("--cin", type=int, default=0, help="sim: USER1 cin (the bottom carry-in) during the steps")
+    sn.add_argument("--probe", default="usb", choices=("usb", "fake"))
     sub.add_parser("info").add_argument("bit")
     sub.add_parser("fasm").add_argument("bit")
     st = sub.add_parser("studio", help="bob studio: the desktop app (or --browser for a tab)")
@@ -271,6 +334,8 @@ def main():
             if not res.ok:
                 raise BuildError(res.error)
             return 0
+        if args.cmd == "snap":
+            return snap_cmd(args)
         if args.cmd == "info":
             c = bitgen.read_bit(args.bit)
             F = bitgen.features_from_word(c["word"])

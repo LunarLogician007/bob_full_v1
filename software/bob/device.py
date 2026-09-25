@@ -104,6 +104,11 @@ XDC_SYSCLK_MULTICYCLE = 16384        # M21: the XDC's sysclk -> sysclk multicycl
                                      # most once (~4800 in M21), a few LUT levels each, so tens
                                      # of us at worst. tests/test_layout.py holds the XDC to it.
 XDC_TCK_MULTICYCLE = 16              # M21: the same for TCK -> TCK (16 x 10 us = 160 us).
+XDC_TCK_PERIOD_NS = 1000             # M25: TCK constrained at 1 MHz (was 10 us): configured paths are tens
+                                     # of ns; the one long path, the empty mesh (5.46 us), is not functional
+                                     # and fits the 16-period multicycle (16 us). software/host/dirtyjtag.py
+                                     # MAX_TCK_KHZ follows it; the board default stays 100 kHz until hwtest
+                                     # fast-tck proves 1 MHz on silicon.
                                      # Configuration bits and the boundary / IR update cells
                                      # drive the fabric and CAPTURE / boundary / DSP JTAG
                                      # capture it, all on TCK; the empty mesh's loop-cut path
@@ -959,6 +964,7 @@ class Device:
                       "gce_min_gap_shift": GCE_MIN_GAP_SHIFT,
                       "xdc_multicycle": XDC_SYSCLK_MULTICYCLE,
                       "xdc_tck_multicycle": XDC_TCK_MULTICYCLE,
+                      "xdc_tck_period_ns": XDC_TCK_PERIOD_NS,
                       "gce_gap_floor": GCE_GAP_FLOOR, "period_w": PERIOD_W,
                       "modes": {"jtag": 0, "run": 1}},
             "tile_types": {name: {"width": tt.width,

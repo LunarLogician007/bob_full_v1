@@ -77,7 +77,12 @@ create_clock -period 8.000 -name sysclk [get_ports sysclk]
 # the IR / boundary update cells through the fabric's routing into the DSP JTAG
 # capture register (~1650 ns). The probe never runs TCK faster than 100 kHz
 # (host/dirtyjtag.py refuses more), so 10 us is the honest period.
-create_clock -period 10000.000 -name tck [get_ports tck]
+# M25: 1 us (1 MHz), for 10x faster configuration loads. That path through the EMPTY mesh
+# (M21: 5.46 us) never carries a change - configuration is static while it is captured -
+# and fits the 16-period multicycle below (16 us); a configured design's pad and capture
+# paths are tens of ns against the 500 ns half period. XDC_TCK_PERIOD_NS in
+# software/bob/device.py; dirtyjtag.py MAX_TCK_KHZ follows it (tests/test_layout.py).
+create_clock -period 1000.000 -name tck [get_ports tck]
 
 # TMS/TDI are launched by the probe on the falling edge and sampled here on the
 # rising edge; TDO is launched here on the falling edge. Loose on purpose.
@@ -103,7 +108,7 @@ set_clock_groups -asynchronous -group [get_clocks tck] -group [get_clocks sysclk
 # (software/bob/timing.py), and a configuration bit never changes while the fabric is
 # captured (GWE = 0). So TCK -> TCK gets 16 periods (160 us, past any path through the
 # ~4800 fabric muxes). Hold stays at the same edge (-hold 15), so the TAP and shift
-# registers' own hold checks are unchanged; their setup paths are a few ns against 10 us
+# registers' own hold checks are unchanged; their setup paths are a few ns against 1 us (M25)
 # either way. XDC_TCK_MULTICYCLE in software/bob/device.py, tests/test_layout.py.
 set_multicycle_path -setup 16 -from [get_clocks tck] -to [get_clocks tck]
 set_multicycle_path -hold  15 -from [get_clocks tck] -to [get_clocks tck]

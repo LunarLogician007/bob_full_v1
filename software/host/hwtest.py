@@ -2238,6 +2238,107 @@ MILESTONE["M24"] = (
     [("double-duty", check_double_duty)] +
     [MILESTONE["M23"][-1]])
 
+# --- M25: time-travel debugging (snapshot, UG470 GRESTORE, the simulator hand-off) ---------
+
+
+def _tt_step(p, n):
+    import cfgplane
+    for _ in range(n):
+        cfgplane.user1(p, 0b1100)                # step + cin: one count
+        cfgplane.user1(p, 0b0100)
+
+
+def _tt_value(word, state):
+    import bitstream as B
+    from designs import COUNTER_X, counter_cells
+    idx = {(e["x"], e["y"], e["e"]): e["index"] for e in B.ELEMENTS}
+    return sum(state[(idx[c], 0)] << r for r, c in enumerate(counter_cells(COUNTER_X, 4)))
+
+
+def check_time_travel(p, ctx):
+    """M25: the 4-bit counter (JTAG-stepped, so every count is exact). Step to 5, snapshot;
+    step 6 more (11); restore the snapshot (snapshot.restore: INIT bits := the state,
+    UG470 GRESTORE, INIT bits back, verified through CAPTURE while frozen) - it must read 5
+    and count on from there (+3 -> 8). Then the simulator hand-off: that state into
+    model.py, 4 counts there (12), pushed back onto the chip (12), one board step (13)."""
+    import cfgplane
+    import fpga
+    import snapshot as S
+    from designs import d_counter
+    word = d_counter("jtag").build().to_int()
+    if not fpga.load_bitstream(p, B_from(word), verbose=False):
+        return False, "load failed"
+    cfgplane.user1(p, 0b0100)                    # cin, ce off: only explicit steps count
+    val = lambda: _tt_value(word, S.capture(p, word))          # noqa: E731
+    start = val()
+    _tt_step(p, 5)
+    a, _notes = S.snapshot(p, word)
+    va = _tt_value(word, a)
+    _tt_step(p, 6)
+    later = val()
+    try:
+        S.restore(p, word, a)
+    except S.SnapshotError as e:
+        return False, f"restore: {e}"
+    back = val()
+    _tt_step(p, 3)
+    on = val()
+    m = S.to_model(word, S.capture(p, word))
+    for _ in range(4):
+        m.clock(cin=1)
+    try:
+        S.restore(p, word, S.from_model(m, word))
+    except S.SnapshotError as e:
+        return False, f"push from the model: {e}"
+    pushed = val()
+    _tt_step(p, 1)
+    after = val()
+    want = [(start + 5) % 16, (start + 11) % 16, (start + 5) % 16, (start + 8) % 16, (start + 12) % 16,
+            (start + 13) % 16]
+    got = [va, later, back, on, pushed, after]
+    return got == want, (f"counter: snapshot {va}, ran on to {later}, restored {back}, +3 -> {on}; "
+                         f"model +4 pushed back {pushed}, +1 -> {after} (want {want})")
+
+
+def B_from(word):
+    import bitstream as B
+    return B.Bitstream(word)
+
+
+def check_fast_tck(p, ctx):
+    """M25: TCK at 1 MHz (the XDC's new period, 10x the M13-M24 limit): every self-test design
+    loaded as frames (CRC, FDRO readback) and swept through INTEST against the model, then the
+    time-travel restore of the counter, all at 1 MHz; timed against the same loads at 100 kHz.
+    Back to the default rate afterwards whatever happens."""
+    import time
+    import fpga
+    from designs import DESIGNS
+
+    def run():
+        t0 = time.time()
+        ok = all(fpga.verify(p, k, d, f, s) for k, d, f, s in DESIGNS)
+        return ok, time.time() - t0
+    try:
+        p.set_freq_khz(100)
+        slow_ok, t_slow = run()
+        p.set_freq_khz(1000)
+        fast_ok, t_fast = run()
+        tt_ok, tt_msg = check_time_travel(p, ctx)
+    finally:
+        import dirtyjtag
+        p.set_freq_khz(dirtyjtag.DEFAULT_TCK_KHZ)
+        fpga.go_live(p)
+    ok = slow_ok and fast_ok and tt_ok
+    return ok, (f"{len(DESIGNS)} designs at 100 kHz {'ok' if slow_ok else 'FAIL'} in {t_slow:.1f} s, "
+                f"at 1 MHz {'ok' if fast_ok else 'FAIL'} in {t_fast:.1f} s "
+                f"({t_slow / max(t_fast, 1e-6):.1f}x); time travel at 1 MHz {'ok' if tt_ok else 'FAIL: ' + tt_msg}")
+
+
+MILESTONE["M25"] = (
+    MILESTONE["M24"][:-1] +
+    [("time-travel", check_time_travel), ("fast-tck", check_fast_tck)] +
+    [MILESTONE["M24"][-1]])
+
 # --- runner ------------------------------------------------------------------
 
 def manual_steps(milestone):
@@ -2268,7 +2369,7 @@ def main():
     ap.add_argument("--milestone", required=True)
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--manual", action="store_true")
-    ap.add_argument("--freq", type=int, default=100, help="TCK frequency in kHz")
+    ap.add_argument("--freq", type=int, default=1000, help="TCK frequency in kHz (M25: 1000; 100 for an M24 or older bitstream)")
     ap.add_argument("--only", metavar="CHECK[,CHECK]",
                     help="run only these milestone checks (idcode still runs first), e.g. --only live-fir")
     args = ap.parse_args()

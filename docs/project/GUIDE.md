@@ -107,7 +107,7 @@ Every arrow is checked: yosys against the source, FASM against `device.json`, th
 | **channel width (W)** | how many wires run in each routing channel; 24 here |
 | **Fs** | how many wires a switch box connects to each incoming wire (Wilton pattern, Fs = 3) |
 | **fc_in / fc_out** | what fraction of the channel a block input/output can reach (0.15 / 0.10) |
-| **configuration memory** | the flip-flops holding every configuration bit - 32 896 of them at M21 (M22 moves the truth tables into CFGLUT5s) |
+| **configuration memory** | every configuration bit: 68 096 at M23 (532 frames); since M22 the truth tables and crossbar choices live in CFGLUT5s, the rest in flip-flops |
 | **chain** | the configuration memory seen as one long shift register (`CHAIN_IN`/`CHAIN_OUT`) |
 | **frame** | 4 × 32-bit words = 128 bits of that memory, the unit AMD-style packets address |
 | **FAR** | frame address register: which frame the next write or read touches |
@@ -180,7 +180,7 @@ After any of these, the committed rr graph is stale on purpose: every tool refus
 **How to use it.** It runs inside `make device`. To see what a mux looks like: `grep -n "bob_mux" hw/src/generated/bob_fabric.v | head`, and `device.json`'s `rr.muxes` lists `[node, chain_lo, width, base, inputs]` for every one of them.
 
 **How to tweak it.**
-- The mux cell itself is `hw/src/fabric/bob_mux.v` — 20 lines. If you wanted one-hot selects, or a different tie-off for out-of-range values, this is the file (and `model.py` must match).
+- The mux cell itself is `hw/src/fabric/bob_mux.v`. Since M23 it is built from primitives: LUT6 4:1 leaves on sel[1:0], MUXF7 on sel[2], MUXF8 on sel[3] (a 16:1 mux in one slice), and wider muxes pick among those groups on sel[W-1:4]. Vivado keeps them one for one, which cut routing LUTs by about 30%. The value mapping is unchanged. `sim/run_mux_sim.sh` checks it against the old behavioural table at every width up to 40 inputs. For one-hot selects or a different tie-off, change this file, `model.py` and that bench together.
 - The instantiation order and naming come from `fabric_gen.py`; the configuration bit order comes from `device.py` (tiles in row-major order, muxes in ascending node id).
 
 **Tests.** `tb_bob` section [22] routes four random netlists and compares every CLB output with `model.py` after every clock; `tests/test_device.py` checks every mux encoding and that every block pin is an rr node.
@@ -212,7 +212,11 @@ From Verilog you never touch it: yosys, then VPR (which packs clusters itself) o
 
 **Tests.** `hw/tb/tb_clb.sv` drives one cluster with random configurations against `model.py`: every flag, the three LUT modes, every crossbar select value, the carry through all elements, both flip-flops (4032 checks at K = 6 and again at K = 4).
 
-**M22 (branch `m22`).** The truth tables and crossbar muxes move into AMD CFGLUT5 primitives: LUT5s whose table is shifted in, loaded by `lut_loader.v` as their frame is written. That takes a CLB from 469 host LUTs and 424 configuration flip-flops to 193 LUTs and 48 flip-flops (yosys), and the grid to 9 × 9.
+**M22: tables that load themselves.** The truth tables and crossbar muxes live in AMD CFGLUT5 primitives, LUT5s whose table is shifted in. `lut_loader.v` loads them as their frame is written, and `lut_expand.v` turns a 5-bit crossbar select into table contents. A CLB went from 469 host LUTs and 424 configuration flip-flops to 193 LUTs and 48 flip-flops (yosys).
+
+**M23: the OR root.** Each crossbar mux (`hw/src/clb/lxor.v`) is five single-output CFGLUT5 leaves and a fixed OR in a plain LUT. An unselected leaf holds zeros, so the root needs no table: 128 CFGLUT5 per CLB instead of 152, enough for a 10 × 10 grid. *Do not* share a leaf between two muxes through O5/O6: Vivado maps a dual-output CFGLUT5 to two LUT sites, and the first M23 build did not place.
+
+**M24: Double Duty.** The element flag `dd` (with `cy_en`) feeds the adder from in[K-2] (A, also the generate input) and in[K-1] (B) directly: propagate = A ^ B ^ `cy_di_sel` (INV_B). The LUT is free, and its O5 half drives out[1] as a LUT on in[K-3:0]. After Pun, Dai, Zgheib, Iyer, Boutros, Betz, Abdelfattah, FPL 2025. VPR's element mode `dd` replaced `arithmetic`. bob's packer fills adder elements' free LUTs (`pnr/pack.py`, the most shared nets first): 13.2% fewer elements over the examples, against 4.7% for VPR, whose packer cannot aim for it. Its LUT is declared K-1 wide with the top pin unconnected, or VPR's packer would draw lone small LUTs into it. `designs.d_dd` and hwtest `double-duty` check it on the board.
 
 ### 3.5 The BRAM tile
 
@@ -755,6 +759,20 @@ To make it the board's K: set `lut_k` in `device.py`, `make rrgraph` (the archit
 ```
 The design keeps running: registers, BRAM and DSP state survive. A bad CRC leaves the fabric frozen — `./bob load build/bit/a.bit` (a full load, which starts with JPROGRAM) recovers it.
 
+### 4.8b Save, restore, and time-travel (M25)
+
+```sh
+./bob load build/bit/blinky_run.bit
+./bob snap save a                 # freeze, read every flip-flop, release
+./bob snap restore a              # INIT bits := a, UG470 GRESTORE, INIT bits back, verified, released
+./bob snap sim a --steps 64 --save b && ./bob snap restore b   # run a on in the simulator, push it back
+./bob snap list
+```
+Snapshots live in `build/snapshots/` and are tied to the loaded design by a CRC. From Python,
+`snapshot.snapshot / restore / to_model / from_model` (`software/host/snapshot.py`). A
+snapshot holds the CLB flip-flops. BRAM contents stay as they are. GRESTORE resets BRAM output
+and DSP pipeline registers, and `snapshot()` names them when a design uses them.
+
 ### 4.9 Read the hardware back
 
 ```python
@@ -807,7 +825,7 @@ bob is a student-scale project that deliberately reuses the methods of much larg
 | **Architecture coverage** | one fabric shape: a 4-element cluster with a full crossbar, one BRAM and one DSP type, L4 unidirectional routing, W = 40 | OpenFPGA covers many cluster shapes, many segment types, memory banks, and generates them all |
 | **Targets** | one board (PYNQ-Z2, XC7Z020) | OpenFPGA targets silicon (SPICE, layout, PDKs); prjxray targets real Xilinx parts |
 | **Timing** | VPR's numbers come from the reference 40 nm architecture and are *not* the emulated fabric's real speed; bob's own PnR is not timing-driven at all | OpenFPGA produces delay models from SPICE; VPR's timing-driven flow is used properly there |
-| **Scale** | 196 LUTs at M21 (324 at M22); fir16 at 147 LUTs is the biggest design | a real overlay (ZUMA) or a taped-out OpenFPGA fabric is orders of magnitude larger |
+| **Scale** | 400 LUTs since M23 (10 × 10, the ceiling for this CLB on the XC7Z020); fir16 at 147 LUTs is the biggest design | a real overlay (ZUMA) or a taped-out OpenFPGA fabric is orders of magnitude larger |
 | **Area efficiency** | configuration in flip-flops: ~186 bits per CLB-equivalent; the memory alone is ~18.5k flip-flops | ZUMA's whole point is LUTRAM configuration, which is far denser on a commercial host |
 | **Design support** | one clock domain, no asynchronous resets or latches, no true tristate, no clock enables inferred from arbitrary logic | commercial and open flows handle all of this |
 | **Bitstream realism** | bob's format is 7-series *shaped*, deliberately simplified (no encryption, compression, ECC, multiboot, bus-width detection) | prjxray documents the real thing, bit for bit |
@@ -851,4 +869,5 @@ bob is not a better OpenFPGA, and it is not trying to be: OpenFPGA is a research
 - **`REPORT.md` §19** — 42 problems and their fixes. It is the fastest way to learn the traps.
 - **`PLAN.md` §10** — every milestone's "as built" notes, including what was deliberately left out.
 - **`arch.html`** — click any block to see what it is, what it came from, and which testbench covers it.
+- **`docs/learn/bit_by_bit.html`** and **`docs/learn/layer_by_layer.html`**: the animated beginner's tours, the pieces and then the whole chip built layer by layer (`python3 docs/learn/layers/gen.py` regenerates the second from the chip's data).
 - **Good first changes:** add an example design (§4.4); change the router's cost function in `software/bob/pnr/route.py` and watch `make pnr`; add a configuration field and a mutant for it (§4.5); try `--lut-k 4` end to end.

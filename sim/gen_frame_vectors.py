@@ -286,6 +286,33 @@ def main():
     assert c.flags["wr_err"]
     out += stream("BRLIVE", live_b) + [f"`define BRLIVE_STAT 32'h{c.stat(gsr=0, gts=0, gwe=1, done=1):08x}"]
 
+    # [19] M25: restore a running design's flip-flops (UG470 GRESTORE, software/host/snapshot.py):
+    # design A's counter gets 1010 through its INIT bits; body = INIT frames, GRESTORE, INIT
+    # frames back (still frozen), tail = CRC + LFRM; then a GRESTORE unfrozen is refused
+    import snapshot as S
+    idx = {(e["x"], e["y"], e["e"]): e["index"] for e in B.ELEMENTS}
+    gq = 0b1010
+    gstate = {(idx[c], 0): (gq >> r) & 1 for r, c in enumerate(PARTIAL_Q)}
+    gfrz, gframes, gn = P.restore_streams(pra, S.with_init(pra, gstate))
+    gbody, gtail = gframes[:-S.LFRM_TAIL], gframes[-S.LFRM_TAIL:]
+    c = P.Controller(mem=pra)
+    c.shift_in(*P.to_jtag(prload))
+    c.gwe = 1
+    c.shift_in(*P.to_jtag(gfrz))
+    c.shift_in(*P.to_jtag(gbody))
+    assert c.grestores == 1 and c.mem == pra and c.frozen() and not c.errors()
+    out += stream("GRFRZ", gfrz) + stream("GRBODY", gbody)
+    out += [f"`define GRBODY_STAT 32'h{c.stat(gsr=0, gts=0, gwe=1, done=1):08x}", f"`define GR_Q 4'h{gq:x}",
+            f"`define GR_NFRAMES {gn}"]
+    c.shift_in(*P.to_jtag(gtail))
+    assert not c.frozen() and not c.errors()
+    out += stream("GRTAIL", gtail) + [f"`define GRTAIL_STAT 32'h{c.stat(gsr=0, gts=0, gwe=1, done=1):08x}"]
+    loose = ([P.DUMMY, P.SYNC, P.NOP] + P.write("IDCODE", P.device_idcode()) + P.write("CMD", P.CMD["GRESTORE"])
+             + P.write("CMD", P.CMD["DESYNC"]) + [P.NOP, P.NOP])
+    c.shift_in(*P.to_jtag(loose))
+    assert c.flags["wr_err"] and c.grestores == 1
+    out += stream("GRLOOSE", loose) + [f"`define GRLOOSE_STAT 32'h{c.stat(gsr=0, gts=0, gwe=1, done=1):08x}"]
+
     # STAT read stream
     out += stream("RDSTAT", P.read_stream("STAT", 1))
     path = os.path.join(HERE, "..", "hw", "tb", "frame_vectors.vh")
