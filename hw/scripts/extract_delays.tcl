@@ -76,6 +76,22 @@ proc bob_names {o} {
     }
     return [lsort -unique $r]
 }
+# M25: the first M25b report was 1.0 GB: each path runs ~30 000 lines through the
+# unconfigured fabric's loops. Keep the Slack line and the stretch between the two ends
+# (from the start for ffq, to the end for ffd, which need clock-to-Q and setup).
+proc bob_trim {s from to} {
+    set keep {}; set on [expr {![llength $from]}]
+    foreach name $from { dict set fa $name 1 }
+    foreach name $to   { dict set tb $name 1 }
+    foreach line [split $s "\n"] {
+        if {[string match "Slack*" $line]} { lappend keep $line; continue }
+        set last [lindex [split [string trim $line]] end]
+        if {!$on && [llength $from] && [dict exists $fa $last]} { set on 1 }
+        if {$on} { lappend keep $line }
+        if {$on && [llength $to] && [string match "*net (*" $line] && [dict exists $tb $last]} { break }
+    }
+    return [join $keep "\n"]
+}
 set out [file join $out_dir delay_paths.rpt]
 set fh [open $out w]
 # M25: the first M25 report was 1100 x NONET with no clue why: say what was open
@@ -120,9 +136,10 @@ foreach line $lines {
         continue
     }
     puts $fh "### $cls $a $b"
-    if {$cls ne "ffq"} { puts $fh "#= from [join [bob_names $oa] { }]" }
-    if {$cls ne "ffd"} { puts $fh "#= to [join [bob_names $ob] { }]" }
-    puts $fh $s
+    set na {}; set nb {}
+    if {$cls ne "ffq"} { set na [bob_names $oa]; puts $fh "#= from [join $na { }]" }
+    if {$cls ne "ffd"} { set nb [bob_names $ob]; puts $fh "#= to [join $nb { }]" }
+    puts $fh [bob_trim $s $na $nb]
     if {$n % 100 == 0} { puts "extract_delays: $n samples, [expr {[clock seconds] - $t0}] s" }
 }
 close $fh

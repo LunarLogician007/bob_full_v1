@@ -161,6 +161,24 @@ def _sections(text):
         yield head.split(), names, body
 
 
+CELL = re.compile(r"\(Prop_\w+\)\s+-?\d+\.\d+\s+-?\d+\.\d+\s+[rf]\s+(\S+)")
+
+
+def _owner(cls, to):
+    """M25: the instance whose cells are the only ones a one-hop path may pass: the
+    destination's own mux (bob_fabric.v: m<node> for a routing or input mux, u_clb_../m<e>_<j>
+    for the crossbar leaf that drives x<e>[j]). The first M25 fold took a 1200 ns path
+    through 1563 nets for one hop: the report prints most rr wires under a name from inside
+    the mux that loads them (m7021/o, m8422/g_leaf[2].g_lut.u_0[4]), not r<node>."""
+    m = re.match(r"^u_core/u_fabric/r(\d+)$", to)
+    if m and cls in ("mux_chan", "mux_ipin"):
+        return f"u_fabric/m{m.group(1)}/"
+    m = re.match(r"^u_core/u_fabric/(u_clb_x\d+y\d+)/x(\d+)\[(\d+)\]$", to)
+    if m and cls == "mux_xbar":
+        return f"u_fabric/{m.group(1)}/m{m.group(2)}_{m.group(3)}/"
+    return None
+
+
 def sample_hops(text):
     """M25: a report whose sections list every name of both ends ("#= from ..." / "#= to
     ...", written by extract_delays.tcl since the probe showed a path report may print a
@@ -173,11 +191,15 @@ def sample_hops(text):
             continue
         cls = f[0]
         ends = {_node(_norm(f[1])), _node(_norm(f[2]))}
+        own = _owner(cls, _norm(f[2]))
         ta = tb = None
         clean = True
         for line in body.splitlines():
             if ta is not None and HARD.search(line):
                 clean = False
+            c = CELL.search(line)
+            if ta is not None and own and c and own not in c.group(1):
+                clean = False                   # a cell of another mux: more than one hop
             m = NET.match(line)
             if not m:
                 continue

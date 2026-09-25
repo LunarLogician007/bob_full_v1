@@ -51,7 +51,14 @@ This file is the live state: what is finished, what is in flight, and exactly wh
   but a wire's flat net is PARENT-named inside its mux (`m8477/g_tree.g_f8s.g_f8[0].u_0`), which
   is what a path report prints. So `extract_delays.tcl` (M25b) writes a header (open design,
   `r*` count), `NONET <from|to|both>`, and `#= from/to` lines with every name of each end;
-  `delays.py fold` matches on those (`sample_hops`). Next: rerun `delays.tcl`, fold.
+  `delays.py fold` matches on those (`sample_hops`).
+- **M25 delays measured** (2026-09-25, `docs/reports/M25/delay_hops.txt`): 176 clean hops of 1100
+  samples. Worst: routing mux 4.60 ns (was 3.61 provisional), input mux 4.65 (was 2.06), crossbar
+  3.01 (was 3.61). LUT, carry and flip-flop found no net or path (out0 nets are gone from the
+  netlist), so they keep the old values and delays.json stays provisional (2x guard band). The
+  1.0 GB report (each path ~30 000 lines through the unconfigured fabric's loops) was deleted;
+  a hop now passes only the destination mux's cells (the first fold took 1200 ns paths through
+  1563 nets as one hop) and `extract_delays.tcl` keeps only the stretch between the two ends.
 - Still missing from the reports: `delay_paths.rpt` and `sysclk_1cycle.txt` for M23, M24 and M25
   (`test_reports` fails on them). `delay_paths.rpt` is the design speed-up: `software/bob/delays.py
   fold docs/reports/M25/delay_paths.rpt`.

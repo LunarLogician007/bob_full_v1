@@ -198,6 +198,13 @@ proc stub_shown {net} {
     set p [stub_parent $net]
     return [expr {$p ne "" ? $p : $net}]
 }
+# M25: the one cell of a hop sits inside the destination's mux, as in the real report
+# (u_core/u_fabric/m8416/g_leaf[1].g_lut.u/O; a crossbar leaf is u_clb_x../m<e>_<j>/...)
+proc stub_leaf {to} {
+    if {[regexp {^(.*u_fabric)/r(\d+)$} $to -> f n]} { return "$f/m$n/g_leaf\[0\].g_lut.u/O" }
+    if {[regexp {^(.*u_fabric/u_clb_x\d+y\d+)/x(\d+)\[(\d+)\]$} $to -> c e j]} { return "$c/m${e}_$j/g_leaf\[0\].u/O" }
+    return "u_core/u_fabric/i___1_i_2/O"
+}
 # M20 extract_delays.tcl: a report in Vivado's text layout, with fixed numbers the test
 # folds back (a hop of 1.500 ns, clock-to-Q 1.200 ns, input -> D 1.050 ns with setup).
 proc report_timing {args} {
@@ -222,7 +229,7 @@ proc report_timing {args} {
         append r "                                                              4.000   arrival time\n"
     } else {
         append r "                         net (fo=1, routed)           0.500    10.000    [stub_shown [lindex $thr 0]]\n"
-        append r "    SLICE_X1Y1           LUT4 (Prop_lut4_I0_O)        0.124    10.124 r  u_core/u_fabric/i___1_i_2/O\n"
+        append r "    SLICE_X1Y1           LUT4 (Prop_lut4_I0_O)        0.124    10.124 r  [stub_leaf [lindex $thr 1]]\n"
         append r "                         net (fo=1, routed)           1.376    11.500    [stub_shown [lindex $thr 1]]\n"
     }
     return $r

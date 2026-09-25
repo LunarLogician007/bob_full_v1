@@ -294,3 +294,50 @@ def test_delays_tcl_measures_the_last_build_without_rebuilding(site):
     assert r.returncode == 0, r.stdout + r.stderr
     assert "launch_runs" not in r.stdout and "delays: done" in r.stdout
     assert (hw.parent / "bob_vivado" / "out" / TAG / "delay_paths.rpt").exists()
+
+
+PATH_2MUX = """Slack (MET) :              4000.000ns  (required time - arrival time)
+                         net (fo=9, routed)           1.000     4.000    u_core/u_fabric/m1/o
+    SLICE_X1Y1           LUT6 (Prop_lut6_I0_O)        0.124     4.124 r  u_core/u_fabric/m1/g_leaf[0].g_lut.u/O
+                         net (fo=4, routed)           1.000     5.000    u_core/u_fabric/r10
+    SLICE_X1Y1           LUT6 (Prop_lut6_I0_O)        0.124     5.124 r  u_core/u_fabric/m7021/g_leaf[0].g_lut.u/O
+                         net (fo=15, routed)          1.577     6.701    u_core/u_fabric/m20/g_leaf[1].g_lut.u_0[1]
+    SLICE_X1Y1           LUT6 (Prop_lut6_I0_O)        0.124     6.825 r  u_core/u_fabric/m20/g_leaf[1].g_lut.u/O
+                         net (fo=6, routed)           0.988     7.813    u_core/u_fabric/m33/g_leaf[2].g_lut.u_0[4]
+    SLICE_X1Y1           LUT6 (Prop_lut6_I0_O)        0.124     7.937 r  u_core/u_fabric/m33/g_leaf[2].g_lut.u/O
+                         net (fo=1, routed)           1.000     9.000    u_core/u_fabric/r99
+"""
+
+
+def test_a_path_through_another_mux_is_not_one_hop():
+    """M25: the first M25 fold took 1200 ns over 1563 nets as one routing hop, because the
+    report prints most rr wires under a name from inside the mux that loads them
+    (m7021/o, m8422/g_leaf[2].g_lut.u_0[4]). A hop may pass only the destination's cells."""
+    import sys
+    sys.path.insert(0, os.path.join(os.path.dirname(HW), "software", "bob"))
+    import delays
+    head = "### mux_chan u_core/u_fabric/r10 u_core/u_fabric/r20\n#= from u_core/u_fabric/r10\n"
+    one = head + "#= to u_core/u_fabric/r20 u_core/u_fabric/m20/g_leaf[1].g_lut.u_0[1] " \
+        "u_core/u_fabric/m33/g_leaf[2].g_lut.u_0[4]\n" + PATH_2MUX
+    # r10 -> (m7021's cell) -> r20: another mux's cell sits between the two ends
+    assert delays.sample_hops(one) == []
+    ok = PATH_2MUX.replace("m7021/g_leaf", "m20/g_leaf")
+    assert delays.sample_hops(head + "#= to u_core/u_fabric/m20/g_leaf[1].g_lut.u_0[1]\n" + ok) == \
+        [("mux_chan", 1.701)]
+
+
+def test_extract_delays_keeps_only_the_hop_of_each_path(tmp_path):
+    """M25: a report of 1100 full paths through the unconfigured fabric was 1.0 GB; each
+    sample keeps the Slack line and the stretch from its first end to its second."""
+    src = open(os.path.join(HW, "scripts", "extract_delays.tcl")).read()
+    proc = re.search(r"proc bob_trim .*?\n}\n", src, re.S).group(0)
+    t = tmp_path / "t.tcl"
+    t.write_text(proc + "set s [read [open [lindex $argv 0]]]\n"
+                 "puts [bob_trim $s {u_core/u_fabric/r10} {u_core/u_fabric/m20/g_leaf[1].g_lut.u_0[1]}]\n"
+                 "puts ====\nputs [bob_trim $s {} {u_core/u_fabric/r10}]\n")
+    p = tmp_path / "p.rpt"
+    p.write_text(PATH_2MUX)
+    out = subprocess.run(["tclsh", str(t), str(p)], capture_output=True, text=True, check=True).stdout
+    mid, start = out.split("====\n")
+    assert mid.count("\n") == 4 and "m1/o" not in mid and "m33" not in mid and "Slack" in mid
+    assert "m1/o" in start and "r10" in start and "m7021" not in start

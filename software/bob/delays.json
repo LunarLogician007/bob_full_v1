@@ -1,10 +1,11 @@
 {
  "provisional": true,
- "source": "provisional: hops on the paths of docs/reports/M16/timing.rpt; M21 crossbar = the routing mux's delay until the M21 build measures it",
+ "source": "measured: docs/reports/M25/delay_paths.rpt",
  "device": "bob12x10",
  "ns": {
-  "mux_chan": 3.61,
-  "mux_ipin": 2.058,
+  "mux_chan": 4.602,
+  "mux_ipin": 4.651,
+  "mux_xbar": 3.009,
   "lut": 3.4,
   "carry": 1.0,
   "wire": 0.0,
@@ -15,21 +16,26 @@
   "bram_setup": 1.0,
   "dsp_clk_q": 1.0,
   "dsp_comb": 8.0,
-  "dsp_setup": 1.0,
-  "mux_xbar": 3.61
+  "dsp_setup": 1.0
  },
  "measured": {
   "mux_chan": {
-   "n": 702,
-   "max": 3.61,
-   "median": 1.678,
-   "p95": 2.62
+   "n": 32,
+   "max": 4.602,
+   "median": 1.698,
+   "p95": 3.901
   },
   "mux_ipin": {
-   "n": 12,
-   "max": 2.058,
-   "median": 1.1065,
-   "p95": 2.058
+   "n": 53,
+   "max": 4.651,
+   "median": 2.613,
+   "p95": 4.195
+  },
+  "mux_xbar": {
+   "n": 91,
+   "max": 3.009,
+   "median": 2.035,
+   "p95": 2.507
   }
  },
  "kept_from_previous": {
@@ -43,7 +49,6 @@
   "bram_setup": 1.0,
   "dsp_clk_q": 1.0,
   "dsp_comb": 8.0,
-  "dsp_setup": 1.0,
-  "mux_xbar": 3.61
+  "dsp_setup": 1.0
  }
 }
