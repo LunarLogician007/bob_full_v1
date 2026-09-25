@@ -47,7 +47,8 @@ SETTINGS = {"clock": "jtag", "div": 0, "seed": 1, "pnr": "vpr", "hz": "div"}
 # hz (M20, with clock run): "div" = the power-of-two divider (div); "auto" = the fastest rate
 # the design's own timing allows (software/bob/timing.py); a number = that rate in Hz
 NAME = re.compile(r"[A-Za-z][A-Za-z0-9_]*")
-RECENT = os.path.join(os.path.expanduser("~"), ".bob", "recent.json")
+# BOB_RECENT moves it (the tests, which must not add their scratch projects to a person's list)
+RECENT = os.environ.get("BOB_RECENT") or os.path.join(os.path.expanduser("~"), ".bob", "recent.json")
 
 
 class ProjectError(Exception):

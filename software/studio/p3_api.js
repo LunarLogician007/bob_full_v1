@@ -11,6 +11,7 @@ const S = {
   placement: null,
   stages: {},            // name -> stage record
   messages: [],
+  hints: [],             // what to do about a failed build (ux.hints, from the backend)
   log: [],
   target: null,
   busy: false,

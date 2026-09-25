@@ -10,7 +10,7 @@ const STAGE_LABEL = {
 
 const flow = {
   reset() {
-    S.stages = {}; S.messages = []; S.placement = null; S.result = null;
+    S.stages = {}; S.messages = []; S.hints = []; S.placement = null; S.result = null;
     for (const n of Object.keys(STAGE_LABEL)) {
       this.dot(n, "wait", "○");
       $("k-" + n).textContent = "";
@@ -33,11 +33,22 @@ const flow = {
     };
   },
 
+  // -> a promise of true (built) or false, settled when the build is over, so Build &
+  // Program can go on to the target only after a .bit exists
   async run(goTo) {
-    if (S.busy) return;
-    if (S.proj && !S.proj.top) { logLine("error", "the project has no top module: set one in the Project Manager"); dock.show("log"); tabs.show("project"); return; }
-    if (!S.proj && !S.project.files.length) { logLine("error", "no sources: pick an example first"); dock.show("log"); return; }
+    if (S.busy) return false;
+    if (S.proj && !S.proj.top) { logLine("error", "the project has no top module: set one in the Project Manager"); dock.show("log"); tabs.show("project"); return false; }
+    if (!S.proj && !S.project.files.length) { logLine("error", "no sources: open an example on the Start page first"); dock.show("log"); return false; }
+    // the flow builds the files on disk: an edit not yet saved would build the old text
+    if (S.dirty && S.open) {
+      await sources.save();
+      if (S.dirty) return false;                        // the save failed and said why
+      logLine("info", `saved ${S.open} before building`);
+    }
+    let finish;
+    const over = new Promise((r) => { finish = r; });
     S.busy = true;
+    S.hints = [];
     this.reset();
     buttons();
     const t0 = performance.now();
@@ -60,7 +71,9 @@ const flow = {
           S.busy = false; buttons();
           if (ev.event === "failed" || !ev.ok) {
             logLine("error", ev.error || "build failed");
-            dock.show(S.messages.length ? "messages" : "log");
+            S.hints = ev.hints || [];
+            dock.show(S.messages.length || S.hints.length ? "messages" : "log");
+            finish(false);
           } else {
             S.result = ev;
             S.placement = ev.placement;
@@ -69,6 +82,7 @@ const flow = {
             if (S.proj) project.load();                 // its Outputs now list the .bit
             if (goTo) tabs.show(goTo);
             dock.show("stages");
+            finish(true);
           }
           props.render();
         });
@@ -76,7 +90,9 @@ const flow = {
       S.busy = false; buttons();
       logLine("error", String(e.message || e));
       dock.show("log");
+      finish(false);
     }
+    return over;
   },
 };
 
@@ -86,7 +102,7 @@ function bitPath() {
 }
 
 function buttons() {
-  for (const id of ["runsynth", "runimpl", "runbit"]) {
+  for (const id of ["runsynth", "runimpl", "runbit", "buildprog"]) {
     const n = $(id);
     n.style.opacity = S.busy ? 0.45 : 1;
     n.style.pointerEvents = S.busy ? "none" : "auto";
@@ -131,7 +147,14 @@ const dock = {
     const b = $("dockbody");
     b.innerHTML = "";
     if (this.which === "messages") {
-      if (!S.messages.length) return void b.appendChild(el("div", "empty", "No diagnostics."));
+      for (const h of S.hints || []) {                 // what to do about it (ux.hints)
+        const row = el("div", "msg hint");
+        row.appendChild(el("span", "sev", "→"));
+        row.appendChild(el("span", "loc", "hint"));
+        row.appendChild(el("span", "txt", h));
+        b.appendChild(row);
+      }
+      if (!S.messages.length && !(S.hints || []).length) return void b.appendChild(el("div", "empty", "No diagnostics."));
       for (const m of S.messages) {
         const row = el("div", "msg " + m.severity);
         row.appendChild(el("span", "sev", m.severity === "error" ? "✕" : m.severity === "warning" ? "!" : "·"));
@@ -146,7 +169,16 @@ const dock = {
       }
     } else if (this.which === "stages") {
       const names = Object.keys(STAGE_LABEL).filter((n) => S.stages[n]);
-      if (!names.length) return void b.appendChild(el("div", "empty", "Run the flow to see its stages."));
+      if (!names.length) return void b.appendChild(el("div", "empty", "Run the flow to see its stages (⌘/Ctrl Enter)."));
+      if (bitPath() && !S.busy) {                       // the next step, where the eye already is
+        const nb = el("div", "nextbar");
+        nb.appendChild(el("span", null, `✓ built ${bitPath().split("/").pop()}`));
+        nb.appendChild(el("span", "sp"));
+        const go = el("button", "sbtn pri", "Program Device ▸");
+        go.onclick = () => (S.target && S.target.open ? board.program() : buildAndProgram());
+        nb.appendChild(go);
+        b.appendChild(nb);
+      }
       for (const n of names) {
         const s = S.stages[n];
         const row = el("div", "stg");
@@ -259,6 +291,9 @@ const props = {
     if (!d) return;
     const by = {};
     for (const b of (S.placement ? S.placement.blocks : [])) by[b.type] = (by[b.type] || 0) + 1;
+    // what synthesis asked for (LUTs, flip-flops, carry bits), then what placement used
+    const use = S.stages.synth && S.stages.synth.stats && S.stages.synth.stats.usage;
+    for (const r of use || []) if (!/BRAM|DSP/.test(r.name)) this.meter(u, r.name, r.used, r.cap);
     for (const t of ["clb", "bram", "dsp", "io"]) if (d.capacity[t]) this.meter(u, t.toUpperCase(), by[t] || 0, d.capacity[t]);
     if (S.placement) this.row(u, "wirelength", S.placement.wirelength);
     if (S.stages.fasm) this.row(u, "features", S.stages.fasm.stats.features);

@@ -645,3 +645,40 @@ def test_the_clock_constraint_decides_the_build(srv, proj_dir):
     t = [s for s in ev["stages"] if s["name"] == "timing"][0]
     assert t["ok"] is False and t["stats"]["slack_ns"] < 0
     assert "fastest clock" not in ev["error"]                    # 60 MHz is a clock the fabric can make
+
+
+# --- the software UX pass: Start page, hints, Build & Program ------------------
+
+
+def test_examples_carry_their_one_line_description(srv):
+    ex = {e["name"]: e for e in get(srv, "/api/examples")}
+    assert ex["counter"]["desc"].startswith("6-bit counter")
+    assert all("(M" not in e["desc"] for e in ex.values())
+
+
+def test_the_setup_check_lists_the_tools_without_touching_usb(srv):
+    rows = get(srv, "/api/doctor")
+    names = [r["what"] for r in rows]
+    assert "yosys" in names and "iverilog" in names
+    assert "Pico probe" not in names and "board" not in names     # the target owns the probe
+    assert all(set(r) == {"ok", "what", "detail", "fix"} for r in rows)
+
+
+def test_a_failed_build_says_what_to_do(srv):
+    bad = _repo_copy(os.path.join(ROOT, "work", "examples", "counter", "counter.v"))
+    with open(bad) as fh:
+        text = fh.read()
+    with open(bad, "w") as fh:
+        fh.write(text.replace("q + 6'd1", "q + 6d1"))
+    ev = build(srv, {"files": [os.path.relpath(bad, ROOT)]})
+    assert not ev["ok"]
+    assert ev["hints"] == ["fix that line and build again"]
+    errs = [m for s in ev["stages"] for m in s["messages"] if m["severity"] == "error"]
+    assert len(errs) == 1, errs                       # yosys's log and its exception: once
+
+
+def test_the_page_has_a_start_page_and_build_and_program():
+    page = open(os.path.join(ROOT, "software", "studio", "studio.html")).read()
+    for needle in ('id="pane-start"', 'id="buildprog"', "const start = {", "async function buildAndProgram",
+                   'e.key === "Enter"', "S.dirty && S.open"):
+        assert needle in page, needle

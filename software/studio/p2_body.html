@@ -11,6 +11,12 @@
   <!-- ── flow navigator ──────────────────────────────────── -->
   <div class="nav">
     <div class="grp">
+      <h3>Start</h3>
+      <div class="item" data-go="start"><span class="st"> </span>Start page</div>
+      <div class="item act" id="buildprog" title="the whole flow, then program the target (⌘/Ctrl ⇧ Enter)"><span class="st"> </span>Build &amp; Program</div>
+    </div>
+
+    <div class="grp">
       <h3>Project</h3>
       <div class="item act" id="newproj"><span class="st"> </span>New Project…</div>
       <div class="item" id="openproj"><span class="st"> </span>Open Project…</div>
@@ -60,6 +66,8 @@
   <!-- ── main ────────────────────────────────────────────── -->
   <div class="main">
     <div class="tabs" id="tabs"></div>
+
+    <div class="pane" id="pane-start"><div class="start" id="startview"></div></div>
 
     <div class="pane on" id="pane-editor">
       <div class="ed">

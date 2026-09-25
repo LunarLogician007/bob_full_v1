@@ -126,9 +126,16 @@ def _worth_showing(text):
 
 def _order(msgs):
     """Errors first: they are what has to be fixed, and a warning list should never push
-    them out of sight."""
+    them out of sight. The same complaint from two places (yosys's log and the exception
+    it raised) is shown once."""
     rank = {"error": 0, "warning": 1, "info": 2}
-    return sorted(msgs, key=lambda m: rank.get(m["severity"], 3))
+    seen, out = set(), []
+    for m in sorted(msgs, key=lambda m: rank.get(m["severity"], 3)):
+        k = (os.path.basename(m.get("file") or ""), m.get("line"), m["text"])
+        if k not in seen:
+            seen.add(k)
+            out.append(m)
+    return out
 
 
 def messages(text, source=""):
@@ -366,13 +373,6 @@ class Flow:
             why = ", ".join(f"{u['used']} {u['name']} (bob has {u['cap']})" for u in over)
             st.finish(False, f"{self.top} does not fit: {why}", cells=cells, usage=use)
             raise FlowError(f"{self.top} does not fit bob: it needs {why}")
-        # a port with no pin can never be placed: say which, before place and route does
-        if self.pcf is None:
-            loose = sorted(set(mod["ports"]) - CONVENTION)
-            if loose:
-                st.finish(False, f"no pin for port(s) {', '.join(loose)}", cells=cells, usage=use)
-                raise FlowError(f"port(s) {', '.join(loose)} have no pin: name the ports clk, sw[1:0], "
-                                "btn[3:0], led[2:0], or give a pin file (--pcf; ./bob pins lists the pins)")
         return st.finish(True, f"{self.top}: {cells}; source == netlist == golden, 300 random cycles",
                          cells=cells, usage=use, equiv=True, equiv_cycles=300,
                          ports=ports, port_names=sorted(mod["ports"]))
@@ -380,6 +380,14 @@ class Flow:
     def place_route(self):
         """VPR on the committed rr graph, or bob's own pack/place/route."""
         st = Stage("pnr").start(self)
+        # a port with no pin can never be placed: name it here, not as a missing VPR log.
+        # (Synthesis still succeeds and reports the ports: the Pin Planner lists them.)
+        if self.pcf is None and self._mod is not None:
+            loose = sorted(set(self._mod["ports"]) - CONVENTION)
+            if loose:
+                st.finish(False, f"no pin for port(s) {', '.join(loose)}")
+                raise FlowError(f"port(s) {', '.join(loose)} have no pin: name the ports clk, sw[1:0], "
+                                "btn[3:0], led[2:0], or give a pin file (--pcf; ./bob pins lists the pins)")
         if self.pnr == "python":
             from pnr import pack as pnr_pack, place as pnr_place, route as pnr_route, run as pnr_run
             try:

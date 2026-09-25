@@ -9,6 +9,7 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
 
 import pytest
 
@@ -25,8 +26,10 @@ COUNTER = os.path.join(ROOT, "work", "examples", "counter", "counter.v")
 
 
 def bob(*args, cwd=None):
+    # BOB_RECENT: a project made here must not join the person's recent-projects list
+    env = dict(os.environ, NO_COLOR="1", BOB_RECENT=os.path.join(tempfile.gettempdir(), "bob-recent-test.json"))
     r = subprocess.run([os.path.join(ROOT, "bob"), *args], capture_output=True, text=True,
-                       cwd=cwd or ROOT, env=dict(os.environ, NO_COLOR="1"), timeout=900)
+                       cwd=cwd or ROOT, env=env, timeout=900)
     return r.returncode, r.stdout + r.stderr
 
 
@@ -59,7 +62,7 @@ def test_a_syntax_error_shows_the_line_once_with_a_hint(tmp_path):
     assert rc == 1
     assert out.count("t.v:2:") == 1, out
     assert "2 | assign led = 3b101;" in out
-    assert "fix the line above" in out
+    assert "fix that line and build again" in out
     # none of yosys's bookkeeping about bob's own cell library
     assert "bob_cells_sim" not in out and "$for_loop" not in out
     assert len(out.splitlines()) < 10, out
@@ -144,6 +147,7 @@ def test_new_from_an_example_and_refusals(tmp_path):
     assert rc == 1 and "already exists" in out
     rc, out = bob("new", "x", "--from", "nosuch", cwd=str(tmp_path))
     assert rc == 1 and "counter" in out           # lists the examples it could have been
+    assert not (tmp_path / "x").exists()          # and makes nothing
     rc, out = bob("new", "9bad", cwd=str(tmp_path))
     assert rc == 1 and "starts with a letter" in out
 

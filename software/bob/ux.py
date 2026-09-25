@@ -110,7 +110,7 @@ _HINTS = (
     (r"have no pin|has no pin", None,
      "./bob pins shows the pins and the port names that need no pin file"),
     (r"syntax error|error:|ERROR", "synth",
-     "fix the line above and build again"),
+     "fix that line and build again"),
     (r"differs from the source", "synth",
      "yosys changed what the design does: please report it with the --json record"),
     (r"docker not found|Cannot connect to the Docker daemon|is Docker running|docker\.sock", "pnr",
@@ -296,7 +296,7 @@ def doctor(board=True):
         detail = path or "not found"
         if path:
             _, text = _run([tool, "-V"])
-            detail = (text.splitlines() or [path])[0][:60]
+            detail = (text.splitlines() or [path])[0].split(" (git")[0][:60]
         out.append((path is not None, tool, detail, fix))
     import vpr_run
     if shutil.which("docker") is None:

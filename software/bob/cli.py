@@ -325,15 +325,14 @@ def new_cmd(args):
     import ux
     where = os.path.abspath(args.dir or ".")
     try:
+        src = args.src
+        if src and not os.path.isfile(src):          # checked before anything is made
+            ex = {n: path for n, path, _ in ux.examples() if path.endswith(".v")}
+            if src not in ex:
+                raise project.ProjectError(f"--from {src}: not a file or an example ({', '.join(ex)})")
+            src = ex[src]
         p = project.Project.create(where, args.name)
-        if args.src:
-            src = args.src
-            if not os.path.isfile(src):
-                ex = dict((n, path) for n, path, _ in ux.examples())
-                if src not in ex or not ex[src].endswith(".v"):
-                    raise project.ProjectError(f"--from {src}: not a file or an example "
-                                               f"({', '.join(n for n, path, _ in ux.examples() if path.endswith('.v'))})")
-                src = ex[src]
+        if src:
             rel = p.add_source(src)
             top = os.path.splitext(os.path.basename(src))[0]
         else:

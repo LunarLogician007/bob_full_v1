@@ -1,7 +1,7 @@
 // ── tabs, sources, settings, and boot ─────────────────────────────────────
 
 const TABS = [
-  ["project", "Project"], ["bd", "Block Design"],
+  ["start", "Start"], ["project", "Project"], ["bd", "Block Design"],
   ["editor", "Source"], ["device", "Device"], ["bitstream", "Bitstream"],
   ["pins", "Pins"], ["board", "Board"], ["wave", "Waveform"], ["sources", "Sources"], ["settings", "Settings"],
 ];
@@ -32,6 +32,7 @@ const tabs = {
     if (k === "project") project.render();
     if (k === "bd") bd.render();
     if (k === "wave") wavev.load();
+    if (k === "start") start.render();
   },
 };
 
@@ -209,6 +210,7 @@ async function boot() {
   $("newproj").onclick = () => project.newWizard();
   $("openproj").onclick = () => project.openDialog();
   $("program").onclick = () => board.program();
+  $("buildprog").onclick = () => buildAndProgram();
   $("partial").onclick = () => board.partial();
   $("readback").onclick = () => board.verify();
   $("capture").onclick = () => board.capture();
@@ -222,6 +224,11 @@ async function boot() {
     n.onclick = () => dock.show("stages");
   // ⌘S / Ctrl-S saves the editor, as it does everywhere else
   document.addEventListener("keydown", (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {     // build; with shift, and program
+      e.preventDefault();
+      if (e.shiftKey) buildAndProgram(); else flow.run(null);
+      return;
+    }
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") {
       e.preventDefault();
       if (tabs.which === "bd") bd.save().catch((x) => logLine("error", x.message));
@@ -249,7 +256,7 @@ async function boot() {
     topbar(); props.render(); device.render(); settings.render();
     logLine("info", `${S.device.name}: ${S.device.capacity.clb} CLBs, ${S.device.frames} frames`);
     if (S.proj) tabs.show("project");      // the backend kept a project open across a reload
-    else await sources.pick("fir");
+    else { await sources.pick("counter"); tabs.show("start"); }   // first look: the Start page
     await board.loadBits();
     await board.refresh();
   } catch (e) {

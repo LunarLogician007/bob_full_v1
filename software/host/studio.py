@@ -11,7 +11,8 @@ software/host/cfgplane.py (program, readback), and reports what they return.
 
   GET  /                        the page (studio.html, built by software/studio/build.py)
   GET  /api/device              the device: grid, blocks, columns, capacity, frames
-  GET  /api/examples            the example designs, as starting projects
+  GET  /api/examples            the example designs, as starting projects, each with its first line
+  GET  /api/doctor              the setup check of ./bob doctor, without the USB probe (the target owns it)
   GET  /api/source?path=        one source file, for the editor
   POST /api/save                write the editor back to a file inside the repo
   GET  /api/browse              the designs you can open: work/, work/examples/, and any .proj
@@ -124,6 +125,11 @@ class Job:
             self._emit("start", design=f.name, top=f.top, stages=list(flow.STAGES))
             res = f.run(on_stage=lambda st: self._emit("stage", **st.to_json()))
             self.result = res.to_json()
+            if not res.ok:                            # what to do about it: the CLI's hints
+                import ux
+                failed = next((st for st in res.stages if st.ok is False), None)
+                text = (res.error or "") + "\n" + "\n".join(m["text"] for m in res.messages)
+                self.result["hints"] = ux.hints(text, failed.name if failed else None)
             if record:                                # a project keeps its last build record
                 with open(record, "w") as fh:
                     json.dump(self.result, fh, indent=2)
@@ -365,12 +371,14 @@ def examples():
     out = []
     if not os.path.isdir(EXAMPLES):
         return out
+    import ux
+    _desc = {n: line for n, _p, line in ux.examples()}
     for name in sorted(os.listdir(EXAMPLES)):
         src = os.path.join(EXAMPLES, name, f"{name}.v")
         if not os.path.isfile(src):
             continue
         stamp = vpr_run.read_stamp(name) or {}
-        out.append({"name": name, "path": os.path.relpath(src, ROOT),
+        out.append({"name": name, "path": os.path.relpath(src, ROOT), "desc": _desc.get(name, ""),
                     "lines": sum(1 for _ in open(src)),
                     "routed": bool(stamp), "wirelength": stamp.get("wirelength")})
     return out
@@ -827,6 +835,10 @@ class Handler(BaseHTTPRequestHandler):
                 return self._page()
             if p == "/api/device":
                 return self._json(device())
+            if p == "/api/doctor":             # the Start page's setup check (no USB: the target owns it)
+                import ux
+                return self._json([{"ok": ok, "what": w, "detail": d, "fix": fx}
+                                   for ok, w, d, fx in ux.doctor(board=False)])
             if p == "/api/examples":
                 return self._json(examples())
             if p == "/api/source":

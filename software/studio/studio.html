@@ -286,6 +286,49 @@
     .props { display: none }
     .dock { grid-area: 2 / 2 / 3 / 3 }
   }
+
+  /* ── Start page, hints, the next step (software UX pass) ── */
+  .start { max-width: 1060px; margin: 0 auto; padding: 26px 30px 40px; font-family: var(--sans); color: var(--ink) }
+  .start h1 { font-size: 22px; font-weight: 640; margin: 0 0 4px; letter-spacing: -.01em; text-wrap: balance }
+  .start .lede { color: var(--ink-2); font-size: 13.5px; margin: 0 0 22px; max-width: 68ch; line-height: 1.5 }
+  .start h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--mute);
+              font-weight: 600; margin: 26px 0 10px }
+  .steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; border: 1px solid var(--rule);
+           border-radius: 6px; overflow: hidden; background: var(--paper) }
+  .steps > div { padding: 11px 13px; border-right: 1px solid var(--rule); font-size: 12px; line-height: 1.45; color: var(--ink-2) }
+  .steps > div:last-child { border-right: 0 }
+  .steps b { display: block; color: var(--ink); font-size: 12.5px; margin-bottom: 2px }
+  .steps i { font-style: normal; font-family: var(--mono); font-size: 10.5px; color: var(--accent) }
+  .cols { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 26px; align-items: start }
+  .cols > div, .ex .ds, .doc .d, .doc .fx { min-width: 0; overflow-wrap: anywhere }
+  .exlist { border: 1px solid var(--rule); border-radius: 6px; background: var(--paper) }
+  .ex { display: grid; grid-template-columns: 86px 1fr auto; gap: 10px; align-items: center;
+        padding: 8px 12px; border-bottom: 1px solid var(--rule-2); font-size: 12.5px }
+  .ex:last-child { border-bottom: 0 }
+  .ex .nm { font-family: var(--mono); font-weight: 600; color: var(--ink) }
+  .ex .ds { color: var(--ink-2); line-height: 1.35 }
+  .ex .bt { display: flex; gap: 6px }
+  .sbtn { border: 1px solid var(--rule); background: var(--paper); color: var(--ink); border-radius: 4px;
+          padding: 3px 9px; font-size: 11.5px; white-space: nowrap }
+  .sbtn:hover { border-color: var(--accent); color: var(--accent) }
+  .sbtn.pri { background: var(--accent); border-color: var(--accent); color: #fff }
+  .sbtn.pri:hover { background: var(--accent-2); color: #fff }
+  .card { border: 1px solid var(--rule); border-radius: 6px; background: var(--paper); padding: 12px 14px; margin-bottom: 14px; font-size: 12.5px }
+  .card .row2 { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px }
+  .card p { margin: 0; color: var(--ink-2); line-height: 1.45 }
+  .recent a { display: block; font-family: var(--mono); font-size: 11.5px; color: var(--run); cursor: pointer; padding: 2px 0;
+              overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+  .doc { display: grid; grid-template-columns: 30px 88px 1fr; gap: 6px; font-size: 11.5px; padding: 2px 0; align-items: baseline }
+  .doc .m.ok { color: var(--ok) } .doc .m.bad { color: var(--err) } .doc .m.opt { color: var(--warn) }
+  .doc .d { color: var(--ink-2) } .doc .fx { grid-column: 3; color: var(--mute); font-family: var(--mono); font-size: 10.5px }
+  .keys { font-size: 11.5px; color: var(--ink-2); line-height: 1.7 }
+  .keys kbd { font-family: var(--mono); font-size: 10.5px; border: 1px solid var(--rule); border-bottom-width: 2px;
+              border-radius: 3px; padding: 0 4px; background: var(--rule-2); color: var(--ink) }
+  .msg.hint { background: var(--accent-bg) } .msg.hint .sev { color: var(--accent) } .msg.hint .txt { color: var(--ink) }
+  .nextbar { display: flex; align-items: center; gap: 10px; padding: 7px 12px; background: var(--run-bg);
+             border-bottom: 1px solid var(--rule); font-family: var(--sans); font-size: 12px; color: var(--ink) }
+  .nextbar .sp { flex: 1 }
+  @media (max-width: 900px) { .cols { grid-template-columns: 1fr } .steps { grid-template-columns: 1fr 1fr } }
 </style>
 <body>
 <div class="bar">
@@ -300,6 +343,12 @@
 <div class="app">
   <!-- ── flow navigator ──────────────────────────────────── -->
   <div class="nav">
+    <div class="grp">
+      <h3>Start</h3>
+      <div class="item" data-go="start"><span class="st"> </span>Start page</div>
+      <div class="item act" id="buildprog" title="the whole flow, then program the target (⌘/Ctrl ⇧ Enter)"><span class="st"> </span>Build &amp; Program</div>
+    </div>
+
     <div class="grp">
       <h3>Project</h3>
       <div class="item act" id="newproj"><span class="st"> </span>New Project…</div>
@@ -350,6 +399,8 @@
   <!-- ── main ────────────────────────────────────────────── -->
   <div class="main">
     <div class="tabs" id="tabs"></div>
+
+    <div class="pane" id="pane-start"><div class="start" id="startview"></div></div>
 
     <div class="pane on" id="pane-editor">
       <div class="ed">
@@ -462,6 +513,7 @@ const S = {
   placement: null,
   stages: {},            // name -> stage record
   messages: [],
+  hints: [],             // what to do about a failed build (ux.hints, from the backend)
   log: [],
   target: null,
   busy: false,
@@ -874,7 +926,7 @@ const STAGE_LABEL = {
 
 const flow = {
   reset() {
-    S.stages = {}; S.messages = []; S.placement = null; S.result = null;
+    S.stages = {}; S.messages = []; S.hints = []; S.placement = null; S.result = null;
     for (const n of Object.keys(STAGE_LABEL)) {
       this.dot(n, "wait", "○");
       $("k-" + n).textContent = "";
@@ -897,11 +949,22 @@ const flow = {
     };
   },
 
+  // -> a promise of true (built) or false, settled when the build is over, so Build &
+  // Program can go on to the target only after a .bit exists
   async run(goTo) {
-    if (S.busy) return;
-    if (S.proj && !S.proj.top) { logLine("error", "the project has no top module: set one in the Project Manager"); dock.show("log"); tabs.show("project"); return; }
-    if (!S.proj && !S.project.files.length) { logLine("error", "no sources: pick an example first"); dock.show("log"); return; }
+    if (S.busy) return false;
+    if (S.proj && !S.proj.top) { logLine("error", "the project has no top module: set one in the Project Manager"); dock.show("log"); tabs.show("project"); return false; }
+    if (!S.proj && !S.project.files.length) { logLine("error", "no sources: open an example on the Start page first"); dock.show("log"); return false; }
+    // the flow builds the files on disk: an edit not yet saved would build the old text
+    if (S.dirty && S.open) {
+      await sources.save();
+      if (S.dirty) return false;                        // the save failed and said why
+      logLine("info", `saved ${S.open} before building`);
+    }
+    let finish;
+    const over = new Promise((r) => { finish = r; });
     S.busy = true;
+    S.hints = [];
     this.reset();
     buttons();
     const t0 = performance.now();
@@ -924,7 +987,9 @@ const flow = {
           S.busy = false; buttons();
           if (ev.event === "failed" || !ev.ok) {
             logLine("error", ev.error || "build failed");
-            dock.show(S.messages.length ? "messages" : "log");
+            S.hints = ev.hints || [];
+            dock.show(S.messages.length || S.hints.length ? "messages" : "log");
+            finish(false);
           } else {
             S.result = ev;
             S.placement = ev.placement;
@@ -933,6 +998,7 @@ const flow = {
             if (S.proj) project.load();                 // its Outputs now list the .bit
             if (goTo) tabs.show(goTo);
             dock.show("stages");
+            finish(true);
           }
           props.render();
         });
@@ -940,7 +1006,9 @@ const flow = {
       S.busy = false; buttons();
       logLine("error", String(e.message || e));
       dock.show("log");
+      finish(false);
     }
+    return over;
   },
 };
 
@@ -950,7 +1018,7 @@ function bitPath() {
 }
 
 function buttons() {
-  for (const id of ["runsynth", "runimpl", "runbit"]) {
+  for (const id of ["runsynth", "runimpl", "runbit", "buildprog"]) {
     const n = $(id);
     n.style.opacity = S.busy ? 0.45 : 1;
     n.style.pointerEvents = S.busy ? "none" : "auto";
@@ -995,7 +1063,14 @@ const dock = {
     const b = $("dockbody");
     b.innerHTML = "";
     if (this.which === "messages") {
-      if (!S.messages.length) return void b.appendChild(el("div", "empty", "No diagnostics."));
+      for (const h of S.hints || []) {                 // what to do about it (ux.hints)
+        const row = el("div", "msg hint");
+        row.appendChild(el("span", "sev", "→"));
+        row.appendChild(el("span", "loc", "hint"));
+        row.appendChild(el("span", "txt", h));
+        b.appendChild(row);
+      }
+      if (!S.messages.length && !(S.hints || []).length) return void b.appendChild(el("div", "empty", "No diagnostics."));
       for (const m of S.messages) {
         const row = el("div", "msg " + m.severity);
         row.appendChild(el("span", "sev", m.severity === "error" ? "✕" : m.severity === "warning" ? "!" : "·"));
@@ -1010,7 +1085,16 @@ const dock = {
       }
     } else if (this.which === "stages") {
       const names = Object.keys(STAGE_LABEL).filter((n) => S.stages[n]);
-      if (!names.length) return void b.appendChild(el("div", "empty", "Run the flow to see its stages."));
+      if (!names.length) return void b.appendChild(el("div", "empty", "Run the flow to see its stages (⌘/Ctrl Enter)."));
+      if (bitPath() && !S.busy) {                       // the next step, where the eye already is
+        const nb = el("div", "nextbar");
+        nb.appendChild(el("span", null, `✓ built ${bitPath().split("/").pop()}`));
+        nb.appendChild(el("span", "sp"));
+        const go = el("button", "sbtn pri", "Program Device ▸");
+        go.onclick = () => (S.target && S.target.open ? board.program() : buildAndProgram());
+        nb.appendChild(go);
+        b.appendChild(nb);
+      }
       for (const n of names) {
         const s = S.stages[n];
         const row = el("div", "stg");
@@ -1123,6 +1207,9 @@ const props = {
     if (!d) return;
     const by = {};
     for (const b of (S.placement ? S.placement.blocks : [])) by[b.type] = (by[b.type] || 0) + 1;
+    // what synthesis asked for (LUTs, flip-flops, carry bits), then what placement used
+    const use = S.stages.synth && S.stages.synth.stats && S.stages.synth.stats.usage;
+    for (const r of use || []) if (!/BRAM|DSP/.test(r.name)) this.meter(u, r.name, r.used, r.cap);
     for (const t of ["clb", "bram", "dsp", "io"]) if (d.capacity[t]) this.meter(u, t.toUpperCase(), by[t] || 0, d.capacity[t]);
     if (S.placement) this.row(u, "wirelength", S.placement.wirelength);
     if (S.stages.fasm) this.row(u, "features", S.stages.fasm.stats.features);
@@ -1434,7 +1521,7 @@ const board = {
 // ── tabs, sources, settings, and boot ─────────────────────────────────────
 
 const TABS = [
-  ["project", "Project"], ["bd", "Block Design"],
+  ["start", "Start"], ["project", "Project"], ["bd", "Block Design"],
   ["editor", "Source"], ["device", "Device"], ["bitstream", "Bitstream"],
   ["pins", "Pins"], ["board", "Board"], ["wave", "Waveform"], ["sources", "Sources"], ["settings", "Settings"],
 ];
@@ -1465,6 +1552,7 @@ const tabs = {
     if (k === "project") project.render();
     if (k === "bd") bd.render();
     if (k === "wave") wavev.load();
+    if (k === "start") start.render();
   },
 };
 
@@ -1642,6 +1730,7 @@ async function boot() {
   $("newproj").onclick = () => project.newWizard();
   $("openproj").onclick = () => project.openDialog();
   $("program").onclick = () => board.program();
+  $("buildprog").onclick = () => buildAndProgram();
   $("partial").onclick = () => board.partial();
   $("readback").onclick = () => board.verify();
   $("capture").onclick = () => board.capture();
@@ -1655,6 +1744,11 @@ async function boot() {
     n.onclick = () => dock.show("stages");
   // ⌘S / Ctrl-S saves the editor, as it does everywhere else
   document.addEventListener("keydown", (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {     // build; with shift, and program
+      e.preventDefault();
+      if (e.shiftKey) buildAndProgram(); else flow.run(null);
+      return;
+    }
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") {
       e.preventDefault();
       if (tabs.which === "bd") bd.save().catch((x) => logLine("error", x.message));
@@ -1682,7 +1776,7 @@ async function boot() {
     topbar(); props.render(); device.render(); settings.render();
     logLine("info", `${S.device.name}: ${S.device.capacity.clb} CLBs, ${S.device.frames} frames`);
     if (S.proj) tabs.show("project");      // the backend kept a project open across a reload
-    else await sources.pick("fir");
+    else { await sources.pick("counter"); tabs.show("start"); }   // first look: the Start page
     await board.loadBits();
     await board.refresh();
   } catch (e) {
@@ -3234,6 +3328,161 @@ const wavev = {
     window.addEventListener("resize", () => { if (tabs.which === "wave") this.draw(); });
   },
 };
+
+/* ---- p13_start.js ---- */
+// ── the Start page (software UX pass) ─────────────────────────────────────
+// What someone opening bob studio for the first time needs on one screen: what the flow
+// is, an example to try in one click, their own design (new, open, recent), whether the
+// tools are there (./bob doctor, via /api/doctor) and the keys. The page opens here
+// unless a project was already open.
+
+const start = {
+  doctor: null,
+
+  async render() {
+    const v = $("startview");
+    v.innerHTML = "";
+    const d = S.device;
+    v.appendChild(el("h1", null, "bob studio"));
+    v.appendChild(el("p", "lede",
+      `An FPGA built inside the PYNQ-Z2's FPGA${d ? `: ${d.capacity.clb} CLBs, ${d.capacity.clb * 4} six-input LUTs, `
+        + `${d.capacity.bram} block RAMs and ${d.capacity.dsp} DSP slices` : ""}. Write Verilog, press Build & Program, `
+        + "and it runs on the board, or on the board in software when none is plugged in."));
+
+    v.appendChild(el("h2", null, "How a design gets onto bob"));
+    const steps = el("div", "steps");
+    for (const [t, what, tool] of [
+      ["1  Write", "Verilog with ports clk, sw, btn, led: those reach the board with no pin file.", "Source"],
+      ["2  Synthesis", "yosys turns it into bob's LUTs, flip-flops, adders, BRAM and DSP, then proves it unchanged.", "Run Synthesis"],
+      ["3  Place & Route", "VPR (or bob's own router) picks a CLB for each part and wires them.", "Device view"],
+      ["4  Bitstream", `The routing becomes ${d ? d.chain_w.toLocaleString("en") : "the"} configuration bits`
+        + `${d ? ` in ${d.frames} frames` : ""}, checked against a model.`, ".bit"],
+      ["5  Program", "Frames go over JTAG into bob; the LEDs show the design running.", "Board"],
+    ]) {
+      const s = el("div");
+      s.appendChild(el("b", null, t));
+      s.appendChild(document.createTextNode(what + " "));
+      s.appendChild(el("i", null, tool));
+      steps.appendChild(s);
+    }
+    v.appendChild(steps);
+
+    const cols = el("div", "cols");
+    const left = el("div"), right = el("div");
+    cols.appendChild(left); cols.appendChild(right);
+    v.appendChild(cols);
+
+    left.appendChild(el("h2", null, "Try an example"));
+    const list = el("div", "exlist");
+    for (const ex of S.examples || []) {
+      const r = el("div", "ex");
+      r.appendChild(el("span", "nm", ex.name));
+      r.appendChild(el("span", "ds", ex.desc || ""));
+      const bt = el("span", "bt");
+      const o = el("button", "sbtn", "Open");
+      o.title = `open ${ex.path} in the editor`;
+      o.onclick = () => this.example(ex, false);
+      const g = el("button", "sbtn pri", "Build & Program");
+      g.title = "open it, run the whole flow and program the target";
+      g.onclick = () => this.example(ex, true);
+      bt.appendChild(o); bt.appendChild(g);
+      r.appendChild(bt);
+      list.appendChild(r);
+    }
+    left.appendChild(list);
+
+    right.appendChild(el("h2", null, "Your own design"));
+    const own = el("div", "card");
+    own.appendChild(el("p", null, "A project is a folder with your sources, pins and outputs. "
+      + "New Project starts one; the Project Manager adds files and picks the top module."));
+    const row = el("div", "row2");
+    const nb = el("button", "sbtn pri", "New Project…"); nb.onclick = () => project.newWizard();
+    const ob = el("button", "sbtn", "Open Project…"); ob.onclick = () => project.openDialog();
+    row.appendChild(nb); row.appendChild(ob);
+    own.appendChild(row);
+    if (S.recent && S.recent.length) {
+      const rc = el("div", "recent");
+      rc.style.marginTop = "10px";
+      rc.appendChild(el("div", null, "Recent")).style.cssText = "color:var(--mute);font-size:11px;margin-bottom:2px";
+      for (const p of S.recent.slice(0, 5)) {
+        const a = el("a", null, p.split("/").slice(-2).join("/"));
+        a.title = p;
+        a.onclick = () => project.open(p);
+        rc.appendChild(a);
+      }
+      own.appendChild(rc);
+    }
+    right.appendChild(own);
+
+    right.appendChild(el("h2", null, "Setup"));
+    const doc = el("div", "card");
+    doc.appendChild(el("div", "empty", "checking the tools…")).style.padding = "0";
+    right.appendChild(doc);
+    this.fillDoctor(doc);
+
+    right.appendChild(el("h2", null, "Keys"));
+    const k = el("div", "card keys");
+    k.innerHTML = "<kbd>⌘/Ctrl</kbd> <kbd>Enter</kbd> build &nbsp;·&nbsp; "
+      + "<kbd>⌘/Ctrl</kbd> <kbd>⇧</kbd> <kbd>Enter</kbd> build &amp; program<br>"
+      + "<kbd>⌘/Ctrl</kbd> <kbd>S</kbd> save &nbsp;·&nbsp; click a message to jump to its line";
+    right.appendChild(k);
+  },
+
+  async fillDoctor(box) {
+    try {
+      if (!this.doctor) this.doctor = await api("/api/doctor");
+    } catch (e) {
+      box.innerHTML = "";
+      box.appendChild(el("p", null, "setup check unavailable: " + (e.message || e)));
+      return;
+    }
+    box.innerHTML = "";
+    for (const r of this.doctor) {
+      const row = el("div", "doc");
+      row.appendChild(el("span", "m " + (r.ok ? "ok" : r.ok === false ? "bad" : "opt"),
+        r.ok ? "ok" : r.ok === false ? "fail" : "--"));
+      row.appendChild(el("span", null, r.what));
+      row.appendChild(el("span", "d", r.detail));
+      if (!r.ok && r.fix) row.appendChild(el("span", "fx", "→ " + r.fix));
+      box.appendChild(row);
+    }
+    const t = S.target;
+    const tr = el("div", "doc");
+    tr.appendChild(el("span", "m " + (t && t.open ? (t.match ? "ok" : "bad") : "opt"),
+      t && t.open ? (t.match ? "ok" : "fail") : "--"));
+    tr.appendChild(el("span", null, "target"));
+    tr.appendChild(el("span", "d", t && t.open
+      ? `${t.kind === "fake" ? "software board" : "Pico"} ${t.idcode}${t.match ? "" : " (not bob's IDCODE)"}`
+      : "none open: Build & Program uses the software board"));
+    box.appendChild(tr);
+  },
+
+  // an example: a project that is open would win every build, so close it first
+  async example(ex, go) {
+    if (S.proj) {
+      try { await project.post("close"); } catch (e) { logLine("error", String(e.message || e)); }
+    }
+    await sources.open(ex.path, ex.name);
+    if (go) await buildAndProgram();
+  },
+};
+
+// Build & Program: the whole flow, then the target. With no target open it uses the
+// software board and says so - the step someone new is most likely to miss.
+async function buildAndProgram() {
+  if (S.busy) return;
+  const ok = await flow.run(null);
+  if (!ok) return;
+  if (!S.target || !S.target.open) {
+    logLine("info", "no target open: programming the software board (pick usb in the Board tab for the PYNQ-Z2)");
+    try { await api("/api/target", { kind: "fake" }); await board.refresh(); } catch (e) {
+      logLine("error", "cannot open the software board: " + (e.message || e));
+      dock.show("log");
+      return;
+    }
+  }
+  await board.program();
+}
 
 </script>
 </body>
