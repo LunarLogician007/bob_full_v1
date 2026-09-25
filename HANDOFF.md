@@ -41,6 +41,10 @@ This file is the live state: what is finished, what is in flight, and exactly wh
   netlist's prefix, at most 3 per kind; the step now runs last in `build.tcl`, inside catch; and it
   can be sourced on its own (`open_run impl_1` then `source .../extract_delays.tcl`, writing to the
   current directory). `tests/test_build_tcl.py` fails with the old script.
+- **Delays are measured on their own now** (2026-09-25): `build.cfg delays = 0`, and after a build
+  `vivado -mode batch -source E:/bob_full_v1/hw/scripts/delays.tcl` opens the project's routed
+  design and writes `out/<tag>/delay_paths.rpt` (no resynthesis). `hw/scripts/bob_cfg.tcl` holds
+  the build.cfg reader both scripts share.
 - Still missing from the reports: `delay_paths.rpt` and `sysclk_1cycle.txt` for M23, M24 and M25
   (`test_reports` fails on them). `delay_paths.rpt` is the design speed-up: `software/bob/delays.py
   fold docs/reports/M25/delay_paths.rpt`.

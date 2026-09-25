@@ -179,7 +179,7 @@ def test_the_build_measures_the_fabric_delays(site):
     sys.path.insert(0, os.path.join(os.path.dirname(HW), "software", "bob"))
     import delays
     hw, state = site
-    out = run_build(str(hw), state=state)
+    out = run_build(str(hw), "delays=1", state=state)
     assert "extract_delays:" in out
     rpt = hw.parent / "bob_vivado" / "out" / TAG / "delay_paths.rpt"
     text = rpt.read_text()
@@ -201,7 +201,7 @@ def test_the_delays_are_measured_when_the_netlist_renames_the_fabric(site, monke
     import delays
     hw, state = site
     monkeypatch.setenv("BOB_STUB_RENAME", "1")
-    out = run_build(str(hw), state=state)
+    out = run_build(str(hw), "delays=1", state=state)
     # M25: found by a few filtered searches, not one listing of the whole netlist (which
     # crashed Vivado after write_bitstream on the M23-M25 builds)
     assert "fabric nets are under 'u_core/u_store/'" in out
@@ -218,7 +218,9 @@ def test_the_delays_are_measured_when_the_netlist_renames_the_fabric(site, monke
 
 
 def test_delays_0_skips_the_measurement(site):
+    """M25: and 0 is the default - the measurement runs on its own (delays.tcl)"""
     hw, state = site
+    assert "extract_delays:" not in run_build(str(hw), state=state)
     out = run_build(str(hw), "delays=0", state=state)
     assert "extract_delays:" not in out
 
@@ -241,6 +243,20 @@ def test_a_failing_delay_step_keeps_the_build_and_its_reports(site):
     """M25: the delay step runs last, inside catch; build_info.txt is written before it"""
     hw, state = site
     (hw / "scripts" / "extract_delays.tcl").write_text("error {boom}\n")
-    out = run_build(str(hw), state=state)
+    out = run_build(str(hw), "delays=1", state=state)
     assert "extract_delays: FAILED (boom)" in out and "build OK" in out
     assert (hw.parent / "bob_vivado" / "out" / TAG / "build_info.txt").exists()
+
+
+def test_delays_tcl_measures_the_last_build_without_rebuilding(site):
+    """M25: hw/scripts/delays.tcl opens the built project's routed design and writes
+    out/<tag>/delay_paths.rpt; nothing is synthesised or implemented again"""
+    hw, state = site
+    run_build(str(hw), state=state)
+    drv = hw.parent / "d.tcl"
+    drv.write_text(f"source {{{STUB}}}\nsource {{{hw / 'scripts' / 'delays.tcl'}}}\n")
+    r = subprocess.run(["tclsh", str(drv)], capture_output=True, text=True,
+                       env=dict(os.environ, BOB_STUB_STATE=state))
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert "launch_runs" not in r.stdout and "delays: done" in r.stdout
+    assert (hw.parent / "bob_vivado" / "out" / TAG / "delay_paths.rpt").exists()
