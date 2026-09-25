@@ -59,9 +59,9 @@ This file is the live state: what is finished, what is in flight, and exactly wh
   1.0 GB report (each path ~30 000 lines through the unconfigured fabric's loops) was deleted;
   a hop now passes only the destination mux's cells (the first fold took 1200 ns paths through
   1563 nets as one hop) and `extract_delays.tcl` keeps only the stretch between the two ends.
-- Still missing from the reports: `delay_paths.rpt` and `sysclk_1cycle.txt` for M23, M24 and M25
-  (`test_reports` fails on them). `delay_paths.rpt` is the design speed-up: `software/bob/delays.py
-  fold docs/reports/M25/delay_paths.rpt`.
+- Still missing from the reports: `sysclk_1cycle.txt` for M21, M23, M24 and M25 (`test_reports`
+  fails on them). To measure LUT/carry/flip-flop too, the samples need names that survive
+  (the element outputs' `r` nets are gone): a `delays.py plan` change, then `delays.tcl` again.
 
 ## 0y. The M24 state (kept for reference)
  (2026-09-24, M24 on branch `m24`)
