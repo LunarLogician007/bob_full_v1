@@ -458,11 +458,6 @@ report_drc            -file $out_dir/drc.rpt
 set fh [open $out_dir/sysclk_1cycle.txt w]
 foreach c [lsort [get_cells -quiet -hier -filter {IS_SEQUENTIAL && (NAME =~ *u_bram_jtag/* || NAME =~ *u_clk/*)}]] { puts $fh $c }
 close $fh
-# M20: the fabric's per-element delays on this implementation, for per-design clocks.
-# `delays = 0` in build.cfg skips it (it reads timing only; it never changes the design).
-if {![dict exists $cfg delays] || [dict get $cfg delays] ne "0"} {
-    source [file join $script_dir extract_delays.tcl]
-}
 foreach run {synth_1 impl_1} {
     set log [get_property DIRECTORY [get_runs $run]]/runme.log
     if {[file exists $log]} { file copy -force $log $out_dir/$run.log }
@@ -488,6 +483,16 @@ puts $fh "built       [clock format [clock seconds] -format {%Y-%m-%d %H:%M:%S}]
 puts $fh "sources"
 foreach f $src_files { puts $fh "  [string range $f [expr {[string length $hw_dir] + 1}] end]" }
 close $fh
+
+# M20: the fabric's per-element delays on this implementation, for per-design clocks.
+# `delays = 0` in build.cfg skips it (it reads timing only; it never changes the design).
+# M25: last, after every other report is written, and inside catch: an error here must not
+# cost the build its reports (M23/M24 lost build_info.txt this way).
+if {![dict exists $cfg delays] || [dict get $cfg delays] ne "0"} {
+    if {[catch { source [file join $script_dir extract_delays.tcl] } msg]} {
+        puts "extract_delays: FAILED ($msg) - the build and its other reports are fine"
+    }
+}
 
 puts ""
 puts "bitstream : $bitfile"

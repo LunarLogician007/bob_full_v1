@@ -22,34 +22,41 @@
 # -----------------------------------------------------------------------------
 # M23: the flattened netlist does not keep every net where the RTL put it. The M21 build's
 # phys_opt log names fabric wires u_core/u_store/u_fabric/r5691, not u_core/u_fabric/r5691,
-# so M22's exact-name lookups found nothing and every sample came back NOPATH. Look an
-# object up by its exact name first, then by its path from u_fabric/ on, anywhere in the
-# hierarchy. One pass indexes every fabric net and cell by that path (built the first time
-# an exact lookup misses); a path that two objects share counts as not found.
-array set bob_idx {}
-set bob_idx_built 0
-proc bob_index {} {
-    global bob_idx bob_idx_built
-    foreach kind {nets cells} {
-        foreach o [get_$kind -quiet -hierarchical -filter {NAME =~ *u_fabric/*}] {
-            set n [get_property NAME $o]
-            set k "$kind:[string range $n [string first u_fabric/ $n] end]"
-            if {[info exists bob_idx($k)]} { set bob_idx($k) {} } else { set bob_idx($k) $o }
-        }
-    }
-    set bob_idx_built 1
-    puts "extract_delays: indexed [array size bob_idx] fabric nets and cells"
-}
+# so M22's exact-name lookups found nothing and every sample came back NOPATH.
+# M25: the M23 answer (one hierarchical listing of every fabric net and cell, several hundred
+# thousand objects, then a property read of each) crashed Vivado after write_bitstream. Now:
+# the exact name first; on a miss, ONE filtered search for that single object, which tells
+# where the fabric lives in this netlist (its prefix before u_fabric/); every later sample
+# is an exact lookup under that prefix. At most MAX_SEARCHES searches per kind, ever.
+array set bob_pre {}
+array set bob_searches {nets 0 cells 0}
+set bob_max_searches 3
+proc bob_glob {s} { return [string map {\\ \\\\ * \\* ? \\? [ \\[ ] \\]} $s] }
 proc bob_find {kind name} {
-    global bob_idx bob_idx_built
+    global bob_pre bob_searches bob_max_searches
     set x [get_$kind -quiet $name]
     if {[llength $x]} { return $x }
     set i [string first "u_fabric/" $name]
     if {$i < 0} { return {} }
-    if {!$bob_idx_built} { bob_index }
-    set k "$kind:[string range $name $i end]"
-    if {[info exists bob_idx($k)]} { return $bob_idx($k) }
-    return {}
+    set rest [string range $name $i end]
+    if {[info exists bob_pre($kind)]} {
+        set x [get_$kind -quiet "$bob_pre($kind)$rest"]
+        if {[llength $x]} { return $x }
+    }
+    if {$bob_searches($kind) >= $bob_max_searches} { return {} }
+    incr bob_searches($kind)
+    set x [get_$kind -quiet -hierarchical -filter "NAME =~ */[bob_glob $rest]"]
+    if {[llength $x] != 1} { return {} }
+    set full [get_property NAME $x]
+    set bob_pre($kind) [string range $full 0 end-[string length $rest]]
+    puts "extract_delays: fabric $kind are under '$bob_pre($kind)' (found by search $bob_searches($kind))"
+    return $x
+}
+# build.tcl sets out_dir; sourced by hand (open_run impl_1; source .../extract_delays.tcl),
+# the report goes to the current directory
+if {![info exists out_dir]} {
+    set out_dir [pwd]
+    puts "extract_delays: out_dir not set (not run from build.tcl): writing to $out_dir"
 }
 set samples [file join [file dirname [info script]] delay_samples.txt]
 if {![file exists $samples]} {

@@ -25,6 +25,8 @@ def run_build(hw_dir, *args, state):
         f"set argv [list {' '.join('{' + a + '}' for a in args)}]\n"
         f"set argc [llength $argv]\n"
         f"source {{{os.path.join(hw_dir, 'scripts', 'build.tcl')}}}\n"
+        "puts \"stub: $::stub_hier_searches hierarchical searches\"\n"
+        "puts \"stub patterns: $::stub_hier_patterns\"\n"
     )
     # Run from a file, not stdin: interactive tclsh reports an error and carries
     # on with exit status 0, which would hide every failure in build.tcl.
@@ -200,7 +202,13 @@ def test_the_delays_are_measured_when_the_netlist_renames_the_fabric(site, monke
     hw, state = site
     monkeypatch.setenv("BOB_STUB_RENAME", "1")
     out = run_build(str(hw), state=state)
-    assert "indexed" in out
+    # M25: found by a few filtered searches, not one listing of the whole netlist (which
+    # crashed Vivado after write_bitstream on the M23-M25 builds)
+    assert "fabric nets are under 'u_core/u_store/'" in out
+    m = re.search(r"stub: (\d+) hierarchical searches", out)
+    assert m and int(m.group(1)) <= 6, out[-2000:]
+    pats = re.search(r"stub patterns: (.*)", out).group(1).split()
+    assert pats and all(p.startswith("*/u_fabric/") and not p.endswith("/*") for p in pats), pats
     text = (hw.parent / "bob_vivado" / "out" / TAG / "delay_paths.rpt").read_text()
     assert "NONET" not in text and "u_core/u_store/u_fabric/" in text
     d = delays.fold([text], False, "stub")
@@ -213,3 +221,26 @@ def test_delays_0_skips_the_measurement(site):
     hw, state = site
     out = run_build(str(hw), "delays=0", state=state)
     assert "extract_delays:" not in out
+
+
+def test_extract_delays_can_be_sourced_on_its_own(site, tmp_path):
+    """M25: sourced by hand on an open routed design (no build.tcl, so no out_dir), it writes
+    delay_paths.rpt to the current directory instead of stopping"""
+    hw, state = site
+    drv = tmp_path / "d.tcl"
+    drv.write_text(f"source {{{STUB}}}\nset ::samples {{{hw / 'scripts' / 'delay_samples.txt'}}}\n"
+                   f"cd {{{tmp_path}}}\nsource {{{hw / 'scripts' / 'extract_delays.tcl'}}}\n")
+    r = subprocess.run(["tclsh", str(drv)], capture_output=True, text=True,
+                       env=dict(os.environ, BOB_STUB_STATE=state))
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert "out_dir not set" in r.stdout
+    assert (tmp_path / "delay_paths.rpt").exists()
+
+
+def test_a_failing_delay_step_keeps_the_build_and_its_reports(site):
+    """M25: the delay step runs last, inside catch; build_info.txt is written before it"""
+    hw, state = site
+    (hw / "scripts" / "extract_delays.tcl").write_text("error {boom}\n")
+    out = run_build(str(hw), state=state)
+    assert "extract_delays: FAILED (boom)" in out and "build OK" in out
+    assert (hw.parent / "bob_vivado" / "out" / TAG / "build_info.txt").exists()

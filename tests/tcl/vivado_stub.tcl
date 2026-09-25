@@ -147,10 +147,27 @@ proc stub_renamed {kind} {
     return [lsort -unique $out]
 }
 proc stub_rename {} { return [expr {[info exists ::env(BOB_STUB_RENAME)] && $::env(BOB_STUB_RENAME) eq "1"}] }
+# a hierarchical search: the renamed objects its -filter "NAME =~ <glob>" matches (every one
+# without a filter). Each search is counted: on a real netlist one is a scan of every object.
+set ::stub_hier_searches 0
+set ::stub_hier_patterns {}
+proc stub_hier {kind args} {
+    if {![info exists ::samples]} { return {} }        ;# not extract_delays (the sysclk listing)
+    incr ::stub_hier_searches
+    set objs [stub_renamed $kind]
+    set i [lsearch -exact $args -filter]
+    if {$i < 0} { return $objs }
+    set f [lindex $args [expr {$i + 1}]]
+    if {![regexp {NAME\s*=~\s*(\S+)} $f -> pat]} { return $objs }
+    lappend ::stub_hier_patterns $pat
+    set out {}
+    foreach o $objs { if {[string match $pat $o]} { lappend out $o } }
+    return $out
+}
 proc get_cells {args} {
     # the sysclk_1cycle listing asks with -hier -filter: nothing; a named cell: itself
     if {[lsearch -glob $args -hier*] >= 0} {
-        if {[stub_rename] && [string match *u_fabric* [lindex $args end]]} { return [stub_renamed cells] }
+        if {[stub_rename]} { return [stub_hier cells {*}$args] }
         return {}
     }
     set n [lindex $args end]
@@ -159,7 +176,7 @@ proc get_cells {args} {
 }
 proc get_nets {args} {
     if {[lsearch -glob $args -hier*] >= 0} {
-        if {[stub_rename]} { return [stub_renamed nets] }
+        if {[stub_rename]} { return [stub_hier nets {*}$args] }
         return {}
     }
     set n [lindex $args end]

@@ -35,6 +35,12 @@ This file is the live state: what is finished, what is in flight, and exactly wh
   (`dirtyjtag.DEFAULT_TCK_KHZ`; pass `--freq 100` for an M24 or older bitstream). Vivado: sysclk WNS
   +0.732 ns, TCK WNS +489 ns at 1 MHz, 38,198 LUTs, slices 86.8%. Merged into `main`, tagged `m25`.
   The hand steps in `docs/hwtest/M25.md` are still to do.
+- **The delay step crashed Vivado after write_bitstream on M23-M25 (found 2026-09-25):** M23's
+  fix indexed every fabric net and cell (hundreds of thousands) in one listing. Fixed in
+  `extract_delays.tcl`: exact name, else one filtered search per missing object to learn the
+  netlist's prefix, at most 3 per kind; the step now runs last in `build.tcl`, inside catch; and it
+  can be sourced on its own (`open_run impl_1` then `source .../extract_delays.tcl`, writing to the
+  current directory). `tests/test_build_tcl.py` fails with the old script.
 - Still missing from the reports: `delay_paths.rpt` and `sysclk_1cycle.txt` for M23, M24 and M25
   (`test_reports` fails on them). `delay_paths.rpt` is the design speed-up: `software/bob/delays.py
   fold docs/reports/M25/delay_paths.rpt`.
