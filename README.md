@@ -8,12 +8,19 @@ bob is a complete FPGA written in Verilog and running in the PL of a Zynq XC7Z02
 
 A Raspberry Pi Pico running DirtyJTAG on PMODA configures it from a Mac.
 
-**Try it:** `software/host/studio.py --probe fake` opens **bob studio** at `http://127.0.0.1:8765` —
-an EDA tool for this FPGA, laid out the way Vivado is. Write Verilog, run Synthesis,
-Implementation and Generate Bitstream, watch each stage report what it measured, see the
-design land on the real floorplan, then program a board and watch the LEDs. `--probe fake`
-runs the whole thing against the board in software ([`software/host/fakeboard.py`](software/host/fakeboard.py)),
-so it works with no hardware attached.
+## Quick start
+
+```sh
+./bob doctor                                          # are the tools and the board there?
+./bob run work/examples/counter/counter.v --probe fake   # build an example, run it on the board in software
+./bob new blink && ./bob run blink --probe fake         # a design of your own (drop --probe fake on the board)
+./bob studio                                          # bob studio, the desktop app: Start page, Build & Program
+```
+
+`./bob` alone lists every command; [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md) walks
+through install, a first design, pins, the clock, the board and what to do when a build fails.
+Everything also works with no board: `--probe fake` (and bob studio's software board) answer
+from [`software/host/fakeboard.py`](software/host/fakeboard.py).
 
 **New to FPGAs?** [`docs/learn/bit_by_bit.html`](docs/learn/bit_by_bit.html) is an animated tour from logic gates to bob's CLBs, routing, bitstreams, partial loads, BRAM and DSP, for anyone who knows a few gates.
 
@@ -48,7 +55,7 @@ WNS +0.732 ns, 38 198 LUTs (71.8%), slices 86.8%.
 | M24 | Double Duty elements (FPL 2025): the adder on two bypass inputs beside a free LUT; elements −4.7% (VPR) / −13.2% (bob's packer) | **passed on the board 2026-09-25** (69/69; WNS +0.562 ns, 38 193 LUTs, slices 85.5%) |
 | M23 | the grid sweep; crossbar roots as a fixed OR (152 → 128 CFGLUT5 per CLB); routing muxes as LUT6 + MUXF7/MUXF8; **10 × 10 = 100 CLBs = 400 LUTs** | **passed on the board 2026-09-24** (68/68 + manual; WNS +0.048 ns, 36 710 LUTs) |
 
-After M7 the Vivado bitstream stayed the same through M11: those milestones only load new configuration chains over JTAG. M12a (Python PnR) needed no rebuild either. The board now runs M23 (IDCODE `0x0B023093`).
+After M7 the Vivado bitstream stayed the same through M11: those milestones only load new configuration chains over JTAG. M12a (Python PnR) needed no rebuild either. The board now runs M25 (IDCODE `0x0B025093`).
 
 ## The device
 
@@ -118,7 +125,8 @@ opens the browser instead. All the software is under `software/`:
 
 ```
 software/bob/       the flow: synthesis, place and route, FASM, bitgen, projects (project.py),
-                    block designs (bd.py) and their IP cores (ip/)
+                    block designs (bd.py) and their IP cores (ip/); ./bob is cli.py, and what it
+                    and the studio say to people is ux.py
 software/host/      the board: JTAG, configuration, the hardware tests, the studio backend,
                     the pad logic analyser (padwave.py)
 software/studio/    the studio's page, built into software/studio/studio.html

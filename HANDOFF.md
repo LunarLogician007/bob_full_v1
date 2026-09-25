@@ -5,7 +5,35 @@ This file is the live state: what is finished, what is in flight, and exactly wh
 
 ---
 
-## 0. Next agent: start here (2026-09-25, M25 on branch `m25`)
+## 0. Next agent: start here (2026-09-25, the software pass)
+
+- `main` matches the board: **M25**, IDCODE `0x0B025093`, tag `m25`. The hardware is locked for
+  now (the user, 2026-09-25: "lock the hardware and now build the software ... make it a bit
+  more user friendly"). The SERV RISC-V idea was tried and dropped: its logic fits (186 LUTs,
+  221 FFs, both BRAMs, 62-73 CLBs) but it does not route at W 36 / fc_in 0.10 (best: 4 overused
+  nodes); the user said to leave the CPU.
+- **Software pass, branch `software-ux`** (worktree `../bob_full_v1_ux`, merged when done):
+  - `./bob` alone is a guide; `run` (build + load + LEDs), `new` (project from a template or
+    `--from` an example), `examples`, `pins`, `doctor`; `info` readable (`--raw`); help texts
+    without milestone numbers. `software/bob/ux.py` holds the words, for the studio too.
+  - A failed build: stage, file:line, the source line, one or two hints, the log path; a
+    missing file is named before yosys; a design over 400 LUTs/FFs/carry bits or 2 BRAM/DSP is
+    refused at synth with the numbers; ports with no pin are named at the start of pnr (was
+    `[Errno 2] ... vpr.log`: `vpr_run.run_retry` hid the real error). A build ends with its
+    resource use, its clock and the next command.
+  - bob studio: a **Start page** (first screen), **Build & Program** (nav, ⌘/Ctrl ⇧ Enter;
+    no target -> the software board), hints in Messages, "Program Device" after a build,
+    LUT/FF/carry meters, and it **saves unsaved edits before building** (it built the old text).
+  - `docs/GETTING_STARTED.md` (new), README quick start, GUIDE §0/§3.21/§3.25/§4.1.
+  - Tests: `tests/test_cli.py` (19), four more in `tests/test_studio.py`. `BOB_RECENT` keeps
+    test projects out of `~/.bob/recent.json` (they had filled it; cleaned back to the user's one entry).
+- Still open from before: `sysclk_1cycle.txt` for M21/M23/M24/M25; the M24/M25 hand steps; the
+  `fir` stand-in test (`test_m11_live_goals_reached_by_a_person[fir]`) that times out at 25 s,
+  also on the commit before the software pass; LUT/carry/FF delays (need samples that name nets
+  which survive; see below).
+
+## 0a. The M25 state (kept for reference)
+ (2026-09-25, M25 on branch `m25`)
 
 - `main` matches the board: M24, IDCODE `0x0B024093`, 69/69 on 2026-09-25, tag `m24`. **M25 is in
   the worktree `/Users/sk/work/bob/bob_full_v1_m25`, branch `m25`.**

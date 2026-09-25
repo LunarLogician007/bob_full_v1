@@ -346,7 +346,7 @@ def new_cmd(args):
     d = ux.rel(p.dir)
     print(ux.paint("  PASS  ", "ok") + f"new design {args.name} in {d}/")
     print(f"    source  {d}/{rel}")
-    print(f"    project {d}/{os.path.basename(p.path)}   (bob studio opens it: File > Open Project)")
+    print(f"    project {d}/{os.path.basename(p.path)}   (bob studio: Open Project…)")
     print(f"    next    {ux.paint(f'./bob run {d} --probe fake', 'cmd')}   (drop --probe fake on the board)")
     return 0
 

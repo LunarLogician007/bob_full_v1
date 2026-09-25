@@ -197,10 +197,10 @@ def getting_started():
                                         build one and run it on the board in software
 
   Your own design
-    ./bob new blink                     start one (blink/blink.v, sw/btn/led ready)
-    ./bob build blink/src/blink.v       synthesis, place and route, bitstream
-    ./bob load build/bit/blink.bit      configure the board (--probe fake: no board)
-    ./bob run blink/src/blink.v         build and load in one go, then show the LEDs
+    ./bob new blink                     start one (blink/src/blink.v, sw/btn/led ready)
+    ./bob build blink                   synthesis, place and route -> blink/build/blink.bit
+    ./bob load blink/build/blink.bit    configure the board (--probe fake: no board)
+    ./bob run blink                     build and load in one go, then read the LEDs
     ./bob pins                          which port names reach the switches, buttons and LEDs
 
   More

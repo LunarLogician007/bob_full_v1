@@ -14,9 +14,12 @@ Companion documents: [`REPORT.md`](REPORT.md) is what was built and what happene
 - **§5** compares bob with OpenFPGA, Aegis, ZUMA and prjxray, honestly.
 - **§6** is troubleshooting.
 
-**Try this first** (needs the Mac tools; nothing else):
+**Try this first** (needs the Mac tools; nothing else). New to bob altogether? `./bob` alone
+prints the commands, and [`docs/GETTING_STARTED.md`](../GETTING_STARTED.md) is the ten-minute walk.
 
 ```sh
+./bob doctor                                 # the tools, Docker, the Pico and the board
+./bob run work/examples/counter/counter.v --probe fake   # build, load and read the LEDs, no board
 make check                                   # regenerate, simulate, lint, test: everything must be green
 ./bob build work/examples/counter/counter.v -o build/bit/counter.bit
 ./bob info build/bit/counter.bit             # what is in the file
@@ -510,7 +513,7 @@ software/bob/bitgen.py --roundtrip build/bit/counter.bit
 
 ### 3.21 The host side (`dirtyjtag.py`, `cfgplane.py`, `cli.py`)
 
-**What it is.** `dirtyjtag.py` speaks the Pico's USB protocol (single pulses, IR/DR shifts, bulk transfers, and a hard 100 kHz TCK ceiling). `cfgplane.py` is the configuration plane in Python: every instruction, chain load with a per-pulse fallback, frames, partial reconfiguration, CAPTURE, USER1/USER4/DSP. `cli.py` is `./bob` — `build`, `load`, `info`, `fasm`.
+**What it is.** `dirtyjtag.py` speaks the Pico's USB protocol (single pulses, IR/DR shifts, bulk transfers, and a hard TCK ceiling: 1 MHz since M25, as the XDC constrains it). `cfgplane.py` is the configuration plane in Python: every instruction, chain load with a per-pulse fallback, frames, partial reconfiguration, CAPTURE, USER1/USER4/DSP. `cli.py` is `./bob`: `build`, `run` (build, load, read the LEDs), `load`, `new` (a project from a template or an example), `examples`, `pins`, `doctor` (tools, Docker, pywebview, Pico, board IDCODE), `info`, `fasm`, `snap`, `studio`. What it says lives in `software/bob/ux.py`: the resource line of a build (LUTs, flip-flops, carry bits, BRAMs, DSPs against the device), a failed build's stage, file, line, source text and hints, and the texts of the helper commands. bob studio shows the same hints.
 
 **Why this way.** One layer that knows JTAG, one that knows the protocol, one that knows the flow. Every hardware check and every experiment is written against `cfgplane`, so a protocol change is one file.
 
@@ -523,7 +526,7 @@ software/bob/bitgen.py --roundtrip build/bit/counter.bit
 ./bob load build/bit/other.bit --partial
 ```
 
-**How to tweak it.** `--freq` sets TCK (capped at 100 kHz because the XDC constrains it there). New board-side helpers belong in `cfgplane`, not in the checks.
+**How to tweak it.** `--freq` sets TCK (1000 kHz by default; 100 for a bob bitstream older than M25). New board-side helpers belong in `cfgplane`, not in the checks. A new failure worth a hint is one line in `ux._HINTS` (a pattern, the stage, what to do); `tests/test_cli.py` holds the wording people see.
 
 ### 3.22 Hardware tests (`hwtest.py`) and the stand-in board
 
@@ -607,6 +610,14 @@ Bitstream, a Device view of where the design landed and which channels it routed
 Pin Planner that writes a `.pcf`, and Program and Debug — program, readback and verify,
 CAPTURE, partial reconfiguration. Messages are clickable to the source line.
 
+It opens on a **Start page**: the flow in five steps, every example with Open and **Build &
+Program** (the whole flow, then the target; with no target open, the software board), New /
+Open / recent projects, and the setup check of `./bob doctor` (`/api/doctor`, without the USB
+probe, which the target owns). ⌘/Ctrl Enter builds and ⌘/Ctrl ⇧ Enter builds and programs; an
+unsaved edit is saved first, because the flow builds the files on disk. A failed build puts
+`ux.hints` at the top of Messages; a finished one offers Program Device where the stages are.
+Utilisation shows LUTs, flip-flops and carry bits from synthesis beside the CLBs placed.
+
 **Why this way.** The flow was one 89-line function whose only output was printed prose, so
 nothing could watch it happen — not a GUI, not a report, not a `--json` flag. Separating the
 engine from the CLI costs nothing and makes all three possible. The two are kept honest by
@@ -681,6 +692,8 @@ Each recipe is the whole change, in order. All of them end the same way: `make c
 ### 4.1 Build and run a design
 
 ```sh
+./bob run work/examples/fir/fir.v --probe fake            # build + load + LEDs in one step (drop --probe fake on the board)
+./bob new mine --from fir && ./bob run mine               # a project of your own, from an example
 ./bob build work/examples/fir/fir.v -o build/bit/fir.bit           # VPR
 ./bob build work/examples/fir/fir.v --pnr python -o build/bit/fir_py.bit
 ./bob build work/examples/blinky/blinky.v --clock run --div 15 -o build/bit/blinky.bit   # free-running clock
