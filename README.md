@@ -24,8 +24,9 @@ For the working plan, conventions, gotchas and every milestone, read [`PLAN.md`]
 ## Where it stands (2026-09-24)
 
 **M0–M25 passed on the board.** The board runs **M25**: 10 × 10 = 100 CLBs (400 LUTs),
-crossbar leaves in CFGLUT5 with plain OR roots, routing muxes from LUT6/MUXF7/MUXF8, IDCODE
-`0x0B023093`; 68/68 checks, WNS +0.048 ns, 36 710 LUTs (69%), slices 88%.
+crossbar leaves in CFGLUT5 with plain OR roots, routing muxes from LUT6/MUXF7/MUXF8, Double Duty
+elements, time-travel debugging (`bob snap`), TCK at 1 MHz; IDCODE `0x0B025093`; 71/71 checks,
+WNS +0.732 ns, 38 198 LUTs (71.8%), slices 86.8%.
 
 | Milestone | What | Status |
 |---|---|---|
