@@ -22,7 +22,7 @@ through install, a first design, pins, the clock, the board and what to do when 
 Everything also works with no board: `--probe fake` (and bob studio's software board) answer
 from [`software/host/fakeboard.py`](software/host/fakeboard.py).
 
-**New to FPGAs?** [`docs/learn/bit_by_bit.html`](docs/learn/bit_by_bit.html) is an animated tour from logic gates to bob's CLBs, routing, bitstreams, partial loads, BRAM and DSP, for anyone who knows a few gates.
+**New to FPGAs?** Three animated volumes, each building on the last: [`docs/learn/bit_by_bit.html`](docs/learn/bit_by_bit.html) (the pieces: gates, LUTs, flip-flops, routing, bitstreams), [`docs/learn/layer_by_layer.html`](docs/learn/layer_by_layer.html) (bob built up one layer at a time) and [`docs/learn/frame_by_frame.html`](docs/learn/frame_by_frame.html) (one configuration from the cable into the chip: JTAG, the TAP, the packet parser that is bob's configuration brain, frames and where each lands, startup, readback, and where it all sits on the XC7Z020). Rebuild the last two with `python3 docs/learn/layers/gen.py` and `python3 docs/learn/frames/gen.py`.
 
 **Start here:** [`guide.html`](guide.html) / [`docs/project/GUIDE.md`](docs/project/GUIDE.md) explain every part — what it is, why it is built that way, how to use it and how to tweak it — and compare bob with OpenFPGA, Aegis and ZUMA. [`project.html`](project.html) / [`docs/project/REPORT.md`](docs/project/REPORT.md) are the project report: what was built, measured and learned. [`arch.html`](arch.html) is the interactive die slice.
 

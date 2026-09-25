@@ -15,7 +15,7 @@ Companion documents: [`REPORT.md`](REPORT.md) is what was built and what happene
 - **§6** is troubleshooting.
 
 **Try this first** (needs the Mac tools; nothing else). New to bob altogether? `./bob` alone
-prints the commands, and [`docs/GETTING_STARTED.md`](../GETTING_STARTED.md) is the ten-minute walk.
+prints the commands, and [`docs/GETTING_STARTED.md`](../GETTING_STARTED.md) is the ten-minute walk. How a configuration gets in, animated: [`docs/learn/frame_by_frame.html`](../learn/frame_by_frame.html).
 
 ```sh
 ./bob doctor                                 # the tools, Docker, the Pico and the board

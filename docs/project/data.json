@@ -7943,6 +7943,17 @@
    "idcode": "0x4BEEF093",
    "built": "2026-09-14 06:25:16"
   },
+  "M21": {
+   "lut": 35882,
+   "ff": 36307,
+   "bram": 3.0,
+   "dsp": 2.0,
+   "wns": 0.57,
+   "tns": 0.0,
+   "failing": 0,
+   "endpoints": 105599,
+   "whs": 0.057
+  },
   "M22": {
    "lut": 38184,
    "ff": 25599,
@@ -8254,17 +8265,17 @@
  "code": {
   "lines": {
    "other": 14328,
-   "Markdown": 7776,
+   "Markdown": 7977,
    "Python": 37841,
    "JavaScript": 4614,
-   "Tcl": 1316,
+   "Tcl": 1397,
    "SystemVerilog": 574,
    "XDC": 161,
    "Verilog": 7454,
    "shell": 815
   },
   "generated_fabric_lines": 8148,
-  "commits": 107,
+  "commits": 109,
   "tags": [
    "m10",
    "m11",

@@ -1,0 +1,834 @@
+<title>bob, frame by frame</title>
+<meta name="description" content="Volume 3 of the bob tour: follow one configuration from the cable into the chip. JTAG and the TAP, the packet stream, the packet parser that is bob's configuration brain, frames and the frame address, where every frame lands on the grid, the two kinds of configuration cell, startup, readback, and where it all sits on the XC7Z020.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Unbounded:wght@500;700&display=swap">
+<!--STYLE-->
+<style>
+svg .st { fill: var(--panel2); stroke: var(--line); stroke-width: 1.2; }
+svg .st.on { fill: var(--acc-soft); stroke: var(--acc); stroke-width: 2; }
+svg .st.dr { fill: var(--bram); } svg .st.ir { fill: var(--io); }
+svg .edge { stroke: var(--faint); stroke-width: 1.4; fill: none; }
+svg .edge.on { stroke: var(--acc); stroke-width: 2.6; }
+svg .bit { fill: var(--panel); stroke: var(--line); stroke-width: 0.6; }
+svg .bit.one { fill: var(--cfg); }
+svg .bit.f-type { fill: var(--hi-soft); } svg .bit.f-op { fill: var(--acc-soft); }
+svg .bit.f-reg { fill: var(--cfg-soft); } svg .bit.f-cnt { fill: var(--bram); }
+svg .reg { fill: var(--panel2); stroke: var(--line); stroke-width: 1.2; }
+svg .reg.on { fill: var(--hi-soft); stroke: var(--hi); stroke-width: 2; }
+svg .ok { fill: var(--acc); } svg .off { fill: var(--faint); }
+svg .kind-xbar { fill: var(--acc); } svg .kind-init { fill: var(--cfg); } svg .kind-route { fill: var(--hi); }
+svg .kind-bram { fill: #2f6db3; } svg .kind-dsp { fill: #b8612a; } svg .kind-ctrl { fill: var(--warn); } svg .kind-pad { fill: var(--faint); }
+svg .wave { stroke: var(--ink); stroke-width: 1.6; fill: none; }
+.wordlist { font-family: var(--f-mono); font-size: 13px; }
+.keyrow { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13.5px; color: var(--muted); margin-top: 4px; }
+.keyrow span { display: inline-flex; align-items: center; gap: 6px; }
+</style>
+
+<div class="wrap">
+<nav class="rail" aria-label="Chapters">
+  <div class="brand">bob, frame by frame</div>
+  <div class="vol">volume 3 · one configuration, from the cable into the chip</div>
+  <div class="stack" id="stack"></div>
+  <a class="gl" href="https://claude.ai/artifact/H7Sk39vinJtqpqwThZsNNK">← volume 2: bob, layer by layer</a>
+  <a class="gl" href="https://claude.ai/artifact/NxYMZQB9mLfusWduowi5k3">← volume 1: bob, bit by bit</a>
+</nav>
+
+<main>
+<header class="hero">
+  <h1>bob, <span class="ly">frame</span> by frame</h1>
+  <p>Volume 2 ended with a long word of configuration bits poured into the chip. This volume slows that moment down. It follows one real configuration, the <code>counter</code> example, from the Mac to the last flip-flop: through the four JTAG wires, past the TAP (the chip's doorman), into the packet parser (bob's configuration brain), cut into frames, and into the exact tiles where each frame belongs.</p>
+  <p>Each picture builds up in steps: press <b>Next</b> (or → on the keyboard). The words, frames, addresses and CRC are the ones bob's tools really send; the grid and the frame map come from <code>device.json</code>; the last chapter is Vivado's own placement of bob on the XC7Z020.</p>
+  <div class="facts" id="facts"></div>
+  <div class="legend">
+    <span><i class="sw" style="background:var(--hi)"></i>data moving, or the part working now</span>
+    <span><i class="sw" style="background:var(--cfg)"></i>a configuration bit that is 1</span>
+    <span><i class="sw" style="background:var(--acc)"></i>the choice being made, or the new thing</span>
+  </div>
+</header>
+
+<section class="ch" id="cable">
+  <h2><span class="n">1</span>The cable</h2>
+  <p class="lead">A configuration is just bits. First they have to get from the Mac to the chip, one at a time.</p>
+  <div class="cols">
+    <div class="txt">
+      <p>The design has already been built: <code>./bob build</code> turned the Verilog into one long word, the <b>configuration</b>, where every bit sets one switch in bob. Now <code>./bob load</code> sends it.</p>
+      <p>The Mac talks USB to a Raspberry Pi Pico running <b>DirtyJTAG</b>. The Pico turns USB messages into <b>JTAG</b>: four wires, the same ones every FPGA and most chips have for testing and configuration.</p>
+      <p class="aside">JTAG (IEEE 1149.1) is slow and simple on purpose: one bit per clock, and a chip needs only four pins for it. AMD's own configuration flow (UG470) can use it too, which is why bob copies it.</p>
+    </div>
+    <div class="stage" id="st-cable" tabindex="0"></div>
+  </div>
+</section>
+
+<section class="ch" id="tap">
+  <h2><span class="n">2</span>The doorman: the TAP</h2>
+  <p class="lead">Before any configuration bit gets in, the chip has to agree what the bits are for. That is the TAP controller's job.</p>
+  <div class="cols">
+    <div class="txt">
+      <p>The <b>TAP controller</b> (Test Access Port) is a small state machine with 16 states, identical in every JTAG chip. It moves on every TCK edge, and <b>TMS</b> alone decides where it goes. TDI only matters in the two <em>Shift</em> states.</p>
+      <p>There are two branches. The <b>IR</b> branch loads the 6-bit <b>instruction register</b>: which door the next data will go through. The <b>DR</b> branch then pushes the data through that door.</p>
+      <p class="bob"><b>In bob</b> this is <code>hw/src/core/jtag_tap6.v</code>, instance <code>u_tap</code>: the only part of bob wired to the outside world's configuration pins.</p>
+    </div>
+    <div class="stage" id="st-tap" tabindex="0"></div>
+  </div>
+</section>
+
+<section class="ch" id="doors">
+  <h2><span class="n">3</span>The instruction picks a door</h2>
+  <p class="lead">Six bits in the instruction register decide where TDI's bits go and where TDO's come from.</p>
+  <div class="cols">
+    <div class="txt">
+      <p>Each instruction connects a different <b>data register</b> between TDI and TDO. Some are one bit long, some are 32, and one, <b>CFG_IN</b>, is as long as you like: it is a pipe into the configuration brain.</p>
+      <p>The codes are AMD's where AMD has them (CFG_IN <code>000101</code>, CFG_OUT <code>000100</code>, JPROGRAM, JSTART, IDCODE), so the stream looks like a real 7-series configuration.</p>
+      <p class="aside">A few are bob's own: CHAIN_IN / CHAIN_OUT load the whole memory as one long shift (the second configuration path), and CAPTURE reads every user flip-flop.</p>
+    </div>
+    <div class="stage" id="st-doors" tabindex="0"></div>
+  </div>
+</section>
+
+<section class="ch" id="stream">
+  <h2><span class="n">4</span>A stream of 32-bit words</h2>
+  <p class="lead">Through CFG_IN the bits arrive as 32-bit words, and the chip first has to find where a word starts.</p>
+  <div class="cols">
+    <div class="txt">
+      <p>The host sends <b>words</b>: 32 bits each, most significant bit first. But a stream of bits has no marks between words. So the stream starts with a <b>sync word</b>, <code>AA995566</code>, the same one every AMD bitstream uses.</p>
+      <p>The parser <b>hunts</b>: after every bit it checks whether the last 32 bits spell <code>AA995566</code>. The moment they do, it knows where every later word begins.</p>
+      <p>After the sync come <b>packets</b>: a header word saying which register to write and how many words follow, then the words. Most of the stream is one packet: the frames.</p>
+    </div>
+    <div class="stage" id="st-stream" tabindex="0"></div>
+  </div>
+</section>
+
+<section class="ch" id="header">
+  <h2><span class="n">5</span>Reading a packet header</h2>
+  <p class="lead">One word, four fields. This is how the brain knows what the next words mean.</p>
+  <div class="cols">
+    <div class="txt">
+      <p>A <b>type-1 header</b> (UG470 table 5-20) packs four things into 32 bits: the header type, an opcode (write, read or nothing), a register address, and a word count.</p>
+      <p>A <b>type-2 header</b> carries only a big count, 27 bits. It follows a type-1 header whose count was 0: that is how the frame data, far more than 2047 words, gets announced.</p>
+      <p class="bob"><b>In bob</b> the parser decodes exactly these fields, in <code>cfg_frames.v</code>'s states <code>ST_HDR → ST_T2 → ST_DATA</code>.</p>
+    </div>
+    <div class="stage" id="st-header" tabindex="0"></div>
+  </div>
+</section>
+
+<section class="ch" id="brain">
+  <h2><span class="n">6</span>The brain: bob's packet parser</h2>
+  <p class="lead">This is the configuration station: a small machine that reads packets and writes registers.</p>
+  <div class="cols">
+    <div class="txt">
+      <p>The <b>packet parser</b> (<code>hw/src/core/cfg_frames.v</code>, instance <code>u_frames</code>) is bob's configuration brain. It has a sync hunter, a word register, a three-state header decoder, a handful of <b>registers</b> and a <b>CRC</b> engine.</p>
+      <p>Each register does one job: <b>IDCODE</b> checks the stream is meant for this chip, <b>FAR</b> says which frame is next, <b>FDRI</b> takes frame data, <b>CMD</b> takes commands, <b>CRC</b> checks nothing was garbled, <b>STAT</b> reports.</p>
+      <p>Press <b>Play</b> to feed it the counter's real stream and watch each packet land.</p>
+      <p class="aside">AMD's configuration logic has the same registers at the same addresses; bob implements the subset it needs (docs/bitstream-format.md section 10).</p>
+    </div>
+    <div class="stage" id="st-brain" tabindex="0"></div>
+  </div>
+</section>
+
+<section class="ch" id="frame">
+  <h2><span class="n">7</span>One frame</h2>
+  <p class="lead">The configuration memory is cut into frames: the smallest piece that can be written or read.</p>
+  <div class="cols">
+    <div class="txt">
+      <p>A <b>frame</b> is 4 words = <b>128 bits</b>. FDRI words fill a 128-bit <b>frame buffer</b>; the fourth word completes it, and the frame is written into the memory at the address in <b>FAR</b>.</p>
+      <p><b>FAR</b>, the frame address register, is split like AMD's: a block type (configuration or BRAM contents), a column, and a <b>minor</b> number: which frame within the column. After every frame FAR counts up by itself, so one FDRI packet can fill the whole chip.</p>
+      <p class="aside">AMD 7-series frames are 101 words, and a column there is a column of the real die. bob's are 4 words, and a column is a column of bob's grid.</p>
+    </div>
+    <div class="stage" id="st-frame" tabindex="0"></div>
+  </div>
+</section>
+
+<section class="ch" id="grid">
+  <h2><span class="n">8</span>Where frames land on the grid</h2>
+  <p class="lead">Frames are column-major: FAR sweeps bob's grid one column at a time, bottom to top.</p>
+  <div class="cols">
+    <div class="txt">
+      <p>FAR column 0 is the <b>control column</b>: the user clock's settings. FAR column <i>c</i> = <i>x</i> + 1 is grid column <i>x</i>: every tile of that column, bottom to top, each tile starting on a frame boundary.</p>
+      <p>A column is as many frames as its tiles need. A CLB takes 5 frames, so a column of 10 CLBs plus its routing is 51. The BRAM column needs 7, the DSP column 10, the pad columns 3 and 1.</p>
+      <p>The last step lights the frames the counter actually uses: most of a design's frames are zeros, because most of the chip is idle.</p>
+    </div>
+    <div class="stage" id="st-grid" tabindex="0"></div>
+  </div>
+</section>
+
+<section class="ch" id="clbframes">
+  <h2><span class="n">9</span>Inside one CLB's five frames</h2>
+  <p class="lead">The real bits of the counter, in the CLB that holds it.</p>
+  <div class="cols">
+    <div class="txt">
+      <p>A CLB tile's five frames each have a job. The first holds 16 <b>crossbar selects</b> (which pin feeds each element input) and the 48 element <b>flags</b>. The next two hold the four <b>truth tables</b>, 64 bits each. The fourth holds the last 8 selects. The fifth holds the tile's <b>routing muxes</b>.</p>
+      <p>Each square is one bit; a filled one is a 1. This is exactly what the frame looked like on the wire.</p>
+    </div>
+    <div class="stage" id="st-clbframes" tabindex="0"></div>
+  </div>
+</section>
+
+<section class="ch" id="cells">
+  <h2><span class="n">10</span>Two kinds of memory cell</h2>
+  <p class="lead">A frame's bits end up in two very different places, and a third copy is kept for reading back.</p>
+  <div class="cols">
+    <div class="txt">
+      <p><b>Flip-flop bits</b> (routing selects, element flags) are ordinary host flip-flops in <code>cfg_store.v</code>. They take the whole frame on one falling TCK edge.</p>
+      <p><b>LUT bits</b> (truth tables and crossbar) live inside the host's <b>CFGLUT5</b> primitives, as ZUMA does. A CFGLUT5 can only be written by shifting: the <b>loader</b> (<code>lut_loader.v</code>) shifts 32 bits in over 32 TCK cycles, and only the CLB that owns the frame listens.</p>
+      <p>Every frame is also copied into a <b>shadow</b> block RAM. Reading back reads that copy, which saved a 128-bit wide, 256-way multiplexer: about 11,800 host LUTs.</p>
+    </div>
+    <div class="stage" id="st-cells" tabindex="0"></div>
+  </div>
+</section>
+
+<section class="ch" id="start">
+  <h2><span class="n">11</span>Checking, then starting</h2>
+  <p class="lead">Nothing starts until the brain is sure every bit arrived intact.</p>
+  <div class="cols">
+    <div class="txt">
+      <p>While the frames arrive, the CRC engine folds every written word into a 32-bit <b>CRC-32C</b>. The host sends the value it expects; the brain compares. Equal sets <b>CRC_OK</b>, and only then is <b>START</b> accepted.</p>
+      <p>Startup is then four steps on four TCK edges (UG470's order): release <b>GSR</b> (the flip-flops leave reset), release <b>GTS</b> (the outputs turn on), raise <b>GWE</b> (flip-flops and RAMs may change), raise <b>DONE</b>. The design runs.</p>
+      <p class="bob"><b>In bob</b> the startup sequencer is <code>cfg_ctrl.v</code> (<code>u_ctrl</code>), driven by the JSTART instruction.</p>
+    </div>
+    <div class="stage" id="st-start" tabindex="0"></div>
+  </div>
+</section>
+
+<section class="ch" id="readback">
+  <h2><span class="n">12</span>Reading it back</h2>
+  <p class="lead">The same brain runs backwards: frames out of the chip, over TDO, to be checked.</p>
+  <div class="cols">
+    <div class="txt">
+      <p>After every load the host reads the memory back and compares it with what it sent. It arms reading (<b>RCFG</b>), sets FAR to 0, and asks for a <b>READ of FDRO</b>: every frame, in order.</p>
+      <p>The words come out through the <b>CFG_OUT</b> door, one bit per TCK on TDO. <code>./bob load</code> reports <em>FDRO readback verified</em> only when all of them match.</p>
+    </div>
+    <div class="stage" id="st-readback" tabindex="0"></div>
+  </div>
+</section>
+
+<section class="ch" id="plan">
+  <h2><span class="n">13</span>The brain's floor plan</h2>
+  <p class="lead">Every part of bob's configuration logic, and who talks to whom.</p>
+  <div class="cols">
+    <div class="txt">
+      <p>bob is one Verilog module, <code>bob_fpga.v</code>, instance <code>u_core</code>. Around the fabric sit the parts that configure it: the TAP, the packet parser, the startup controller, the frame store with its shadow, the LUT loader, and the helpers for capture, BRAM and DSP access, the user clock and the pad ring.</p>
+      <p>The fabric itself never sees JTAG. It only sees its configuration bits, and the four global signals the brain controls: GSR, GTS, GWE and the user clock.</p>
+    </div>
+    <div class="stage" id="st-plan" tabindex="0"></div>
+  </div>
+</section>
+
+<section class="ch" id="die">
+  <h2><span class="n">14</span>Where it sits on the XC7Z020</h2>
+  <p class="lead">bob is itself a design inside a real chip. Here is where Vivado put each part.</p>
+  <div class="cols">
+    <div class="txt">
+      <p>The PYNQ-Z2's chip has an ARM processor side and a programmable-logic side: a grid of <b>slices</b> (each 4 LUTs and 8 flip-flops), with columns of block RAM and DSP. Every dot on the right is one site, coloured by the part of bob that uses it.</p>
+      <p>The guest fabric (CLBs and routing muxes) fills most of the chip. The brain is small, and Vivado places it where its wires are short: near the JTAG pins and the frame store.</p>
+      <p class="aside" id="dienote"></p>
+    </div>
+    <div class="stage" id="st-die" tabindex="0"></div>
+  </div>
+</section>
+
+<footer>
+  Generated by <code>docs/learn/frames/gen.py</code> from the chip's own data. Volume 2, the layers, is <a href="https://claude.ai/artifact/H7Sk39vinJtqpqwThZsNNK">bob, layer by layer</a>; volume 1, the pieces, is <a href="https://claude.ai/artifact/NxYMZQB9mLfusWduowi5k3">bob, bit by bit</a>. The format itself is <code>docs/bitstream-format.md</code> sections 9 to 17.
+</footer>
+</main>
+</div>
+
+<script>const DATA = /*DATA*/null;</script>
+<script>
+(function () {
+"use strict";
+const NS = "http://www.w3.org/2000/svg";
+const RM = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const D = DATA.dev, FM = DATA.fmap, ST = DATA.st, FP = DATA.fp;
+
+function E(tag, a, p) {
+  const e = document.createElementNS(NS, tag);
+  if (a) for (const k in a) e.setAttribute(k, a[k]);
+  if (p) p.appendChild(e);
+  return e;
+}
+function T(p, x, y, s, a) { const t = E("text", Object.assign({ x, y }, a || {}), p); t.textContent = s; return t; }
+function R(p, x, y, w, h, cls, extra) { return E("rect", Object.assign({ x, y, width: w, height: h, rx: 4, class: cls }, extra || {}), p); }
+function L(p, x1, y1, x2, y2, cls) { return E("line", { x1, y1, x2, y2, class: cls || "wire" }, p); }
+function P(p, d, cls) { return E("path", { d, class: cls || "wire" }, p); }
+function arrow(p, x1, y1, x2, y2) { return E("line", { x1, y1, x2, y2, class: "arrow" }, p); }
+function travel(p, d, dur, color, r) {
+  if (RM || !d) return;
+  const c = E("circle", { r: r || 5, class: "dot" }, p);
+  if (color) c.style.fill = color;
+  E("animateMotion", { dur: dur || "2.4s", repeatCount: "indefinite", path: d }, c);
+}
+function fmt(n) { return Number(n).toLocaleString("en-US"); }
+const hex = (w) => parseInt(w, 16) >>> 0;
+const bitsOf = (v, n) => { const out = []; for (let i = n - 1; i >= 0; i--) out.push((v >>> i) & 1); return out; };  // MSB first
+
+/* --- the stepper (volume 2's), each stage draws its steps cumulatively -------------------- */
+const stages = [];
+function stage(id, vb, steps, period) {
+  const host = document.getElementById(id);
+  const svg = E("svg", { viewBox: vb, role: "img", "aria-label": id.replace("st-", "") + " diagram" }, host);
+  const defs = E("defs", {}, svg);
+  const mk = E("marker", { id: "ah" + id, viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: "auto-start-reverse" }, defs);
+  E("path", { d: "M0 0 L10 5 L0 10 z", fill: "var(--muted)" }, mk);
+  svg.style.setProperty("--ah", `url(#ah${id})`);
+  const layer = E("g", {}, svg);
+  const say = document.createElement("p"); say.className = "say"; say.setAttribute("aria-live", "polite"); host.appendChild(say);
+  const ctl = document.createElement("div"); ctl.className = "ctl"; host.appendChild(ctl);
+  const back = document.createElement("button"); back.textContent = "← Back";
+  const next = document.createElement("button"); next.textContent = "Next →"; next.className = "primary";
+  const play = document.createElement("button"); play.textContent = "▶ Play";
+  const dots = document.createElement("span"); dots.className = "dots";
+  ctl.append(back, next, play, dots);
+  steps.forEach(() => dots.appendChild(document.createElement("i")));
+  let k = 0, timer = null;
+  function render(fresh) {
+    layer.replaceChildren();
+    const solo = steps[k].only;                         // an 'only' step replaces everything before it
+    steps.forEach((s, i) => {
+      if (i > k) return;
+      if ((solo || s.only) && i !== k) return;
+      const g = E("g", { class: fresh && i === k ? "fresh" : "" }, layer);
+      s.draw(g, i === k);
+    });
+    for (const a of layer.querySelectorAll(".arrow")) a.style.markerEnd = `url(#ah${id})`;   // inline: beats volume 2's #ah
+    say.innerHTML = `<b>${k + 1}/${steps.length}</b>` + steps[k].say;
+    back.disabled = k === 0;
+    next.disabled = k === steps.length - 1;
+    [...dots.children].forEach((d, i) => d.classList.toggle("on", i <= k));
+  }
+  function go(n) { k = Math.max(0, Math.min(steps.length - 1, n)); render(true); }
+  function stop() { if (timer) { clearInterval(timer); timer = null; play.textContent = "▶ Play"; } }
+  back.onclick = () => { stop(); go(k - 1); };
+  next.onclick = () => { stop(); go(k + 1); };
+  play.onclick = () => {
+    if (timer) return stop();
+    if (k === steps.length - 1) go(0);
+    play.textContent = "❚❚ Pause";
+    timer = setInterval(() => { if (k >= steps.length - 1) stop(); else go(k + 1); }, period || 2800);
+  };
+  host.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight") { stop(); go(k + 1); e.preventDefault(); }
+    if (e.key === "ArrowLeft") { stop(); go(k - 1); e.preventDefault(); }
+  });
+  render(false);
+  stages.push({ id: id.replace("st-", "") });
+}
+
+/* --- facts ------------------------------------------------------------------------------ */
+const shiftBits = ST.total * 32;
+document.getElementById("facts").innerHTML = [
+  ["frames", fmt(D.frames)], ["bits per frame", D.fbits], ["configuration bits", fmt(D.chain)],
+  ["words in the counter's stream", fmt(ST.total)], ["its CRC-32C", ST.crc], ["IDCODE", ST.idcode],
+].map(([a, b]) => `<span>${a} <b>${b}</b></span>`).join("");
+
+/* --- a packet header, decoded (UG470 table 5-20/5-21) ----------------------------------- */
+const REGS = { 0: "CRC", 1: "FAR", 2: "FDRI", 3: "FDRO", 4: "CMD", 7: "STAT", 12: "IDCODE" };
+const CMDS = { 0: "NULL", 1: "WCFG", 3: "LFRM", 4: "RCFG", 5: "START", 7: "RCRC", 8: "AGHIGH", 10: "GRESTORE", 13: "DESYNC" };
+function decode(w) {
+  const v = hex(w), t = v >>> 29;
+  if (v === 0xFFFFFFFF) return { what: "dummy" };
+  if (v === 0xAA995566) return { what: "sync word" };
+  if (t === 1) {
+    const op = (v >>> 27) & 3, reg = (v >>> 13) & 0x1F, cnt = v & 0x7FF;
+    if (op === 0) return { what: "NOP" };
+    return { what: `type 1: ${op === 2 ? "WRITE" : "READ"} ${REGS[reg] || reg}, ${cnt} word${cnt === 1 ? "" : "s"}`, reg: REGS[reg], cnt, op };
+  }
+  if (t === 2) return { what: `type 2: ${fmt(v & 0x7FFFFFF)} words`, cnt: v & 0x7FFFFFF };
+  return { what: "data" };
+}
+// the head of the stream, each word with what it means
+const HEAD = [];
+{
+  let i = 0;
+  const h = ST.head.concat(ST.fdri);
+  while (i < h.length) {
+    const d = decode(h[i]);
+    HEAD.push({ w: h[i], what: d.what });
+    if (d.reg && d.op === 2 && d.cnt) {
+      for (let j = 1; j <= d.cnt && i + j < h.length; j++) {
+        const v = hex(h[i + j]);
+        const val = d.reg === "CMD" ? `= ${CMDS[v] || v}` : d.reg === "IDCODE" ? "= this chip's IDCODE" : d.reg === "FAR" ? `= frame address ${v}` : "";
+        HEAD.push({ w: h[i + j], what: `   data ${val}`, data: true });
+      }
+      i += d.cnt + 1;
+    } else i++;
+  }
+}
+
+/* ======================= 1. the cable ==================================================== */
+const secs1 = (shiftBits / 1e6 * 1000).toFixed(0);
+stage("st-cable", "0 0 640 330", [
+  { say: `It starts on the Mac: <code>./bob load counter.bit</code>. The file holds the configuration, ${fmt(D.chain)} bits: one for every switch in bob.`,
+    draw(g) { R(g, 20, 40, 130, 90, "box"); T(g, 85, 76, "Mac", { class: "lbl", "text-anchor": "middle" }); T(g, 85, 100, "./bob load", { class: "mono", "text-anchor": "middle" }); } },
+  { say: "The Mac sends it over USB to a Raspberry Pi Pico running DirtyJTAG firmware.",
+    draw(g) { P(g, "M150 85 L225 85", "wire hot"); R(g, 225, 60, 110, 50, "warm"); T(g, 280, 90, "Pico", { class: "lbl", "text-anchor": "middle" }); T(g, 188, 76, "USB", { class: "small", "text-anchor": "middle" }); travel(g, "M150 85 L225 85", "1s"); } },
+  { say: "Four wires run from the Pico into the PYNQ-Z2's PMODA header, and on to bob's TAP: TCK (the clock), TMS (the mode), TDI (data in) and TDO (data out).",
+    draw(g) {
+      R(g, 430, 20, 190, 150, "box"); T(g, 525, 44, "PYNQ-Z2", { class: "lbl", "text-anchor": "middle" }); R(g, 470, 90, 110, 56, "pick"); T(g, 525, 122, "bob's TAP", { class: "small", "text-anchor": "middle" });
+      ["TCK", "TMS", "TDI", "TDO"].forEach((n, i) => { const y = 66 + i * 12; L(g, 335, y, 470, y + 28, i === 3 ? "wire on" : "wire hot"); T(g, 380, y - 1 + i * 4, n, { class: "mono" }); });
+    } },
+  { say: "TCK ticks. On each rising edge the chip reads TDI (and TMS), so one bit goes in per tick. Here are the first bits of the sync word <code>AA995566</code>.",
+    draw(g) {
+      const bits = bitsOf(0xAA995566, 32).slice(0, 16), x0 = 40, dx = 34;
+      let clk = `M${x0} 290`, dat = "";
+      bits.forEach((b, i) => { const x = x0 + i * dx; clk += ` L${x} 290 L${x} 270 L${x + dx / 2} 270 L${x + dx / 2} 290 L${x + dx} 290`; dat += `${i ? " L" : "M"}${x} ${b ? 212 : 232} L${x + dx} ${b ? 212 : 232}`; T(g, x + dx / 2, 250, String(b), { class: "mono", "text-anchor": "middle" }); });
+      P(g, clk, "wave"); P(g, dat, "wire hot");
+      T(g, 20, 285, "TCK", { class: "mono", "text-anchor": "end" }); T(g, 20, 226, "TDI", { class: "mono", "text-anchor": "end" });
+      travel(g, `M${x0} 200 L${x0 + 16 * dx} 200`, "4s");
+    } },
+  { say: `The counter's whole stream is ${fmt(ST.total)} words = ${fmt(shiftBits)} bits. At bob's 1 MHz TCK that is ${secs1} ms of shifting, plus the readback and the startup clocks.`,
+    draw(g) { R(g, 170, 150, 250, 40, "pick"); T(g, 295, 176, `${fmt(shiftBits)} bits · ${secs1} ms at 1 MHz`, { class: "mono", "text-anchor": "middle" }); } },
+  { say: "TDO carries bits back the other way: status, the IDCODE, and later the whole memory for checking. That wire is how the host knows what happened.",
+    draw(g) { travel(g, "M470 138 L335 102", "1.4s", "var(--acc)"); T(g, 400, 140, "status, readback", { class: "small", "text-anchor": "middle" }); } },
+]);
+
+/* ======================= 2. the TAP ======================================================= */
+// IEEE 1149.1's state diagram: two columns, DR on the left of IR
+const TS = {
+  TLR: [80, 30, "Test-Logic-Reset"], RTI: [80, 110, "Run-Test/Idle"],
+  SDR: [270, 110, "Select-DR"], CDR: [270, 175, "Capture-DR"], SHDR: [270, 240, "Shift-DR"], E1DR: [270, 305, "Exit1-DR"],
+  PDR: [270, 370, "Pause-DR"], UDR: [270, 435, "Update-DR"],
+  SIR: [480, 110, "Select-IR"], CIR: [480, 175, "Capture-IR"], SHIR: [480, 240, "Shift-IR"], E1IR: [480, 305, "Exit1-IR"],
+  PIR: [480, 370, "Pause-IR"], UIR: [480, 435, "Update-IR"],
+};
+function tapStates(g, on, path) {
+  if (path) for (let i = 1; i < path.length; i++) P(g, tapEdge(path[i - 1], path[i]), "edge on");
+  for (const k in TS) {
+    const [x, y, n] = TS[k];
+    const cls = "st" + (k.endsWith("DR") ? " dr" : k.endsWith("IR") ? " ir" : "") + (on && on.includes(k) ? " on" : "");
+    R(g, x - 70, y - 15, 140, 30, cls, { rx: 15 });
+    T(g, x, y + 5, n, { class: "small", "text-anchor": "middle", style: "font-size:12px;fill:var(--ink)" });
+  }
+}
+// an edge as the standard diagram draws it: straight within a column, round the outside
+// when it goes back up (Update -> Run-Test/Idle, Update-IR -> Select-DR)
+function tapEdge(a, b) {
+  const [x1, y1] = TS[a], [x2, y2] = TS[b];
+  if (y2 < y1 && x2 !== x1) return `M${x1} ${y1} L${x1} ${y1 + 22} L${x2 === 80 ? 170 : x2 + 95} ${y1 + 22} L${x2 === 80 ? 170 : x2 + 95} ${y2} L${x2} ${y2}`;
+  return `M${x1} ${y1} L${x2} ${y2}`;
+}
+function tapWalk(g, path, bits) {
+  const d = path.slice(1).map((k, i) => tapEdge(path[i], k).replace(/^M[^L]*/, i ? "" : `M${TS[path[0]][0]} ${TS[path[0]][1]} `)).join(" ");
+  travel(g, d, `${Math.max(1.5, path.length * 0.5)}s`, null, 6);
+  if (bits) T(g, 620, 30, "TMS " + bits, { class: "mono", "text-anchor": "end" });
+}
+stage("st-tap", "0 0 640 480", [
+  { say: "The 16 states (two groups of 7, plus two). Blue: the data-register (DR) branch. Violet: the instruction-register (IR) branch.",
+    only: true, draw(g) { tapStates(g, []); } },
+  { say: "Hold TMS at 1 for five ticks and, from anywhere, the TAP lands in <b>Test-Logic-Reset</b>. That is how the host always starts: from a known state.",
+    only: true, draw(g) { tapStates(g, ["TLR"]); T(g, 620, 30, "TMS 1 1 1 1 1", { class: "mono", "text-anchor": "end" }); } },
+  { say: "TMS 0: <b>Run-Test/Idle</b>, the resting state between jobs.", only: true,
+    draw(g) { tapStates(g, ["RTI"], ["TLR", "RTI"]); tapWalk(g, ["TLR", "RTI"], "0"); } },
+  { say: "TMS 1, 1, 0, 0: across to the IR branch, <b>Capture-IR</b>, then <b>Shift-IR</b>. Now TDI's bits go into the instruction register.", only: true,
+    draw(g) { const p = ["RTI", "SDR", "SIR", "CIR", "SHIR"]; tapStates(g, ["SHIR"], p); tapWalk(g, p, "1 1 0 0"); } },
+  { say: "Six ticks shift in <code>000101</code> = <b>CFG_IN</b>, least significant bit first. TMS 1, 1: <b>Exit1-IR</b>, <b>Update-IR</b>: the new instruction takes effect now.", only: true,
+    draw(g) {
+      const p = ["SHIR", "E1IR", "UIR"]; tapStates(g, ["UIR"], p); tapWalk(g, p, "1 1");
+      [1, 0, 1, 0, 0, 0].forEach((b, i) => { R(g, 560 + i * 12, 226, 11, 11, "bit" + (b ? " one" : ""), { rx: 1 }); });
+      T(g, 596, 258, "IR ← CFG_IN", { class: "mono", "text-anchor": "middle" });
+    } },
+  { say: "TMS 1, 0, 0: <b>Select-DR</b>, <b>Capture-DR</b>, <b>Shift-DR</b>. From here every tick pushes one bit of the stream through the door CFG_IN opened.", only: true,
+    draw(g) { const p = ["UIR", "SDR", "CDR", "SHDR"]; tapStates(g, ["SHDR"], p); tapWalk(g, p, "1 0 0"); } },
+  { say: `The TAP stays in Shift-DR for all ${fmt(shiftBits)} bits (TMS 0 each time), then TMS 1, 1, 0: Exit1-DR, Update-DR, back to Idle. The TAP never looks at the data: it only steers it.`, only: true,
+    draw(g) { const p = ["SHDR", "E1DR", "UDR", "RTI"]; tapStates(g, ["SHDR", "RTI"], p); tapWalk(g, p, "0 … 0 1 1 0"); } },
+]);
+
+/* ======================= 3. the doors ===================================================== */
+const DOORS = [
+  ["IDCODE", "001001", "32 bits", `reads ${ST.idcode}: this is bob, M25`],
+  ["BYPASS", "111111", "1 bit", "a single flip-flop: the chip steps aside"],
+  ["CFG_IN", "000101", "any length", "the packet stream into the brain"],
+  ["CFG_OUT", "000100", "32 × words", "words out of the brain: readback, status"],
+  ["JPROGRAM", "001011", "1 bit", "clear everything: the fabric goes dark"],
+  ["JSTART", "001100", "1 bit", "run the startup sequence"],
+  ["CHAIN_IN", "110101", `${fmt(D.chain)} bits`, "bob's second path: the whole memory in one shift"],
+  ["CAPTURE", "100010", "every flip-flop", "read the running design's state"],
+  ["USER1", "000010", "32 bits", "step the user clock, carry-in, status"],
+];
+stage("st-doors", "0 0 640 420", DOORS.map((dr, n) => ({
+  say: `<b>${dr[0]}</b> (<code>${dr[1]}</code>): ${dr[3]}.`,
+  only: true,
+  draw(g) {
+    R(g, 20, 180, 110, 50, "box"); T(g, 75, 200, "IR", { class: "lbl", "text-anchor": "middle" });
+    dr[1].split("").forEach((b, i) => R(g, 36 + i * 13, 208, 12, 12, "bit" + (b === "1" ? " one" : ""), { rx: 1 }));
+    L(g, 0, 155, 150, 155, "wire hot"); T(g, 4, 148, "TDI", { class: "mono" });
+    DOORS.forEach((d, i) => {
+      const y = 20 + i * 44, on = i === n;
+      R(g, 250, y, 360, 36, on ? "pick" : "box");
+      T(g, 262, y + 16, d[0], { class: "mono", style: on ? "font-weight:600" : "" });
+      T(g, 262, y + 30, d[2], { class: "small" });
+      T(g, 380, y + 23, d[3], { class: "small", style: "font-size:11px" });
+      if (on) { P(g, `M150 155 C200 155, 200 ${y + 18}, 250 ${y + 18}`, "wire hot"); travel(g, `M150 155 C200 155, 200 ${y + 18}, 250 ${y + 18}`, "1.2s"); }
+    });
+  },
+})));
+
+/* ======================= 4. the stream ==================================================== */
+function wordRows(g, rows, x, y, hl) {
+  rows.forEach((r, i) => {
+    const yy = y + i * 19;
+    if (hl && hl(i, r)) R(g, x - 6, yy - 13, 540, 17, "warm", { rx: 3 });
+    T(g, x, yy, r.w, { class: "mono", style: "font-size:12.5px" });
+    T(g, x + 90, yy, r.what, { class: "small", style: r.data ? "fill:var(--muted)" : "fill:var(--ink)" });
+  });
+}
+const syncBits = [].concat(bitsOf(0xFFFFFFFF, 32).slice(16), bitsOf(0xAA995566, 32));   // the last dummy half + sync
+stage("st-stream", "0 0 640 340", [
+  { say: "The stream arrives as bits. Before the sync word there are dummy words, all ones: the parser can't tell yet where a word starts.",
+    only: true,
+    draw(g) {
+      syncBits.forEach((b, i) => R(g, 14 + i * 12.6, 40, 11, 18, "bit" + (b ? " one" : ""), { rx: 1 }));
+      T(g, 14, 30, "…the end of the dummy words, then the sync word, bit by bit", { class: "small" });
+    } },
+  { say: "The hunter slides a 32-bit window along, one bit per tick, and compares it with <code>AA995566</code>. No match…",
+    only: true,
+    draw(g) {
+      syncBits.forEach((b, i) => R(g, 14 + i * 12.6, 40, 11, 18, "bit" + (b ? " one" : ""), { rx: 1 }));
+      const w = R(g, 12, 36, 32 * 12.6, 26, "pick", { style: "fill:none" });
+      if (!RM) E("animate", { attributeName: "x", values: `12;${12 + 12.6 * 15};${12 + 12.6 * 15}`, dur: "4s", repeatCount: "indefinite" }, w);
+      T(g, 14, 88, "window ≠ AA995566", { class: "mono" });
+    } },
+  { say: "…until the last 32 bits read exactly <code>AA995566</code>. SYNCED: from now on every 32 bits is one word, and the parser reads them as packets.",
+    only: true,
+    draw(g) {
+      syncBits.forEach((b, i) => R(g, 14 + i * 12.6, 40, 11, 18, "bit" + (b ? " one" : ""), { rx: 1 }));
+      R(g, 12 + 12.6 * 16, 36, 32 * 12.6, 26, "pick", { style: "fill:none;stroke-width:2.4" });
+      T(g, 14 + 12.6 * 32, 88, "AA995566 = SYNCED", { class: "mono", "text-anchor": "middle", style: "fill:var(--acc);font-weight:600" });
+    } },
+  { say: "The counter's stream, word by word, until the frames start. Each header says what the next words are for; the brain obeys it.",
+    only: true, draw(g) { wordRows(g, HEAD, 30, 24, (i, r) => r.what === "sync word"); } },
+  { say: `Then one <b>FDRI</b> packet: a type-1 header with count 0, a type-2 header with the real count, <b>${fmt(ST.count)}</b> words = ${fmt(ST.count / D.fwords)} frames × ${D.fwords} words. That is ${Math.round(ST.count / ST.total * 100)}% of the whole stream.`,
+    only: true,
+    draw(g) {
+      wordRows(g, HEAD.slice(-2), 30, 24, () => true);
+      R(g, 30, 70, 540, 160, "cfgbit"); T(g, 300, 140, `${fmt(ST.count)} frame words`, { class: "lbl", "text-anchor": "middle" });
+      T(g, 300, 164, ST.first.slice(0, 4).join(" ") + " …", { class: "mono", "text-anchor": "middle" });
+    } },
+  { say: `And the end: the expected <b>CRC</b> (<code>${ST.crc}</code>), <b>LFRM</b> (last frame), <b>START</b>, <b>DESYNC</b> (stop listening), and padding. ${fmt(ST.total)} words in all.`,
+    only: true,
+    draw(g) {
+      const rows = []; let i = 0;
+      while (i < ST.tail.length) {
+        const d = decode(ST.tail[i]); rows.push({ w: ST.tail[i], what: d.what });
+        if (d.reg && d.cnt === 1 && i + 1 < ST.tail.length) { const v = hex(ST.tail[i + 1]); rows.push({ w: ST.tail[i + 1], what: d.reg === "CMD" ? `   data = ${CMDS[v] || v}` : "   data = the CRC the host computed", data: true }); i += 2; }
+        else i++;
+      }
+      wordRows(g, rows, 30, 24, (j, r) => /CRC|START/.test(r.what));
+    } },
+]);
+
+/* ======================= 5. a header, decoded ============================================== */
+const FIELDS = [["f-type", 31, 29, "type"], ["f-op", 28, 27, "opcode"], ["f-reg", 26, 13, "register"], ["", 12, 11, ""], ["f-cnt", 10, 0, "count"]];
+function wordBits(g, w, y, upto, lbl) {
+  const v = hex(w), bw = 18;
+  T(g, 20, y - 26, lbl || w, { class: "mono", style: "font-size:13px;font-weight:600" });
+  for (let b = 31; b >= 0; b--) {
+    const x = 20 + (31 - b) * bw;
+    const f = FIELDS.find(ff => b <= ff[1] && b >= ff[2]);
+    const shown = upto != null && FIELDS.indexOf(f) <= upto;
+    R(g, x, y - 16, bw - 2, 22, "bit " + (shown ? f[0] : ""), { rx: 1 });
+    T(g, x + (bw - 2) / 2, y, String((v >>> b) & 1), { class: "mono", "text-anchor": "middle" });
+  }
+  return v;
+}
+function fieldLabel(g, fi, y, text) {
+  const [, hi, lo] = FIELDS[fi], bw = 18;
+  const x1 = 20 + (31 - hi) * bw, x2 = 20 + (31 - lo) * bw + bw - 2;
+  P(g, `M${x1} ${y} L${x1} ${y + 6} L${x2} ${y + 6} L${x2} ${y}`, "wire");
+  T(g, (x1 + x2) / 2, y + 22, text, { class: "small", "text-anchor": "middle", style: "fill:var(--ink)" });
+}
+const H1 = "30008001", H2 = "00000007", FD1 = ST.fdri[0], FD2 = ST.fdri[1];
+stage("st-header", "0 0 620 380", [
+  { say: `Take the header <code>${H1}</code>, written out as its 32 bits.`,
+    draw(g) { wordBits(g, H1, 60, -1); } },
+  { say: "Bits 31 to 29 are <b>001</b>: a type-1 header.",
+    only: true, draw(g) { wordBits(g, H1, 60, 0); fieldLabel(g, 0, 70, "001 = type 1"); } },
+  { say: "Bits 28 and 27 are the opcode: <b>10</b> = WRITE (01 would be READ, 00 nothing).",
+    only: true, draw(g) { wordBits(g, H1, 60, 1); fieldLabel(g, 0, 70, "type 1"); fieldLabel(g, 1, 70, "WRITE"); } },
+  { say: "Bits 26 to 13 are the register address. Only the low five can be non-zero: <b>00100</b> = register 4, <b>CMD</b>.",
+    only: true, draw(g) { wordBits(g, H1, 60, 2); fieldLabel(g, 0, 70, "type 1"); fieldLabel(g, 1, 70, "WRITE"); fieldLabel(g, 2, 70, "00100 = CMD"); } },
+  { say: "Bits 10 to 0 count the words that follow: <b>1</b>. So: write one word into CMD.",
+    only: true, draw(g) { wordBits(g, H1, 60, 4); fieldLabel(g, 0, 70, "type 1"); fieldLabel(g, 1, 70, "WRITE"); fieldLabel(g, 2, 70, "CMD"); fieldLabel(g, 4, 70, "1 word"); } },
+  { say: `The next word is that one: <code>${H2}</code> = 7 = <b>RCRC</b>, reset the CRC. The brain is now counting from a clean CRC.`,
+    draw(g) { wordBits(g, H1, 60, 4); wordBits(g, H2, 150, null, `${H2}  → CMD = RCRC`); } },
+  { say: `The frame data needs a bigger count than 11 bits allow. <code>${FD1}</code> says WRITE FDRI with count 0, and <code>${FD2}</code> is a <b>type-2</b> header: its low 27 bits are the count, ${fmt(ST.count)}.`,
+    only: true,
+    draw(g) {
+      wordBits(g, FD1, 60, 4, `${FD1}  → WRITE FDRI, count 0`);
+      wordBits(g, FD2, 180, null, `${FD2}  → type 2: ${fmt(ST.count)} words`);
+      fieldLabel(g, 2, 70, "00010 = FDRI");
+    } },
+]);
+
+/* ======================= 6. the brain ====================================================== */
+const BR = { hunt: [20, 60, 120, 60, "sync hunter"], word: [20, 170, 120, 60, "word register"], hdr: [180, 170, 140, 60, "header decoder"],
+  crc: [180, 300, 140, 56, "CRC-32C engine"] };
+const REGBOX = [["IDCODE", 380, 40], ["CMD", 380, 100], ["FAR", 380, 160], ["FDRI", 380, 220], ["CRC", 380, 280], ["STAT", 380, 340]];
+const STATB = ["SYNCED", "ID OK", "WCFG", "CRC_OK", "START"];
+function brainBase(g, lit, stat, note) {
+  L(g, 0, 90, 20, 90, "wire hot"); T(g, 2, 82, "TDI", { class: "mono" });
+  for (const k in BR) { const [x, y, w, h, n] = BR[k]; R(g, x, y, w, h, lit && lit.includes(k) ? "reg on" : "reg"); T(g, x + w / 2, y + h / 2 + 5, n, { class: "small", "text-anchor": "middle", style: "fill:var(--ink)" }); }
+  arrow(g, 80, 120, 80, 168); arrow(g, 140, 200, 178, 200); arrow(g, 250, 230, 250, 298);
+  REGBOX.forEach(([n, x, y]) => { R(g, x, y, 120, 44, lit && lit.includes(n) ? "reg on" : "reg"); T(g, x + 60, y + 27, n, { class: "mono", "text-anchor": "middle" }); P(g, `M320 200 C350 200, 350 ${y + 22}, 378 ${y + 22}`, "edge"); });
+  T(g, 245, 30, "u_frames (cfg_frames.v)", { class: "lbl", "text-anchor": "middle" });
+  R(g, 530, 40, 100, 150, "box"); T(g, 580, 58, "STAT bits", { class: "small", "text-anchor": "middle" });
+  STATB.forEach((s, i) => { E("circle", { cx: 546, cy: 80 + i * 24, r: 6, class: stat && stat.includes(s) ? "ok" : "off" }, g); T(g, 558, 84 + i * 24, s, { class: "mono", style: "font-size:10px" }); });
+  R(g, 530, 230, 100, 50, "box"); T(g, 580, 252, "→ frame store", { class: "small", "text-anchor": "middle" }); T(g, 580, 268, "u_store", { class: "mono", "text-anchor": "middle" });
+  R(g, 530, 300, 100, 50, "box"); T(g, 580, 322, "→ startup", { class: "small", "text-anchor": "middle" }); T(g, 580, 338, "u_ctrl", { class: "mono", "text-anchor": "middle" });
+  if (note) { R(g, 20, 400, 610, 30, "warm"); T(g, 325, 420, note, { class: "mono", "text-anchor": "middle" }); }
+}
+const ev = [
+  ["The parser's parts. Bits enter at the sync hunter; a word register collects 32 of them; the header decoder reads each word; the registers take the data; the CRC engine watches every write.", [], [], ""],
+  ["<code>AA995566</code>: the hunter matches, <b>SYNCED</b>. From here on the word register fills every 32 ticks.", ["hunt"], ["SYNCED"], "AA995566 → SYNCED"],
+  ["<code>30008001 00000007</code>: WRITE CMD = <b>RCRC</b>. The CRC engine resets to 0.", ["hdr", "CMD", "crc"], ["SYNCED"], "30008001 00000007 → CMD = RCRC"],
+  [`<code>30018001 ${ST.idcode}</code>: WRITE <b>IDCODE</b>. It matches this chip, so frame writes will be allowed.`, ["hdr", "IDCODE", "crc"], ["SYNCED", "ID OK"], `30018001 ${ST.idcode} → IDCODE ok`],
+  ["<code>30002001 00000000</code>: WRITE <b>FAR</b> = 0: the first frame goes to column 0, minor 0.", ["hdr", "FAR", "crc"], ["SYNCED", "ID OK"], "30002001 00000000 → FAR = 0"],
+  ["<code>30008001 00000001</code>: CMD = <b>WCFG</b>: frame writes are armed.", ["hdr", "CMD", "crc"], ["SYNCED", "ID OK", "WCFG"], "30008001 00000001 → CMD = WCFG"],
+  [`The FDRI packet: ${fmt(ST.count)} words. Every 4th completes a frame; the frame goes to the frame store at FAR, and FAR moves on. The CRC engine folds in every word.`, ["hdr", "FDRI", "FAR", "crc"], ["SYNCED", "ID OK", "WCFG"], `FDRI × ${fmt(ST.count)} → ${fmt(D.frames)} frames`],
+  [`<code>30000001 ${ST.crc}</code>: WRITE CRC. The host's value equals the engine's: <b>CRC_OK</b>. One wrong bit anywhere would have stopped everything here.`, ["hdr", "CRC", "crc"], ["SYNCED", "ID OK", "WCFG", "CRC_OK"], `30000001 ${ST.crc} → CRC ok`],
+  ["CMD = <b>LFRM</b>, then <b>START</b>: accepted, because CRC_OK is set. The startup controller may now run.", ["hdr", "CMD"], ["SYNCED", "ID OK", "WCFG", "CRC_OK", "START"], "CMD = LFRM, CMD = START"],
+  ["CMD = <b>DESYNC</b>: the parser goes back to hunting. The stream is over.", ["hunt"], ["ID OK", "WCFG", "CRC_OK", "START"], "CMD = DESYNC"],
+];
+stage("st-brain", "0 0 650 440", ev.map(([say, lit, stat, note]) => ({ say, only: true, draw(g) { brainBase(g, lit, stat, note); if (lit.includes("FDRI")) travel(g, "M500 242 L528 255", "0.8s"); } })), 3400);
+
+/* ======================= 7. one frame ===================================================== */
+const f0words = (() => { const h = ST.frames[String(ST.nonzero.find(f => FM[f][0] === "xbar" || FM[f][0] === "init") || ST.nonzero[0])];
+  const out = []; for (let w = 0; w < 4; w++) out.push(parseInt(h.slice(32 - 8 * (w + 1), 32 - 8 * w), 16) >>> 0); return out; })();
+function frameBuf(g, nw) {
+  T(g, 20, 30, "frame buffer: 4 words × 32 bits = 128 bits", { class: "small" });
+  for (let w = 0; w < 4; w++) {
+    T(g, 20, 58 + w * 26, `w${w}`, { class: "mono" });
+    for (let b = 0; b < 32; b++) R(g, 50 + b * 15, 45 + w * 26, 13, 18, "bit" + (w < nw && (f0words[w] >>> b) & 1 ? " one" : ""), { rx: 1, style: w < nw ? "" : "opacity:0.35" });
+  }
+}
+function farBox(g, col, minor, y) {
+  const parts = [["type", "000", 3], ["t/b", "0", 1], ["row", "00000", 5], ["column", col.toString(2).padStart(10, "0"), 10], ["minor", minor.toString(2).padStart(7, "0"), 7]];
+  let x = 50;
+  T(g, 20, y - 10, "FAR", { class: "lbl" });
+  parts.forEach(([n, bits, len]) => {
+    for (let i = 0; i < len; i++) R(g, x + i * 14, y, 13, 18, "bit" + (bits[i] === "1" ? " one" : ""), { rx: 1 });
+    T(g, x + len * 7, y + 34, n, { class: "small", "text-anchor": "middle" }); x += len * 14 + 8;
+  });
+  T(g, x + 10, y + 14, `column ${col}, minor ${minor}`, { class: "mono" });
+}
+const fcol = FM.findIndex(k => k[0] !== "ctrl");
+stage("st-frame", "0 0 640 330", [
+  { say: "An empty frame buffer: four rows of 32 bits.", only: true, draw(g) { frameBuf(g, 0); farBox(g, 1, 0, 190); } },
+  { say: "The first FDRI word fills row 0. (These are real bits: a frame of the counter.)", only: true, draw(g) { frameBuf(g, 1); farBox(g, 1, 0, 190); } },
+  { say: "Word 2, word 3…", only: true, draw(g) { frameBuf(g, 3); farBox(g, 1, 0, 190); } },
+  { say: "The 4th word completes the frame, and on the next falling TCK edge the whole 128 bits are written into memory at FAR, here column 1, minor 0.", only: true,
+    draw(g) { frameBuf(g, 4); farBox(g, 1, 0, 190); R(g, 45, 40, 490, 108, "pick", { style: "fill:none;stroke-width:2.4" }); } },
+  { say: "FAR counts up by itself: minor 1. The next four words make the next frame. Nobody has to send a new address.", only: true, draw(g) { frameBuf(g, 0); farBox(g, 1, 1, 190); } },
+  { say: `Past a column's last frame (column 1 has ${D.cols[1][3]}), FAR jumps to minor 0 of the next column. So one FDRI packet walks the whole chip, column by column: ${fmt(D.frames)} frames.`, only: true,
+    draw(g) { frameBuf(g, 0); farBox(g, 2, 0, 190); T(g, 20, 290, `column 1 minor ${D.cols[1][3] - 1} → column 2 minor 0`, { class: "mono", style: "fill:var(--acc)" }); } },
+]);
+
+/* ======================= 8. frames on the grid ============================================= */
+const CS = 34, OX = 40, OY = 26;
+const gx = x => OX + x * CS, gy = y => OY + (D.h - 1 - y) * CS;
+function grid(g, dim) {
+  D.cells.forEach(([x, y, t, h]) => R(g, gx(x) + 1, gy(y + h - 1) + 1, CS - 2, h * CS - 2, t, { rx: 3, style: dim ? "opacity:0.5" : "" }));
+  for (let x = 0; x < D.w; x++) T(g, gx(x) + CS / 2, OY - 6, "x" + x, { class: "mono", "text-anchor": "middle", style: "font-size:9px;fill:var(--muted)" });
+}
+const colOf = Object.fromEntries(D.cols.filter(c => c[1] !== null).map(c => [c[1], c]));
+function colFrames(g, upto, lightNZ) {
+  // a bar under each grid column: its frames, one tick each
+  D.cols.forEach(([fc, x, base, cnt]) => {
+    if (fc > upto) return;
+    const X = x === null ? 4 : gx(x) + 4, W = x === null ? 30 : CS - 8;
+    const y0 = gy(-1) + 26;
+    for (let i = 0; i < cnt; i++) {
+      const f = base + i, k = FM[f][0];
+      const lit = lightNZ ? ST.nonzero.includes(f) : true;
+      R(g, X, y0 + i * 2.2, W, 1.8, "kind-" + k, { rx: 0, style: lit ? "" : "opacity:0.18" });
+    }
+    T(g, X + W / 2, y0 + cnt * 2.2 + 11, "c" + fc, { class: "mono", "text-anchor": "middle", style: "font-size:9px;fill:var(--muted)" });
+  });
+}
+const GH = gy(-1) + 26 + 51 * 2.2 + 26;
+function ownerCells(g, list, cls) {
+  list.forEach(f => { const [k, x, y] = FM[f]; if (x >= 0) R(g, gx(x) + 3, gy(y) + 3, CS - 6, CS - 6, "kind-" + k, { rx: 2, style: "opacity:0.8" }); });
+}
+const clbCol = D.cols.find(c => c[1] !== null && c[3] === 51);
+stage("st-grid", `0 0 ${OX + D.w * CS + 10} ${GH}`, [
+  { say: `bob's grid, ${D.w} × ${D.h}: CLBs, the BRAM column, the DSP column, pads around the edge. The numbers under it are grid columns x.`,
+    draw(g) { grid(g); } },
+  { say: "Under each grid column x, its <b>frames</b>, stacked: one thin bar per frame, coloured by what it holds, with its FAR column c = x + 1. FAR column c0 (far left) is the control column, which has no tile.",
+    draw(g) { colFrames(g, 99, false); } },
+  { say: `Colours: <span style="color:var(--acc)">■</span> crossbar selects and flags, <span style="color:var(--cfg)">■</span> truth tables (both in CFGLUT5), <span style="color:var(--hi)">■</span> routing in flip-flops, blue BRAM fields, brown DSP fields, red the control frame.`,
+    draw() {} },
+  { say: `Follow FAR through one CLB column (grid column ${clbCol[1]}, FAR column ${clbCol[0]}): ${clbCol[3]} frames, the bottom pad tile first, then 5 per CLB, bottom to top.`,
+    draw(g) {
+      const tiles = [...new Set(FM.slice(clbCol[2], clbCol[2] + clbCol[3]).map(k => k[2]))];
+      const d = tiles.map((y, i) => `${i ? "L" : "M"}${gx(clbCol[1]) + CS / 2} ${gy(y) + CS / 2}`).join(" ");
+      R(g, gx(clbCol[1]), OY, CS, D.h * CS, "pick", { style: "fill:none;stroke-width:2.4" });
+      travel(g, d, "4s", "var(--acc)", 7);
+    } },
+  { say: `The counter needs only <b>${ST.nonzero.length}</b> of the ${fmt(D.frames)} frames to be non-zero; the rest are zeros (switches off). Here they are, and the tiles they belong to.`,
+    only: true,
+    draw(g) { grid(g, true); colFrames(g, 99, true); ownerCells(g, ST.nonzero); } },
+]);
+
+/* ======================= 9. one CLB's frames =============================================== */
+// the counter is all adders in Double Duty mode, so its truth tables are empty: this chapter
+// shows the busiest CLB of fir16 (gen.py busiest_clb), whose tables are full
+const CB = DATA.clb;
+const ROLE = { xbar: "crossbar selects + flags", init: "truth tables", route: "routing multiplexers" };
+function frameRow(g, fr, y) {
+  const [f, kind, h] = fr, v = BigInt("0x" + h);
+  let ones = 0;
+  for (let b = 0; b < 128; b++) { const one = (v >> BigInt(b)) & 1n; ones += one ? 1 : 0; R(g, 150 + (b % 64) * 7.2, y + Math.floor(b / 64) * 9, 6.4, 7.6, "bit" + (one ? " one" : ""), { rx: 1 }); }
+  T(g, 20, y + 9, `frame ${f}`, { class: "mono" });
+  T(g, 20, y + 22, `${ROLE[kind]} · ${ones} ones`, { class: "small" });
+}
+const nInit = CB.frames.filter(f => f[1] === "init").length;
+stage("st-clbframes", "0 0 640 380", CB.frames.map((fr, i) => ({
+  say: i === 0 ? `The counter's CLBs are adders, whose tables stay empty, so here is a busier one: the CLB at (${CB.xy.join(", ")}) in the <b>${CB.example}</b> example. Its first frame: crossbar selects (which pin feeds each element input) and the element flags. Each pattern row is 64 bits; a filled square is a 1.`
+     : fr[1] === "init" ? `Frame ${fr[0]}: truth tables, ${1 << D.K} bits per element, two elements per frame. Every filled square is one row of a truth table that outputs 1.`
+     : fr[1] === "xbar" ? `Frame ${fr[0]}: the remaining crossbar selects.`
+     : `Frame ${fr[0]}: this tile's routing multiplexers, in flip-flops. A few bits here decide which wires reach the CLB's pins.`,
+  draw(g) { frameRow(g, fr, 20 + i * 70); },
+})));
+
+/* ======================= 10. two kinds of cell ============================================= */
+function lutShift(g, x, y) {
+  for (let i = 0; i < 32; i++) R(g, x + i * 8, y, 7, 14, "bit", { rx: 1 });
+  const c = R(g, x, y, 7, 14, "bit one", { rx: 1 });
+  if (!RM) E("animate", { attributeName: "x", from: x, to: x + 31 * 8, dur: "3.2s", repeatCount: "indefinite" }, c);
+}
+stage("st-cells", "0 0 640 420", [
+  { say: "A completed frame sits in the frame buffer, in <code>cfg_store.v</code>.", draw(g) { R(g, 20, 180, 150, 60, "pick"); T(g, 95, 206, "frame buffer", { class: "small", "text-anchor": "middle" }); T(g, 95, 224, "128 bits", { class: "mono", "text-anchor": "middle" }); } },
+  { say: "If it is a routing or flag frame, its bits go to ordinary host <b>flip-flops</b>: all 128 at once, on one falling TCK edge.",
+    draw(g) { arrow(g, 170, 200, 250, 90); R(g, 250, 40, 360, 90, "box"); T(g, 262, 60, "configuration flip-flops (cfg_store)", { class: "small" }); for (let i = 0; i < 32; i++) R(g, 262 + i * 10.5, 80, 9, 30, "ff"); } },
+  { say: "If it is a LUT frame, the <b>loader</b> (<code>lut_loader.v</code>) takes it and <b>shifts</b> it into CFGLUT5 primitives, one bit per TCK for 32 ticks. Only the CLB whose frame it is has its shift-enable (CE) on.",
+    draw(g) { arrow(g, 170, 210, 250, 210); R(g, 250, 160, 360, 110, "box"); T(g, 262, 180, "loader → CFGLUT5 (in the owning CLB)", { class: "small" }); lutShift(g, 262, 200); lutShift(g, 262, 230); } },
+  { say: "Every frame is also written into the <b>shadow</b>, a block RAM of frames. That copy is what readback reads.",
+    draw(g) { arrow(g, 170, 225, 250, 330); R(g, 250, 300, 360, 80, "box"); T(g, 262, 320, "shadow block RAM: every frame written", { class: "small" }); for (let i = 0; i < 24; i++) R(g, 262 + i * 14, 340, 12, 26, "cfgbit" + (i < 9 ? " set" : ""), { rx: 1 }); } },
+  { say: "<b>JPROGRAM</b> undoes it all: the flip-flops clear at once, the loader sweeps zeros through every CFGLUT5 for 32 ticks, and the shadow marks every frame invalid. The fabric is dark again.",
+    draw(g) {
+      R(g, 20, 20, 170, 40, "warm"); T(g, 105, 45, "JPROGRAM: clear", { class: "mono", "text-anchor": "middle" });
+      [[250, 40, 90], [250, 160, 110], [250, 300, 80]].forEach(([x, y, h]) => { const r = R(g, x, y, 360, h, "box"); r.style.opacity = 0.82; T(g, x + 180, y + h / 2 + 5, "cleared", { class: "mono", "text-anchor": "middle", style: "fill:var(--muted)" }); });
+    } },
+]);
+
+/* ======================= 11. check and start =============================================== */
+const PH = [["GSR", "flip-flops leave reset", 1, 0], ["GTS", "outputs turn on", 1, 0], ["GWE", "writes enabled", 0, 1], ["DONE", "configured", 0, 1]];
+function startWave(g, phase) {
+  PH.forEach(([n, what, from, to], i) => {
+    const y = 90 + i * 60, xs = 180, step = 90;
+    T(g, 20, y + 4, n, { class: "mono" }); T(g, 20, y + 20, what, { class: "small" });
+    const at = xs + (i + 1) * step, val = (x) => (x >= at && phase > i ? to : from);
+    let d = `M${xs} ${val(xs) ? y - 12 : y + 12}`;
+    for (let x = xs; x <= xs + 5 * step; x += step / 2) d += ` L${x} ${val(x) ? y - 12 : y + 12}`;
+    P(g, d, phase > i ? "wire on" : "wave");
+  });
+  for (let t = 1; t <= 4; t++) { L(g, 180 + t * 90, 60, 180 + t * 90, 330, "edge"); T(g, 180 + t * 90, 50, `tick ${t}`, { class: "small", "text-anchor": "middle" }); }
+}
+stage("st-start", "0 0 640 400", [
+  { say: `Every WRITE word goes into the CRC-32C: ${fmt(ST.count + 12)} words in the counter's stream. The host computed the same CRC from the file: <code>${ST.crc}</code>.`,
+    only: true, draw(g) { R(g, 60, 80, 220, 70, "reg on"); T(g, 170, 110, "CRC engine", { class: "lbl", "text-anchor": "middle" }); T(g, 170, 132, ST.crc, { class: "mono", "text-anchor": "middle" }); R(g, 360, 80, 220, 70, "reg"); T(g, 470, 110, "host's CRC word", { class: "small", "text-anchor": "middle" }); T(g, 470, 132, ST.crc, { class: "mono", "text-anchor": "middle" }); T(g, 320, 120, "=", { class: "lbl", "text-anchor": "middle" }); } },
+  { say: "Equal: <b>CRC_OK</b>. Then CMD = START is accepted. (Unequal: CRC_ERROR, the parser stops, and DONE can never rise.)",
+    only: true, draw(g) { E("circle", { cx: 320, cy: 200, r: 30, class: "ok" }, g); T(g, 320, 206, "CRC_OK", { class: "mono", "text-anchor": "middle", style: "fill:var(--panel);font-weight:600" }); } },
+  { say: "The host loads the <b>JSTART</b> instruction and clocks TCK in Run-Test/Idle. Startup is four steps, one per tick (UG470's order).", only: true, draw(g) { startWave(g, 0); } },
+  { say: "Tick 1: <b>GSR</b> falls. Every user flip-flop leaves its reset and holds its initial value.", only: true, draw(g) { startWave(g, 1); } },
+  { say: "Tick 2: <b>GTS</b> falls. The fabric's outputs stop being held off: the LEDs may now show what the design says.", only: true, draw(g) { startWave(g, 2); } },
+  { say: "Tick 3: <b>GWE</b> rises. Flip-flops and RAMs may change: the design starts running.", only: true, draw(g) { startWave(g, 3); } },
+  { say: "Tick 4: <b>DONE</b> rises. <code>./bob load</code> sees it and prints <i>DONE</i>. The counter counts.", only: true,
+    draw(g) { startWave(g, 4); [0, 1, 2].forEach(i => { const c = E("circle", { cx: 560 - i * 26, cy: 370, r: 9, class: "ok" }, g); if (!RM) E("animate", { attributeName: "opacity", values: "0.2;1;0.2", dur: `${1.2 + i * 0.6}s`, repeatCount: "indefinite" }, c); }); T(g, 480, 374, "LD2..0", { class: "mono", "text-anchor": "end" }); } },
+]);
+
+/* ======================= 12. readback ====================================================== */
+stage("st-readback", "0 0 640 330", [
+  { say: "The host sends a short stream on CFG_IN: sync, CMD = <b>RCFG</b> (arm reading), FAR = 0, and a <b>READ FDRO</b> of every frame word.",
+    draw(g) { R(g, 20, 40, 160, 150, "box"); T(g, 100, 62, "host", { class: "lbl", "text-anchor": "middle" }); ["AA995566", "30008001 00000004", "30002001 00000000", "28006000 4800…", "30008001 0000000D"].forEach((w, i) => T(g, 32, 86 + i * 20, w, { class: "mono", style: "font-size:10.5px" })); arrow(g, 180, 110, 250, 110); } },
+  { say: "The brain reads each frame from the <b>shadow</b> block RAM, frame by frame from FAR, and queues its words.",
+    draw(g) { R(g, 250, 60, 150, 100, "reg on"); T(g, 325, 100, "brain", { class: "lbl", "text-anchor": "middle" }); T(g, 325, 122, "FDRO, FAR ++", { class: "mono", "text-anchor": "middle" }); R(g, 250, 210, 150, 80, "box"); T(g, 325, 250, "shadow BRAM", { class: "small", "text-anchor": "middle" }); P(g, "M325 210 L325 160", "wire hot"); travel(g, "M325 210 L325 160", "0.9s"); } },
+  { say: "The host switches to <b>CFG_OUT</b> and clocks the words out on TDO, 32 ticks each.",
+    draw(g) { P(g, "M400 110 C470 110, 470 110, 520 110", "wire on"); travel(g, "M400 110 L520 110", "1s", "var(--acc)"); R(g, 520, 80, 100, 60, "box"); T(g, 570, 115, "TDO", { class: "mono", "text-anchor": "middle" }); } },
+  { say: `The host compares all ${fmt(D.frames)} frames with the ones it sent: equal, so <i>FDRO readback verified</i>. A single flipped bit would be named, frame and word.`,
+    draw(g) { R(g, 420, 200, 200, 60, "pick"); T(g, 520, 236, "readback == sent ✓", { class: "mono", "text-anchor": "middle" }); } },
+]);
+
+/* ======================= 13. the brain's floor plan ======================================== */
+const MODS = {
+  pins: [10, 190, 60, 90, "JTAG pins", "io"], tap: [100, 190, 110, 90, "TAP\nu_tap", "reg"],
+  frames: [250, 110, 150, 80, "packet parser\nu_frames", "reg"], ctrl: [250, 230, 150, 60, "startup + chain\nu_ctrl", "reg"],
+  store: [250, 320, 150, 70, "frame store + shadow\nu_store", "reg"], lutld: [440, 330, 120, 60, "LUT loader\nu_lutld", "reg"],
+  cap: [250, 20, 150, 60, "CAPTURE\nu_cap", "box"], clk: [440, 20, 120, 60, "user clock\nu_clk", "box"],
+  bj: [440, 110, 120, 50, "BRAM access\nu_bram_jtag", "box"], dj: [440, 170, 120, 50, "DSP access\nu_dsp_jtag", "box"],
+  fab: [590, 60, 120, 350, "guest fabric\nu_fabric\n100 CLBs\nrouting\n2 BRAM · 2 DSP", "clb"],
+};
+function mod(g, k, on) {
+  const [x, y, w, h, n, cls] = MODS[k];
+  R(g, x, y, w, h, on ? "reg on" : cls);
+  n.split("\n").forEach((s, i) => T(g, x + w / 2, y + 22 + i * 16, s, { class: i ? "mono" : "small", "text-anchor": "middle", style: i ? "font-size:10px" : "fill:var(--ink)" }));
+}
+const link = (g, a, b, cls) => { const A = MODS[a], B = MODS[b]; P(g, `M${A[0] + A[2]} ${A[1] + A[3] / 2} C${A[0] + A[2] + 30} ${A[1] + A[3] / 2}, ${B[0] - 30} ${B[1] + B[3] / 2}, ${B[0]} ${B[1] + B[3] / 2}`, cls || "wire"); };
+stage("st-plan", "0 0 720 420", [
+  { say: "The four JTAG pins, and the <b>TAP</b> behind them: every configuration bit enters here.", draw(g) { mod(g, "pins"); mod(g, "tap", true); L(g, 70, 235, 100, 235, "wire hot"); } },
+  { say: "The TAP hands CFG_IN's bits to the <b>packet parser</b>: the brain.", draw(g) { mod(g, "frames", true); link(g, "tap", "frames", "wire hot"); } },
+  { say: "CHAIN_IN, JSTART and JPROGRAM go to <b>u_ctrl</b>: the second load path's CRC, and the startup sequence (GSR, GTS, GWE, DONE).", draw(g) { mod(g, "ctrl", true); link(g, "tap", "ctrl"); } },
+  { say: "Frames from either path land in the <b>frame store</b>: the frame buffer, the configuration flip-flops and the shadow BRAM.", draw(g) { mod(g, "store", true); P(g, "M250 150 C222 150, 222 355, 250 355", "wire hot"); P(g, "M325 290 L325 320", "wire"); } },
+  { say: "LUT frames go on to the <b>LUT loader</b>, which shifts them into the CFGLUT5s inside the fabric's CLBs.", draw(g) { mod(g, "lutld", true); link(g, "store", "lutld", "wire hot"); } },
+  { say: "The helpers: <b>CAPTURE</b> (read every user flip-flop), the <b>user clock</b>, and direct JTAG access to the BRAMs and DSPs.", draw(g) { ["cap", "clk", "bj", "dj"].forEach(k => mod(g, k)); } },
+  { say: "And the <b>guest fabric</b> itself. It sees its configuration bits and a few global signals, never JTAG. Everything to its left exists only to configure, start, stop and inspect it.",
+    draw(g) { mod(g, "fab"); link(g, "lutld", "fab", "wire on"); link(g, "store", "fab", "wire on"); link(g, "ctrl", "fab", "wire on"); link(g, "clk", "fab", "wire on"); } },
+]);
+
+/* ======================= 14. on the die ==================================================== */
+const PALETTE = { mux: "#8aa0b8", clb: "#0c7a64", frames: "#e38a1f", tap: "#c0392b", ctrl: "#d35400", store: "#6a4db3",
+  loader: "#9b59b6", capture: "#16a085", clk: "#b58900", bram_jtag: "#2f6db3", dsp_jtag: "#b8612a", bsc: "#7f8c8d",
+  bram0: "#2f6db3", bram1: "#2f6db3", dsp0: "#b8612a", dsp1: "#b8612a", other: "#bdc3c7" };
+const BRAIN = ["frames", "tap", "ctrl", "store", "loader"];
+if (FP) {
+  const xs = FP.sites.map(s => s[1]), ys = FP.sites.map(s => s[2]);
+  const MX = Math.max(...xs) + 1, MY = Math.max(...ys) + 1, SC = 560 / MX, W = MX * SC, Hh = MY * SC * 0.55;
+  const sy = y => 20 + (MY - 1 - y) * SC * 0.55;
+  function die(g, hl, dimOthers) {
+    R(g, 0, 10, W + 20, Hh + 20, "box");
+    const count = {};
+    FP.sites.forEach(([k, x, y, gi]) => {
+      const grp = FP.groups[gi]; count[grp] = (count[grp] || 0) + 1;
+      const on = !hl || hl.includes(grp);
+      if (!on && dimOthers === "hide") return;
+      const r = E("rect", { x: 10 + x * SC, y: sy(y), width: Math.max(1.2, SC * (k === "S" ? 0.9 : 1.6)), height: Math.max(1.2, SC * 0.5 * (k === "S" ? 1 : 3)) }, g);
+      r.style.fill = PALETTE[grp] || PALETTE.other;
+      if (!on) r.style.opacity = 0.12;
+    });
+    return count;
+  }
+  const cnt = {}; FP.sites.forEach(s => { const g = FP.groups[s[3]]; cnt[g] = (cnt[g] || 0) + 1; });
+  const n = (list) => list.reduce((a, g) => a + (cnt[g] || 0), 0);
+  document.getElementById("dienote").textContent = `From ${FP.from} (hw/scripts/floorplan.tcl on the routed design${FP.part ? ", " + FP.part : ""}): ${fmt(FP.sites.length)} sites used.`;
+  stage("st-die", `0 0 ${W + 20} ${Hh + 60}`, [
+    { say: `Every site bob uses on the XC7Z020: ${fmt(FP.sites.length)} of them. Grey-blue is routing, green the guest CLBs, the warm colours the configuration logic.`, only: true, draw(g) { die(g); } },
+    { say: `The guest fabric: routing multiplexers (${fmt(cnt.mux || 0)} sites) and the 100 CLBs' logic and CFGLUT5s (${fmt(cnt.clb || 0)} sites). This is bob, as a design.`, only: true, draw(g) { die(g, ["mux", "clb"]); } },
+    { say: `The brain: the TAP, the packet parser, the startup controller, the frame store and the LUT loader, ${fmt(n(BRAIN))} sites together. Small, next to what it configures.`, only: true, draw(g) { die(g, BRAIN); } },
+    { say: `Just the packet parser (orange) and the TAP (red): ${fmt(n(["frames", "tap"]))} sites. This is where every configuration word is decoded.`, only: true, draw(g) { die(g, ["frames", "tap"]); } },
+    { say: "Block RAM and DSP sites: bob's own two BRAMs and two DSP slices, and the shadow of the frame store (a block RAM of frames).", only: true, draw(g) { die(g, ["bram0", "bram1", "dsp0", "dsp1", "store"]); } },
+    { say: "The rest: CAPTURE, the user clock, the BRAM and DSP access blocks and the pad ring's boundary-scan cells.", only: true, draw(g) { die(g, ["capture", "clk", "bram_jtag", "dsp_jtag", "bsc"]); } },
+  ]);
+} else {
+  document.getElementById("dienote").innerHTML = "The site map needs Vivado's placement: run <code>hw/scripts/floorplan.tcl</code> on the routed build and copy <code>floorplan.txt</code> into <code>docs/reports/M25/</code>, then <code>python3 docs/learn/frames/gen.py</code>.";
+  stage("st-die", "0 0 640 360", [
+    { say: "The XC7Z020: an ARM processor side (PS) and a programmable-logic side (PL). bob is a design in the PL.",
+      draw(g) { R(g, 20, 20, 600, 320, "box"); R(g, 40, 50, 140, 260, "io"); T(g, 110, 184, "ARM (PS)", { class: "lbl", "text-anchor": "middle" }); R(g, 200, 50, 400, 260, "clb"); T(g, 400, 70, "programmable logic (PL)", { class: "small", "text-anchor": "middle" }); } },
+    { say: "Where each part of bob sits needs Vivado's placement. Run <code>hw/scripts/floorplan.tcl</code> once, and this chapter becomes the real map.",
+      draw(g) { R(g, 220, 90, 360, 200, "pick", { style: "fill:none" }); T(g, 400, 196, "floorplan.txt: not yet", { class: "mono", "text-anchor": "middle" }); } },
+  ]);
+}
+
+/* --- the rail ------------------------------------------------------------------------------ */
+const names = ["The cable", "The TAP", "The instruction", "A stream of words", "A packet header", "The brain",
+               "One frame", "Frames on the grid", "One CLB's frames", "Two kinds of cell", "Checking, starting",
+               "Reading back", "The floor plan", "On the XC7Z020"];
+const stack = document.getElementById("stack");
+const links = stages.map((s, i) => { const a = document.createElement("a"); a.href = "#" + s.id; a.innerHTML = `<b>${i + 1}</b>${names[i]}`; stack.appendChild(a); return a; });
+const secsEl = stages.map(s => document.getElementById(s.id));
+function mark() {
+  let cur = 0; secsEl.forEach((s, i) => { if (s.getBoundingClientRect().top < window.innerHeight * 0.4) cur = i; });
+  links.forEach((a, i) => { a.classList.toggle("on", i === cur); a.classList.toggle("done", i < cur); });
+}
+window.addEventListener("scroll", mark, { passive: true }); mark();
+})();
+</script>
