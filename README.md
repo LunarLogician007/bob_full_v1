@@ -22,18 +22,23 @@ through install, a first design, pins, the clock, the board and what to do when 
 Everything also works with no board: `--probe fake` (and bob studio's software board) answer
 from [`software/host/fakeboard.py`](software/host/fakeboard.py).
 
-**New to FPGAs?** Four animated volumes, each building on the last: [`docs/learn/bit_by_bit.html`](docs/learn/bit_by_bit.html) (the pieces: gates, LUTs, flip-flops, routing, bitstreams), [`docs/learn/layer_by_layer.html`](docs/learn/layer_by_layer.html) (bob built up one layer at a time) and [`docs/learn/frame_by_frame.html`](docs/learn/frame_by_frame.html) (one configuration from the cable into the chip: JTAG, the TAP, the packet parser that is bob's configuration brain, frames and where each lands, startup, readback, and where it all sits on the XC7Z020) and [`docs/learn/tool_by_tool.html`](docs/learn/tool_by_tool.html) (one design through every tool of `./bob build`: synthesis, LUT mapping, the equivalence proof, packing, a live annealing placement, routing, FASM, timing, the model check). Rebuild the last three with `python3 docs/learn/{layers,frames,tools}/gen.py`.
+**New to FPGAs?** Four animated volumes, each building on the last: [`docs/learn/bit_by_bit.html`](docs/learn/bit_by_bit.html) (the pieces: gates, LUTs, flip-flops, routing, bitstreams), [`docs/learn/layer_by_layer.html`](docs/learn/layer_by_layer.html) (bob built up one layer at a time), [`docs/learn/frame_by_frame.html`](docs/learn/frame_by_frame.html) (one configuration from the cable into the chip: JTAG, the TAP, the packet parser that is bob's configuration brain, frames and where each lands, startup, readback, and where it all sits on the XC7Z020) and [`docs/learn/tool_by_tool.html`](docs/learn/tool_by_tool.html) (one design through every tool of `./bob build`: synthesis, LUT mapping, the equivalence proof, packing, a live annealing placement, routing, FASM, timing, the model check). Rebuild the last three with `python3 docs/learn/{layers,frames,tools}/gen.py`.
 
 **Start here:** [`guide.html`](guide.html) / [`docs/project/GUIDE.md`](docs/project/GUIDE.md) explain every part — what it is, why it is built that way, how to use it and how to tweak it — and compare bob with OpenFPGA, Aegis and ZUMA. [`project.html`](project.html) / [`docs/project/REPORT.md`](docs/project/REPORT.md) are the project report: what was built, measured and learned. [`arch.html`](arch.html) is the interactive die slice.
 
 For the working plan, conventions, gotchas and every milestone, read [`PLAN.md`](PLAN.md); the live state and next steps are in [`HANDOFF.md`](HANDOFF.md); the short agent rules are in [`CLAUDE.md`](CLAUDE.md).
 
-## Where it stands (2026-09-24)
+## Where it stands (2026-09-26)
 
 **M0–M25 passed on the board.** The board runs **M25**: 10 × 10 = 100 CLBs (400 LUTs),
 crossbar leaves in CFGLUT5 with plain OR roots, routing muxes from LUT6/MUXF7/MUXF8, Double Duty
 elements, time-travel debugging (`bob snap`), TCK at 1 MHz; IDCODE `0x0B025093`; 71/71 checks,
 WNS +0.732 ns, 38 198 LUTs (71.8%), slices 86.8%.
+
+The hardware is locked there (10 × 10 is this CLB's ceiling on the XC7Z020). Since then: measured
+routing delays, a software pass (`./bob run/new/doctor/examples/pins`, readable failures, bob studio's
+Start page and Build & Program) and four animated learning volumes in `docs/learn/`. The slides for
+the project presentation are in `docs/presentation/slides.tex`.
 
 | Milestone | What | Status |
 |---|---|---|
@@ -78,7 +83,7 @@ Generated from `software/bob/device.json` by `software/bob/devtable.py`; `tests/
 
 <!-- device:end -->
 
-A 48-CLB M7 profile (8 × 8 core, 9400-bit chain, IDCODE `0x9BEEF093`) is frozen in [`release/M7_8x8/`](release/M7_8x8/); it was synthesised with the XDC loop breaking that later crashed Vivado. M12b's 36-CLB profile costs no more logic than M13 thanks to the smaller configuration store. Changing the grid is one setting (`ARCH` in `software/bob/device.py`) followed by `make rrgraph`.
+A 48-CLB M7 profile (8 × 8 core, 9400-bit chain, IDCODE `0x9BEEF093`) is frozen in [`release/M7_8x8/` (git tag m25)](release/M7_8x8/ (git tag m25)); it was synthesised with the XDC loop breaking that later crashed Vivado. M12b's 36-CLB profile costs no more logic than M13 thanks to the smaller configuration store. Changing the grid is one setting (`ARCH` in `software/bob/device.py`) followed by `make rrgraph`.
 
 ## Build and test it (every milestone)
 
@@ -108,7 +113,7 @@ make hwtest M=M11       # same bitstream: designs live on the switches, RAM read
 make hwtest M=M12       # same bitstream: every example placed and routed by bob's own Python PnR (docs/hwtest/M12.md)
 ```
 
-Every run is appended to `docs/hwtest/results.log`. To test an older bitstream, use its frozen tools, e.g. `cd release/mac_M6/host && ./hwtest.py --milestone M6`.
+Every run is appended to `docs/hwtest/results.log`. To test an older bitstream, use its frozen tools from git (`git checkout m25 -- release/` (git tag m25)), e.g. `cd release/mac_M6/host (git tag m25) && ./hwtest.py --milestone M6`.
 
 ## bob studio
 
@@ -267,9 +272,7 @@ tests/         pytest
 work/examples/      Verilog designs for the synthesis flow
 docs/          bitstream-format.md, hwtest/Mx.md checklists, reports/, arch/ (arch.html sources),
               learn/ (bit_by_bit.html, assembled from learn/parts/ by concatenation)
-release/       frozen bundles: hw_M3…hw_M7, mac_M6/M7 (host tools), M7_8x8 (48-CLB profile)
 ```
 
 Tools on the Mac: iverilog, verilator, yosys, Python 3 + pytest, tclsh. VPR runs in the OpenFPGA Docker image, through Colima (`colima start`).
 
-The original README for the M0 4×4 baseline inherited from `bob/` is kept at [`docs/README_M0.md`](docs/README_M0.md).

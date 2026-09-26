@@ -78,7 +78,7 @@ def test_sizes(k):
     M24: a 13th element flag (dd) leaves frame 0 room for 15 crossbar selects, not 16. At
     K=6 the tile already had a tail frame (unchanged, 68096); at K=4 (16 selects) each CLB
     gains one: 42496 -> 55296.
-    The 8x8 profile (48 CLBs, 9400 bits) is frozen in release/M7_8x8."""
+    The 8x8 profile (48 CLBs, 9400 bits) is frozen in release/M7_8x8. (git tag m25)"""
     dev = DEVICES[k]
     assert (dev.width, dev.height, dev.arch["chan_width"]) == SIZES["grid"]
     assert {t: len(v) for t, v in dev.by_type.items()} == SIZES["blocks"]

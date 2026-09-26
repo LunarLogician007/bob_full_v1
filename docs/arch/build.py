@@ -5,7 +5,7 @@ build.py - assemble arch.html (the interactive bob die slice) from its parts.
   python3 docs/arch/build.py        -> bob_full_v1/arch.html
 
 p1_head.html and p9_nav.js are the style, primitives and navigation of
-architecture-v2.html, copied verbatim and patched here, so the look is identical.
+architecture-v2.html (removed from the tree; git tag m25), copied verbatim and patched here, so the look is identical.
 data.json is the real M7 device (regenerate with --data after make device).
 """
 

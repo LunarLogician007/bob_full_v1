@@ -122,7 +122,7 @@ FRAME_WORDS = 4
 FRAME_BITS = 32 * FRAME_WORDS
 
 # --- M7 architecture ---------------------------------------------------------------
-# Two profiles. The 8x8 core (48 CLBs) is the M7 fabric frozen in release/M7_8x8/
+# Two profiles. The 8x8 core (48 CLBs) is the M7 fabric frozen in release/M7_8x8/ (git tag m25)
 # for a later Vivado build on a faster machine; the 6x4 core (16 CLBs, every
 # feature kept: 2 BRAMs + 2 DSPs of height 2, cascade, SELECT) is what the board
 # gets now. Changing ARCH means `make rrgraph` (Docker).
@@ -205,7 +205,7 @@ ARCH_M21 = {
 # M22: the LUT contents and the crossbar in CFGLUT5 (AMD UG953: a LUT5 whose truth table is
 # shifted in), ZUMA-style (Brant & Lemieux, FCCM 2012): measured in yosys, a CLB drops from
 # 469 host LUTs + 424 configuration flip-flops to 193 LUTs (152 of them CFGLUT5, SLICEM
-# only) + 48 flag flip-flops (docs/superpowers/specs/2026-09-23-m22-lutram-design.md).
+# only) + 48 flag flip-flops (docs/bitstream-format.md section 15).
 # SLICEM (17,400 LUTs) is the new limit: 81 CLBs x 152 = 12.3k (71%). The user chose 9 x 9
 # CLBs = 324 LUTs (1.65x M21): 11 x 9 core, BRAM x=3 and DSP x=8 of height 4 (two of each,
 # as at M21, and the top cell of each column empty: dsp_jtag.v's 256-bit register holds two

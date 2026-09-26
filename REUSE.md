@@ -53,9 +53,9 @@ Status: **same** = byte-identical to `bob/`, **moved** = same content at a new p
 | `hw/src/clb/clb_pkg.sv`, `clb.sv`, `tile.v`, `hw/src/fabric/fabric.v`, `fpga4x4.v`, `mini_fpga.v`, `hw/src/top/fpga4x4_top.v` | `bob/rtl/` via M3 | modified (M4) | widths from K via `bob_params.vh`; routed CE/SR; `gce`; ctrl tile; sysclk |
 | `hw/src/core/clock_ctrl.v`, `hw/tb/tb_clb.sv`, `software/bob/model.py`, `sim/gen_clb_vectors.py`, `sim/run_clb_sim.sh`, `sim/run_k4_sim.sh`, `tests/test_model.py`, `tests/test_lutk.py`, `docs/hwtest/M4.md` | — | new (M4) | user clock; flag sweep; cycle model; K=4 runs |
 | `software/bob/device.py`, `software/host/bitstream.py`, `software/host/designs.py`, `sim/gen_vectors.py`, `hw/tb/tb_fpga4x4.v`, `software/host/hwtest.py`, `hw/constr/pynq_z2.xdc`, `hw/scripts/build.tcl` | earlier milestones | modified (M4) | K, ctrl tile, CE/SR, clock modes; loop-free random chain; M4 checks; sysclk constraints; include dirs and header fingerprint |
-| `release/hw_M3/` | `hw/` at M3 | frozen copy | the M3 Vivado bundle, preserved while M4 was developed |
-| `release/hw_M4/` | `hw/` at M4 | frozen copy | the M4 Vivado bundle, preserved while M5 was developed |
-| `release/hw_M5/` | `hw/` at M5 | frozen copy | the M5 Vivado bundle, preserved while M6 was developed |
+| `release/hw_M3/` (git tag m25) | `hw/` at M3 | frozen copy | the M3 Vivado bundle, preserved while M4 was developed |
+| `release/hw_M4/` (git tag m25) | `hw/` at M4 | frozen copy | the M4 Vivado bundle, preserved while M5 was developed |
+| `release/hw_M5/` (git tag m25) | `hw/` at M5 | frozen copy | the M5 Vivado bundle, preserved while M6 was developed |
 | `hw/src/tiles/dsp_core.v`, `dsp_tile.v`, `hw/tb/tb_dsp.v`, `sim/gen_dsp_vectors.py`, `sim/run_dsp_sim.sh`, `docs/hwtest/M6.md` | — | new (M6) | DSP tile, private DSP instruction, unit test against `model.py` |
 | `hw/src/core/jtag_tap6.v`, `hw/src/fabric/fpga4x4.v`, `hw/src/top/cfg_test_top.v`, `hw/src/clb/clb_pkg.sv`, `software/bob/device.py`, `software/bob/model.py`, `software/host/*.py`, `sim/gen_vectors.py`, `hw/tb/tb_fpga4x4.v`, `hw/constr/pynq_z2.xdc`, tests | earlier milestones | modified (M6) | DSP instruction; DSP tile in the chain and on the North edge; model/API/designs; M6 checks; multicycle exceptions; DSP48 report check |
 | `hw/src/tiles/bram_core.v`, `bram_jtag.v`, `bram_tile.v`, `hw/tb/tb_bram.v`, `sim/gen_bram_vectors.py`, `sim/run_bram_sim.sh`, `docs/hwtest/M5.md` | — | new (M5) | BRAM tile, USER4 contents/drive, unit test against `model.py` |
@@ -67,7 +67,7 @@ Status: **same** = byte-identical to `bob/`, **moved** = same content at a new p
 | `sim/run_sim.sh`, `run_fabric_sim.sh`, `lint.sh` | `bob/sim/` | modified | read `hw/sources.f` through `sim/hwfiles.sh`; lint waivers unchanged |
 | `sim/hwfiles.sh` | — | new | |
 | `tests/` (`test_layout.py`, `test_build_tcl.py`, `tcl/vivado_stub.tcl`) | — | new | `build.tcl` is tested under tclsh against a Vivado API stub |
-| `pico/`, `docs/wiring.md`, `docs/architecture.html`, `docs/fabric-audit.html`, `docs/report.tex`, `docs/bits.json`, `README.md` | `bob/` | same | |
+| `pico/`, `docs/wiring.md`, `docs/architecture.html`, `docs/fabric-audit.html`, `docs/report.tex`, `docs/bits.json` (removed 2026-09-26), `README.md` | `bob/` | same | |
 | `docs/reference/create_project_v0.tcl` | `bob/vivado/create_project.tcl` | same | kept for reference |
 | `PLAN_v0.md` | first `bob_full_v1/PLAN.md` | same | superseded by `PLAN.md` |
 
@@ -90,7 +90,7 @@ Status: **same** = byte-identical to `bob/`, **moved** = same content at a new p
 | `software/host/bitstream.py`, `software/host/designs.py`, `software/bob/model.py`, `software/host/fpga.py`, `software/host/cfgplane.py`, `software/host/hwtest.py`, `sim/gen_vectors.py` | M6 | rewritten / modified | rr-graph router and model; (x,y) designs + `cross`, `d_pipeline`, full-column counter; boundary helpers; USER4 SELECT; M7 checks; random netlists |
 | `sim/run_fabric_sim.sh`, `run_k4_sim.sh`, `lint.sh`, `mutate_fabric.sh`, `hw/sources.f`, `hw/build.cfg`, `hw/constr/pynq_z2.xdc`, `hw/scripts/drc_waiver.tcl`, `Makefile`, tests | earlier milestones | modified | `tb_bob`/`bob_top`; K=4 fabric substitution; M7 mutants; multicycle names; `make rrgraph` |
 | `docs/hwtest/M7.md` | — | new | |
-| removed from `hw/`: `fabric.v`, `tile.v`, `mux_bank.v`, `fpga4x4.v`, `fpga4x4_top.v`, `bram_tile.v`, `dsp_tile.v`, `tb_fpga4x4.v` | — | retired | frozen in `release/hw_M6/` |
+| removed from `hw/`: `fabric.v`, `tile.v`, `mux_bank.v`, `fpga4x4.v`, `fpga4x4_top.v`, `bram_tile.v`, `dsp_tile.v`, `tb_fpga4x4.v` | — | retired | frozen in `release/hw_M6/` (git tag m25) |
 
 ## M8: yosys synthesis onto bob cells
 
@@ -104,8 +104,8 @@ Status: **same** = byte-identical to `bob/`, **moved** = same content at a new p
 | `work/examples/*.v` | — | new | gates, adder, counter, blinky, ram, mult |
 | `hw/tb/tb_synth.v`, `sim/gen_synth_vectors.py`, `sim/run_synth_sim.sh`, `tests/test_synth.py`, `docs/hwtest/M8.md` | `hw/tb/tb_bob.v` tasks | new | placed designs on the complete FPGA RTL vs source trace; pytest flow; board checks |
 | `software/host/hwtest.py`, `Makefile` | M7 | modified | M8 synth-* checks; synth sim in `make check` |
-| `release/mac_M6/` | transcript replay of M6 `software/host/`, `software/bob/`, `sim/gen_vectors.py` + `release/hw_M6` | restored | verified: regenerates M6 `bob_params.vh` and `vectors.vh` byte-identical; ran the M5/M6 hardware tests |
-| `release/hw_M7/`, `release/mac_M7/` | `hw/` and Mac tools at M7 | frozen copy | before M8 edits |
+| `release/mac_M6/` (git tag m25) | transcript replay of M6 `software/host/`, `software/bob/`, `sim/gen_vectors.py` + `release/hw_M6` (git tag m25) | restored | verified: regenerates M6 `bob_params.vh` and `vectors.vh` byte-identical; ran the M5/M6 hardware tests |
+| `release/hw_M7/` (git tag m25), `release/mac_M7/` (git tag m25) | `hw/` and Mac tools at M7 | frozen copy | before M8 edits |
 
 ## Technical report
 
@@ -118,7 +118,7 @@ Status: **same** = byte-identical to `bob/`, **moved** = same content at a new p
 | file | origin | status | notes |
 |---|---|---|---|
 | `arch.html` | generated by `docs/arch/build.py` | generated | interactive die slice of the M7 fabric: floorplan, 21 pages with sources / files / testbenches, schematics, FSMs, live demos |
-| `docs/arch/p1_head.html`, `docs/arch/p9_nav.js` | `architecture-v2.html` (style, drawing primitives, navigation) | copied, patched by `build.py` | charset, title, provenance sections |
+| `docs/arch/p1_head.html`, `docs/arch/p9_nav.js` | `architecture-v2.html` (git tag m25; style, drawing primitives, navigation) | copied, patched by `build.py` | charset, title, provenance sections |
 | `docs/arch/p2…p8_*.js`, `docs/arch/data.json` | — | new | bob pages, floorplan from `device.json`, schematics; `build.py --data` refreshes the data after `make device` |
 
 ## External references (read only, never linked into the build)
@@ -231,11 +231,7 @@ Status: **same** = byte-identical to `bob/`, **moved** = same content at a new p
 
 | File | From | Status | Notes |
 |---|---|---|---|
-| `docs/manim/build.py`, `docs/manim/parts/` | — | new | the film series: a shared prelude plus one part file per episode, assembled the way `docs/arch/build.py` assembles `arch.html` |
-| `docs/manim/bob_explained.ipynb` | `parts/` | generated | **the whole series in one notebook, one cell per episode** (13 episodes + 2 setup cells) |
-| `docs/manim/ep01_clb.*` … `ep13_errors.*` | `parts/` | generated | each episode also on its own: one `%%manim` cell with the prelude inlined, plus a notebook |
-| `docs/manim/vpr_explained.*` | — | new | the standalone VPR film; the same content is episode 9 |
-| `docs/manim/README.md` | — | new | the series, and how to add an episode |
+| `docs/manim/` (the 13-episode manim film series and its builder) | — | removed 2026-09-26 | replaced by the four animated volumes in `docs/learn/`; the series is at git tag m25 |
 
 
 ## bob studio and the flow engine (2026-09-18, after M16)

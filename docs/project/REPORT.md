@@ -49,14 +49,14 @@ A user design goes from Verilog to LEDs with two commands, `./bob build design.v
 
 | | |
 |---|---|
-| Guest device (on the board, M24) | 10 × 10 = 100 CLBs × 4 logic elements = **400 LUT6** (fracturable, carry, 2 FFs, Double Duty) behind a full crossbar; truth tables and crossbar in host CFGLUT5s; 2 × 1024×18 BRAM; 2 DSP48E1-style slices; 44 pads; L4 routing W = 36 |
+| Guest device (on the board, M25) | 10 × 10 = 100 CLBs × 4 logic elements = **400 LUT6** (fracturable, carry, 2 FFs, Double Duty) behind a full crossbar; truth tables and crossbar in host CFGLUT5s; 2 × 1024×18 BRAM; 2 DSP48E1-style slices; 44 pads; L4 routing W = 36 |
 | Configuration memory | 68 096 bits = 532 frames × 4 × 32-bit words; readback from a BRAM shadow |
 | Configuration paths | UG470-style packets (CFG_IN/CFG_OUT: CRC, IDCODE, FAR/FDRI/FDRO, STAT, **partial reconfiguration**, **BRAM content frames**), and a streamed scan chain (CHAIN_IN/CHAIN_OUT + CRC) |
 | User clock | a clock enable on the 125 MHz system clock, spaced by each design's own critical path (up to 62.5 MHz), stepped over JTAG or free-running |
-| On the board | M24 bitstream (IDCODE `0x0B024093`): **69/69**, WNS +0.562 ns, 38 193 LUT (71.8%) / 27 372 FF, 85.5% of the slices |
-| Hardware test runs logged | 75 runs; every milestone M0–M21 ended in a full pass |
+| On the board | M25 bitstream (IDCODE `0x0B025093`): **71/71**, also at TCK 1 MHz; WNS +0.732 ns, 38 198 LUT (71.8%), 86.8% of the slices |
+| Hardware test runs logged | every milestone M0–M25 ended in a full pass on the board |
 | Simulation (last `make check`) | 23 000+ testbench checks in 13 benches + ~500 pytest tests; every mutant of three mutation suites killed |
-| In progress | **M25** (branch `m25`): time-travel debugging (snapshot, UG470 GRESTORE restore, the simulator hand-off, `bob snap`) and TCK constrained at 1 MHz |
+| Since M25 (hardware locked) | measured routing delays; a software pass (`./bob run/new/doctor/examples/pins`, errors with the source line and hints, bob studio's Start page and Build & Program); four animated learning volumes (`docs/learn/`) |
 
 The main results:
 1. **An OpenFPGA-style fabric generated from VPR's own routing-resource graph** (M7). Every rr node with fan-in is a mux in the RTL, so VPR routes on exactly the hardware that exists.
@@ -73,7 +73,10 @@ The main results:
 12. **LUTs that load themselves** (M22): truth tables and crossbar choices in the host's shift-in CFGLUT5s (ZUMA's trick), loaded frame by frame by `lut_loader.v`; 81 CLBs.
 13. **The biggest grid this chip allows** (M23): a sweep over grids, channel widths and connection-box populations found the real wall (SLICEM slices), and two cheaper building blocks, crossbar roots as a plain OR and routing muxes from LUT6/MUXF7/MUXF8, moved it to **10 × 10 = 100 CLBs**. The first try, 12 × 11 with shared dual-output tables, did not place: Vivado makes a dual-output CFGLUT5 two LUT sites.
 14. **Double Duty elements** (M24, after Pun et al., FPL 2025): the adder takes two element inputs directly, so its LUT stays free. With bob's own packer filling those LUTs, 13.2% fewer elements over the examples.
-15. **Time travel** (M25, after Attia & Betz, TRETS 2022): save every flip-flop of a running design, restore it with UG470 GRESTORE, or move it into the simulator and back.
+15. **Time travel** (M25, after Attia & Betz, TRETS 2022): save every flip-flop of a running design, restore it with UG470 GRESTORE, or move it into the simulator and back. TCK is constrained, and runs, at 1 MHz: the full board regression in 8 minutes instead of 10.
+16. **Measured routing delays** (after M25): 176 routing, input and crossbar hops timed on the routed M25 design (`hw/scripts/delays.tcl`, standalone, no rebuild). Worst routing mux 4.60 ns, input mux 4.65 ns, crossbar 3.01 ns; LUT, carry and flip-flop stay estimated.
+17. **A tool people can use** (after M25): `./bob run`, `new`, `doctor`, `examples`, `pins`; every failure names the file, the line and what to do; bob studio opens on a Start page with one-click Build & Program. `docs/GETTING_STARTED.md` is the ten-minute walk.
+18. **Four animated volumes** (`docs/learn/`): the pieces, bob layer by layer, one configuration frame by frame (the TAP, the packet parser, frames on the grid), and one design tool by tool (a live annealing placer on real nets).
 
 ---
 
@@ -138,7 +141,7 @@ Later requests added:
 
 ## 4. Timeline and status of every milestone
 
-M0–M6 were built on 2026-09-14, M7–M15 on 2026-09-16/17, M16–M17 on 2026-09-18, M18–M21 by 2026-09-23 and M22–M24 on 2026-09-24/25.
+M0–M6 were built on 2026-09-14, M7–M15 on 2026-09-16/17, M16–M17 on 2026-09-18, M18–M21 by 2026-09-23, M22–M25 on 2026-09-24/25, and the software pass and documentation on 2026-09-25/26.
 
 | M | what was built | hardware result | host bitstream |
 |---|---|---|---|
@@ -168,7 +171,8 @@ M0–M6 were built on 2026-09-14, M7–M15 on 2026-09-16/17, M16–M17 on 2026-0
 | M22 | LUT contents and crossbar in CFGLUT5 (`lut_loader.v`, `lut_expand.v`); 9 × 9 = 81 CLBs | **65/67**, the two fir16 live checks rerun 12/12; 38 184 LUT; WNS +0.172 ns | `0x0B022093` |
 | M23 | grid sweep (`gridsweep.py`); crossbar OR roots; routing muxes from LUT6/MUXF7/MUXF8; 24-bit chain count; 10 × 10 = 100 CLBs | **68/68**; 36 710 LUT, slices 88.0%; WNS +0.048 ns (a 12 × 11 build with dual-output tables did not place) | `0x0B023093` |
 | M24 | Double Duty elements (`dd`): the adder on two bypass inputs beside a free LUT; VPR mode `dd`; bob's packer fills adder elements' LUTs | **69/69**; 38 193 LUT, slices 85.5%; WNS +0.562 ns | `0x0B024093` |
-| M25 | time-travel debugging (GRESTORE, `snapshot.py`, `bob snap`); TCK constrained at 1 MHz | code done (branch `m25`) | `0x0B025093` |
+| M25 | time-travel debugging (GRESTORE, `snapshot.py`, `bob snap`); TCK constrained at 1 MHz | **71/71**, and 71/71 at TCK 1 MHz (now the default); WNS +0.732 ns, TCK WNS +489 ns | `0x0B025093` |
+| (UX) | software pass: CLI helpers and errors, studio Start page; measured delays; `docs/learn/` volumes 3–4 | software only, hardware locked | M25 |
 
 ---
 
@@ -193,7 +197,7 @@ The architecture is written once in `software/bob/device.py` (`ARCH_M23` now, 10
 | Configuration bits | 4216 (M7–M12) → 4992 = 39 frames (M13) | 8320 = 65 frames | 32 896 = 257 frames | 68,096 = 532 frames |
 | Boundary cells | 40 | 56 | 64 | 88 |
 
-The 8×8 profile (48 CLBs, 9400 bits) built at M7 is frozen in `release/M7_8x8/`. Its synthesis took over 30 minutes with the XDC in synthesis, the setting later found to crash Vivado.
+The 8×8 profile (48 CLBs, 9400 bits) built at M7 is frozen in `release/M7_8x8/` (git tag m25). Its synthesis took over 30 minutes with the XDC in synthesis, the setting later found to crash Vivado.
 
 ### 5.2 CLB (UG474, OpenFPGA k6_frac_N10)
 
@@ -895,17 +899,26 @@ The saved logic bought the 8×6 core with **36 CLBs (2.25×)**. The whole-design
 
 ```
 bob_full_v1/
-  hw/          the Vivado bundle: src/{clb,core,tiles,fabric,top,generated}, tb/, constr/, scripts/build.tcl, build.cfg, sources.f
-  software/bob/   device.py vpr_arch.py rrgraph.py fabric_gen.py model.py chainbits.py packets.py synth.py equiv.py golden.py
-               vpr_run.py fasm_from_vpr.py bitgen.py cli.py report.py pnr/ arch/ (rr graphs) vpr/ (VPR results)
-  software/host/        dirtyjtag.py cfgplane.py bitstream.py designs.py fpga.py hwtest.py buildcfg.py + bring-up tools
-  sim/         run_*.sh, gen_*vectors.py, gen_cosim.py, tb_cosim.v, mutate_{cfg,fabric,frames}.sh, lint.sh
-  tests/       pytest (13 files)
-  work/examples/    gates adder counter blinky ram mult switches fir wide + gates_swapped.pcf
-  docs/        bitstream-format.md, hwtest/ (checklists, results.log), reports/, arch/ (arch.html sources), project/ (this report)
-  release/     frozen bundles (hw_M3…hw_M7, mac_M6/M7, M7_8x8)
-  arch.html project.html PLAN.md README.md REUSE.md CLAUDE.md Makefile bob
+  hw/             the Vivado bundle: src/{clb,core,tiles,fabric,top,generated}, tb/, constr/, scripts/
+                  (build.tcl, delays.tcl, floorplan.tcl, probe_names.tcl), build.cfg, sources.f
+  software/bob/   the flow: device.py vpr_arch.py rrgraph.py fabric_gen.py model.py synth.py equiv.py golden.py
+                  vpr_run.py fasm_from_vpr.py bitgen.py timing.py delays.py flow.py cli.py ux.py project.py bd.py
+                  pnr/ (bob's own PnR) arch/ (rr graphs) vpr/ (committed VPR results) ip/ synth/
+  software/host/  the board: dirtyjtag.py cfgplane.py packets use, snapshot.py hwtest.py fakeboard.py studio.py
+  software/studio/ bob studio's page, built from p*.html / p*.js
+  sim/            run_*.sh, testbench vectors, co-simulation, mutation suites, lint
+  tests/          pytest (22 files)
+  work/examples/  gates adder counter blinky ram mult switches fir fir16 wide big atspeed bd_demo
+  docs/           GETTING_STARTED.md, bitstream-format.md, hwtest/ (checklists, results.log), reports/ (Vivado
+                  reports per milestone; the M25 bitstream), learn/ (four animated volumes), arch/, project/,
+                  research/, presentation/ (the slides)
+  arch.html guide.html project.html PLAN.md README.md REUSE.md HANDOFF.md CLAUDE.md Makefile bob
 ```
+
+On 2026-09-26 the tree was cleaned: build products and compiled simulations (260 MB), the
+frozen `release/` bundles, the old bitstreams M0–M24, the manim film series and superseded
+notes left the working tree. All of it is in git history; `git checkout m25 -- release/`
+brings the frozen bundles back.
 
 | language | lines (hand-written) |
 |---|---|
@@ -924,6 +937,11 @@ bob_full_v1/
 ## 22. How to use it
 
 ```sh
+./bob                      # every command, in short; docs/GETTING_STARTED.md walks through them
+./bob doctor               # the tools, Docker, the Pico and the board
+./bob run work/examples/counter/counter.v --probe fake   # build + load + LEDs, no board needed
+./bob new blink && ./bob run blink                       # a project of your own
+./bob studio               # bob studio: Start page, Build & Program
 make check                 # device files fresh, every simulation, lint, pytest - green before any hand-off
 make mutate                # mutation suites
 make rrgraph && make vpr   # after an architecture change (Docker/Colima)
@@ -950,37 +968,32 @@ python3 docs/project/collect.py && python3 docs/project/build.py   # this report
 
 ## 23. Open items and what comes next
 
-**Done:** every milestone **M0–M24** passed on the PYNQ-Z2. The board runs M24: 10 × 10 = 100
+**Done:** every milestone **M0–M25** passed on the PYNQ-Z2. The board runs M25: 10 × 10 = 100
 CLBs × 4 Double Duty elements = 400 LUTs, 532 frames, 68,096 configuration bits, IDCODE
-`0x0B024093`. It was built at 38,193 LUTs (71.8%) and 85.5% of the slices, WNS +0.562 ns, and
-passed 69/69 on the board.
+`0x0B025093`, 71/71 at TCK 1 MHz. The hardware is now locked (10 × 10 is this CLB's ceiling on
+the XC7Z020: 86.8% of the slices), and the work since has been software and documentation.
 
-**In progress: M25** (branch `m25`): time-travel debugging (§9.1), and TCK constrained at
-1 MHz for 10× faster loads (the board default stays 100 kHz until hwtest `fast-tck` passes).
+**Tried and set aside:** a RISC-V soft CPU (SERV) inside bob. Its logic fits (186 LUTs, 221
+flip-flops, both BRAMs, 62–73 of the 100 CLBs) but it does not route at W = 36 and fc_in = 0.10:
+the best attempt ended with 4 overused wires, all CLB input pins. bob's routing, not its logic,
+is the limit for bigger designs.
 
 **Known limits:**
-- **Timing-driven PnR:** VPR's timing uses the reference 40 nm delays, not the emulated fabric (bob signs off each design afterwards with its own measured delays).
+- **Delays:** routing, input and crossbar hops are measured; LUT, carry and flip-flop delays are still estimated (their nets do not survive by name in the routed netlist), so `delays.json` keeps the 2× guard band.
+- **Timing-driven PnR:** VPR's timing uses reference delays, not bob's measured ones.
 - **Partial reconfiguration:** no region protection, no BRAM writes while frozen, pads not held during the write.
 - **FAR:** does not cross from configuration frames into BRAM frames.
-- **I/O:** no true tristate or per-pad options.
-- **CAPTURE:** covers CLB registers only (not BRAM/DSP internal registers).
+- **I/O:** no true tristate or per-pad options. **CAPTURE:** CLB registers only.
 - **Synthesis:** one clock domain for guest designs; no async resets or latches.
-- **DSP JTAG register:** holds two slices, which caps the DSP column at two.
-- **Readback** returns the frames written (the BRAM shadow), not what the configuration cells hold; CAPTURE and the model checks cover the cells.
+- **Readback** returns the frames written (the BRAM shadow), not what the configuration cells hold.
 
 **Next:**
-1. **Measured delays** (`delays.py fold` on a build's `delay_paths.rpt`). `delays.json` is
-   still the provisional M16 estimate with a 2× guard band. The board has shown about 5× of
-   headroom, and measured delays with the 1.25× guard band would run every design 2–4× faster.
-2. **General logic on the carry chain** (Kim & Anderson, FPL 2021). Since M24 a Double Duty
-   chain computes XOR3 sums and MAJ3 carries of routed signals; a synthesis pass (MIG
-   extraction) would put ordinary logic there.
-3. **A reliability milestone:** frame ECC, a background scrubber, and a fault-injection map
-   of which configuration bits matter.
-4. **A place-and-route tool that improves itself** (after VPR-Evolve, arXiv 2607.24998),
-   scored on bob's own examples.
-5. **Region-protected partial bitstreams** and **CI** for the Docker-free half of
-   `make check`.
+1. **Configuration from the ARM core** (AXI instead of the Pico): loads in milliseconds, and a PYNQ notebook that drives bob.
+2. **Scrubbing** (UG470 frame ECC / readback CRC): find and repair a flipped configuration bit while the design runs.
+3. **A built-in logic analyser** (ChipScope-style) into a BRAM, shown in bob studio.
+4. **Richer routing** (fc_in 0.15, measured first with `gridsweep.py`): what the SERV trial showed bigger designs need.
+5. **The remaining delays** and timing-driven placement on the measured ones.
+
 ---
 
 ## 24. References

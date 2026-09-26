@@ -9,7 +9,7 @@
 # One path per line, '#' starts a comment. Packages before their users.
 # Every board top is listed; hw/build.cfg (or -tclargs top=...) picks one.
 # M7 retired the hand-written 4x4 fabric (fabric.v, tile.v, mux_bank.v,
-# fpga4x4*.v, bram_tile.v, dsp_tile.v); they stay frozen in release/hw_M6.
+# fpga4x4*.v, bram_tile.v, dsp_tile.v); they stay frozen in release/hw_M6. (git tag m25)
 # -----------------------------------------------------------------------------
 
 # CLB: fracturable LUT + carry + FF (AMD UG474). clb.sv is the one-element CLB of M4-M20,

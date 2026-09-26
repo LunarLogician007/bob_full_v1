@@ -1,8 +1,8 @@
 # bob_full_v1 — plan, status and handoff
 
 > **For any agent picking this up:** read this whole file before touching anything. It is the single current plan and records how the work is done.
-> `PLAN_v0.md` is the superseded first draft; don't follow it. `docs/README_M0.md` describes the M0 baseline inherited from `bob/`; `README.md` is the current overview.
-> Last updated 2026-09-18 (see `HANDOFF.md` for the live state): M0–M15 passed on the PYNQ-Z2 (git tags `m7`…`m15`). Whole-project report: `docs/project/REPORT.md`, interactive `project.html`.
+> `README.md` is the current overview.
+> Last updated 2026-09-26 (see `HANDOFF.md` for the live state): M0–M25 passed on the PYNQ-Z2 (git tags `m7`…`m25`); the board runs M25 and the hardware is locked. Whole-project report: `docs/project/REPORT.md`, interactive `project.html`; slides: `docs/presentation/slides.tex`.
 
 ---
 
@@ -18,14 +18,14 @@ Two flows, two bitstreams. Don't confuse them:
 
 Starting point: `/Users/sk/work/bob/` is a hardware-proven 4×4 CLB fabric (JTAG TAP, boundary scan, 2896-bit config chain, 174 simulation checks). It was **copied whole** into `bob_full_v1/` and is **frozen**. All work happens in `bob_full_v1/`, which is a git repository (local only; milestone tags `m7`…`m11`).
 
-**The device on the board (M7, `ARCH_6X4`):**
+**The device on the board at M7 (`ARCH_6X4`; today's M25 device is in §2 and `README.md`):**
 - VPR grid 8 × 6 (6 × 4 core inside an I/O ring)
 - 16 CLBs (one BLE each: LUT6 O6/O5, MUXCY/XORCY carry, FDRE/FDSE with routed CE/SR)
 - 2 BRAMs (1024×18 TDP, height 2, column x = 3) and 2 DSP slices (height 2, column x = 6, PCOUT→PCIN)
 - 20 pads, L4 unidirectional routing W = 24, Wilton Fs = 3, 1095 routing muxes
 - 4216-bit chain, 40-cell boundary, IDCODE `0xABEEF093`, USERCODE 7
 
-The 8×8 profile (48 CLBs, 9400 bits, `0x9BEEF093`) is frozen in `release/M7_8x8/`, because its Vivado synthesis was too slow on the build machine.
+The 8×8 profile (48 CLBs, 9400 bits, `0x9BEEF093`) is frozen in `release/M7_8x8/` (git tag m25), because its Vivado synthesis was too slow on the build machine.
 
 ## 2. Status
 
@@ -55,7 +55,7 @@ The 8×8 profile (48 CLBs, 9400 bits, `0x9BEEF093`) is frozen in `release/M7_8x8
 | M20 | a per-design user clock: `clock_ctrl.v` `clk_period` (any integer rate, `clk_div` prescales) and `clk_gap` (the design's own gce spacing, floor 2 cycles = 62.5 MHz, 0 = the safe 512); `software/bob/timing.py` (static timing of the configured bits), `software/bob/delays.py` + `hw/scripts/extract_delays.tcl` (per-element delays measured on the build), clock constraints as in Vivado: a `.sdc` `create_clock` (project `constrs/`, `--sdc`), slack reported, **negative slack fails the build (no `.bit`)**; `--hz auto` for the fastest safe clock; new IDCODE scheme `0x0B020093`. (A tree readback mux was measured and left out: +310 LUTs in the whole design) | **on the board 2026-09-23: 58/59** (clock-rate, clock-fmax, clock-margin pass; `bob-fir` failed on the autostep race, fixed and passed in M21); build WNS −0.919 ns in the period arithmetic (fixed in M21). Checklist `docs/hwtest/M20.md` |
 
 | M21 | the cluster CLB: 49 CLBs × 4 logic elements (fracturable LUT6, carry, 2 FFs) behind a full crossbar = 196 LUTs, N and the crossbar measured first (`docs/reports/M21/cluster_sweep.md`); readback from a BRAM shadow (the 256:1 readback mux removed); autostep a TCK after the pad update (M20 `bob-fir`), `clock_ctrl` period/gap registered (M20 WNS −0.919 ns); fir16, bob's cluster packer; the XDC stops timing the empty fabric (sysclk multicycle 16384, gap back to 512) and `timing.contract()` refuses any build or load whose critical path exceeds its gce spacing; IDCODE `0x0B021093` | **passed on hardware 2026-09-23** (66/66; third build closed: sysclk WNS +0.570 ns, tck +4990 ns) (`make hwtest M=M21`). Checklist `docs/hwtest/M21.md` |
-| M22 | LUT contents and the crossbar in AMD CFGLUT5 (ZUMA-style), measured first (a CLB: 469 LUTs + 424 config FFs → 193 LUTs + 48 FFs, yosys); 9 × 9 = 81 CLBs = 324 LUTs; `lut_loader.v` shifts each written frame into its CLB's CFGLUT5s, `lut_expand.v` expands the compact selects, JPROGRAM sweeps zeros; nothing on the wire changes; IDCODE `0x0B022093` | **on the board 2026-09-24: 65/67**; the two failed fir16 live checks rerun 12/12 (one interactive rerun pending). Vivado WNS +0.172 ns, 38,184 LUTs (71.8%), SLICEM 70.6%. Checklist `docs/hwtest/M22.md`, spec `docs/superpowers/specs/2026-09-23-m22-lutram-design.md` |
+| M22 | LUT contents and the crossbar in AMD CFGLUT5 (ZUMA-style), measured first (a CLB: 469 LUTs + 424 config FFs → 193 LUTs + 48 FFs, yosys); 9 × 9 = 81 CLBs = 324 LUTs; `lut_loader.v` shifts each written frame into its CLB's CFGLUT5s, `lut_expand.v` expands the compact selects, JPROGRAM sweeps zeros; nothing on the wire changes; IDCODE `0x0B022093` | **on the board 2026-09-24: 65/67**; the two failed fir16 live checks rerun 12/12 (one interactive rerun pending). Vivado WNS +0.172 ns, 38,184 LUTs (71.8%), SLICEM 70.6%. Checklist `docs/hwtest/M22.md`, spec `docs/bitstream-format.md` section 15 |
 | M23 | the grid sweep (`software/bob/gridsweep.py`: SLICEM slices were the wall), crossbar roots as a fixed OR in a plain LUT (`lxor.v`: 152 → 128 CFGLUT5 per CLB), routing muxes as LUT6 + MUXF7/MUXF8 primitives; **10 × 10 = 100 CLBs = 400 LUTs**, W 36, fc_in 0.10; 24-bit chain count; IDCODE `0x0B023093` | **passed on the board 2026-09-24: 68/68 automatic + manual**; Vivado WNS +0.048 ns, 36,710 LUTs (69.0%), slices 88.0%, SLICEM 92.6%. First build (12 × 11, O5/O6-shared leaves) did not place: a dual-output CFGLUT5 is two LUT sites. yosys: 25,691 LUT + 12,800 CFGLUT5 + 26,787 FF. Checklist `docs/hwtest/M23.md` |
 | M24 | **Double Duty elements** (Pun et al., FPL 2025): flag `dd` feeds the adder from two bypass inputs (A = in[K-2], B = in[K-1]) so the LUT stays free for out[1]; VPR mode `dd` replaces `arithmetic`; bob's packer fills adder elements' LUTs; `vpr_run` retries seeds when only routing fails; IDCODE `0x0B024093` | **passed on the board 2026-09-25: 69/69**; WNS +0.562 ns, 38,193 LUTs, slices 85.5%; elements vs M23: VPR −4.7%, bob's packer −13.2%. Checklist `docs/hwtest/M24.md` |
 | M25 | **time-travel debugging**: UG470 GRESTORE in the frame parser; `snapshot.py` captures a frozen design's flip-flops, restores them (INIT bits := state, GRESTORE, INIT back, verified while frozen) and hands them to `model.py` and back; `bob snap`; TCK constrained at 1 MHz (10x faster loads, board default 100 kHz until proven); IDCODE `0x0B025093` | **passed on the board 2026-09-25: 71/71**, and 71/71 again with TCK at 1 MHz (now the default: the regression runs in 8 min instead of 10); Vivado WNS +0.732 ns sysclk, **+489 ns TCK at 1 MHz**, 38,198 LUTs, slices 86.8%. Checklist `docs/hwtest/M25.md` |
@@ -307,7 +307,7 @@ simulator and back.
 6. **Vivado is not on the Mac.** The user copies `bob_full_v1/hw/` to Windows (`E:\bob_full_v1\hw`), replacing the old `hw`, and runs `hw/scripts/build.tcl` (usually Tools → Run Tcl Script). The Vivado project must be **reused, never recreated**.
 7. **Explain concepts** (routing, mapping, host vs guest flow) before asking for decisions. Give the user guidance for anything they do by hand at the board (what to press, what the LEDs must show) and enough time to do it.
 8. Decisions already made: VPR does PnR first (Python PnR at M12); 6-bit AMD 7-series JTAG IR codes; yosys for synthesis; no Aegis binaries (read-only study only); the board runs the 16-CLB profile until the user decides otherwise (the 8×8 build is for a faster machine).
-9. **Git:** commit as work progresses (never `docs/bob_full_v1_report.tex`, which the user edits); tag `mN` only after milestone N passes on the board. The tags replace the `release/mac_MN` copies for freezing tools.
+9. **Git:** commit as work progresses (never `docs/bob_full_v1_report.tex`, which the user edits); tag `mN` only after milestone N passes on the board. The tags replace the `release/mac_MN` (git tag m25) copies for freezing tools.
 
 ## 4. Folder structure (actual)
 
@@ -317,7 +317,6 @@ bob_full_v1/
   Makefile               check | device | rrgraph | vpr | sim | lint | test | mutate | hw | hwtest M=Mx [ONLY=..]
   bob                    wrapper: python3 software/bob/cli.py (./bob build | load | info | fasm)
   arch.html              interactive die slice (built from docs/arch/ by docs/arch/build.py)
-  architecture-v2.html   the style reference arch.html copies
 
   hw/                    THE Vivado bundle: the only folder copied to Windows
     README.md  sources.f  build.cfg (tag M7, top bob_top, idcode ABEEF093, usercode 7)
@@ -369,8 +368,7 @@ bob_full_v1/
     hwtest/Mx.md results.log   per-milestone checklist; every board run
     reports/Mx/          Vivado outputs (M0–M4, M7); M11/designs.md (guest designs)
     arch/                arch.html sources (p1_head … p9_nav, data.json, build.py)
-    README_M0.md reference/ wiring.md architecture.html fabric-audit.html report.tex bob_full_v1_report.tex (user's)
-  release/               hw_M3…hw_M7 (frozen Vivado bundles), mac_M6 mac_M7 (frozen tools), M7_8x8 (48-CLB profile)
+    reference/ wiring.md architecture.html fabric-audit.html report.tex bob_full_v1_report.tex (user's)
   build/                 scratch, git-ignored (synth, vpr work dirs, bit, cosim)
   pico/README.md
 ```
@@ -425,7 +423,7 @@ What `build.tcl` guarantees (tested on the Mac with the stub): the project lives
 - **New top** → `parameter [31:0] IDCODE_VALUE` and the board ports `tck tms tdi tdo sw[1:0] btn[3:0] led[3:0]`; add it to `sim/lint.sh`.
 - **Per milestone with RTL changes:** bump `hw/build.cfg` `tag`, `idcode` version nibble and `usercode`; add `docs/hwtest/Mx.md`; register checks in `software/host/hwtest.py` `MILESTONE["Mx"]`; update `REUSE.md`, this file's status table and `README.md`.
 - **Per milestone without RTL changes:** same, except `build.cfg` stays tagged with the bitstream in the PL (hwtest prints a note).
-- **IDCODE map:** `0x1BEEF093` bare TAP, `0x2BEEF093` single CLB, `0x3BEEF093` 4×4 fabric (M0–M1), `0x4BEEF093` M2 cfg test top, `0x5BEEF093` M3, `0x6BEEF093` M4, `0x7BEEF093` M5, `0x8BEEF093` M6, `0x9BEEF093` M7 8×8 profile (`release/M7_8x8`), `0xABEEF093` M7 16-CLB board profile (M7–M12), `0xBBEEF093` M13 (frames), `0xEBEEF093` M15 (one build for M12b + M14 + M15; nibbles C and D were never built alone), `0xFBEEF093` M16, the last nibble. **From M20:** version 0 and the 16-bit part field names the milestone in readable digits, `0x0B0<MM>093`: `0x0B020093` is M20, `0x0B021093` M21.
+- **IDCODE map:** `0x1BEEF093` bare TAP, `0x2BEEF093` single CLB, `0x3BEEF093` 4×4 fabric (M0–M1), `0x4BEEF093` M2 cfg test top, `0x5BEEF093` M3, `0x6BEEF093` M4, `0x7BEEF093` M5, `0x8BEEF093` M6, `0x9BEEF093` M7 8×8 profile (`release/M7_8x8` (git tag m25)), `0xABEEF093` M7 16-CLB board profile (M7–M12), `0xBBEEF093` M13 (frames), `0xEBEEF093` M15 (one build for M12b + M14 + M15; nibbles C and D were never built alone), `0xFBEEF093` M16, the last nibble. **From M20:** version 0 and the 16-bit part field names the milestone in readable digits, `0x0B0<MM>093`: `0x0B020093` is M20, `0x0B021093` M21.
 - **Architecture numbers live only in `software/bob/device.py`.** Consumers read `device.json` or `bob_params.vh`. After editing it: `make device`, or `make rrgraph` if the VPR architecture changed (sha256 stamps make stale graphs fail). Then `make vpr` if the arch sha changed (committed VPR results are stamped too).
 - **Guest designs** (`work/examples/*.v`): ports `clk`, `sw[1:0]`, `btn[3:0]`, `led[2:0]`, or any ports with a `.pcf`. A new example goes into `vpr_run.EXAMPLES` (or `VARIANTS` for a pin file), then `make vpr`.
 - **Committed generated data** (rr graphs, VPR results) carries a stamp of what it was built from; tools refuse stale data with the command that rebuilds it. Docker is needed only to rebuild.
@@ -445,7 +443,7 @@ What `build.tcl` guarantees (tested on the Mac with the stub): the project lives
 | OpenFPGA Docker | no arm64 manifest; Colima shares only `$HOME`; the image user can't write a mount | `--platform linux/amd64`, `-u root`, work dirs under `build/` |
 | Fabric combinational loops | LUTLP-1 DRC and Synth 8-295 by construction | Downgraded for fabric tops in `drc_waiver.tcl`; UNOPTFLAT waived in lint |
 | Timing on the fabric (M7) | WNS −1102 ns: static paths through unconfigured routing loops | Hardware still correct; fixes (KEEP_HIERARCHY, commit only while GWE=0, TCK ceiling, case-analysis sign-off) are planned for the next rebuild. M21: the case-analysis sign-off is done in software (`timing.contract()`) |
-| Vivado synthesis of 48 CLBs (M7) | 30+ min and still running on the build machine | Board runs the 16-CLB profile; 8×8 frozen in `release/M7_8x8/` |
+| Vivado synthesis of 48 CLBs (M7) | 30+ min and still running on the build machine | Board runs the 16-CLB profile; 8×8 frozen in `release/M7_8x8/` (git tag m25) |
 | VPR `pinlocations spread` on tall blocks (M7) | pins inside a tall block where there is no channel: `SINK has no fanin` | custom pin locations in `device.py` |
 | rr graph `ptc` (M7) | tileable CHAN nodes carry one track id per position | `rrgraph.py` parses ptc as a tuple |
 | Test relying on design order (M7) | tb [4] assumed `showcase` was last | sections load what they check |
@@ -467,7 +465,7 @@ What `build.tcl` guarantees (tested on the Mac with the stub): the project lives
 | A guard nobody tests (M2) | a testbench passed with the length check deleted | test each guard in isolation; mutation tests (`make mutate`, tb_cosim mutants, fake-board failing cases) |
 | zsh vs bash | `$VAR` with several paths isn't word-split | multi-file shell logic in bash scripts with arrays |
 | Random config in simulation (M4) | a random chain built an oscillating loop; simulation time stopped | never commit a fully random chain; random muxes select out-of-range sources |
-| Parallel work on hw/ and tools (M4, M7) | editing while the previous milestone was on the board; M6 tools had to be restored | freeze before starting N+1: git tag `mN` (earlier: `release/hw_MN`, `release/mac_MN`) |
+| Parallel work on hw/ and tools (M4, M7) | editing while the previous milestone was on the board; M6 tools had to be restored | freeze before starting N+1: git tag `mN` (earlier: `release/hw_MN` (git tag m25), `release/mac_MN` (git tag m25)) |
 | Checks that leak the real switches (M4) | USER1 ce=1 before INTEST let SW0/SW1 reach CE/SR | sequential checks through INTEST use USER1 autostep with ce off |
 | Check-script crashes (M5) | `'%03b' % g` | f-strings; a crash is reported as FAIL with the exception |
 | IDCODE `0xFFFFFFFF` | board not programmed or TDO unwired | program first; `README.md` debug table |
@@ -748,7 +746,7 @@ Not done yet (belongs to M7): pads and chain order for non-CLB tiles.
   - [22] 4 random routed netlists of 14 CLBs, where every CLB output and LED is compared with `model.py` after each of 24 clocks. This is the "RTL equals model every cycle" proof.
 
   `run_k4_sim.sh` runs the same at K=4. pytest checks the mux encoding, that every pip is one field value, that every block pin is an rr node, the directs, routes forming non-sharing trees, the reference routing parameters kept in the arch, and the VPR route logs.
-- **Retired:** `fabric.v`, `tile.v`, `mux_bank.v`, `fpga4x4.v`, `fpga4x4_top.v`, `bram_tile.v`, `dsp_tile.v`, `tb_fpga4x4.v` (frozen in `release/hw_M6/`). `clb_pkg.sv` now has CLB constants only. `bscan.py` (interactive, 9-cell) is not ported.
+- **Retired:** `fabric.v`, `tile.v`, `mux_bank.v`, `fpga4x4.v`, `fpga4x4_top.v`, `bram_tile.v`, `dsp_tile.v`, `tb_fpga4x4.v` (frozen in `release/hw_M6/` (git tag m25)). `clb_pkg.sv` now has CLB constants only. `bscan.py` (interactive, 9-cell) is not ported.
 - **Pre-Vivado estimate** (yosys `synth_xilinx -flatten` on `bob_top`, with `clb.sv`'s package import inlined because yosys can't parse it; `build/yosys/`):
   - ~23.0k LUTs (43% of the XC7Z020): LUT6 10.8k, LUT3 6.6k
   - 20.8k FFs, 2 RAMB18E1, 2 DSP48E1, 106 CARRY4
@@ -996,7 +994,7 @@ Split in two, because only the second half changes the Vivado bitstream:
   1. **Timing/synthesis hardening that is already planned:** KEEP_HIERARCHY on tiles, commit only while GWE = 0, TCK ceiling, case-analysis sign-off. This could make the 48-CLB profile synthesise acceptably without a new architecture.
   2. **Configuration memory in host LUTRAM (ZUMA):** routing muxes with their configuration folded into LUTRAM, written by address. It cuts FFs drastically, but it is a frame-like write path and overlaps M13.
   3. **Shift register without a full shadow copy for mux bits:** keep the scan-chain protocol, but store configuration once and gate the fabric with GWE/GTS during shifting. This saves about half the configuration FFs, at the cost of glitch-free load guarantees that must be re-proven.
-  4. **Larger grid only:** build `release/M7_8x8` on a faster machine as it is.
+  4. **Larger grid only:** build `release/M7_8x8` (git tag m25) on a faster machine as it is.
 - **Done when:** the chosen change is built as the complete FPGA; `util.rpt` LUT/FF per CLB is below M7's; every earlier hardware check passes on the new bitstream; the examples re-run through both PnR flows on the new graph.
 
 ### M13: frame-based configuration, the chain kept, M7 timing fixed

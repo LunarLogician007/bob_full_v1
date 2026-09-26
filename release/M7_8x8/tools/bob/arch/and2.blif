@@ -1,8 +1,0 @@
-# The trivial netlist VPR places and routes on every architecture bob generates
-# (tools/bob/vpr_rrgraph.sh): proof that the arch loads, packs, places and routes.
-.model and2
-.inputs a b
-.outputs c
-.names a b c
-11 1
-.end

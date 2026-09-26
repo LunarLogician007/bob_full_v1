@@ -815,7 +815,7 @@ bob is a student-scale project that deliberately reuses the methods of much larg
 
 | project | what it is | scale |
 |---|---|---|
-| **bob** (this) | an FPGA fabric + configuration controller + full tool chain, running inside a PYNQ-Z2, built milestone by milestone with a board test each time | one fabric, one board, ~27k lines |
+| **bob** (this) | an FPGA fabric + configuration controller + full tool chain, running inside a PYNQ-Z2, built milestone by milestone with a board test each time | one fabric, one board, ~40k lines |
 | **OpenFPGA** (LNIS, Utah) | an academic framework that turns an architecture description into a fabric (Verilog + SPICE), a bitstream generator and a full VTR-based flow, aimed at taping out FPGAs | many architectures and technologies, years of work, a research community |
 | **Aegis** (`/Users/sk/work/aegis`, Apache-2.0, read-only reference here) | a parameterised FPGA fabric generator written in Dart/ROHD: emits synthesisable SystemVerilog for a whole device — clock tiles, I/O and SerDes, a LUT/BRAM/DSP grid — programmed by one scan chain through every tile | a generator with a documented architecture, PDK notes and a CAD story |
 | **ZUMA** (Brant & Lemieux, FCCM 2012) | an open FPGA **overlay**: a virtual FPGA on a commercial one, with configuration held in the host's LUTRAM | a research overlay, the classic reference for overlay area |
@@ -823,23 +823,23 @@ bob is a student-scale project that deliberately reuses the methods of much larg
 
 ### 5.2 Where bob is genuinely strong
 
-1. **Every step is proven on real hardware.** Seventeen milestones, fifty-seven logged board runs, and a rule that simulation never closes a milestone. Most fabric generators are validated in simulation or on one demo design; bob has a regression that re-runs every earlier milestone's checks on each new bitstream.
+1. **Every step is proven on real hardware.** Twenty-six milestones (M0–M25), each closed by a board run, and a rule that simulation never closes a milestone. Most fabric generators are validated in simulation or on one demo design; bob has a regression that re-runs every earlier milestone's checks on each new bitstream.
 2. **One description generates everything.** `device.py` → VPR architecture, routing graph, fabric RTL, `device.json`, FASM map, Python models and host tools. Growing 16 → 36 → 100 CLBs was a dictionary edit plus two commands. OpenFPGA has the same philosophy at a much larger scale; Aegis parameterises its generator but its CAD side is not this tightly coupled.
 3. **Two configuration paths on one memory.** A scan chain (OpenFPGA's `scan_chain`, Aegis's shift + shadow) *and* AMD UG470-style frames (sync word, type-1/2 packets, CRC over `{register, data}`, FAR auto-increment, FDRO readback, STAT) — with a board check that loads through one and reads back through the other. Most projects pick one protocol.
 4. **Partial reconfiguration that provably keeps state.** AGHIGH freezes the user clock, only changed frames are written, LFRM releases after a CRC match, and the testbench proves a free-running counter holds its value and then continues. ZUMA and Aegis do not do this; OpenFPGA supports frame-based protocols but bob's freeze-and-prove loop is unusually concrete for a project this size.
 5. **Verification depth per line of code.** 28 744 testbench checks whose expectations come from independent Python models, golden co-simulation (source ∥ golden netlist ∥ fabric RTL, 5 220 checks), 59 mutants that must all be caught, and a stand-in board so every hardware check is tested — passing *and* failing — before the board sees it.
 6. **The tool chain is small enough to read.** Synthesis is a yosys script; place and route is ~1 500 lines of Python you can modify in an afternoon; the bitstream is text (FASM) before it is bits. For learning, that is worth more than a production flow.
-7. **Honest constraints.** Every timing exception is backed by an RTL guarantee, a host limit (TCK ≤ 100 kHz) or, from M21, the timing contract that refuses any design not fitting its clock, and `tests/test_reports.py` fails the build if the reports do not show timing closing.
+7. **Honest constraints.** Every timing exception is backed by an RTL guarantee, a host limit (TCK ≤ 1 MHz since M25) or, from M21, the timing contract that refuses any design not fitting its clock, and `tests/test_reports.py` fails the build if the reports do not show timing closing.
 
 ### 5.3 Where bob is weaker — plainly
 
 | | bob | the others |
 |---|---|---|
-| **Architecture coverage** | one fabric shape: a 4-element cluster with a full crossbar, one BRAM and one DSP type, L4 unidirectional routing, W = 40 | OpenFPGA covers many cluster shapes, many segment types, memory banks, and generates them all |
+| **Architecture coverage** | one fabric shape: a 4-element cluster with a full crossbar, one BRAM and one DSP type, L4 unidirectional routing, W = 36 | OpenFPGA covers many cluster shapes, many segment types, memory banks, and generates them all |
 | **Targets** | one board (PYNQ-Z2, XC7Z020) | OpenFPGA targets silicon (SPICE, layout, PDKs); prjxray targets real Xilinx parts |
 | **Timing** | VPR's numbers come from the reference 40 nm architecture and are *not* the emulated fabric's real speed; bob's own PnR is not timing-driven at all | OpenFPGA produces delay models from SPICE; VPR's timing-driven flow is used properly there |
 | **Scale** | 400 LUTs since M23 (10 × 10, the ceiling for this CLB on the XC7Z020); fir16 at 147 LUTs is the biggest design | a real overlay (ZUMA) or a taped-out OpenFPGA fabric is orders of magnitude larger |
-| **Area efficiency** | configuration in flip-flops: ~186 bits per CLB-equivalent; the memory alone is ~18.5k flip-flops | ZUMA's whole point is LUTRAM configuration, which is far denser on a commercial host |
+| **Area efficiency** | since M22 the truth tables and crossbar live in host CFGLUT5s (ZUMA's trick); routing selects and flags are still flip-flops, and the fabric fills 86.8% of the XC7Z020's slices at 400 LUTs | ZUMA builds whole overlays on LUTRAM and is far denser per guest LUT |
 | **Design support** | one clock domain, no asynchronous resets or latches, no true tristate, no clock enables inferred from arbitrary logic | commercial and open flows handle all of this |
 | **Bitstream realism** | bob's format is 7-series *shaped*, deliberately simplified (no encryption, compression, ECC, multiboot, bus-width detection) | prjxray documents the real thing, bit for bit |
 | **Maturity** | a project built over days, by one person and an assistant, with a frozen reference implementation next to it | years of work, papers, users, CI |
