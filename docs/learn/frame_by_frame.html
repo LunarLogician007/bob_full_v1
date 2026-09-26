@@ -301,7 +301,8 @@ svg .wave { stroke: var(--ink); stroke-width: 1.6; fill: none; }
   <div class="cols">
     <div class="txt">
       <p>While the frames arrive, the CRC engine folds every written word into a 32-bit <b>CRC-32C</b>. The host sends the value it expects; the brain compares. Equal sets <b>CRC_OK</b>, and only then is <b>START</b> accepted.</p>
-      <p>Startup is then four steps on four TCK edges (UG470's order): release <b>GSR</b> (the flip-flops leave reset), release <b>GTS</b> (the outputs turn on), raise <b>GWE</b> (flip-flops and RAMs may change), raise <b>DONE</b>. The design runs.</p>
+      <p>Startup is then four steps on four TCK edges: release <b>GSR</b> (the flip-flops leave reset), release <b>GTS</b> (the outputs turn on), raise <b>GWE</b> (flip-flops and RAMs may change), raise <b>DONE</b>. The design runs.</p>
+      <p>The rules are UG470's: nothing is released before the CRC has matched, and the outputs turn on before any flip-flop or RAM may change. The exact order is bob's own. AMD's default (UG470 table 5-11) releases DONE first, in phase 4, then GTS in phase 5 and GWE in phase 6, and lists no separate GSR step: until GWE rises, no flip-flop can change anyway.</p>
       <p class="bob"><b>In bob</b> the startup sequencer is <code>cfg_ctrl.v</code> (<code>u_ctrl</code>), driven by the JSTART instruction.</p>
     </div>
     <div class="stage" id="st-start" tabindex="0"></div>
@@ -847,7 +848,7 @@ stage("st-start", "0 0 640 400", [
     only: true, draw(g) { R(g, 60, 80, 220, 70, "reg on"); T(g, 170, 110, "CRC engine", { class: "lbl", "text-anchor": "middle" }); T(g, 170, 132, ST.crc, { class: "mono", "text-anchor": "middle" }); R(g, 360, 80, 220, 70, "reg"); T(g, 470, 110, "host's CRC word", { class: "small", "text-anchor": "middle" }); T(g, 470, 132, ST.crc, { class: "mono", "text-anchor": "middle" }); T(g, 320, 120, "=", { class: "lbl", "text-anchor": "middle" }); } },
   { say: "Equal: <b>CRC_OK</b>. Then CMD = START is accepted. (Unequal: CRC_ERROR, the parser stops, and DONE can never rise.)",
     only: true, draw(g) { E("circle", { cx: 320, cy: 200, r: 30, class: "ok" }, g); T(g, 320, 206, "CRC_OK", { class: "mono", "text-anchor": "middle", style: "fill:var(--panel);font-weight:600" }); } },
-  { say: "The host loads the <b>JSTART</b> instruction and clocks TCK in Run-Test/Idle. Startup is four steps, one per tick (UG470's order).", only: true, draw(g) { startWave(g, 0); } },
+  { say: "The host loads the <b>JSTART</b> instruction and clocks TCK in Run-Test/Idle. Startup is four steps, one per tick: GSR, GTS, GWE, DONE (UG470's rule, outputs before writes; its default order differs).", only: true, draw(g) { startWave(g, 0); } },
   { say: "Tick 1: <b>GSR</b> falls. Every user flip-flop leaves its reset and holds its initial value.", only: true, draw(g) { startWave(g, 1); } },
   { say: "Tick 2: <b>GTS</b> falls. The fabric's outputs stop being held off: the LEDs may now show what the design says.", only: true, draw(g) { startWave(g, 2); } },
   { say: "Tick 3: <b>GWE</b> rises. Flip-flops and RAMs may change: the design starts running.", only: true, draw(g) { startWave(g, 3); } },

@@ -313,7 +313,7 @@ print(cfgplane.ir_status(p))          # {'done': 1, 'init_b': 1, 'committed': 1,
 
 ### 3.10 The configuration memory (`cfg_store.v`)
 
-**What it is.** The flip-flops the fabric reads (32 896 of them at M21) plus **one 128-bit frame buffer** through which every write passes, and, from M21, a **BRAM shadow** that readback reads. Both write paths fill the same memory:
+**What it is.** The flip-flops the fabric reads (about 22 000 of the 68 096 configuration bits at M25: routing selects, element flags, hard-block and clock settings; since M22 the truth tables and crossbar selects, 37 600 bits, live in CFGLUT5s instead, §3.4, and the rest is frame padding) plus **one 128-bit frame buffer** through which every write passes, and, from M21, a **BRAM shadow** that readback reads. Both write paths fill the same memory:
 
 | path | instruction | how a write happens |
 |---|---|---|
@@ -344,7 +344,7 @@ cfgplane.measure_chain(p, B.CHAIN_W + 256) # measure the chain length on the boa
 
 **What it is.** The 64-bit `CFG_CTRL` register (status out, expected CRC in behind the write key `0xC5`), the bit-serial CRC-32C over everything shifted in during a `CHAIN_IN` scan, the length counter, the COMMITTED/CRC_ERR/LEN_ERR flags, and the startup sequence **GSR → GTS → GWE → DONE** stepped by JSTART in Run-Test/Idle.
 
-**Why this way.** It is UG470's order: check integrity *before* releasing anything, then release in the order that cannot damage the design (registers leave reset, outputs enable, writes enable, DONE). The CRC init is `0xFFFFFFFF` on purpose, so a stuck-low TDI cannot match the power-up expected value of 0. The write key exists so that reading the register (which shifts zeros back in) cannot silently change the expected CRC — the same idea as UG470's MASK register.
+**Why this way.** It follows UG470's rules: check integrity *before* releasing anything, then release in an order that cannot damage the design (registers leave reset, outputs enable, writes enable, DONE). The order itself is bob's: AMD's default (UG470 table 5-11) releases DONE first, in phase 4, then GTS in phase 5 and GWE in phase 6, and has no GSR phase; bob raises DONE last, so a lit LD3 means the design is running. The CRC init is `0xFFFFFFFF` on purpose, so a stuck-low TDI cannot match the power-up expected value of 0. The write key exists so that reading the register (which shifts zeros back in) cannot silently change the expected CRC — the same idea as UG470's MASK register.
 
 **How to use it.**
 
@@ -803,7 +803,15 @@ print(packets.decode_stat(cfgplane.frames_read(p, 1)[0]))
 python3 docs/arch/build.py --data                  # arch.html (--data after make device)
 python3 docs/project/collect.py                    # numbers from the repo → data.json
 python3 docs/project/build.py                      # project.html and guide.html
+python3 docs/learn/parts/gen.py                    # volume 1, bit_by_bit.html (its chip numbers)
+python3 docs/learn/layers/gen.py                   # volume 2, layer_by_layer.html
+python3 docs/learn/frames/gen.py                   # volume 3, frame_by_frame.html
+python3 docs/learn/tools/gen.py                    # volume 4, tool_by_tool.html
 ```
+
+Every one of these reads the chip's own data, so rerun them after `make device` or a new
+milestone tag: arch.html still drew M22's 81 CLBs, and volume 1 still described M21, until
+they were regenerated on 2026-09-26.
 
 ---
 
@@ -817,7 +825,7 @@ bob is a student-scale project that deliberately reuses the methods of much larg
 |---|---|---|
 | **bob** (this) | an FPGA fabric + configuration controller + full tool chain, running inside a PYNQ-Z2, built milestone by milestone with a board test each time | one fabric, one board, ~40k lines |
 | **OpenFPGA** (LNIS, Utah) | an academic framework that turns an architecture description into a fabric (Verilog + SPICE), a bitstream generator and a full VTR-based flow, aimed at taping out FPGAs | many architectures and technologies, years of work, a research community |
-| **Aegis** (`/Users/sk/work/aegis`, Apache-2.0, read-only reference here) | a parameterised FPGA fabric generator written in Dart/ROHD: emits synthesisable SystemVerilog for a whole device — clock tiles, I/O and SerDes, a LUT/BRAM/DSP grid — programmed by one scan chain through every tile | a generator with a documented architecture, PDK notes and a CAD story |
+| **Aegis** (`/Users/sk/work/aegis`, Apache-2.0, read-only reference here) | a parameterised FPGA fabric generator written in Dart/ROHD: emits synthesisable SystemVerilog for a whole device — clock tiles, I/O and SerDes, a LUT4/BRAM/DSP grid with single-length (nearest-neighbour) tracks — programmed by one scan chain through every tile; its own nextpnr, packer and simulator; and an RTL-to-GDS tapeout flow (Yosys, OpenROAD, KLayout) on GF180MCU and Sky130 | two devices (Luna 1: 437 LUT4s on GF180; Terra 1: ~2 880 LUT4s on Sky130), aimed at shuttle tapeouts |
 | **ZUMA** (Brant & Lemieux, FCCM 2012) | an open FPGA **overlay**: a virtual FPGA on a commercial one, with configuration held in the host's LUTRAM | a research overlay, the classic reference for overlay area |
 | **prjxray / F4PGA** | reverse-engineering of real Xilinx bitstreams and an open flow that targets them | large, device-accurate, no fabric of its own |
 
@@ -882,5 +890,5 @@ bob is not a better OpenFPGA, and it is not trying to be: OpenFPGA is a research
 - **`REPORT.md` §19** — 42 problems and their fixes. It is the fastest way to learn the traps.
 - **`PLAN.md` §10** — every milestone's "as built" notes, including what was deliberately left out.
 - **`arch.html`** — click any block to see what it is, what it came from, and which testbench covers it.
-- **`docs/learn/bit_by_bit.html`** and **`docs/learn/layer_by_layer.html`**: the animated beginner's tours, the pieces and then the whole chip built layer by layer (`python3 docs/learn/layers/gen.py` regenerates the second from the chip's data).
+- **`docs/learn/`**: four animated volumes, each built by its `gen.py` from the chip's own data (§4.10): *bit by bit* (the pieces), *layer by layer* (the whole chip), *frame by frame* (one configuration from the cable into the chip) and *tool by tool* (one design through every tool).
 - **Good first changes:** add an example design (§4.4); change the router's cost function in `software/bob/pnr/route.py` and watch `make pnr`; add a configuration field and a mutant for it (§4.5); try `--lut-k 4` end to end.

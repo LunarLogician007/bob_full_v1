@@ -54,7 +54,7 @@
     <div class="txt">
       <p>Connect two inverters in a ring: the output of one feeds the other. If the left one outputs 1, the right one outputs 0, which keeps the left one at 1. The pair holds itself. That is an <b>SRAM cell</b> (6 transistors in silicon). Writing means pushing the ring into the other state.</p>
       <p>In an FPGA these bits are called <b>configuration bits</b>. They don't hold your data. They hold the FPGA's own settings: which truth table each LUT has, and which wire goes where. Load different bits and the same chip becomes a different circuit.</p>
-      <div class="bob"><b>In bob:</b> the board runs M21 with 32,896 configuration bits. Most of them are flip-flops in the host chip, and each is written like this cell.</div>
+      <div class="bob"><b>In bob:</b> the board runs {{MILESTONE}} with {{CHAIN_BITS}} configuration bits. {{FLOP_BITS}} of them are flip-flops in the host chip, each written like this cell. The truth tables and crossbar choices ({{LUTRAM_BITS}} more) live in the host's shift-in lookup tables (chapter 12), and the rest pads each tile out to whole frames.</div>
     </div>
     <div class="stage" id="st-sram"></div>
   </div>
@@ -113,7 +113,7 @@
         <li><b>two flip-flops</b>, with enable (CE) and reset (SR) inputs</li>
         <li>small muxes, set by <b>flag bits</b>, that choose "registered or not" for each output</li>
       </ul>
-      <p>Together that is 106 configuration bits per element in bob (64 truth-table bits, 12 flags, and 30 bits for the crossbar that feeds its inputs, next chapter).</p>
+      <p>Together that is {{ELEM_BITS}} configuration bits per element in bob ({{LUT_BITS}} truth-table bits, {{ELEM_FLAGS}} flags, and {{ELEM_XBAR_BITS}} bits for the crossbar that feeds its inputs, next chapter).</p>
       <p class="aside">Step through it, and flip <b>ff_en</b> to see the output switch between "straight from the LUT" and "from the flip-flop".</p>
     </div>
     <div class="stage" id="st-le"></div>
@@ -144,7 +144,7 @@
         <li>a <b>switch box</b> mux picks where a track continues from</li>
       </ul>
       <p>Connecting CLB A to CLB B means setting the select bits of every mux along one path. With thousands of possible paths, you need thousands of muxes. <b>This is where most of an FPGA goes: not the logic, the wiring.</b></p>
-      <div class="bob"><b>In bob:</b> 40 tracks per channel, 3,396 routing muxes plus 1,176 crossbar muxes, for 196 LUTs. VPR (the router) chooses the path; the result is just select values for these muxes.</div>
+      <div class="bob"><b>In bob:</b> {{W}} tracks per channel, {{ROUTING_MUXES}} routing muxes plus {{XBAR_MUXES}} crossbar muxes, for {{NLUT}} LUTs. VPR (the router) chooses the path; the result is just select values for these muxes.</div>
       <p class="aside">Press Next to route one signal from the left CLB to the right one, one mux at a time.</p>
     </div>
     <div class="stage" id="st-route"></div>
@@ -158,11 +158,11 @@
     <div class="txt">
       <p>bob can take the bits in two ways:</p>
       <ul>
-        <li><b>The scan chain:</b> every configuration bit sits in one giant shift register. You push bits in one at a time; after 32,896 pushes every bit is in place. It's simple, but you have to rewrite everything to change anything.</li>
+        <li><b>The scan chain:</b> every configuration bit sits in one giant shift register. You push bits in one at a time; after {{CHAIN_BITS}} pushes every bit is in place. It's simple, but you have to rewrite everything to change anything.</li>
         <li><b>Frames:</b> the bits are cut into <b>frames</b> of 128 bits (4 words of 32). Each frame has an address (FAR). You send "write frame 17" and 4 words, and only frame 17 changes. This is how AMD's real chips do it (their user guide UG470), and it makes partial loads possible.</li>
       </ul>
       <p>Every stream ends with a <b>CRC</b>, a checksum. If even one bit arrived wrong, the checksum doesn't match and bob refuses to start.</p>
-      <div class="bob"><b>In bob (M21):</b> 32,896 bits = 257 frames. Readback reads the frames back out, so you can check what went in.</div>
+      <div class="bob"><b>In bob ({{MILESTONE}}):</b> {{CHAIN_BITS}} bits = {{FRAMES}} frames. Readback reads the frames back out, so you can check what went in.</div>
     </div>
     <div class="stage" id="st-bits"></div>
   </div>
@@ -195,7 +195,7 @@
       <p>Say a design has a counter and an AND gate, and you want an OR gate instead. The two designs differ in one truth table, which lives in one frame. A partial load:</p>
       <ul>
         <li><b>freezes</b> the design: the clock is held, so no flip-flop changes (the command is AGHIGH)</li>
-        <li>writes <b>only the changed frame</b> (1 of 257)</li>
+        <li>writes <b>only the changed frame</b> (1 of {{FRAMES}})</li>
         <li>checks the CRC</li>
         <li><b>releases</b> the clock (LFRM)</li>
       </ul>
@@ -208,12 +208,12 @@
 
 <section class="ch" id="cfglut">
   <h2><span class="n">12</span>LUTs that load themselves (M22)</h2>
-  <p class="lead">bob's next step: store each truth table in a real LUT of the host chip, filled by shifting bits in.</p>
+  <p class="lead">Since M22, bob keeps each truth table in a real LUT of the host chip, filled by shifting bits in.</p>
   <div class="cols">
     <div class="txt">
-      <p>bob runs <i>inside</i> another FPGA, AMD's XC7Z020. In chapter 4 each bob LUT was 64 flip-flops plus a big 64-to-1 mux, all built from the host chip's own parts. That costs a lot of the chip.</p>
-      <p>AMD's chips have a special LUT, the <b>CFGLUT5</b>, whose 32-bit truth table can be rewritten while the chip runs, by shifting bits in one per clock. M22 keeps each bob truth table in two of these. The frame buffer feeds the bits in over 32 clocks, while the next frame is still arriving.</p>
-      <p>The result, measured: a bob CLB drops from 469 host LUTs + 424 flip-flops to 193 LUTs + 48 flip-flops. That space pays for a 9 × 9 grid: 81 CLBs, 324 LUTs.</p>
+      <p>bob runs <i>inside</i> another FPGA, AMD's XC7Z020. Built the way chapter 4 draws it, each bob LUT is 64 flip-flops plus a big 64-to-1 mux, all made of the host chip's own parts. Until M21 that is how bob did it, and it cost a lot of the chip.</p>
+      <p>AMD's chips have a special LUT, the <b>CFGLUT5</b>, whose 32-bit truth table can be rewritten while the chip runs, by shifting bits in one per clock. Since M22 each bob truth table lives in two of these, and so do the crossbar's choices. The frame buffer feeds the bits in over 32 clocks, while the next frame is still arriving.</p>
+      <p>The result, measured: a bob CLB dropped from 469 host LUTs + 424 flip-flops to 193 LUTs + 48 flip-flops. That space paid for a 9 × 9 grid (81 CLBs). M23 then made the crossbar and the routing multiplexers cheaper still, which gave today's {{GRID}} grid: {{NCLB}} CLBs, {{NLUT}} LUTs.</p>
       <p class="aside">Press Play to watch a truth table shift into a CFGLUT5, one bit per clock.</p>
     </div>
     <div class="stage" id="st-cfglut"></div>
@@ -287,7 +287,7 @@
     <div class="txt">
       <p><b>JTAG</b> is a standard test port. It has four wires: <b>TCK</b> (the clock), <b>TMS</b> (steers a small state machine), <b>TDI</b> (data in) and <b>TDO</b> (data out). Every TCK tick shifts one bit in on TDI and one bit out on TDO.</p>
       <p>First you shift in an <b>instruction</b> (like "I'm sending configuration" or "give me your ID"). Then you shift the <b>data</b> for that instruction. bob uses AMD's instruction codes (JPROGRAM, CFG_IN, JSTART) and adds its own (CAPTURE to read every flip-flop, INTEST to drive the pins).</p>
-      <div class="bob"><b>In bob:</b> a Raspberry Pi Pico runs DirtyJTAG and wiggles these wires for the Mac. TCK runs at 100 kHz, so a full load takes about a third of a second.</div>
+      <div class="bob"><b>In bob:</b> a Raspberry Pi Pico runs DirtyJTAG and wiggles these wires for the Mac. TCK runs at {{TCK}} (since M25; it was 100 kHz before), so the {{CHAIN_BITS}} bits of a full load take about {{LOAD_MS}} ms on the wire. The USB round trips between the Mac and the Pico, and the readback check after the load, take longer than that.</div>
     </div>
     <div class="stage" id="st-jtag"></div>
   </div>
@@ -295,7 +295,7 @@
 
 <section class="ch" id="next2">
   <h2><span class="n">→</span>Next: build the whole chip, layer by layer</h2>
-  <p class="lead">You now know the pieces. <a href="https://claude.ai/artifact/H7Sk39vinJtqpqwThZsNNK" style="color:var(--acc)">Volume 2, <b>bob, layer by layer</b></a>, stacks them up one step at a time: the element, the crossbar, the tile, the grid, the wires, the configuration frames, the tool flow on a real design, loading, timing, partial reconfiguration, time travel, and where bob lives inside its host chip (repository copy: <code>docs/learn/layer_by_layer.html</code>).</p>
+  <p class="lead">You now know the pieces. <a href="https://claude.ai/artifact/H7Sk39vinJtqpqwThZsNNK" style="color:var(--acc)">Volume 2, <b>bob, layer by layer</b></a>, stacks them up one step at a time: the element, the crossbar, the tile, the grid, the wires, the configuration frames, the tool flow on a real design, loading, timing, partial reconfiguration, time travel, where bob lives inside its host chip, and what changes when bob gets silicon of its own (repository copy: <code>docs/learn/layer_by_layer.html</code>).</p>
 </section>
 
 <section class="ch" id="gloss">
@@ -321,7 +321,7 @@
 </section>
 
 <footer>
-  Built from the bob project's own design (docs/project/GUIDE.md, docs/bitstream-format.md). Numbers are the M21 fabric on the board, with M22 noted where it differs.
+  Built from the bob project's own design (docs/project/GUIDE.md, docs/bitstream-format.md). The numbers are the {{MILESTONE}} fabric on the board, filled in from software/bob/device.json by docs/learn/parts/gen.py.
 </footer>
 </main>
 </div>

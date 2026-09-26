@@ -33,7 +33,7 @@
     }, REDUCED ? 20 : 160);
   }
   host.appendChild(H("div", { class: "ctl" }, [H("button", { type: "button", class: "pri", text: "Play", onclick: run })]));
-  host.appendChild(H("div", { class: "cap", html: "In M21 each bob LUT is <b>64 flip-flops + a 64-to-1 mux</b> in the host chip. In M22 it is <b>two CFGLUT5s</b>. The frames and the bitstream stay exactly the same: only where the bits are kept changes." }));
+  host.appendChild(H("div", { class: "cap", html: "Until M21 each bob LUT was <b>64 flip-flops + a 64-to-1 mux</b> in the host chip. Since M22 it is <b>two CFGLUT5s</b>. The frames and the bitstream stayed exactly the same: only where the bits are kept changed." }));
   paint();
 })();
 
@@ -168,7 +168,7 @@
         for (let r = 0; r < 4; r++) for (let c = 0; c < 9; c++) S("rect", { x: 20 + c * 30, y: 64 + r * 30, width: 24, height: 24, rx: 3, class: (r === 1 && c < 2) ? "s-acc" : "s-box" }, show);
         W(show, "M68,106 H110 V76 H130", "sel"); T(show, 300, 90, "2 CLBs used", "t-m"); T(show, 300, 110, "route: 6 muxes", "t-m"); } },
     { c: "<b>FASM</b> lists every setting that the placement and routing chose: each truth table, flag and mux select.", f: () => { clear(); hi(3); lines(["clb_x1y2.e0.init = 64'hAAAA...", "clb_x1y2.e0.cy_en = 1", "clb_x1y2.e0.ff_en = 1", "rr1523 = 3", "..."]); } },
-    { c: "<b>bitgen</b> turns the settings into the bitstream (and reads it back to check nothing was lost).", f: () => { clear(); hi(4); lines(["frames 0..256, 32,896 bits", "0000 0000 0000 0000  A5A5 0000 ...", "CRC 5F1BD9F4", "bits -> FASM -> bits: identical"]); } },
+    { c: "<b>bitgen</b> turns the settings into the bitstream (and reads it back to check nothing was lost).", f: () => { clear(); hi(4); lines(["frames 0..{{FRAMES_LAST}}, {{CHAIN_BITS}} bits", "0000 0000 0000 0000  A5A5 0000 ...", "CRC 5F1BD9F4", "bits -> FASM -> bits: identical"]); } },
     { c: "<b>timing</b> finds the critical path of this exact configuration and sets the clock.", f: () => { clear(); hi(5); lines(["critical path 12.4 ns x 1.25 margin", "clock: every 2 sysclk cycles = 62.5 MHz", "slack +3.5 ns: met"], "t-mono"); } },
     { c: "<b>JTAG</b> carries the bits to the board (<span class='mono'>./bob load</span>). DONE lights, and the LEDs count.", f: () => { clear(); hi(6);
         for (let i = 0; i < 4; i++) S("circle", { cx: 40 + i * 40, cy: 110, r: 12, class: i % 2 ? "dot1" : "cell0" }, show); T(show, 210, 116, "LD3..LD0", "t-m"); } },
@@ -200,7 +200,7 @@
     { c: "<b>TMS</b> steers the chip's little state machine to \"shift the instruction register\".", f: () => { setV(ws[1], 1); mode.textContent = "shifting the instruction"; } },
   ];
   IN.slice(0, 6).forEach((b, i) => steps.push({ c: `TCK tick ${i + 1}: bit <b>${b}</b> goes in on TDI, and one old bit comes out on TDO.`, f: () => shift(b) }));
-  steps.push({ c: "6 bits in: that is the instruction (bob uses AMD's 6-bit codes, e.g. CFG_IN = 000101). Next the data for it is shifted the same way: that is how all 32,896 configuration bits travel.", f: () => { mode.textContent = "instruction loaded: now shift the data"; } });
+  steps.push({ c: "6 bits in: that is the instruction (bob uses AMD's 6-bit codes, e.g. CFG_IN = 000101). Next the data for it is shifted the same way: that is how all {{CHAIN_BITS}} configuration bits travel.", f: () => { mode.textContent = "instruction loaded: now shift the data"; } });
   Player(host, steps, reset, { intro: "Four wires. Press <b>Next</b> to shift an instruction in.", ms: 1300 });
 })();
 </script>

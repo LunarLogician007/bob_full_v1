@@ -30,27 +30,28 @@ def slug(text):
 
 
 def inline(text):
-    parts = re.split(r"(`[^`]*`)", text)
-    out = []
-    for p in parts:
-        if p.startswith("`") and p.endswith("`") and len(p) >= 2:
-            out.append(f"<code>{html.escape(p[1:-1])}</code>")
-            continue
-        t = html.escape(p, quote=False)
-        t = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", t)
-        t = re.sub(r"(?<![\w*])\*(?!\s)(.+?)(?<!\s)\*(?![\w*])", r"<em>\1</em>", t)
+    # Code spans first, parked behind \0n\0 markers, so emphasis can wrap them: until
+    # 2026-09-26 the text was split at every code span, and **`file`** kept its asterisks.
+    codes = []
 
-        def link(m):
-            label, href = m.group(1), m.group(2)
-            if href.startswith("#"):
-                return f'<a href="#r-{href[1:]}">{label}</a>'
-            if not href.startswith(("http", "/")):
-                href = os.path.normpath(os.path.join("docs/project", href)).replace("\\", "/")
-            return f'<a href="{html.escape(href)}">{label}</a>'
-        t = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", link, t)
-        t = t.replace("\\*", "*")
-        out.append(t)
-    return "".join(out)
+    def park(m):
+        codes.append(f"<code>{html.escape(m.group(0)[1:-1])}</code>")
+        return f"\0{len(codes) - 1}\0"
+    t = re.sub(r"`[^`]*`", park, text)
+    t = html.escape(t, quote=False)
+    t = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", t)
+    t = re.sub(r"(?<![\w*])\*(?!\s)(.+?)(?<!\s)\*(?![\w*])", r"<em>\1</em>", t)
+
+    def link(m):
+        label, href = m.group(1), m.group(2)
+        if href.startswith("#"):
+            return f'<a href="#r-{href[1:]}">{label}</a>'
+        if not href.startswith(("http", "/")):
+            href = os.path.normpath(os.path.join("docs/project", href)).replace("\\", "/")
+        return f'<a href="{html.escape(href)}">{label}</a>'
+    t = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", link, t)
+    t = t.replace("\\*", "*")
+    return re.sub(r"\0(\d+)\0", lambda m: codes[int(m.group(1))], t)
 
 
 def split_row(line):

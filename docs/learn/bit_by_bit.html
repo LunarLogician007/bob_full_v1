@@ -185,7 +185,7 @@ dl.gloss dt { font-weight: 700; } dl.gloss dd { margin: 0; color: var(--muted); 
     <div class="txt">
       <p>Connect two inverters in a ring: the output of one feeds the other. If the left one outputs 1, the right one outputs 0, which keeps the left one at 1. The pair holds itself. That is an <b>SRAM cell</b> (6 transistors in silicon). Writing means pushing the ring into the other state.</p>
       <p>In an FPGA these bits are called <b>configuration bits</b>. They don't hold your data. They hold the FPGA's own settings: which truth table each LUT has, and which wire goes where. Load different bits and the same chip becomes a different circuit.</p>
-      <div class="bob"><b>In bob:</b> the board runs M21 with 32,896 configuration bits. Most of them are flip-flops in the host chip, and each is written like this cell.</div>
+      <div class="bob"><b>In bob:</b> the board runs M25 with 68,096 configuration bits. 22,066 of them are flip-flops in the host chip, each written like this cell. The truth tables and crossbar choices (37,600 more) live in the host's shift-in lookup tables (chapter 12), and the rest pads each tile out to whole frames.</div>
     </div>
     <div class="stage" id="st-sram"></div>
   </div>
@@ -244,7 +244,7 @@ dl.gloss dt { font-weight: 700; } dl.gloss dd { margin: 0; color: var(--muted); 
         <li><b>two flip-flops</b>, with enable (CE) and reset (SR) inputs</li>
         <li>small muxes, set by <b>flag bits</b>, that choose "registered or not" for each output</li>
       </ul>
-      <p>Together that is 106 configuration bits per element in bob (64 truth-table bits, 12 flags, and 30 bits for the crossbar that feeds its inputs, next chapter).</p>
+      <p>Together that is 107 configuration bits per element in bob (64 truth-table bits, 13 flags, and 30 bits for the crossbar that feeds its inputs, next chapter).</p>
       <p class="aside">Step through it, and flip <b>ff_en</b> to see the output switch between "straight from the LUT" and "from the flip-flop".</p>
     </div>
     <div class="stage" id="st-le"></div>
@@ -275,7 +275,7 @@ dl.gloss dt { font-weight: 700; } dl.gloss dd { margin: 0; color: var(--muted); 
         <li>a <b>switch box</b> mux picks where a track continues from</li>
       </ul>
       <p>Connecting CLB A to CLB B means setting the select bits of every mux along one path. With thousands of possible paths, you need thousands of muxes. <b>This is where most of an FPGA goes: not the logic, the wiring.</b></p>
-      <div class="bob"><b>In bob:</b> 40 tracks per channel, 3,396 routing muxes plus 1,176 crossbar muxes, for 196 LUTs. VPR (the router) chooses the path; the result is just select values for these muxes.</div>
+      <div class="bob"><b>In bob:</b> 36 tracks per channel, 5,695 routing muxes plus 2,400 crossbar muxes, for 400 LUTs. VPR (the router) chooses the path; the result is just select values for these muxes.</div>
       <p class="aside">Press Next to route one signal from the left CLB to the right one, one mux at a time.</p>
     </div>
     <div class="stage" id="st-route"></div>
@@ -289,11 +289,11 @@ dl.gloss dt { font-weight: 700; } dl.gloss dd { margin: 0; color: var(--muted); 
     <div class="txt">
       <p>bob can take the bits in two ways:</p>
       <ul>
-        <li><b>The scan chain:</b> every configuration bit sits in one giant shift register. You push bits in one at a time; after 32,896 pushes every bit is in place. It's simple, but you have to rewrite everything to change anything.</li>
+        <li><b>The scan chain:</b> every configuration bit sits in one giant shift register. You push bits in one at a time; after 68,096 pushes every bit is in place. It's simple, but you have to rewrite everything to change anything.</li>
         <li><b>Frames:</b> the bits are cut into <b>frames</b> of 128 bits (4 words of 32). Each frame has an address (FAR). You send "write frame 17" and 4 words, and only frame 17 changes. This is how AMD's real chips do it (their user guide UG470), and it makes partial loads possible.</li>
       </ul>
       <p>Every stream ends with a <b>CRC</b>, a checksum. If even one bit arrived wrong, the checksum doesn't match and bob refuses to start.</p>
-      <div class="bob"><b>In bob (M21):</b> 32,896 bits = 257 frames. Readback reads the frames back out, so you can check what went in.</div>
+      <div class="bob"><b>In bob (M25):</b> 68,096 bits = 532 frames. Readback reads the frames back out, so you can check what went in.</div>
     </div>
     <div class="stage" id="st-bits"></div>
   </div>
@@ -326,7 +326,7 @@ dl.gloss dt { font-weight: 700; } dl.gloss dd { margin: 0; color: var(--muted); 
       <p>Say a design has a counter and an AND gate, and you want an OR gate instead. The two designs differ in one truth table, which lives in one frame. A partial load:</p>
       <ul>
         <li><b>freezes</b> the design: the clock is held, so no flip-flop changes (the command is AGHIGH)</li>
-        <li>writes <b>only the changed frame</b> (1 of 257)</li>
+        <li>writes <b>only the changed frame</b> (1 of 532)</li>
         <li>checks the CRC</li>
         <li><b>releases</b> the clock (LFRM)</li>
       </ul>
@@ -339,12 +339,12 @@ dl.gloss dt { font-weight: 700; } dl.gloss dd { margin: 0; color: var(--muted); 
 
 <section class="ch" id="cfglut">
   <h2><span class="n">12</span>LUTs that load themselves (M22)</h2>
-  <p class="lead">bob's next step: store each truth table in a real LUT of the host chip, filled by shifting bits in.</p>
+  <p class="lead">Since M22, bob keeps each truth table in a real LUT of the host chip, filled by shifting bits in.</p>
   <div class="cols">
     <div class="txt">
-      <p>bob runs <i>inside</i> another FPGA, AMD's XC7Z020. In chapter 4 each bob LUT was 64 flip-flops plus a big 64-to-1 mux, all built from the host chip's own parts. That costs a lot of the chip.</p>
-      <p>AMD's chips have a special LUT, the <b>CFGLUT5</b>, whose 32-bit truth table can be rewritten while the chip runs, by shifting bits in one per clock. M22 keeps each bob truth table in two of these. The frame buffer feeds the bits in over 32 clocks, while the next frame is still arriving.</p>
-      <p>The result, measured: a bob CLB drops from 469 host LUTs + 424 flip-flops to 193 LUTs + 48 flip-flops. That space pays for a 9 × 9 grid: 81 CLBs, 324 LUTs.</p>
+      <p>bob runs <i>inside</i> another FPGA, AMD's XC7Z020. Built the way chapter 4 draws it, each bob LUT is 64 flip-flops plus a big 64-to-1 mux, all made of the host chip's own parts. Until M21 that is how bob did it, and it cost a lot of the chip.</p>
+      <p>AMD's chips have a special LUT, the <b>CFGLUT5</b>, whose 32-bit truth table can be rewritten while the chip runs, by shifting bits in one per clock. Since M22 each bob truth table lives in two of these, and so do the crossbar's choices. The frame buffer feeds the bits in over 32 clocks, while the next frame is still arriving.</p>
+      <p>The result, measured: a bob CLB dropped from 469 host LUTs + 424 flip-flops to 193 LUTs + 48 flip-flops. That space paid for a 9 × 9 grid (81 CLBs). M23 then made the crossbar and the routing multiplexers cheaper still, which gave today's 10 × 10 grid: 100 CLBs, 400 LUTs.</p>
       <p class="aside">Press Play to watch a truth table shift into a CFGLUT5, one bit per clock.</p>
     </div>
     <div class="stage" id="st-cfglut"></div>
@@ -418,7 +418,7 @@ dl.gloss dt { font-weight: 700; } dl.gloss dd { margin: 0; color: var(--muted); 
     <div class="txt">
       <p><b>JTAG</b> is a standard test port. It has four wires: <b>TCK</b> (the clock), <b>TMS</b> (steers a small state machine), <b>TDI</b> (data in) and <b>TDO</b> (data out). Every TCK tick shifts one bit in on TDI and one bit out on TDO.</p>
       <p>First you shift in an <b>instruction</b> (like "I'm sending configuration" or "give me your ID"). Then you shift the <b>data</b> for that instruction. bob uses AMD's instruction codes (JPROGRAM, CFG_IN, JSTART) and adds its own (CAPTURE to read every flip-flop, INTEST to drive the pins).</p>
-      <div class="bob"><b>In bob:</b> a Raspberry Pi Pico runs DirtyJTAG and wiggles these wires for the Mac. TCK runs at 100 kHz, so a full load takes about a third of a second.</div>
+      <div class="bob"><b>In bob:</b> a Raspberry Pi Pico runs DirtyJTAG and wiggles these wires for the Mac. TCK runs at 1 MHz (since M25; it was 100 kHz before), so the 68,096 bits of a full load take about 68 ms on the wire. The USB round trips between the Mac and the Pico, and the readback check after the load, take longer than that.</div>
     </div>
     <div class="stage" id="st-jtag"></div>
   </div>
@@ -426,7 +426,7 @@ dl.gloss dt { font-weight: 700; } dl.gloss dd { margin: 0; color: var(--muted); 
 
 <section class="ch" id="next2">
   <h2><span class="n">→</span>Next: build the whole chip, layer by layer</h2>
-  <p class="lead">You now know the pieces. <a href="https://claude.ai/artifact/H7Sk39vinJtqpqwThZsNNK" style="color:var(--acc)">Volume 2, <b>bob, layer by layer</b></a>, stacks them up one step at a time: the element, the crossbar, the tile, the grid, the wires, the configuration frames, the tool flow on a real design, loading, timing, partial reconfiguration, time travel, and where bob lives inside its host chip (repository copy: <code>docs/learn/layer_by_layer.html</code>).</p>
+  <p class="lead">You now know the pieces. <a href="https://claude.ai/artifact/H7Sk39vinJtqpqwThZsNNK" style="color:var(--acc)">Volume 2, <b>bob, layer by layer</b></a>, stacks them up one step at a time: the element, the crossbar, the tile, the grid, the wires, the configuration frames, the tool flow on a real design, loading, timing, partial reconfiguration, time travel, where bob lives inside its host chip, and what changes when bob gets silicon of its own (repository copy: <code>docs/learn/layer_by_layer.html</code>).</p>
 </section>
 
 <section class="ch" id="gloss">
@@ -452,7 +452,7 @@ dl.gloss dt { font-weight: 700; } dl.gloss dd { margin: 0; color: var(--muted); 
 </section>
 
 <footer>
-  Built from the bob project's own design (docs/project/GUIDE.md, docs/bitstream-format.md). Numbers are the M21 fabric on the board, with M22 noted where it differs.
+  Built from the bob project's own design (docs/project/GUIDE.md, docs/bitstream-format.md). The numbers are the M25 fabric on the board, filled in from software/bob/device.json by docs/learn/parts/gen.py.
 </footer>
 </main>
 </div>
@@ -972,7 +972,7 @@ const $ = id => document.getElementById(id);
   const steps = [];
   [0, 1, 2].forEach(f => steps.push({ c: `The stream says <b>FAR = ${f}</b>, then 4 words: frame ${f} is written. The address then counts up by itself.`,
     f: () => { fill(f, 0); hl.setAttribute("y", 10 + f * 21); hl.setAttribute("opacity", 1); pktT.textContent = "FAR = " + f; } }));
-  steps.push({ c: "...and so on to the last frame (bob M21 has 257). A <b>CRC</b> word at the end checks that every bit arrived correctly.", f: () => { for (let f = 3; f < 8; f++) fill(f, 0); hl.setAttribute("opacity", 0); pktT.textContent = "CRC ✓"; } });
+  steps.push({ c: "...and so on to the last frame (bob M25 has 532). A <b>CRC</b> word at the end checks that every bit arrived correctly.", f: () => { for (let f = 3; f < 8; f++) fill(f, 0); hl.setAttribute("opacity", 0); pktT.textContent = "CRC ✓"; } });
   steps.push({ c: "Later, to change only frame 5: send <b>FAR = 5</b> and 4 new words. The other frames are not touched. This is what makes a <b>partial load</b> possible.", f: () => { fill(5, 2); hl.setAttribute("y", 10 + 5 * 21); hl.setAttribute("opacity", 1); pktT.textContent = "FAR = 5"; } });
   Player(host, steps, reset, { intro: "8 frames, all zero (a real bob has hundreds). Press <b>Next</b>." });
 })();
@@ -988,25 +988,27 @@ const $ = id => document.getElementById(id);
     T(svg, 28, y + 4, l, "t");
     return c;
   });
-  // fabric mini-view: 7x7 CLBs
+  // fabric mini-view: the chip's CLB grid (docs/learn/parts/gen.py fills in its size)
+  const GC = 10, GR = 10, NCLB = GC * GR;
+  const pitch = Math.min(26, 182 / Math.max(GC, GR));
   const fab = [];
-  for (let r = 0; r < 7; r++) for (let c = 0; c < 7; c++) fab.push(S("rect", { x: 200 + c * 26, y: 14 + r * 26, width: 21, height: 21, rx: 3, class: "cell0" }, svg));
+  for (let r = 0; r < GR; r++) for (let c = 0; c < GC; c++) fab.push(S("rect", { x: 200 + c * pitch, y: 14 + r * pitch, width: pitch * 0.8, height: pitch * 0.8, rx: 3, class: "cell0" }, svg));
   const ft = T(svg, 200, 206, "", "t-m");
   const led = S("circle", { cx: 404, cy: 232, r: 9, class: "cell0" }, svg);
   T(svg, 392, 212, "LD3", "t-m", "end");
   const bar = S("rect", { x: 28, y: 238, width: 0, height: 6, rx: 3, fill: "var(--acc)" }, svg);
   function lamp(k, on, cls) { lamps[k].setAttribute("class", on ? (cls || "dot1") : "cell0"); }
   function fabric(n, cls) { fab.forEach((f, k) => f.setAttribute("class", k < n ? (cls || "cellc1") : "cell0")); }
-  function reset() { lamps.forEach((_, k) => lamp(k, 0)); fabric(49, "cellc1"); ft.textContent = "an old design is loaded"; led.setAttribute("class", "dot1"); bar.setAttribute("width", 0); }
+  function reset() { lamps.forEach((_, k) => lamp(k, 0)); fabric(NCLB, "cellc1"); ft.textContent = "an old design is loaded"; led.setAttribute("class", "dot1"); bar.setAttribute("width", 0); }
   const steps = [
     { c: "<b>JPROGRAM</b> clears every configuration bit. The fabric goes dark and DONE turns off.", f: () => { lamp(0, 1); fabric(0); ft.textContent = "all bits cleared"; led.setAttribute("class", "cell0"); } },
     { c: "The <b>sync word</b> AA995566 marks the start of the stream.", f: () => lamp(1, 1) },
     { c: "The <b>IDCODE</b> in the stream must match this chip's. A bitstream for another device is refused here.", f: () => lamp(2, 1) },
-    { c: "The <b>frames</b> arrive one after another, the address counting up. The fabric fills in, but nothing runs yet: the flip-flops are frozen (GWE is off).", f: () => { lamp(3, 1); fabric(49, "cellc1"); ft.textContent = "257 frames written"; bar.setAttribute("width", 150); } },
+    { c: "The <b>frames</b> arrive one after another, the address counting up. The fabric fills in, but nothing runs yet: the flip-flops are frozen (GWE is off).", f: () => { lamp(3, 1); fabric(NCLB, "cellc1"); ft.textContent = "532 frames written"; bar.setAttribute("width", 150); } },
     { c: "The <b>CRC</b> sent at the end matches the one bob computed while receiving. Every bit is correct.", f: () => lamp(4, 1) },
     { c: "Startup, step 1: <b>GSR</b> (global set/reset) is released. Every flip-flop holds its starting value.", f: () => lamp(5, 1) },
     { c: "Step 2: <b>GTS</b> is released. The pins may now drive the LEDs.", f: () => lamp(6, 1) },
-    { c: "Step 3: <b>GWE</b> turns on. Flip-flops may now change: the design starts running.", f: () => { lamp(7, 1); fabric(49, "cell1"); ft.textContent = "the new design runs"; } },
+    { c: "Step 3: <b>GWE</b> turns on. Flip-flops may now change: the design starts running.", f: () => { lamp(7, 1); fabric(NCLB, "cell1"); ft.textContent = "the new design runs"; } },
     { c: "Step 4: <b>DONE</b> lights (LD3 on the board). The load is complete.", f: () => { lamp(8, 1); led.setAttribute("class", "dot1"); } },
   ];
   Player(host, steps, reset, { intro: "An old design is running. Load a new one: press <b>Next</b>." });
@@ -1024,18 +1026,21 @@ const $ = id => document.getElementById(id);
   const gt = T(svg, 285, 84, "truth table 0001", "t-mono", "middle");
   const clk = S("circle", { cx: 395, cy: 40, r: 12, class: "dot1" }, svg);
   const clkT = T(svg, 395, 70, "clock", "t-m", "middle");
-  // frame map 257 tiny cells
+  // frame map: one tiny cell per frame, laid out to fit the 400 x 100 box below the design
+  const FRAMES = 532;
+  const FCOL = Math.ceil(Math.sqrt(FRAMES * 4)), FROW = Math.ceil(FRAMES / FCOL);
+  const PX = 400 / FCOL, PY = Math.min(11, 100 / FROW);
   const cells = [];
-  for (let k = 0; k < 257; k++) cells.push(S("rect", { x: 20 + (k % 43) * 9.4, y: 140 + Math.floor(k / 43) * 11, width: 7.5, height: 8.5, rx: 1, class: "cellc0" }, svg));
-  const ft = T(svg, 20, 132, "the 257 frames", "t-m");
-  const FR = 118;
+  for (let k = 0; k < FRAMES; k++) cells.push(S("rect", { x: 20 + (k % FCOL) * PX, y: 140 + Math.floor(k / FCOL) * PY, width: PX * 0.8, height: PY * 0.77, rx: 1, class: "cellc0" }, svg));
+  const ft = T(svg, 20, 132, `the ${FRAMES} frames`, "t-m");
+  const FR = 115;           // the frame designs.d_partial's AND -> OR really changes
   let n = 3;
   function reset() { n = 3; cv.textContent = n; gl.textContent = "gate: AND"; gt.textContent = "truth table 0001"; clk.setAttribute("class", "dot1"); clkT.textContent = "clock running";
-    cells.forEach(c => c.setAttribute("class", "cellc0")); ft.textContent = "the 257 frames"; }
+    cells.forEach(c => c.setAttribute("class", "cellc0")); ft.textContent = `the ${FRAMES} frames`; }
   const steps = [
     { c: "The design is running: the counter ticks along (4, then 5) and the gate is an AND.", f: () => { n = 5; cv.textContent = n; } },
     { c: "<b>Freeze</b> (AGHIGH): the user clock is held. The counter stops at 5. No flip-flop can change now.", f: () => { clk.setAttribute("class", "cell0"); clkT.textContent = "clock held"; } },
-    { c: "bob compares the old and new bitstreams: only <b>1 frame of 257</b> differs, the one holding the gate's truth table.", f: () => { cells[FR].setAttribute("class", "cellc1"); ft.textContent = "frame 118 differs"; } },
+    { c: `bob compares the old and new bitstreams: only <b>1 frame of ${FRAMES}</b> differs, the one holding the gate's truth table.`, f: () => { cells[FR].setAttribute("class", "cellc1"); ft.textContent = `frame ${FR} differs`; } },
     { c: "Write just that frame. The gate's truth table becomes <b>0111</b>: an OR.", f: () => { gl.textContent = "gate: OR"; gt.textContent = "truth table 0111"; } },
     { c: "The CRC matches, so <b>release</b> (LFRM): the clock runs again.", f: () => { clk.setAttribute("class", "dot1"); clkT.textContent = "clock running"; } },
     { c: "The counter carries on from where it was: <b>6</b>, then 7. Its state survived; only the gate changed.", f: () => { n = 7; cv.textContent = n; } },
@@ -1078,7 +1083,7 @@ const $ = id => document.getElementById(id);
     }, REDUCED ? 20 : 160);
   }
   host.appendChild(H("div", { class: "ctl" }, [H("button", { type: "button", class: "pri", text: "Play", onclick: run })]));
-  host.appendChild(H("div", { class: "cap", html: "In M21 each bob LUT is <b>64 flip-flops + a 64-to-1 mux</b> in the host chip. In M22 it is <b>two CFGLUT5s</b>. The frames and the bitstream stay exactly the same: only where the bits are kept changes." }));
+  host.appendChild(H("div", { class: "cap", html: "Until M21 each bob LUT was <b>64 flip-flops + a 64-to-1 mux</b> in the host chip. Since M22 it is <b>two CFGLUT5s</b>. The frames and the bitstream stayed exactly the same: only where the bits are kept changed." }));
   paint();
 })();
 
@@ -1213,7 +1218,7 @@ const $ = id => document.getElementById(id);
         for (let r = 0; r < 4; r++) for (let c = 0; c < 9; c++) S("rect", { x: 20 + c * 30, y: 64 + r * 30, width: 24, height: 24, rx: 3, class: (r === 1 && c < 2) ? "s-acc" : "s-box" }, show);
         W(show, "M68,106 H110 V76 H130", "sel"); T(show, 300, 90, "2 CLBs used", "t-m"); T(show, 300, 110, "route: 6 muxes", "t-m"); } },
     { c: "<b>FASM</b> lists every setting that the placement and routing chose: each truth table, flag and mux select.", f: () => { clear(); hi(3); lines(["clb_x1y2.e0.init = 64'hAAAA...", "clb_x1y2.e0.cy_en = 1", "clb_x1y2.e0.ff_en = 1", "rr1523 = 3", "..."]); } },
-    { c: "<b>bitgen</b> turns the settings into the bitstream (and reads it back to check nothing was lost).", f: () => { clear(); hi(4); lines(["frames 0..256, 32,896 bits", "0000 0000 0000 0000  A5A5 0000 ...", "CRC 5F1BD9F4", "bits -> FASM -> bits: identical"]); } },
+    { c: "<b>bitgen</b> turns the settings into the bitstream (and reads it back to check nothing was lost).", f: () => { clear(); hi(4); lines(["frames 0..531, 68,096 bits", "0000 0000 0000 0000  A5A5 0000 ...", "CRC 5F1BD9F4", "bits -> FASM -> bits: identical"]); } },
     { c: "<b>timing</b> finds the critical path of this exact configuration and sets the clock.", f: () => { clear(); hi(5); lines(["critical path 12.4 ns x 1.25 margin", "clock: every 2 sysclk cycles = 62.5 MHz", "slack +3.5 ns: met"], "t-mono"); } },
     { c: "<b>JTAG</b> carries the bits to the board (<span class='mono'>./bob load</span>). DONE lights, and the LEDs count.", f: () => { clear(); hi(6);
         for (let i = 0; i < 4; i++) S("circle", { cx: 40 + i * 40, cy: 110, r: 12, class: i % 2 ? "dot1" : "cell0" }, show); T(show, 210, 116, "LD3..LD0", "t-m"); } },
@@ -1245,7 +1250,7 @@ const $ = id => document.getElementById(id);
     { c: "<b>TMS</b> steers the chip's little state machine to \"shift the instruction register\".", f: () => { setV(ws[1], 1); mode.textContent = "shifting the instruction"; } },
   ];
   IN.slice(0, 6).forEach((b, i) => steps.push({ c: `TCK tick ${i + 1}: bit <b>${b}</b> goes in on TDI, and one old bit comes out on TDO.`, f: () => shift(b) }));
-  steps.push({ c: "6 bits in: that is the instruction (bob uses AMD's 6-bit codes, e.g. CFG_IN = 000101). Next the data for it is shifted the same way: that is how all 32,896 configuration bits travel.", f: () => { mode.textContent = "instruction loaded: now shift the data"; } });
+  steps.push({ c: "6 bits in: that is the instruction (bob uses AMD's 6-bit codes, e.g. CFG_IN = 000101). Next the data for it is shifted the same way: that is how all 68,096 configuration bits travel.", f: () => { mode.textContent = "instruction loaded: now shift the data"; } });
   Player(host, steps, reset, { intro: "Four wires. Press <b>Next</b> to shift an instruction in.", ms: 1300 });
 })();
 </script>

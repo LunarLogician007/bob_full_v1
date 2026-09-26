@@ -26,6 +26,14 @@ hand-off notes are in git history (`git log -p HANDOFF.md`).
   - `docs/presentation/slides.tex`: the Beamer slides for the professor (not compiled here).
   - the tree was cleaned 2026-09-26 (260 MB of build products; `release/`, old bitstreams,
     `docs/manim/`, superseded notes). All in git history; `git checkout m25 -- release/`.
+  - **the whole-repo review** (2026-09-26): `docs/research/2026-09-26-review.md`: verified
+    findings (thin connection boxes, VPR on 40 nm delays, sampled delays, the USB-bound
+    link, clock mode 0 at 1 MHz, the studio's open local API), the architecture against real
+    FPGAs, and what the silicon phase changes. Docs fixed in the same pass: volume 1 is now
+    generated from `device.json` (`docs/learn/parts/gen.py`; it described M21), volume 2 has
+    chapter 13 *Onto its own silicon*, volume 3 and GUIDE §3.11 no longer call bob's startup
+    "UG470's order", `arch.html` shows 100 CLBs (it drew M22's 81), `bitstream-format.md` §11
+    says TCK ≤ 1 MHz, and `docs/project/build.py` renders `**`code`**`.
 
 ## 2. Waiting on the user
 
@@ -34,6 +42,9 @@ hand-off notes are in git history (`git log -p HANDOFF.md`).
   real XC7Z020 site map; republish `docs/learn/frame_by_frame.html` (artifact
   `LrqGTKGsLe9hJQzjfBVaDg`).
 - `sysclk_1cycle.txt` for M21, M23, M24, M25 (`test_reports` fails on them until copied).
+- Republish volumes 1–3 to their artifacts (volume 1 `NxYMZQB9mLfusWduowi5k3`, volume 2
+  `H7Sk39vinJtqpqwThZsNNK`, volume 3 `LrqGTKGsLe9hJQzjfBVaDg`): the repository copies were
+  corrected on 2026-09-26 and the published pages still show the old ones.
 - The hand steps in `docs/hwtest/M24.md` and `M25.md`.
 
 ## 3. Known open items

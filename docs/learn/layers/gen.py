@@ -119,10 +119,61 @@ def host():
             "slicem": int(m.group(1)) if m else None}
 
 
+def silicon():
+    """Chapter 13's counts. Configuration bits by where they live on the host (cfg_store.v
+    keeps a flip-flop for every bit outside the L-frames; the L bits are CFGLUT5 contents),
+    and how many distinct tile layouts the routing needs: two tiles are the same layout when
+    their multiplexers drive the same local tracks from the same local tracks and pins. A
+    physical-design flow would draw each distinct layout once (OpenFPGA's tile grouping)."""
+    import bisect
+    import collections
+    d = json.load(open(os.path.join(ROOT, "software", "bob", "device.json")))
+    nodes = {nd[0]: nd for nd in d["rr"]["nodes"]}
+    nclb = sum(1 for b in d["blocks"] if b["type"] == "clb")
+    fields = lambda t, kinds: sum(f["width"] for f in d["tile_types"][t]["fields"] if f["kind"] in kinds)  # noqa: E731
+    lutram = fields("clb", ("lut_init", "mux")) * nclb
+    nblk = {t: sum(1 for b in d["blocks"] if b["type"] == t) for t in ("clb", "bram", "dsp")}
+    used = ("lut_init", "mux", "flag", "value")
+    routing = [m for m in d["rr"]["muxes"] if nodes[m[0]][1] in ("CHANX", "CHANY", "IPIN")]
+    flops = (fields("ctrl", used) + sum(fields(t, used) * nblk[t] for t in nblk) - lutram
+             + sum(m[2] for m in routing))
+
+    tiles = sorted(d["tiles"], key=lambda t: t["chain_lo"])
+    los = [t["chain_lo"] for t in tiles]
+    blocks = {(b["x"], b["y"]): b["type"] for b in d["blocks"]}
+
+    def local(q, tx, ty):
+        kind, xl, yl, xh, yh, ptc = q[1], q[2], q[3], q[4], q[5], q[6]
+        if kind in ("CHANX", "CHANY"):
+            tracks = [int(v) for v in ptc.split(",")]
+            if kind == "CHANX":
+                i, side = tx - xl, (0 if xl <= tx <= xh else (1 if tx < xl else -1), yl - ty)
+            else:
+                i, side = ty - yl, (xl - tx, 0 if yl <= ty <= yh else (1 if ty < yl else -1))
+            return (kind, q[7], tracks[min(max(i, 0), len(tracks) - 1)], side)
+        return (kind, xl - tx, yl - ty, ptc)
+    sig = collections.defaultdict(list)
+    for nid, lo, w, _base, ins in d["rr"]["muxes"]:
+        t = tiles[bisect.bisect_right(los, lo) - 1]
+        if t["kind"] != "grid" or nodes[nid][1] == "EIN":
+            continue
+        tx, ty = t["x"], t["y"]
+        sig[(tx, ty)].append((local(nodes[nid], tx, ty), w, tuple(sorted(local(nodes[k], tx, ty) for k in ins))))
+    layouts = {}
+    for xy, s in sig.items():
+        layouts.setdefault((blocks.get(xy, "none"), tuple(sorted(s))), []).append(xy)
+    kinds = collections.Counter(k[0] for k in layouts)
+    return {"chain": d["chain"]["width"], "flops": flops, "lutram": lutram,
+            "routing": len(routing), "xbar": len(d["rr"]["muxes"]) - len(routing),
+            "tiles": len(sig), "layouts": len(layouts), "clb_layouts": kinds.get("clb", 0),
+            "clb_tiles": sum(1 for xy in sig if blocks.get(xy) == "clb"),
+            "biggest": max(len(v) for v in layouts.values())}
+
+
 def main():
     dl = json.load(open(os.path.join(ROOT, "software", "bob", "delays.json")))
     import timing as T
-    data = {"dev": device(), "ex": example(), "host": host(),
+    data = {"dev": device(), "ex": example(), "host": host(), "si": silicon(),
             "delays": {"ns": dl["ns"], "provisional": dl.get("provisional", False),
                        "guard": T.MARGIN_PROVISIONAL if dl.get("provisional") else T.MARGIN_MEASURED,
                        "measured_guard": T.MARGIN_MEASURED}}

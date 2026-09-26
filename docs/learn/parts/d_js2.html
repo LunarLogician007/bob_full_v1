@@ -185,7 +185,7 @@
   const steps = [];
   [0, 1, 2].forEach(f => steps.push({ c: `The stream says <b>FAR = ${f}</b>, then 4 words: frame ${f} is written. The address then counts up by itself.`,
     f: () => { fill(f, 0); hl.setAttribute("y", 10 + f * 21); hl.setAttribute("opacity", 1); pktT.textContent = "FAR = " + f; } }));
-  steps.push({ c: "...and so on to the last frame (bob M21 has 257). A <b>CRC</b> word at the end checks that every bit arrived correctly.", f: () => { for (let f = 3; f < 8; f++) fill(f, 0); hl.setAttribute("opacity", 0); pktT.textContent = "CRC ✓"; } });
+  steps.push({ c: "...and so on to the last frame (bob {{MILESTONE}} has {{FRAMES}}). A <b>CRC</b> word at the end checks that every bit arrived correctly.", f: () => { for (let f = 3; f < 8; f++) fill(f, 0); hl.setAttribute("opacity", 0); pktT.textContent = "CRC ✓"; } });
   steps.push({ c: "Later, to change only frame 5: send <b>FAR = 5</b> and 4 new words. The other frames are not touched. This is what makes a <b>partial load</b> possible.", f: () => { fill(5, 2); hl.setAttribute("y", 10 + 5 * 21); hl.setAttribute("opacity", 1); pktT.textContent = "FAR = 5"; } });
   Player(host, steps, reset, { intro: "8 frames, all zero (a real bob has hundreds). Press <b>Next</b>." });
 })();
@@ -201,25 +201,27 @@
     T(svg, 28, y + 4, l, "t");
     return c;
   });
-  // fabric mini-view: 7x7 CLBs
+  // fabric mini-view: the chip's CLB grid (docs/learn/parts/gen.py fills in its size)
+  const GC = {{GRID_COLS}}, GR = {{GRID_ROWS}}, NCLB = GC * GR;
+  const pitch = Math.min(26, 182 / Math.max(GC, GR));
   const fab = [];
-  for (let r = 0; r < 7; r++) for (let c = 0; c < 7; c++) fab.push(S("rect", { x: 200 + c * 26, y: 14 + r * 26, width: 21, height: 21, rx: 3, class: "cell0" }, svg));
+  for (let r = 0; r < GR; r++) for (let c = 0; c < GC; c++) fab.push(S("rect", { x: 200 + c * pitch, y: 14 + r * pitch, width: pitch * 0.8, height: pitch * 0.8, rx: 3, class: "cell0" }, svg));
   const ft = T(svg, 200, 206, "", "t-m");
   const led = S("circle", { cx: 404, cy: 232, r: 9, class: "cell0" }, svg);
   T(svg, 392, 212, "LD3", "t-m", "end");
   const bar = S("rect", { x: 28, y: 238, width: 0, height: 6, rx: 3, fill: "var(--acc)" }, svg);
   function lamp(k, on, cls) { lamps[k].setAttribute("class", on ? (cls || "dot1") : "cell0"); }
   function fabric(n, cls) { fab.forEach((f, k) => f.setAttribute("class", k < n ? (cls || "cellc1") : "cell0")); }
-  function reset() { lamps.forEach((_, k) => lamp(k, 0)); fabric(49, "cellc1"); ft.textContent = "an old design is loaded"; led.setAttribute("class", "dot1"); bar.setAttribute("width", 0); }
+  function reset() { lamps.forEach((_, k) => lamp(k, 0)); fabric(NCLB, "cellc1"); ft.textContent = "an old design is loaded"; led.setAttribute("class", "dot1"); bar.setAttribute("width", 0); }
   const steps = [
     { c: "<b>JPROGRAM</b> clears every configuration bit. The fabric goes dark and DONE turns off.", f: () => { lamp(0, 1); fabric(0); ft.textContent = "all bits cleared"; led.setAttribute("class", "cell0"); } },
     { c: "The <b>sync word</b> AA995566 marks the start of the stream.", f: () => lamp(1, 1) },
     { c: "The <b>IDCODE</b> in the stream must match this chip's. A bitstream for another device is refused here.", f: () => lamp(2, 1) },
-    { c: "The <b>frames</b> arrive one after another, the address counting up. The fabric fills in, but nothing runs yet: the flip-flops are frozen (GWE is off).", f: () => { lamp(3, 1); fabric(49, "cellc1"); ft.textContent = "257 frames written"; bar.setAttribute("width", 150); } },
+    { c: "The <b>frames</b> arrive one after another, the address counting up. The fabric fills in, but nothing runs yet: the flip-flops are frozen (GWE is off).", f: () => { lamp(3, 1); fabric(NCLB, "cellc1"); ft.textContent = "{{FRAMES}} frames written"; bar.setAttribute("width", 150); } },
     { c: "The <b>CRC</b> sent at the end matches the one bob computed while receiving. Every bit is correct.", f: () => lamp(4, 1) },
     { c: "Startup, step 1: <b>GSR</b> (global set/reset) is released. Every flip-flop holds its starting value.", f: () => lamp(5, 1) },
     { c: "Step 2: <b>GTS</b> is released. The pins may now drive the LEDs.", f: () => lamp(6, 1) },
-    { c: "Step 3: <b>GWE</b> turns on. Flip-flops may now change: the design starts running.", f: () => { lamp(7, 1); fabric(49, "cell1"); ft.textContent = "the new design runs"; } },
+    { c: "Step 3: <b>GWE</b> turns on. Flip-flops may now change: the design starts running.", f: () => { lamp(7, 1); fabric(NCLB, "cell1"); ft.textContent = "the new design runs"; } },
     { c: "Step 4: <b>DONE</b> lights (LD3 on the board). The load is complete.", f: () => { lamp(8, 1); led.setAttribute("class", "dot1"); } },
   ];
   Player(host, steps, reset, { intro: "An old design is running. Load a new one: press <b>Next</b>." });
@@ -237,18 +239,21 @@
   const gt = T(svg, 285, 84, "truth table 0001", "t-mono", "middle");
   const clk = S("circle", { cx: 395, cy: 40, r: 12, class: "dot1" }, svg);
   const clkT = T(svg, 395, 70, "clock", "t-m", "middle");
-  // frame map 257 tiny cells
+  // frame map: one tiny cell per frame, laid out to fit the 400 x 100 box below the design
+  const FRAMES = {{FRAMES}};
+  const FCOL = Math.ceil(Math.sqrt(FRAMES * 4)), FROW = Math.ceil(FRAMES / FCOL);
+  const PX = 400 / FCOL, PY = Math.min(11, 100 / FROW);
   const cells = [];
-  for (let k = 0; k < 257; k++) cells.push(S("rect", { x: 20 + (k % 43) * 9.4, y: 140 + Math.floor(k / 43) * 11, width: 7.5, height: 8.5, rx: 1, class: "cellc0" }, svg));
-  const ft = T(svg, 20, 132, "the 257 frames", "t-m");
-  const FR = 118;
+  for (let k = 0; k < FRAMES; k++) cells.push(S("rect", { x: 20 + (k % FCOL) * PX, y: 140 + Math.floor(k / FCOL) * PY, width: PX * 0.8, height: PY * 0.77, rx: 1, class: "cellc0" }, svg));
+  const ft = T(svg, 20, 132, `the ${FRAMES} frames`, "t-m");
+  const FR = {{PARTIAL_FRAME}};           // the frame designs.d_partial's AND -> OR really changes
   let n = 3;
   function reset() { n = 3; cv.textContent = n; gl.textContent = "gate: AND"; gt.textContent = "truth table 0001"; clk.setAttribute("class", "dot1"); clkT.textContent = "clock running";
-    cells.forEach(c => c.setAttribute("class", "cellc0")); ft.textContent = "the 257 frames"; }
+    cells.forEach(c => c.setAttribute("class", "cellc0")); ft.textContent = `the ${FRAMES} frames`; }
   const steps = [
     { c: "The design is running: the counter ticks along (4, then 5) and the gate is an AND.", f: () => { n = 5; cv.textContent = n; } },
     { c: "<b>Freeze</b> (AGHIGH): the user clock is held. The counter stops at 5. No flip-flop can change now.", f: () => { clk.setAttribute("class", "cell0"); clkT.textContent = "clock held"; } },
-    { c: "bob compares the old and new bitstreams: only <b>1 frame of 257</b> differs, the one holding the gate's truth table.", f: () => { cells[FR].setAttribute("class", "cellc1"); ft.textContent = "frame 118 differs"; } },
+    { c: `bob compares the old and new bitstreams: only <b>1 frame of ${FRAMES}</b> differs, the one holding the gate's truth table.`, f: () => { cells[FR].setAttribute("class", "cellc1"); ft.textContent = `frame ${FR} differs`; } },
     { c: "Write just that frame. The gate's truth table becomes <b>0111</b>: an OR.", f: () => { gl.textContent = "gate: OR"; gt.textContent = "truth table 0111"; } },
     { c: "The CRC matches, so <b>release</b> (LFRM): the clock runs again.", f: () => { clk.setAttribute("class", "dot1"); clkT.textContent = "clock running"; } },
     { c: "The counter carries on from where it was: <b>6</b>, then 7. Its state survived; only the gate changed.", f: () => { n = 7; cv.textContent = n; } },
