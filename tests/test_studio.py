@@ -39,16 +39,24 @@ def srv():
     s.server_close()
 
 
+AUTH = {"X-Bob-Token": studio.TOKEN}          # what the page sends (software/studio/p3_api.js)
+
+
 def get(srv, path, timeout=180):
-    with urllib.request.urlopen(srv + path, timeout=timeout) as r:
+    with urllib.request.urlopen(urllib.request.Request(srv + path, headers=AUTH), timeout=timeout) as r:
         return json.load(r)
 
 
 def post(srv, path, body, timeout=300):
     rq = urllib.request.Request(srv + path, data=json.dumps(body).encode(),
-                                headers={"Content-Type": "application/json"}, method="POST")
+                                headers={"Content-Type": "application/json", **AUTH}, method="POST")
     with urllib.request.urlopen(rq, timeout=timeout) as r:
         return json.load(r)
+
+
+def tokened(url):
+    """a GET URL the way the page makes one for EventSource and downloads"""
+    return url + ("&" if "?" in url else "?") + "token=" + urllib.parse.quote(studio.TOKEN)
 
 
 def _repo_copy(path):
@@ -63,7 +71,7 @@ def _repo_copy(path):
 def build(srv, spec, timeout=300):
     """Start a build and drain its event stream. -> the final event."""
     job = post(srv, "/api/build", spec)["job"]
-    with urllib.request.urlopen(f"{srv}/api/events/{job}", timeout=timeout) as r:
+    with urllib.request.urlopen(tokened(f"{srv}/api/events/{job}"), timeout=timeout) as r:
         for raw in r:
             line = raw.decode().strip()
             if not line.startswith("data: "):
@@ -72,6 +80,57 @@ def build(srv, spec, timeout=300):
             if ev["event"] in ("done", "failed"):
                 return ev
     raise AssertionError("the event stream ended without a result")
+
+
+# --- who may call the API (2026-09-26) ----------------------------------------
+
+
+def _status(srv, path, body=None, headers=None):
+    rq = urllib.request.Request(srv + path, data=None if body is None else json.dumps(body).encode(),
+                                headers=headers or {}, method="GET" if body is None else "POST")
+    try:
+        with urllib.request.urlopen(rq, timeout=30) as r:
+            return r.status, r.read()
+    except urllib.error.HTTPError as e:
+        return e.code, e.read()
+
+
+def test_the_page_carries_the_token_and_needs_none(srv):
+    code, page = _status(srv, "/")
+    assert code == 200 and f'<meta name="bob-token" content="{studio.TOKEN}">'.encode() in page
+
+
+def test_an_api_call_without_the_token_is_refused(srv):
+    assert _status(srv, "/api/device")[0] == 403
+    assert _status(srv, "/api/device", headers={"X-Bob-Token": "guess"})[0] == 403
+    assert _status(srv, "/api/device", headers=AUTH)[0] == 200
+    assert _status(srv, "/api/device?token=" + urllib.parse.quote(studio.TOKEN))[0] == 200
+
+
+def test_a_cross_site_post_cannot_write_a_source_file(srv):
+    """what a web page elsewhere could send: a plain POST, no custom header"""
+    victim = os.path.join(ROOT, "hw", "src", "core", "clock_ctrl.v")
+    before = open(victim).read()
+    code, _ = _status(srv, "/api/save", {"path": "hw/src/core/clock_ctrl.v", "text": "module x; endmodule"},
+                      headers={"Content-Type": "text/plain", "Origin": "https://example.com"})
+    assert code == 403 and open(victim).read() == before
+    code, _ = _status(srv, "/api/save", {"path": "hw/src/core/clock_ctrl.v", "text": "x"},
+                      headers={"Content-Type": "application/json"})
+    assert code == 403 and open(victim).read() == before
+
+
+def test_another_origin_is_refused_even_with_the_token(srv):
+    assert _status(srv, "/api/device", headers={**AUTH, "Origin": "http://evil.test"})[0] == 403
+    port = srv.rsplit(":", 1)[1]
+    assert _status(srv, "/api/device", headers={**AUTH, "Origin": f"http://localhost:{port}"})[0] == 200
+
+
+def test_a_rebound_host_name_is_refused(srv):
+    """DNS rebinding: a page on evil.test whose name now resolves to 127.0.0.1"""
+    port = srv.rsplit(":", 1)[1]
+    assert _status(srv, "/", headers={"Host": f"evil.test:{port}"})[0] == 403
+    assert _status(srv, "/api/device", headers={**AUTH, "Host": f"evil.test:{port}"})[0] == 403
+    assert _status(srv, "/api/device", headers={**AUTH, "Host": f"localhost:{port}"})[0] == 200
 
 
 # --- what the page reads at boot ---------------------------------------------
@@ -605,7 +664,7 @@ def test_the_waveform_viewer_captures_what_the_design_does(srv):
     assert cap["depth"] == 80 and cap["trigger"] == 8 and cap["design"] == "counter"
     ld1 = [row[2] for row in cap["samples"]]
     assert ld1[8] == 1 and ld1[7] == 0
-    with urllib.request.urlopen(srv + "/api/wave/vcd", timeout=30) as r:
+    with urllib.request.urlopen(tokened(srv + "/api/wave/vcd"), timeout=30) as r:
         assert "attachment" in r.headers["Content-Disposition"]
         assert "$var wire 1 # led_1 $end" in r.read().decode()
 

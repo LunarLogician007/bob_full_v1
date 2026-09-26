@@ -145,11 +145,11 @@ def eblif(name):
     return path
 
 
-def vpr(work, arch_text, name, device_name, width=None, rr=None):
+def vpr(work, arch_text, name, device_name, width=None, rr=None, seed=1):
     os.makedirs(work, exist_ok=True)
     open(os.path.join(work, "arch.xml"), "w").write(arch_text)
     shutil.copy(eblif(name), os.path.join(work, f"{name}.eblif"))
-    args = [VPR, "arch.xml", f"{name}.eblif", "--device", device_name, "--seed", "1"] + FLAGS
+    args = [VPR, "arch.xml", f"{name}.eblif", "--device", device_name, "--seed", str(seed)] + FLAGS
     if width:
         args += ["--route_chan_width", str(width)]
     if rr:

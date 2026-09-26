@@ -46,6 +46,7 @@ IR = {
     "BYPASS":   0b111111,
 }
 JSTART_TCKS = 12
+USER1_CE = 0                # USER1 control word: ce (jtag_tap6.v USER_CE): TCK steps the user clock
 TEST_TOP_CHAIN_W = 64
 TEST_TOP_CAPTURE_W = 16
 
@@ -85,8 +86,7 @@ def jprogram(p):
 
 def jstart(p, tcks=JSTART_TCKS):
     ir(p, "JSTART")
-    for _ in range(tcks):
-        p.pulse(tms=0)                      # Run-Test/Idle clocks the startup
+    idle(p, tcks)                           # Run-Test/Idle clocks the startup
 
 
 def status(p):
@@ -119,13 +119,59 @@ def capture(p, n=TEST_TOP_CAPTURE_W):
 
 
 def user1(p, value):
+    """Write the USER1 control word (ce, sr, cin, step, autostep); returns the captured status.
+    Tells the probe whether TCK now steps the user clock (ce): the probe then sends every TCK
+    edge in its own round trip instead of batching them (dirtyjtag.py, "Stepping")."""
     ir(p, "USER1")
-    return p.shift_dr(32, value)
+    out = p.shift_dr(32, value)
+    p.stepping = bool(value & (1 << USER1_CE))
+    return out
 
 
 def idle(p, tcks):
-    for _ in range(tcks):
-        p.pulse(tms=0)
+    """tcks TCK edges in Run-Test/Idle"""
+    if hasattr(p, "idle"):
+        p.idle(tcks)
+    else:
+        for _ in range(tcks):
+            p.pulse(tms=0)
+
+
+def gce_spacing_s(word):
+    """The user-clock spacing clock_ctrl.v enforces for this configuration word, in seconds:
+    its clk_gap, never under the floor, or the default 2**GCE_MIN_GAP_SHIFT when clk_gap is 0.
+    A stepping probe keeps its TCK edges at least this far apart, so that each is one clock."""
+    import bitstream as B
+    clk = B.DEVICE["clock"]
+    gap = B.Bitstream(int(word)).get_ctrl("clk_gap") or (1 << clk["gce_min_gap_shift"])
+    return max(gap, clk.get("gce_gap_floor", 2)) / clk["sysclk_hz"]
+
+
+def _fabric_chain_w():
+    """the fabric's chain width (the M2 test top's chain is shorter and has no ctrl tile)"""
+    import bitstream as B
+    return B.CHAIN_W
+
+
+class _unstepped:
+    """Right after JPROGRAM, GWE is 0: no user clock can run, so TCK edges need no spacing even
+    with USER1 ce set, and a full load may go in bulk. Restores the probe's stepping after."""
+
+    def __init__(self, p):
+        self.p = p
+
+    def __enter__(self):
+        self.was = getattr(self.p, "stepping", False)
+        self.p.stepping = False
+
+    def __exit__(self, *exc):
+        self.p.stepping = self.was
+        return False
+
+
+def note_loaded(p, word):
+    """what the probe needs to know about the configuration now in the fabric"""
+    p.edge_gap_s = gce_spacing_s(word)
 
 
 # --- M5: BRAM contents and test access over USER4 ---------------------------------
@@ -271,25 +317,32 @@ def bram_frames_read(p, b, first=0, n=None):
 def load_frames(p, word, start=True, idcode=None, brams=None):
     """JPROGRAM, the frame load stream on CFG_IN (M15: with every word of each BRAM in
     `brams` as block-type-1 frames), STAT (START accepted, no error), FDRO readback ==
-    word (and == the BRAM contents), then optionally JSTART and DONE. Returns (ok, message)."""
+    word (and == the BRAM contents), then optionally JSTART and DONE. Returns (ok, message).
+
+    The stream is sparse (2026-09-26): only the frames with a 1 in them, since JPROGRAM has
+    just zeroed every other one. The FDRO readback still covers all of them."""
     import packets
     jprogram(p)
-    frames_send(p, packets.load_stream(word, idcode=idcode, brams=brams))
-    st = frames_stat(p)
+    with _unstepped(p):
+        frames_send(p, packets.load_stream(word, idcode=idcode, brams=brams, sparse=True))
+        st = frames_stat(p)
     errs = [k for k in ("CRC_ERROR", "ID_ERROR", "PKT_ERROR", "WR_ERROR") if st[k]]
     if errs or not st["START_OK"]:
         return False, f"frame load refused: STAT {errs or ''} START_OK={st['START_OK']} SYNCED={st['SYNCED']}"
-    back = frames_readback(p)
+    with _unstepped(p):
+        back = frames_readback(p)
     if back != word:
         return False, f"FDRO readback differs in {bin(back ^ word).count('1')} bits"
+    note_loaded(p, word)
     for b, words in sorted((brams or {}).items()):
         if bram_frames_read(p, b) != packets.bram_words(words):
             return False, f"bram{b}: FDRO readback of its content frames differs"
     nb = len(brams or {})
-    msg = (f"loaded {packets.NFRAMES} frames ({packets.NFRAMES * packets.FW} words) through CFG_IN"
+    used = len(packets.used_frames(word))
+    msg = (f"loaded {used} of {packets.NFRAMES} frames ({used * packets.FW} words; JPROGRAM zeroed the rest) through CFG_IN"
            + (f" + {nb * packets.BRAM_FRAMES} BRAM content frames ({nb} BRAM{'s' if nb != 1 else ''}, all 1024 words)"
               if nb else "")
-           + f", CRC {packets.expected_crc(word, idcode, brams):08X}, FDRO readback verified")
+           + f", CRC {packets.expected_crc(word, idcode, brams, sparse=True):08X}, FDRO readback verified (all {packets.NFRAMES} frames)")
     if start:
         jstart(p)
         if not status(p)["done"]:
@@ -323,6 +376,7 @@ def load_partial(p, new, old=None, idcode=None, crc_override=None):
     back = cfg_out(p, packets.NFRAMES * packets.FB)
     if back != new:
         return False, f"after the partial the memory differs in {bin(back ^ new).count('1')} bits", n
+    note_loaded(p, new)
     return True, f"partial: {n} of {packets.NFRAMES} frames rewritten with the design running, released", n
 
 
@@ -335,8 +389,9 @@ def load(p, word, width, start=True, fast_first=True):
     for fast in ((True, False) if fast_first else (False,)):
         how = "bulk" if fast else "per-pulse"
         jprogram(p)
-        write_expected(p, crc)
-        cfg_in(p, word, width, fast=fast)
+        with _unstepped(p):
+            write_expected(p, crc)
+            cfg_in(p, word, width, fast=fast)
         st = status(p)
         # CFG_CTRL reports the low 16 bits of the chip's bit count (M23: the chain is wider);
         # the full comparison is the chip's len_err
@@ -345,10 +400,13 @@ def load(p, word, width, start=True, fast_first=True):
                    f"crc_err={st['crc_err']} len_err={st['len_err']} "
                    f"chip crc=0x{st['crc']:08X} host crc=0x{crc:08X}")
             continue
-        back = cfg_out(p, width, fast=fast)
+        with _unstepped(p):
+            back = cfg_out(p, width, fast=fast)
         if back != word:
             msg = f"readback differs in {bin(back ^ word).count('1')} bits after {how} transfer"
             continue
+        if width == _fabric_chain_w():
+            note_loaded(p, word)
         if start:
             jstart(p)
             st = status(p)

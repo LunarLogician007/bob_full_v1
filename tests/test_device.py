@@ -477,3 +477,38 @@ def test_the_lbit_mask_names_the_l_bits():
         assert (dev.lbits >> lo) & ((1 << w) - 1) == (1 << w) - 1
         lo, w = dev.block_field(blk, "e3.ff_en")
         assert not (dev.lbits >> lo) & 1
+
+
+# --- 2026-09-26: VPR's delays steer PnR, never the fabric --------------------------------------
+
+
+def test_the_fabric_does_not_depend_on_the_switch_delays(tmp_path):
+    """device.py VPR_DELAYS_NS set the rr graph's switch delays for VPR's timing-driven PnR.
+    The fabric is generated from the graph's nodes and edges only, so a graph whose switches
+    carry any other delays must give byte-identical RTL and the same configuration layout:
+    changing the delays (make rrgraph) never needs a Vivado build."""
+    import gzip
+    import fabric_gen
+    src = device.rr_path(6)
+    text = gzip.open(src, "rt").read()
+    other, n = re.subn(r'Tdel="[^"]*"', 'Tdel="1.234e-10"', text)
+    assert n >= 2
+    alt = tmp_path / "bob_k6_rr.xml.gz"
+    with gzip.open(alt, "wt") as fh:
+        fh.write(other)
+    ref = device.Device()
+    dev = device.Device(rr_file=str(alt))
+    assert fabric_gen.fabric_verilog(dev) == fabric_gen.fabric_verilog(ref)
+    assert dev.chain_width == ref.chain_width
+    assert [(m.node, m.lo, m.width, m.inputs) for m in dev.muxes.values()] == \
+           [(m.node, m.lo, m.width, m.inputs) for m in ref.muxes.values()]
+
+
+def test_the_committed_arch_carries_bobs_delays_not_the_40nm_ones():
+    """VPR times PnR with the numbers in the committed architecture; they must be bob's
+    (device.py VPR_DELAYS_NS), not OpenFPGA's 40 nm reference (58 ps per routing hop)"""
+    xml = open(device.arch_path(6)).read()
+    ns = device.VPR_DELAYS_NS
+    assert f'Tdel="{ns["chan"] * 1e-9:.4g}"' in xml and 'Tdel="58e-12"' not in xml
+    assert f'Tdel="{ns["ipin"] * 1e-9:.4g}"' in xml
+    assert f'{ns["lut"] * 1e-9:.4g} ' in xml

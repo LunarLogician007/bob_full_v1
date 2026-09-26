@@ -169,7 +169,8 @@ cat software/bob/arch/bob_k6_rr.stamp  # what that graph was built from
 **How to tweak it.**
 - **Channel width W:** `chan_width` in the `ARCH_*` dict. Wider = more routability, more bits, more LUTs. At 8 × 8 the measurements were W=16: 4.2k routing bits, W=24: 6.0k, W=32: 7.8k.
 - **Segment length:** `segment_length` (4 today). Longer wires cross the die faster but waste area on short nets.
-- **Fs / fc:** `fs`, `fc_in`, `fc_out`. Lower fc means fewer mux inputs (smaller, harder to route).
+- **Fs / fc:** `fs`, `fc_in`, `fc_out`. Lower fc means fewer mux inputs (smaller, harder to route). VPR hands out a fractional Fc two tracks at a time, so at `fc_in` 0.10 and W 36 three of a CLB's sixteen inputs get 2 tracks and thirteen get 4; `fc_in_type: "abs"` makes `fc_in` a track count per pin instead. `software/bob/fcsweep.py` measures the variants on the board's grid.
+- **Delays (2026-09-26):** `VPR_DELAYS_NS` in `device.py`, bob's own measured numbers, go into the switch delays of the rr graph and the pb_type timing, so VPR's timing-driven packing, placement and routing weigh a routing hop against a LUT the way this fabric does (until then: OpenFPGA's 40 nm numbers). They do not change the fabric (`tests/test_device.py` regenerates the RTL from a graph with other delays and compares), but they do mean `make rrgraph` and `make vpr`.
 - **A new block type:** add its pb_type and model in `vpr_arch.py`, add a column entry, teach `device.py` its fields and `fabric_gen.py` how to instantiate it.
 
 After any of these, the committed rr graph is stale on purpose: every tool refuses to run until `make rrgraph` regenerates it.
@@ -517,6 +518,8 @@ software/bob/bitgen.py --roundtrip build/bit/counter.bit
 
 **Why this way.** One layer that knows JTAG, one that knows the protocol, one that knows the flow. Every hardware check and every experiment is written against `cfgplane`, so a protocol change is one file.
 
+**The USB link (2026-09-26).** The Pico's firmware (pico-dirtyJtag V1.07) reads commands in 64-byte packets and answers each packet once, with every TDO byte it produced. `dirtyjtag.py` packs up to nine reading pulses (or ten silent ones) into a packet and sends the next packet only after the reply to the last: the firmware warns that two packets in flight can be merged into one read. Until then every TCK pulse was its own USB round trip, which is why a 10× faster TCK loaded only 2.6× (then 1.0×) faster on the board. The one exception is the TCK-stepped user clock: with USER1 ce set (clock mode 0) every TCK edge is a user clock, and `clock_ctrl.v` keeps user clocks the design's gce spacing apart (4 µs by default), so `cfgplane.user1` marks the probe as stepping and it goes back to one edge per round trip, spaced by the loaded design's gce spacing (`cfgplane.note_loaded`). `tests/test_dirtyjtag.py` runs the probe over a Python port of the firmware's command handler and a TAP. Full frame loads are **sparse**: after JPROGRAM only the frames with a 1 in them are sent (the counter: 29 of 532), and the FDRO readback still checks all of them (`bitstream-format.md` §10).
+
 **How to use it.**
 
 ```sh
@@ -623,6 +626,15 @@ nothing could watch it happen — not a GUI, not a report, not a `--json` flag. 
 engine from the CLI costs nothing and makes all three possible. The two are kept honest by
 `tests/test_flow.py`, which requires `flow.py` and `cli.build()` to write a **byte-identical
 `.bit`** for every example.
+
+**Who may call it (2026-09-26).** The server listens on 127.0.0.1 only, but a web page open in
+the same browser could still send it requests: until then a page anywhere could POST
+`/api/save` and rewrite any `.v` file in the repo, `hw/src` included, or program the board. Now
+every request must name the server in its Host header (127.0.0.1 or localhost on its port,
+which a DNS name rebound to 127.0.0.1 cannot), a request with an Origin must come from the
+server's own origin, and every `/api/` request carries a token made when the process starts
+and served inside the page (`<meta name="bob-token">`; the `X-Bob-Token` header, or `?token=`
+for EventSource and download links). `tests/test_studio.py` holds each refusal.
 
 The backend is stdlib `http.server` plus Server-Sent Events, and the page is one
 self-contained file with no external libraries, assembled from `software/studio/` exactly as
@@ -845,7 +857,7 @@ bob is a student-scale project that deliberately reuses the methods of much larg
 |---|---|---|
 | **Architecture coverage** | one fabric shape: a 4-element cluster with a full crossbar, one BRAM and one DSP type, L4 unidirectional routing, W = 36 | OpenFPGA covers many cluster shapes, many segment types, memory banks, and generates them all |
 | **Targets** | one board (PYNQ-Z2, XC7Z020) | OpenFPGA targets silicon (SPICE, layout, PDKs); prjxray targets real Xilinx parts |
-| **Timing** | VPR's numbers come from the reference 40 nm architecture and are *not* the emulated fabric's real speed; bob's own PnR is not timing-driven at all | OpenFPGA produces delay models from SPICE; VPR's timing-driven flow is used properly there |
+| **Timing** | VPR's timing-driven PnR runs on bob's own delays since 2026-09-26, but three of them (LUT, carry, flip-flop) are still estimates and the three measured mux classes are per-class maxima of samples, not per mux; bob's own PnR is not timing-driven at all | OpenFPGA produces delay models from SPICE; VPR's timing-driven flow is used properly there |
 | **Scale** | 400 LUTs since M23 (10 × 10, the ceiling for this CLB on the XC7Z020); fir16 at 147 LUTs is the biggest design | a real overlay (ZUMA) or a taped-out OpenFPGA fabric is orders of magnitude larger |
 | **Area efficiency** | since M22 the truth tables and crossbar live in host CFGLUT5s (ZUMA's trick); routing selects and flags are still flip-flops, and the fabric fills 86.8% of the XC7Z020's slices at 400 LUTs | ZUMA builds whole overlays on LUTRAM and is far denser per guest LUT |
 | **Design support** | one clock domain, no asynchronous resets or latches, no true tristate, no clock enables inferred from arbitrary logic | commercial and open flows handle all of this |

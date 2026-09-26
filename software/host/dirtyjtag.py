@@ -1,22 +1,42 @@
 """
 Shared DirtyJTAG transport: a Pico running pico-dirtyJtag, driven over USB.
 
-Everything in software/host/ goes through this. It bit-bangs TCK one pulse at a time,
-which is slow but completely unambiguous - exactly the semantics the testbench
-in sim/ models, so hardware and simulation can be compared bit for bit.
+Everything in software/host/ goes through this. TAP navigation and short scans are
+bit-banged pulse by pulse, exactly the semantics the testbench in sim/ models, so
+hardware and simulation can be compared bit for bit; long Shift-DR runs go in bulk.
 
-Protocol, from pico-dirtyJtag cmd.c and pio_jtag.h:
+Protocol, from pico-dirtyJtag (V1.07) cmd.c, pio_jtag.c and dirtyJtag.c:
 
   CMD_SETSIG(mask, value)   set the TMS/TDI levels. Setting TCK *high* does not
                             park a level - it emits one complete clock pulse
-                            through the PIO and latches TDO.
-  CMD_GETSIG                returns the TDO latched by that pulse.
+                            through the PIO (at the CMD_FREQ rate) and latches TDO.
+                            cmd_setsig applies TCK before TDI and TMS, so a pulse is
+                            two SETSIGs: the levels (TCK low, a no-op), then TCK.
+  CMD_GETSIG                returns the TDO latched by that pulse (one byte).
+  CMD_XFER                  up to 496 bits with TMS low, TDI/TDO MSB first per byte.
 
 TDO must be read that way round. The firmware only refreshes its cached TDO
 inside a PIO transfer, so a bare CMD_GETSIG returns a stale bit.
+
+Packets (2026-09-26). The firmware reads commands in 64-byte packets and answers each
+packet with one reply holding every GETSIG/XFER byte it produced, in order. So a packet
+carries up to 9 reading pulses (or 10 that read nothing), and the host sends the next
+packet only after the reply to the last one: dirtyJtag.c warns that two packets in
+flight can be merged into one read, which the protocol does not survive. Until then
+every pulse was its own USB round trip, and the round trips, not TCK, set the speed
+(hwtest fast-tck: a 10x faster TCK loaded 2.6x, then 1.0x, faster).
+
+Stepping. In clock mode 0 with USER1 ce set, every TCK rising edge is one user clock,
+and clock_ctrl.v keeps user clocks at least the design's gce spacing apart (4 us by
+default), holding only one early request. Batched pulses come about 1 us apart at
+1 MHz, so they would merge. While `stepping` is set (cfgplane.user1 sets it from the
+ce bit), every pulse is its own round trip, as before, at least `edge_gap_s` after the
+previous one (cfgplane sets that from the loaded word's gce spacing), and bulk shifts
+fall back to pulses.
 """
 
 import sys
+import time
 
 import usb.core
 import usb.util
@@ -34,6 +54,36 @@ XFER_MAX_BYTES = 60
 
 SIG_TCK, SIG_TDI, SIG_TDO, SIG_TMS = 1 << 1, 1 << 2, 1 << 3, 1 << 4
 LEVELS = SIG_TMS | SIG_TDI
+
+# the firmware's command and reply buffers (dirtyJtag.c cmd_buffer, cmd.c tx_buf): one packet
+# of commands, CMD_STOP included, and one reply per packet
+PACKET_BYTES = 64
+
+
+def pulse_bytes(tms, tdi, read):
+    """one TCK pulse with these levels: the levels, then TCK (which clocks), then TDO if read"""
+    lv = (SIG_TMS if tms else 0) | (SIG_TDI if tdi else 0)
+    return [CMD_SETSIG, LEVELS | SIG_TCK, lv, CMD_SETSIG, SIG_TCK, SIG_TCK] + ([CMD_GETSIG] if read else [])
+
+
+def packets_of(pulses):
+    """(tms, tdi, read) pulses -> [(command bytes, reads)], each packet at most PACKET_BYTES with
+    its CMD_STOP and holding at least one GETSIG, so that every packet is answered: a packet that
+    reads nothing ends with a GETSIG whose byte is dropped (reads counts only the wanted ones)."""
+    out, buf, nread = [], [], 0
+
+    def size(nbytes, reads):                    # + CMD_STOP, + a closing GETSIG if nothing reads
+        return nbytes + 1 + (0 if reads else 1)
+    for tms, tdi, read in pulses:
+        b = pulse_bytes(tms, tdi, read)
+        if buf and size(len(buf) + len(b), nread + bool(read)) > PACKET_BYTES:
+            out.append((buf, nread))
+            buf, nread = [], 0
+        buf += b
+        nread += bool(read)
+    if buf:
+        out.append((buf, nread))
+    return [(b if n else b + [CMD_GETSIG], n) for b, n in out]
 
 # ---------------------------------------------------------------------------
 # THE 4-BIT M0/M1 INSTRUCTION SET, for the bring-up tops only.
@@ -89,7 +139,22 @@ class Probe:
                 break
         if self.ep_out is None:
             sys.exit("no vendor-specific bulk interface on the probe")
+        self._init_state()
         self.set_freq_khz(freq_khz)
+
+    @classmethod
+    def over(cls, ep_out, ep_in):
+        """A Probe on endpoints that are already open: tests/test_dirtyjtag.py drives one over a
+        Python model of the firmware's command handler and a TAP."""
+        p = cls.__new__(cls)
+        p.dev, p.ep_out, p.ep_in = None, ep_out, ep_in
+        p._init_state()
+        return p
+
+    def _init_state(self):
+        self.stepping = False          # USER1 ce in clock mode 0: every TCK edge is a user clock
+        self.edge_gap_s = 0.0          # the loaded design's gce spacing (cfgplane.note_loaded)
+        self._last_edge = 0.0
 
     # --- transport --------------------------------------------------------
 
@@ -110,12 +175,38 @@ class Probe:
         self._xact([CMD_FREQ, (khz >> 8) & 0xFF, khz & 0xFF])
 
     def pulse(self, tms=0, tdi=0):
-        """One TCK cycle. Returns the TDO bit sampled during it."""
-        lv = (SIG_TMS if tms else 0) | (SIG_TDI if tdi else 0)
-        r = self._xact([CMD_SETSIG, LEVELS | SIG_TCK, lv,
-                        CMD_SETSIG, SIG_TCK, SIG_TCK,
-                        CMD_GETSIG], True)
+        """One TCK cycle in its own USB round trip. Returns the TDO bit sampled during it.
+        While stepping it also keeps edge_gap_s after the previous TCK edge."""
+        if self.stepping and self.edge_gap_s:
+            wait = self._last_edge + self.edge_gap_s - time.perf_counter()
+            if wait > 0:
+                time.sleep(wait)
+        r = self._xact(pulse_bytes(tms, tdi, True), True)
+        self._last_edge = time.perf_counter()
         return 1 if r[0] & SIG_TDO else 0
+
+    def run(self, pulses):
+        """Clock a sequence of (tms, tdi, read) pulses; returns the TDO bits of the pulses with
+        read set, in order. Several pulses per packet, one round trip per packet; while
+        stepping, one round trip per pulse (see the module notes)."""
+        pulses = list(pulses)
+        out = []
+        if self.stepping:
+            for tms, tdi, read in pulses:
+                bit = self.pulse(tms, tdi)
+                if read:
+                    out.append(bit)
+            return out
+        for cmds, nread in packets_of(pulses):
+            r = self._xact(cmds, True)
+            if len(r) < max(nread, 1):
+                raise IOError(f"DirtyJTAG answered {len(r)} bytes to a packet of {max(nread, 1)} reads")
+            out += [1 if x & SIG_TDO else 0 for x in r[:nread]]
+        return out
+
+    def idle(self, tcks):
+        """TCKs with TMS low (Run-Test/Idle, e.g. for JSTART)"""
+        self.run([(0, 0, False)] * tcks)
 
     def sample_tdo(self):
         """TDO, sampled by one harmless pulse held in Test-Logic-Reset."""
@@ -163,20 +254,18 @@ class Probe:
         return bytes(self.ep_in.read(64, timeout=5000))[:nbits // 8]
 
     def shift_dr_fast(self, n, din=0):
-        """Same contract as shift_dr, but bulk-transferred. Falls back to the
-        per-pulse path for anything too short to be worth packetising."""
-        if n < 64:
+        """Same contract as shift_dr, but the body of the scan goes in bulk (CMD_XFER). Falls
+        back to shift_dr for anything too short to be worth it, and while stepping (a bulk
+        transfer runs TCK edges closer than the user clock may follow)."""
+        if n < 64 or self.stepping:
             return self.shift_dr(n, din)
 
         bits = [(din >> i) & 1 for i in range(n)]
 
         # Everything except a byte-aligned remainder and the final bit.
         bulk = ((n - 1) // 8) * 8
-        tail = n - bulk
 
-        self.pulse(tms=1)                       # Select-DR
-        self.pulse(tms=0)                       # Capture-DR
-        self.pulse(tms=0)                       # -> Shift-DR
+        self.run([(1, 0, False), (0, 0, False), (0, 0, False)])     # Select-DR, Capture-DR, Shift-DR
 
         out = []
         sent = 0
@@ -187,12 +276,9 @@ class Probe:
             out.extend(self._unpack_msb(got, take))
             sent += take
 
-        for i in range(bulk, n - 1):            # ragged tail
-            out.append(self.pulse(tms=0, tdi=bits[i]))
-        out.append(self.pulse(tms=1, tdi=bits[n - 1]))
-
-        self.pulse(tms=1)                       # -> Update-DR
-        self.pulse(tms=0)                       # -> Run-Test/Idle
+        # the ragged tail, the last bit with TMS high, then Update-DR and Run-Test/Idle
+        out += self.run([(0, bits[i], True) for i in range(bulk, n - 1)] + [(1, bits[n - 1], True)]
+                        + [(1, 0, False), (0, 0, False)])
 
         value = 0
         for i, b in enumerate(out):
@@ -203,34 +289,22 @@ class Probe:
     # --- TAP navigation, mirroring sim/tb_mini_fpga.v ---------------------
 
     def reset_to_idle(self):
-        for _ in range(5):
-            self.pulse(tms=1)
-        self.pulse(tms=0)
+        self.run([(1, 0, False)] * 5 + [(0, 0, False)])
 
     def shift_dr(self, n, din=0):
-        self.pulse(tms=1)                       # Select-DR
-        self.pulse(tms=0)                       # Capture-DR
-        self.pulse(tms=0)                       # -> Shift-DR
-        out = 0
-        for i in range(n):
-            bit = self.pulse(tms=1 if i == n - 1 else 0, tdi=(din >> i) & 1)
-            out |= bit << i
-        self.pulse(tms=1)                       # -> Update-DR
-        self.pulse(tms=0)                       # -> Run-Test/Idle
-        return out
+        """Select-DR, Capture-DR, Shift-DR, n bits LSB first (the last with TMS high), Update-DR,
+        Run-Test/Idle: n + 5 TCK edges. Returns the n bits TDO carried, bit 0 first."""
+        bits = self.run([(1, 0, False), (0, 0, False), (0, 0, False)]
+                        + [(1 if i == n - 1 else 0, (din >> i) & 1, True) for i in range(n)]
+                        + [(1, 0, False), (0, 0, False)])
+        return sum(b << i for i, b in enumerate(bits))
 
     def shift_ir(self, value, width=IR_WIDTH):
-        self.pulse(tms=1)                       # Select-DR
-        self.pulse(tms=1)                       # Select-IR
-        self.pulse(tms=0)                       # Capture-IR
-        self.pulse(tms=0)                       # -> Shift-IR
-        out = 0
-        for i in range(width):
-            bit = self.pulse(tms=1 if i == width - 1 else 0, tdi=(value >> i) & 1)
-            out |= bit << i
-        self.pulse(tms=1)                       # -> Update-IR
-        self.pulse(tms=0)                       # -> Run-Test/Idle
-        return out
+        """Select-DR, Select-IR, Capture-IR, Shift-IR, width bits, Update-IR, Run-Test/Idle"""
+        bits = self.run([(1, 0, False), (1, 0, False), (0, 0, False), (0, 0, False)]
+                        + [(1 if i == width - 1 else 0, (value >> i) & 1, True) for i in range(width)]
+                        + [(1, 0, False), (0, 0, False)])
+        return sum(b << i for i, b in enumerate(bits))
 
     # --- mini FPGA operations --------------------------------------------
 

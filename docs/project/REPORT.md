@@ -980,7 +980,7 @@ is the limit for bigger designs.
 
 **Known limits:**
 - **Delays:** routing, input and crossbar hops are measured; LUT, carry and flip-flop delays are still estimated (their nets do not survive by name in the routed netlist), so `delays.json` keeps the 2× guard band.
-- **Timing-driven PnR:** VPR's timing uses reference delays, not bob's measured ones.
+- **Timing-driven PnR:** VPR has timed PnR with bob's measured delays since 2026-09-26 (before: OpenFPGA's 40 nm numbers); bob's own PnR is not timing-driven.
 - **Partial reconfiguration:** no region protection, no BRAM writes while frozen, pads not held during the write.
 - **FAR:** does not cross from configuration frames into BRAM frames.
 - **I/O:** no true tristate or per-pad options. **CAPTURE:** CLB registers only.
@@ -991,7 +991,7 @@ is the limit for bigger designs.
 1. **Configuration from the ARM core** (AXI instead of the Pico): loads in milliseconds, and a PYNQ notebook that drives bob.
 2. **Scrubbing** (UG470 frame ECC / readback CRC): find and repair a flipped configuration bit while the design runs.
 3. **A built-in logic analyser** (ChipScope-style) into a BRAM, shown in bob studio.
-4. **Richer routing** (fc_in 0.15, measured first with `gridsweep.py`): what the SERV trial showed bigger designs need.
+4. **Richer routing:** what the SERV trial showed bigger designs need. `fcsweep.py` (2026-09-26) measured the connection boxes on the board's grid: richer boxes cost +364 LUTs but do not help fir16 at W 36 (`docs/research/2026-09-26-fc-sweep.md`), so the next step is routing SERV itself on each variant.
 5. **The remaining delays** and timing-driven placement on the measured ones.
 
 ---

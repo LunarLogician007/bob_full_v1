@@ -5,10 +5,12 @@ packets.py - the frame path's bitstream: UG470-style packets (M13).
 docs/bitstream-format.md sections 9-10. The same configuration memory the chain
 writes, as frames of FRAME_WORDS 32-bit words, carried in type-1/type-2 packets:
 
-  load_stream(word, brams)
+  load_stream(word, brams, sparse=False)
                          dummy, sync, RCRC, IDCODE, FAR <- 0, WCFG, FDRI (type 2)
                          <all frames>, [M15: per BRAM b in brams: FAR <- (type 1, b),
-                         FDRI (type 2) <1024 content words>], CRC, LFRM, START, DESYNC
+                         FDRI (type 2) <1024 content words>], CRC, LFRM, START, DESYNC.
+                         sparse: IDCODE, WCFG, then FAR + FDRI per run of used_frames(word)
+                         only - right after JPROGRAM, which zeroes the rest
   bram_readback_stream(b, first, n)
                          M15: sync, RCFG, FAR <- (type 1, b, frame first), READ FDRO
                          4n words, DESYNC
@@ -111,39 +113,72 @@ def word_from_frames(words):
     return sum(w << (32 * i) for i, w in enumerate(words))
 
 
-def load_stream(word, idcode=None, crc_override=None, brams=None):
+def used_frames(word):
+    """The frames a sparse load writes: every frame with a 1 in it, or frame 0 when there is none
+    (START needs one FDRI word after the CRC reset, cfg_frames.v data_seen)."""
+    mask = (1 << FB) - 1
+    return [f for f in range(NFRAMES) if (word >> (FB * f)) & mask] or [0]
+
+
+def _fdri(data):
+    """one FDRI write: a type-1 packet when the count fits its 11 bits, else type 1 + type 2"""
+    if len(data) < 2048:
+        return [type1(OP_WRITE, REG["FDRI"], len(data))] + list(data)
+    return [type1(OP_WRITE, REG["FDRI"], 0), type2(OP_WRITE, len(data))] + list(data)
+
+
+def _load(word, idcode, brams, sparse):
+    """the load stream up to its CRC write, and that CRC: every WRITE data word after RCRC"""
     idcode = device_idcode() if idcode is None else idcode
-    data = frame_words(word)
-    s = [DUMMY, DUMMY, SYNC, NOP]
-    s += write("CMD", CMD["RCRC"]) + [NOP]
+    s = [DUMMY, DUMMY, SYNC, NOP] + write("CMD", CMD["RCRC"]) + [NOP]
     s += write("IDCODE", idcode)
-    s += write("FAR", far(0))
-    s += write("CMD", CMD["WCFG"]) + [NOP]
-    s += [type1(OP_WRITE, REG["FDRI"], 0), type2(OP_WRITE, len(data))] + data
+    crc = crc37(0, REG["IDCODE"], idcode)
+    if sparse:
+        s += write("CMD", CMD["WCFG"]) + [NOP]
+        crc = crc37(crc, REG["CMD"], CMD["WCFG"])
+        for r in _frame_runs(used_frames(word)):
+            a = _far_of(r[0])
+            s += write("FAR", a)
+            crc = crc37(crc, REG["FAR"], a)
+            data = [(word >> (FB * f + 32 * w)) & 0xFFFFFFFF for f in r for w in range(FW)]
+            s += _fdri(data)
+            for d in data:
+                crc = crc37(crc, REG["FDRI"], d)
+    else:
+        s += write("FAR", far(0))
+        s += write("CMD", CMD["WCFG"]) + [NOP]
+        data = frame_words(word)
+        s += [type1(OP_WRITE, REG["FDRI"], 0), type2(OP_WRITE, len(data))] + data
+        crc = crc37(crc37(crc, REG["FAR"], far(0)), REG["CMD"], CMD["WCFG"])
+        for d in data:
+            crc = crc37(crc, REG["FDRI"], d)
     for b, words in sorted((brams or {}).items()):                # M15: BRAM contents as frames
         s += write("FAR", bram_far(b))
+        crc = crc37(crc, REG["FAR"], bram_far(b))
         bw = bram_words(words)
         s += [type1(OP_WRITE, REG["FDRI"], 0), type2(OP_WRITE, len(bw))] + bw
-    s += write("CRC", expected_crc(word, idcode, brams) if crc_override is None else crc_override)
+        for d in bw:
+            crc = crc37(crc, REG["FDRI"], d)
+    return s, crc
+
+
+def load_stream(word, idcode=None, crc_override=None, brams=None, sparse=False):
+    """A full load. sparse=False writes every frame (one FDRI packet from FAR 0). sparse=True
+    writes only used_frames(word), one FAR + FDRI per run: the rest must already be zero, which
+    JPROGRAM guarantees (it clears every configuration flip-flop, sweeps zeros into every
+    CFGLUT5 and invalidates the readback shadow), so only a load right after JPROGRAM may be
+    sparse (cfgplane.load_frames). The CRC and FDRO readback then cover the whole memory."""
+    s, crc = _load(word, idcode, brams, sparse)
+    s += write("CRC", crc if crc_override is None else crc_override)
     s += write("CMD", CMD["LFRM"])
     s += write("CMD", CMD["START"])
     s += write("CMD", CMD["DESYNC"]) + [NOP, NOP]
     return s
 
 
-def expected_crc(word, idcode=None, brams=None):
+def expected_crc(word, idcode=None, brams=None, sparse=False):
     """the CRC value load_stream writes: every WRITE data word after RCRC except CRC's"""
-    idcode = device_idcode() if idcode is None else idcode
-    crc = 0
-    for reg, val in [(REG["IDCODE"], idcode), (REG["FAR"], far(0)), (REG["CMD"], CMD["WCFG"])]:
-        crc = crc37(crc, reg, val)
-    for w in frame_words(word):
-        crc = crc37(crc, REG["FDRI"], w)
-    for b, words in sorted((brams or {}).items()):
-        crc = crc37(crc, REG["FAR"], bram_far(b))
-        for w in bram_words(words):
-            crc = crc37(crc, REG["FDRI"], w)
-    return crc
+    return _load(word, idcode, brams, sparse)[1]
 
 
 def readback_stream():
@@ -179,19 +214,12 @@ def partial_streams(old, new, idcode=None, crc_override=None):
     frames = write("CMD", CMD["WCFG"]) + [NOP]
     crc = crc37(crc, REG["CMD"], CMD["WCFG"])
     todo = changed_frames(old, new)
-    runs, k = [], 0
-    while k < len(todo):
-        j = k
-        while j + 1 < len(todo) and todo[j + 1] == todo[j] + 1:     # FAR auto-increment crosses columns
-            j += 1
-        runs.append(todo[k:j + 1])
-        k = j + 1
-    for r in runs:
+    for r in _frame_runs(todo):                                 # FAR auto-increment crosses columns
         a = _far_of(r[0])
         frames += write("FAR", a)
         crc = crc37(crc, REG["FAR"], a)
         data = [(new >> (FB * f + 32 * w)) & 0xFFFFFFFF for f in r for w in range(FW)]
-        frames += [type1(OP_WRITE, REG["FDRI"], len(data))] + data
+        frames += _fdri(data)
         for d in data:
             crc = crc37(crc, REG["FDRI"], d)
     frames += write("CRC", crc if crc_override is None else crc_override)
@@ -233,7 +261,7 @@ def restore_streams(mem, init_mem, idcode=None, crc_override=None):
             frames += write("FAR", a)
             crc = crc37(crc, REG["FAR"], a)
             data = [(word >> (FB * f + 32 * w)) & 0xFFFFFFFF for f in r for w in range(FW)]
-            frames += [type1(OP_WRITE, REG["FDRI"], len(data))] + data
+            frames += _fdri(data)
             for d in data:
                 crc = crc37(crc, REG["FDRI"], d)
 

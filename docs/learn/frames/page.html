@@ -39,7 +39,7 @@ svg .wave { stroke: var(--ink); stroke-width: 1.6; fill: none; }
 <header class="hero">
   <h1>bob, <span class="ly">frame</span> by frame</h1>
   <p>Volume 2 ended with a long word of configuration bits poured into the chip. This volume slows that moment down. It follows one real configuration, the <code>counter</code> example, from the Mac to the last flip-flop: through the four JTAG wires, past the TAP (the chip's doorman), into the packet parser (bob's configuration brain), cut into frames, and into the exact tiles where each frame belongs.</p>
-  <p>Each picture builds up in steps: press <b>Next</b> (or → on the keyboard). The words, frames, addresses and CRC are the ones bob's tools really send; the grid and the frame map come from <code>device.json</code>; the last chapter is Vivado's own placement of bob on the XC7Z020.</p>
+  <p>Each picture builds up in steps: press <b>Next</b> (or → on the keyboard). The words, frames, addresses and CRC are the ones bob's tools really build (the full form of the load stream; chapter 4 says what <code>./bob load</code> sends today); the grid and the frame map come from <code>device.json</code>; the last chapter is Vivado's own placement of bob on the XC7Z020.</p>
   <div class="facts" id="facts"></div>
   <div class="legend">
     <span><i class="sw" style="background:var(--hi)"></i>data moving, or the part working now</span>
@@ -95,6 +95,7 @@ svg .wave { stroke: var(--ink); stroke-width: 1.6; fill: none; }
       <p>The host sends <b>words</b>: 32 bits each, most significant bit first. But a stream of bits has no marks between words. So the stream starts with a <b>sync word</b>, <code>AA995566</code>, the same one every AMD bitstream uses.</p>
       <p>The parser <b>hunts</b>: after every bit it checks whether the last 32 bits spell <code>AA995566</code>. The moment they do, it knows where every later word begins.</p>
       <p>After the sync come <b>packets</b>: a header word saying which register to write and how many words follow, then the words. Most of the stream is one packet: the frames.</p>
+      <p class="bob"><b>bob:</b> this volume follows the <i>full</i> form of the stream, every frame in one packet. Since 2026-09-26 <code>./bob load</code> sends a shorter one: right after JPROGRAM every frame is zero, so it sends only the frames with a 1 in them (chapter 8 lights them), each run of them behind its own FAR write. The readback afterwards still checks all of them.</p>
     </div>
     <div class="stage" id="st-stream" tabindex="0"></div>
   </div>
@@ -133,7 +134,7 @@ svg .wave { stroke: var(--ink); stroke-width: 1.6; fill: none; }
   <div class="cols">
     <div class="txt">
       <p>A <b>frame</b> is 4 words = <b>128 bits</b>. FDRI words fill a 128-bit <b>frame buffer</b>; the fourth word completes it, and the frame is written into the memory at the address in <b>FAR</b>.</p>
-      <p><b>FAR</b>, the frame address register, is split like AMD's: a block type (configuration or BRAM contents), a column, and a <b>minor</b> number: which frame within the column. After every frame FAR counts up by itself, so one FDRI packet can fill the whole chip.</p>
+      <p><b>FAR</b>, the frame address register, is split like AMD's: a block type (configuration or BRAM contents), a column, and a <b>minor</b> number: which frame within the column. After every frame FAR counts up by itself, so one FDRI packet can fill the whole chip. Writing FAR again jumps anywhere: that is how a partial load, and <code>./bob load</code>'s short full load, send only some frames.</p>
       <p class="aside">AMD 7-series frames are 101 words, and a column there is a column of the real die. bob's are 4 words, and a column is a column of bob's grid.</p>
     </div>
     <div class="stage" id="st-frame" tabindex="0"></div>

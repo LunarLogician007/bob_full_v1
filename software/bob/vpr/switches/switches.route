@@ -1,4 +1,4 @@
-Placement_File: switches.place Placement_ID: SHA256:f0f195a5d8d8ccf12a12131f928aec8049c1213a83cc21a122258e2991ca3327
+Placement_File: switches.place Placement_ID: SHA256:feab41a425c43a5a23c90da4c8fd2a97d8ceacf7dddba9339262108cb45b4900
 Array size: 14 x 12 logic blocks.
 
 Routing:
@@ -9,33 +9,32 @@ Node:	2978	SOURCE (0,6,0)  Pad: 1  Switch: 0
 Node:	2980	  OPIN (0,6,0)  Pad: 1  Switch: 2
 Node:	7869	 CHANY (0,3,0) to (0,6,0)  Track: 23  Switch: 2
 Node:	6652	 CHANX (1,4,0) to (2,4,0)  Track: 16  Switch: 2
-Node:	8138	 CHANY (2,5,0) to (2,8,0)  Track: 8  Switch: 2
-Node:	6860	 CHANX (3,5,0) to (6,5,0)  Track: 0  Switch: 2
-Node:	8639	 CHANY (6,4,0) to (6,5,0)  Track: 35  Switch: 2
-Node:	6560	 CHANX (7,3,0)  Track: 0  Switch: 1
-Node:	2353	  IPIN (7,4,0)  Pin: 3   clb.I[3] Switch: 0
-Node:	2330	  SINK (7,4,0)  Class: 0  Switch: -1 Net_pin_index: 1
+Node:	8018	 CHANY (1,5,0) to (1,6,0)  Track: 32  Switch: 2
+Node:	6852	 CHANX (2,5,0) to (5,5,0)  Track: 8  Switch: 2
+Node:	8485	 CHANY (5,2,0) to (5,5,0)  Track: 7  Switch: 1
+Node:	2316	  IPIN (6,4,0)  Pin: 4   clb.I[4] Switch: 0
+Node:	2287	  SINK (6,4,0)  Class: 0  Switch: -1 Net_pin_index: 1
 
 
 Net 1 (n14)
 
-Node:	2327	SOURCE (7,4,0)  Class: 10  Switch: 0
-Node:	2343	  OPIN (7,4,0)  Pin: 25   clb.O[6] Switch: 2
-Node:	8589	 CHANY (6,1,0) to (6,4,0)  Track: 15  Switch: 1
-Node:	2362	  IPIN (7,4,0)  Pin: 16   clb.ce[0] Switch: 0
-Node:	2331	  SINK (7,4,0)  Class: 1  Switch: -1 Net_pin_index: 1
+Node:	2284	SOURCE (6,4,0)  Class: 10  Switch: 0
+Node:	2300	  OPIN (6,4,0)  Pin: 25   clb.O[6] Switch: 2
+Node:	8463	 CHANY (5,1,0) to (5,4,0)  Track: 15  Switch: 1
+Node:	2319	  IPIN (6,4,0)  Pin: 16   clb.ce[0] Switch: 0
+Node:	2288	  SINK (6,4,0)  Class: 1  Switch: -1 Net_pin_index: 1
 
 
 Net 2 (led[2])
 
-Node:	2328	SOURCE (7,4,0)  Class: 11  Switch: 0
-Node:	2336	  OPIN (7,4,0)  Pin: 26   clb.O[7] Switch: 2
-Node:	6739	 CHANX (7,4,0)  Track: 7  Switch: 2
-Node:	8605	 CHANY (6,1,0) to (6,4,0)  Track: 31  Switch: 2
-Node:	6044	 CHANX (7,0,0) to (10,0,0)  Track: 8  Switch: 2
-Node:	6072	 CHANX (10,0,0) to (12,0,0)  Track: 0  Switch: 2
-Node:	9362	 CHANY (12,1,0) to (12,2,0)  Track: 32  Switch: 2
-Node:	9370	 CHANY (12,2,0) to (12,5,0)  Track: 16  Switch: 1
+Node:	2285	SOURCE (6,4,0)  Class: 11  Switch: 0
+Node:	2293	  OPIN (6,4,0)  Pin: 26   clb.O[7] Switch: 2
+Node:	6734	 CHANX (6,4,0) to (7,4,0)  Track: 24  Switch: 2
+Node:	8642	 CHANY (6,5,0) to (6,8,0)  Track: 8  Switch: 2
+Node:	6900	 CHANX (7,5,0) to (10,5,0)  Track: 0  Switch: 2
+Node:	9143	 CHANY (10,4,0) to (10,5,0)  Track: 35  Switch: 2
+Node:	6616	 CHANX (11,3,0) to (12,3,0)  Track: 0  Switch: 2
+Node:	9335	 CHANY (12,1,0) to (12,3,0)  Track: 5  Switch: 1
 Node:	2101	  IPIN (13,3,0)  Pad: 0  Switch: 0
 Node:	2099	  SINK (13,3,0)  Pad: 0  Switch: -1 Net_pin_index: 1
 
@@ -43,7 +42,7 @@ Node:	2099	  SINK (13,3,0)  Pad: 0  Switch: -1 Net_pin_index: 1
 Net 3 (clk): global net connecting:
 
 Block clk (#5) at (1,0,0), Pin class 1.
-Block n15 (#0) at (7,4,0), Pin class 13.
+Block n15 (#0) at (6,4,0), Pin class 13.
 
 
 Net 4 (sw[0])
@@ -108,11 +107,11 @@ Net 9 (led[1])
 Node:	1280	SOURCE (2,2,0)  Class: 11  Switch: 0
 Node:	1288	  OPIN (2,2,0)  Pin: 26   clb.O[7] Switch: 2
 Node:	6322	 CHANX (2,2,0)  Track: 24  Switch: 2
-Node:	8081	 CHANY (2,1,0) to (2,2,0)  Track: 11  Switch: 2
-Node:	6004	 CHANX (3,0,0) to (6,0,0)  Track: 8  Switch: 2
-Node:	6032	 CHANX (6,0,0) to (9,0,0)  Track: 0  Switch: 2
-Node:	6042	 CHANX (7,0,0) to (10,0,0)  Track: 0  Switch: 2
-Node:	6076	 CHANX (10,0,0) to (12,0,0)  Track: 16  Switch: 2
-Node:	9346	 CHANY (12,1,0) to (12,4,0)  Track: 16  Switch: 1
+Node:	8122	 CHANY (2,3,0) to (2,6,0)  Track: 24  Switch: 2
+Node:	6864	 CHANX (3,5,0) to (6,5,0)  Track: 16  Switch: 2
+Node:	6896	 CHANX (6,5,0) to (9,5,0)  Track: 24  Switch: 2
+Node:	6922	 CHANX (9,5,0) to (12,5,0)  Track: 8  Switch: 2
+Node:	9369	 CHANY (12,2,0) to (12,5,0)  Track: 15  Switch: 2
+Node:	9333	 CHANY (12,1,0) to (12,2,0)  Track: 3  Switch: 1
 Node:	1663	  IPIN (13,2,0)  Pad: 0  Switch: 0
 Node:	1661	  SINK (13,2,0)  Pad: 0  Switch: -1 Net_pin_index: 1

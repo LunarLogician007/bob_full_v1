@@ -357,3 +357,19 @@ Status: **same** = byte-identical to `bob/`, **moved** = same content at a new p
 | fake board | `fakeboard.py` USER1 step, GRESTORE hook, `no_grestore` | modified |
 | TCK | `hw/constr/pynq_z2.xdc`, `device.py` `XDC_TCK_PERIOD_NS`, `dirtyjtag.MAX_TCK_KHZ` | modified: 1 MHz |
 | checks | `hwtest.check_time_travel`, `check_fast_tck`, `tb_frames` [19], `tests/test_snapshot.py`, mutants `grestore-*` | **new** |
+
+
+## Software fixes from the whole-repo review (2026-09-26, hardware unchanged)
+
+| what | where | reused / new |
+|---|---|---|
+| VPR's delays | `software/bob/device.py` `VPR_DELAYS_NS`, `vpr_delays()`; `software/bob/vpr_arch.py` (every delay a parameter, the 40 nm values the defaults) | modified: the committed arch times PnR with bob's measured delays; the rr graphs, `make vpr` results and `docs/reports/M11/designs.md` regenerated, the PnR comparison in `docs/reports/M25/pnr_vs_vpr.md`; the fabric byte-identical (`tests/test_device.py`) |
+| sparse full loads | `software/bob/packets.py` `load_stream(sparse=)`, `used_frames`, `_load`, `_fdri`; `software/host/cfgplane.py` `load_frames` | modified: after JPROGRAM only the frames with a 1 in them; partial and restore streams share the run and FDRI writers (byte-identical output) |
+| sparse load on the RTL | `sim/gen_frame_vectors.py`, `hw/tb/tb_frames.v` [20] | **new** scenario |
+| the USB link | `software/host/dirtyjtag.py` `pulse_bytes`, `packets_of`, `Probe.run`, `idle`, `over`, stepping | modified: pulses batched per 64-byte packet, one packet in flight (pico-dirtyJtag V1.07 `cmd.c`, `dirtyJtag.c`); one edge per round trip while TCK steps the user clock |
+| stepping and spacing | `software/host/cfgplane.py` `user1`, `idle`, `gce_spacing_s`, `note_loaded` | modified / **new** |
+| transport tests | `tests/test_dirtyjtag.py` (a port of the firmware's command handler and a TAP) | **new** |
+| packet tests | `tests/test_packets.py` | **new** |
+| studio access | `software/host/studio.py` `TOKEN`, `Handler._refuse`; `software/studio/p3_api.js`, `p12_wave.js`; `tests/test_studio.py` | modified: Host, Origin and token checks |
+| connection-box sweep | `software/bob/fcsweep.py`, `docs/research/2026-09-26-fc-sweep.md`; `vpr_arch.py` `fc_in_type`, `sweep.vpr(seed=)` | **new** |
+| `make check` banner | `Makefile` | modified: printed after the tests, not before the simulations |

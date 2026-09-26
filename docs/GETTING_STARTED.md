@@ -41,7 +41,7 @@ stage, then what the design used and what to run next:
   PASS  built build/bit/counter.bit in 5.0 s
     uses    LUTs 0/400  flip-flops 6/400 (2%)  carry bits 6/400 (2%)  BRAMs 0/2  DSPs 0/2
     clock   stepped over JTAG; for a free-running clock up to 31.2 MHz build with --clock run --hz auto
-  PASS  load build/bit/counter.bit: loaded 532 frames (2128 words) through CFG_IN, ..., DONE
+  PASS  load build/bit/counter.bit: loaded 29 of 532 frames (116 words; JPROGRAM zeroed the rest) through CFG_IN, ..., DONE
     LEDs    LD2..0 = 000   (SW1..0 = 00, BTN3..0 = 0000); add --watch to follow them
 ```
 

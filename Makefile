@@ -42,13 +42,13 @@ mutate:
 .NOTPARALLEL:
 
 check: device sim lint test
+	@echo "=== make check: all green ==="
 
 # regenerate the architectures, software/bob/device.json, bob_params.vh and bob_fabric.v
 # (fails with "run make rrgraph" if the architecture changed since the rr graph was built)
 device:
 	software/bob/device.py
 	software/bob/devtable.py --check
-	@echo "=== make check: all green ==="
 
 sim:
 	sim/run_sim.sh

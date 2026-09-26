@@ -287,7 +287,7 @@
     <div class="txt">
       <p><b>JTAG</b> is a standard test port. It has four wires: <b>TCK</b> (the clock), <b>TMS</b> (steers a small state machine), <b>TDI</b> (data in) and <b>TDO</b> (data out). Every TCK tick shifts one bit in on TDI and one bit out on TDO.</p>
       <p>First you shift in an <b>instruction</b> (like "I'm sending configuration" or "give me your ID"). Then you shift the <b>data</b> for that instruction. bob uses AMD's instruction codes (JPROGRAM, CFG_IN, JSTART) and adds its own (CAPTURE to read every flip-flop, INTEST to drive the pins).</p>
-      <div class="bob"><b>In bob:</b> a Raspberry Pi Pico runs DirtyJTAG and wiggles these wires for the Mac. TCK runs at {{TCK}} (since M25; it was 100 kHz before), so the {{CHAIN_BITS}} bits of a full load take about {{LOAD_MS}} ms on the wire. The USB round trips between the Mac and the Pico, and the readback check after the load, take longer than that.</div>
+      <div class="bob"><b>In bob:</b> a Raspberry Pi Pico runs DirtyJTAG and wiggles these wires for the Mac. TCK runs at {{TCK}} (since M25; it was 100 kHz before), so even all {{CHAIN_BITS}} bits would take only about {{LOAD_MS}} ms on the wire, and <span class="mono">./bob load</span> sends only the frames a design uses (the rest are already zero after JPROGRAM). The USB round trips between the Mac and the Pico, and the readback check after the load, take longer than that.</div>
     </div>
     <div class="stage" id="st-jtag"></div>
   </div>

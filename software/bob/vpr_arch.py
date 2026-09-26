@@ -9,7 +9,9 @@ exercised exactly as upstream tests it):
               io perimeter, EMPTY corners, clb fill, hard-block columns
   routing     one L4 unidirectional segment, sb/cb pattern all 1, Wilton Fs=3,
               mux switch "0" for wires, "ipin_cblock" for connection boxes
-  fc          in 0.15 / out 0.10 (frac); carry and clock pins fc 0
+  fc          in 0.15 / out 0.10 (frac); carry and clock pins fc 0. arch["fc_in_type"] = "abs"
+              makes fc_in a number of tracks per pin (VPR hands fractional Fc out in pairs,
+              so at fc_in 0.10 and W 36 three of a CLB's 16 inputs get 2 tracks, 13 get 4)
   carry       a direct connection clb.cout -> clb.cin
 
 Where bob diverges (and why):
@@ -32,10 +34,15 @@ the generated RTL (software/bob/fabric_gen.py), which is OpenFPGA's method.
 from xml.sax.saxutils import quoteattr
 
 
-# The reference's delays (40 nm). software/bob/sweep.py replaces them with bob's own,
-# measured on the Vivado build (software/bob/delays.json), through arch["delays"].
+# The reference's delays (40 nm), the defaults for any key arch["delays"] leaves out. The committed
+# architecture carries bob's own (device.py VPR_DELAYS_NS, measured on the Vivado build), and so do
+# software/bob/sweep.py's and gridsweep.py's (software/bob/delays.json). Until 2026-09-26 the
+# committed one used these, so VPR's timing-driven packing, placement and routing were weighted for
+# a 40 nm chip where a LUT costs 4.5 routing hops; on bob a hop costs more than a LUT.
 DELAYS = {"chan": "58e-12", "ipin": "7.247000e-11", "lut": "261e-12", "carry": "0.01e-9",
-          "xbar": "95e-12"}
+          "xbar": "95e-12", "ff_setup": "66e-12", "ff_clk_q": "124e-12",
+          "bram_setup": "500e-12", "bram_clk_q": "1e-9", "bram_comb": "2e-9",
+          "dsp_setup": "500e-12", "dsp_clk_q": "1e-9", "dsp_comb": "2e-9"}
 
 
 def _pins(ports):
@@ -91,7 +98,8 @@ def arch_xml(dev):
             tag = {"in": "input", "out": "output", "clk": "clock"}[d]
             eq = ' equivalent="full"' if name in t.get("equivalent", ()) else ""
             e(f'        <{tag} name="{name}" num_pins="{w}"{eq}/>')
-        e(f'        <fc in_type="frac" in_val="{a["fc_in"]}" out_type="frac" out_val="{a["fc_out"]}">')
+        e(f'        <fc in_type="{a.get("fc_in_type", "frac")}" in_val="{a["fc_in"]}" out_type="frac" '
+          f'out_val="{a["fc_out"]}">')
         for p in t["fc0"]:
             e(f'          <fc_override port_name="{p}" fc_type="frac" fc_val="0"/>')
         e("        </fc>")
@@ -154,7 +162,7 @@ def arch_xml(dev):
     for t in dev.vpr_tiles():
         if t["name"] in ("io", "clb"):
             continue
-        L.extend("    " + x for x in _hard_pb(t))
+        L.extend("    " + x for x in _hard_pb(t, delays))
     e("  </complexblocklist>")
     e("</architecture>")
     return "\n".join(L) + "\n"
@@ -179,7 +187,7 @@ def _io_pb():
     ]
 
 
-def _ff_pb(ind="  "):
+def _ff_pb(delays, ind="  "):
     """bob's flip-flop: FDRE or FDSE (UG474) with CE and SR from the CLB pins. One
     primitive, bob_ff; which of the two it is travels as a netlist parameter
     (software/bob/vpr_run.py), because VPR forbids a pack pattern into a multi-mode ff."""
@@ -190,10 +198,10 @@ def _ff_pb(ind="  "):
         '  <input name="SR" num_pins="1"/>',
         '  <output name="Q" num_pins="1" port_class="Q"/>',
         '  <clock name="C" num_pins="1" port_class="clock"/>',
-        '  <T_setup value="66e-12" port="ff.D" clock="C"/>',
-        '  <T_setup value="66e-12" port="ff.CE" clock="C"/>',
-        '  <T_setup value="66e-12" port="ff.SR" clock="C"/>',
-        '  <T_clock_to_Q max="124e-12" port="ff.Q" clock="C"/>',
+        f'  <T_setup value="{delays["ff_setup"]}" port="ff.D" clock="C"/>',
+        f'  <T_setup value="{delays["ff_setup"]}" port="ff.CE" clock="C"/>',
+        f'  <T_setup value="{delays["ff_setup"]}" port="ff.SR" clock="C"/>',
+        f'  <T_clock_to_Q max="{delays["ff_clk_q"]}" port="ff.Q" clock="C"/>',
         '</pb_type>')]
 
 
@@ -212,7 +220,7 @@ def _ble(name, lut, k, pattern, delays):
         '    <output name="out" num_pins="1" port_class="lut_out"/>',
         f'    <delay_matrix type="max" in_port="{lut}.in" out_port="{lut}.out">{lut_delay}</delay_matrix>',
         '  </pb_type>',
-    ] + _ff_pb() + [
+    ] + _ff_pb(delays) + [
         '  <interconnect>',
         f'    <direct name="lut_in" input="{name}.in" output="{lut}.in"/>',
         f'    <direct name="ff_d" input="{lut}.out" output="ff.D">',
@@ -298,7 +306,7 @@ def _add_body(delays, a, b, extra=()):
             dly = delays["carry"] if (i, o) == ("cin", "cout") else delays["lut"]
             out.append(f'      <delay_constant max="{dly}" in_port="add.{i}" out_port="add.{o}"/>')
     out.append('    </pb_type>')
-    out += ["  " + x for x in _ff_pb()]
+    out += ["  " + x for x in _ff_pb(delays)]
     return out, ['    <interconnect>',
                  f'      <direct name="a" input="fle.in[{a}]" output="add.a"/>',
                  f'      <direct name="b" input="fle.in[{b}]" output="add.b"/>',
@@ -382,9 +390,12 @@ def _clb_pb(dev, delays):
     return out
 
 
-def _hard_pb(t):
-    """A hard block (bram, dsp): one primitive, every tile port passed straight through."""
+def _hard_pb(t, delays=DELAYS):
+    """A hard block (bram, dsp): one primitive, every tile port passed straight through, timed
+    with delays[<name>_setup / _clk_q / _comb]."""
     name, model = t["name"], t["model"]
+    setup, clk_q, comb = (delays.get(f"{name}_{k}", DELAYS.get(f"{name}_{k}", d))
+                          for k, d in (("setup", "500e-12"), ("clk_q", "1e-9"), ("comb", "2e-9")))
     prim = f"{name}_prim"
     out = [f'<pb_type name="{name}">']
     out += ["  " + x for x in _pins(t["ports"])]
@@ -398,11 +409,11 @@ def _hard_pb(t):
         if n in t.get("comb_in", ()):
             continue
         if d == "in":
-            out.append(f'      <T_setup value="500e-12" port="{prim}.{n}" clock="{clk}"/>')
+            out.append(f'      <T_setup value="{setup}" port="{prim}.{n}" clock="{clk}"/>')
         elif d == "out":
-            out.append(f'      <T_clock_to_Q max="1e-9" port="{prim}.{n}" clock="{clk}"/>')
+            out.append(f'      <T_clock_to_Q max="{clk_q}" port="{prim}.{n}" clock="{clk}"/>')
     for src, dst in t.get("comb", ()):
-        out.append(f'      <delay_constant max="2e-9" in_port={quoteattr(prim + "." + src)} '
+        out.append(f'      <delay_constant max="{comb}" in_port={quoteattr(prim + "." + src)} '
                    f'out_port={quoteattr(prim + "." + dst)}/>')
     out.append("    </pb_type>")
     out.append("    <interconnect>")

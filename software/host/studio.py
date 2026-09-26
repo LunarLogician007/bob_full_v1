@@ -62,6 +62,18 @@ The waveform viewer (M19; software/host/padwave.py), a logic analyser on the pad
 Stdlib only: http.server and SSE, so the project gains no dependency. Builds write
 where the CLI writes them, under build/, and nothing here ever regenerates the
 device or touches hw/.
+
+Who may call it (2026-09-26). The server listens on 127.0.0.1 only, but any web page open in
+the same browser can still send it requests, and a DNS name rebound to 127.0.0.1 could even
+read the answers. So:
+  - every request must name this server in its Host header (127.0.0.1:<port> or
+    localhost:<port>), which a rebound name cannot;
+  - every /api/ request must carry TOKEN, a secret made when the process starts and put into
+    the page as <meta name="bob-token">: in the X-Bob-Token header, or for GETs (EventSource,
+    download links) as ?token=. Another site cannot read the page, so it cannot know it;
+  - a request with an Origin header must come from this server's own origin.
+Before, a page anywhere could POST /api/save and rewrite any .v file in the repo, hw/src
+included, or program the board.
 """
 
 import argparse
@@ -71,6 +83,7 @@ import mimetypes
 import os
 import re
 import queue
+import secrets
 import sys
 import threading
 import time
@@ -792,9 +805,43 @@ TARGET = Target()
 # --- HTTP --------------------------------------------------------------------
 
 
+TOKEN = secrets.token_urlsafe(24)          # this process's API secret; the page carries it
+LOCAL_NAMES = ("127.0.0.1", "localhost")
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "bob-studio"
     protocol_version = "HTTP/1.1"
+
+    # -- who may call (see the module notes) ------------------------------
+
+    def _port(self):
+        return self.server.server_address[1]
+
+    def _local_host(self):
+        return (self.headers.get("Host") or "") in {f"{n}:{self._port()}" for n in LOCAL_NAMES}
+
+    def _local_origin(self):
+        origin = self.headers.get("Origin")
+        return origin is None or origin in {f"http://{n}:{self._port()}" for n in LOCAL_NAMES}
+
+    def _token_ok(self, query=None):
+        got = self.headers.get("X-Bob-Token") or ((query or {}).get("token") or [""])[0]
+        return secrets.compare_digest(got.encode(), TOKEN.encode())
+
+    def _refuse(self, api, query=None):
+        """None if this request may go on, else the reason it may not (and the 403 is sent)"""
+        why = None
+        if not self._local_host():
+            why = "this server answers only to 127.0.0.1 and localhost on its own port"
+        elif not self._local_origin():
+            why = "requests from another origin are refused"
+        elif api and not self._token_ok(query):
+            why = "missing or wrong X-Bob-Token (reload the studio page)"
+        if why:                                  # the body is not read: close, do not reuse
+            self.close_connection = True
+            self._send(403, json.dumps({"error": why}), "application/json", [("Connection", "close")])
+        return why
 
     def log_message(self, fmt, *args):
         if os.environ.get("BOB_STUDIO_QUIET"):
@@ -830,6 +877,8 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         u = urlparse(self.path)
         p, q = u.path, parse_qs(u.query)
+        if self._refuse(p.startswith("/api/"), q):
+            return
         try:
             if p in ("/", "/index.html"):
                 return self._page()
@@ -900,6 +949,8 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         p = urlparse(self.path).path
+        if self._refuse(True):
+            return
         try:
             if p == "/api/build":
                 return self._build()
@@ -989,7 +1040,9 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(503, "studio.html is not built yet:\n"
                                    "  python3 software/studio/build.py\n", "text/plain")
         body = open(PAGE, "rb").read()
-        self._send(200, body, "text/html; charset=utf-8")
+        meta = f'<meta name="bob-token" content="{TOKEN}">\n'.encode()
+        body = body.replace(b"<title>", meta + b"<title>", 1)
+        self._send(200, body, "text/html; charset=utf-8", [("Cache-Control", "no-store")])
 
     def _static(self, rel):
         ap = _inside(os.path.join("software", "studio", rel))

@@ -1,11 +1,11 @@
 top big
 pcf -
-arch_sha256 1cdc99c12f22df499eb983d4a1f7d88b5ddbf52549d2d735f96ff4364816f153
+arch_sha256 1d968bac79b9dd28a24e563465cda0b2c4e1ff9c7ab0c728feed85a3d4b16fe8
 eblif_sha256 04f9a0be67d84b3e1cbc87cfa63602aa919cc2f485935bc188e5cc342da7f7b6
 seed 1
 image ghcr.io/lnis-uofu/openfpga-master@sha256:2467ffa99296516cc1bcbb07542633c90723ae17ca3f67a175f61cb9f131abbb
 command vpr arch.xml big.eblif --device bob12x10 --route_chan_width 36 --read_rr_graph rr.xml --fix_clusters big.pins --seed 1 --absorb_buffer_luts off --const_gen_inference none --sweep_dangling_primary_ios off --sweep_dangling_nets off --sweep_dangling_blocks off --sweep_constant_primary_outputs off --pack --place --route --analysis
-wirelength 464
-cpd_ns 2.49914
-fmax_mhz 531.76
-result_sha ddffae3ff20f1fa7
+wirelength 447
+cpd_ns 82.8311
+fmax_mhz 12.4065
+result_sha 1f895f64147924a2

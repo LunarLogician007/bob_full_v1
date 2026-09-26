@@ -205,8 +205,8 @@
     <connection_block input_switch_name="ipin_cblock"/>
   </device>
   <switchlist>
-    <switch type="mux" name="0" R="551" Cin=".77e-15" Cout="4e-15" Tdel="58e-12" mux_trans_size="2.630740" buf_size="27.645901"/>
-    <switch type="mux" name="ipin_cblock" R="2231.5" Cout="0." Cin="1.47e-15" Tdel="7.247000e-11" mux_trans_size="1.222260" buf_size="auto"/>
+    <switch type="mux" name="0" R="551" Cin=".77e-15" Cout="4e-15" Tdel="4.602e-09" mux_trans_size="2.630740" buf_size="27.645901"/>
+    <switch type="mux" name="ipin_cblock" R="2231.5" Cout="0." Cin="1.47e-15" Tdel="4.651e-09" mux_trans_size="1.222260" buf_size="auto"/>
   </switchlist>
   <segmentlist>
     <segment name="L4" freq="1.000000" length="4" type="unidir" Rmetal="101" Cmetal="22.5e-15">
@@ -260,7 +260,7 @@
             <pb_type name="lut" blif_model=".names" num_pb="1" class="lut">
               <input name="in" num_pins="4" port_class="lut_in"/>
               <output name="out" num_pins="1" port_class="lut_out"/>
-              <delay_matrix type="max" in_port="lut.in" out_port="lut.out">261e-12 261e-12 261e-12 261e-12</delay_matrix>
+              <delay_matrix type="max" in_port="lut.in" out_port="lut.out">3.4e-09 3.4e-09 3.4e-09 3.4e-09</delay_matrix>
             </pb_type>
             <pb_type name="ff" blif_model=".subckt bob_ff" num_pb="1">
               <input name="D" num_pins="1" port_class="D"/>
@@ -268,10 +268,10 @@
               <input name="SR" num_pins="1"/>
               <output name="Q" num_pins="1" port_class="Q"/>
               <clock name="C" num_pins="1" port_class="clock"/>
-              <T_setup value="66e-12" port="ff.D" clock="C"/>
-              <T_setup value="66e-12" port="ff.CE" clock="C"/>
-              <T_setup value="66e-12" port="ff.SR" clock="C"/>
-              <T_clock_to_Q max="124e-12" port="ff.Q" clock="C"/>
+              <T_setup value="1e-09" port="ff.D" clock="C"/>
+              <T_setup value="1e-09" port="ff.CE" clock="C"/>
+              <T_setup value="1e-09" port="ff.SR" clock="C"/>
+              <T_clock_to_Q max="5e-10" port="ff.Q" clock="C"/>
             </pb_type>
             <interconnect>
               <direct name="lut_in" input="ble.in" output="lut.in"/>
@@ -305,7 +305,7 @@
             <pb_type name="lutf" blif_model=".names" num_pb="1" class="lut">
               <input name="in" num_pins="3" port_class="lut_in"/>
               <output name="out" num_pins="1" port_class="lut_out"/>
-              <delay_matrix type="max" in_port="lutf.in" out_port="lutf.out">261e-12 261e-12 261e-12</delay_matrix>
+              <delay_matrix type="max" in_port="lutf.in" out_port="lutf.out">3.4e-09 3.4e-09 3.4e-09</delay_matrix>
             </pb_type>
             <pb_type name="ff" blif_model=".subckt bob_ff" num_pb="1">
               <input name="D" num_pins="1" port_class="D"/>
@@ -313,10 +313,10 @@
               <input name="SR" num_pins="1"/>
               <output name="Q" num_pins="1" port_class="Q"/>
               <clock name="C" num_pins="1" port_class="clock"/>
-              <T_setup value="66e-12" port="ff.D" clock="C"/>
-              <T_setup value="66e-12" port="ff.CE" clock="C"/>
-              <T_setup value="66e-12" port="ff.SR" clock="C"/>
-              <T_clock_to_Q max="124e-12" port="ff.Q" clock="C"/>
+              <T_setup value="1e-09" port="ff.D" clock="C"/>
+              <T_setup value="1e-09" port="ff.CE" clock="C"/>
+              <T_setup value="1e-09" port="ff.SR" clock="C"/>
+              <T_clock_to_Q max="5e-10" port="ff.Q" clock="C"/>
             </pb_type>
             <interconnect>
               <direct name="lut_in" input="blef.in" output="lutf.in"/>
@@ -348,12 +348,12 @@
             <input name="cin" num_pins="1"/>
             <output name="cout" num_pins="1"/>
             <output name="sumout" num_pins="1"/>
-            <delay_constant max="261e-12" in_port="add.a" out_port="add.sumout"/>
-            <delay_constant max="261e-12" in_port="add.a" out_port="add.cout"/>
-            <delay_constant max="261e-12" in_port="add.b" out_port="add.sumout"/>
-            <delay_constant max="261e-12" in_port="add.b" out_port="add.cout"/>
-            <delay_constant max="261e-12" in_port="add.cin" out_port="add.sumout"/>
-            <delay_constant max="0.01e-9" in_port="add.cin" out_port="add.cout"/>
+            <delay_constant max="3.4e-09" in_port="add.a" out_port="add.sumout"/>
+            <delay_constant max="3.4e-09" in_port="add.a" out_port="add.cout"/>
+            <delay_constant max="3.4e-09" in_port="add.b" out_port="add.sumout"/>
+            <delay_constant max="3.4e-09" in_port="add.b" out_port="add.cout"/>
+            <delay_constant max="3.4e-09" in_port="add.cin" out_port="add.sumout"/>
+            <delay_constant max="1e-09" in_port="add.cin" out_port="add.cout"/>
           </pb_type>
           <pb_type name="ff" blif_model=".subckt bob_ff" num_pb="1">
             <input name="D" num_pins="1" port_class="D"/>
@@ -361,10 +361,10 @@
             <input name="SR" num_pins="1"/>
             <output name="Q" num_pins="1" port_class="Q"/>
             <clock name="C" num_pins="1" port_class="clock"/>
-            <T_setup value="66e-12" port="ff.D" clock="C"/>
-            <T_setup value="66e-12" port="ff.CE" clock="C"/>
-            <T_setup value="66e-12" port="ff.SR" clock="C"/>
-            <T_clock_to_Q max="124e-12" port="ff.Q" clock="C"/>
+            <T_setup value="1e-09" port="ff.D" clock="C"/>
+            <T_setup value="1e-09" port="ff.CE" clock="C"/>
+            <T_setup value="1e-09" port="ff.SR" clock="C"/>
+            <T_clock_to_Q max="5e-10" port="ff.Q" clock="C"/>
           </pb_type>
           <pb_type name="bled" num_pb="1">
             <input name="in" num_pins="3"/>
@@ -375,7 +375,7 @@
             <pb_type name="lutd" blif_model=".names" num_pb="1" class="lut">
               <input name="in" num_pins="3" port_class="lut_in"/>
               <output name="out" num_pins="1" port_class="lut_out"/>
-              <delay_matrix type="max" in_port="lutd.in" out_port="lutd.out">261e-12 261e-12 261e-12</delay_matrix>
+              <delay_matrix type="max" in_port="lutd.in" out_port="lutd.out">3.4e-09 3.4e-09 3.4e-09</delay_matrix>
             </pb_type>
             <pb_type name="ff" blif_model=".subckt bob_ff" num_pb="1">
               <input name="D" num_pins="1" port_class="D"/>
@@ -383,10 +383,10 @@
               <input name="SR" num_pins="1"/>
               <output name="Q" num_pins="1" port_class="Q"/>
               <clock name="C" num_pins="1" port_class="clock"/>
-              <T_setup value="66e-12" port="ff.D" clock="C"/>
-              <T_setup value="66e-12" port="ff.CE" clock="C"/>
-              <T_setup value="66e-12" port="ff.SR" clock="C"/>
-              <T_clock_to_Q max="124e-12" port="ff.Q" clock="C"/>
+              <T_setup value="1e-09" port="ff.D" clock="C"/>
+              <T_setup value="1e-09" port="ff.CE" clock="C"/>
+              <T_setup value="1e-09" port="ff.SR" clock="C"/>
+              <T_clock_to_Q max="5e-10" port="ff.Q" clock="C"/>
             </pb_type>
             <interconnect>
               <direct name="lut_in" input="bled.in" output="lutd.in"/>
@@ -431,7 +431,7 @@
       </pb_type>
       <interconnect>
         <complete name="crossbar" input="clb.I fle[3:0].out" output="fle[3:0].in">
-          <delay_constant max="95e-12" in_port="clb.I fle[3:0].out" out_port="fle[3:0].in"/>
+          <delay_constant max="3.009e-09" in_port="clb.I fle[3:0].out" out_port="fle[3:0].in"/>
         </complete>
         <complete name="ce" input="clb.ce" output="fle[3:0].ce"/>
         <complete name="sr" input="clb.sr" output="fle[3:0].sr"/>
@@ -481,20 +481,20 @@
           <output name="do_a" num_pins="18"/>
           <output name="do_b" num_pins="18"/>
           <clock name="clk" num_pins="1"/>
-          <T_setup value="500e-12" port="bram_prim.addr_a" clock="clk"/>
-          <T_setup value="500e-12" port="bram_prim.di_a" clock="clk"/>
-          <T_setup value="500e-12" port="bram_prim.we_a" clock="clk"/>
-          <T_setup value="500e-12" port="bram_prim.en_a" clock="clk"/>
-          <T_setup value="500e-12" port="bram_prim.rst_a" clock="clk"/>
-          <T_setup value="500e-12" port="bram_prim.regce_a" clock="clk"/>
-          <T_setup value="500e-12" port="bram_prim.addr_b" clock="clk"/>
-          <T_setup value="500e-12" port="bram_prim.di_b" clock="clk"/>
-          <T_setup value="500e-12" port="bram_prim.we_b" clock="clk"/>
-          <T_setup value="500e-12" port="bram_prim.en_b" clock="clk"/>
-          <T_setup value="500e-12" port="bram_prim.rst_b" clock="clk"/>
-          <T_setup value="500e-12" port="bram_prim.regce_b" clock="clk"/>
-          <T_clock_to_Q max="1e-9" port="bram_prim.do_a" clock="clk"/>
-          <T_clock_to_Q max="1e-9" port="bram_prim.do_b" clock="clk"/>
+          <T_setup value="1e-09" port="bram_prim.addr_a" clock="clk"/>
+          <T_setup value="1e-09" port="bram_prim.di_a" clock="clk"/>
+          <T_setup value="1e-09" port="bram_prim.we_a" clock="clk"/>
+          <T_setup value="1e-09" port="bram_prim.en_a" clock="clk"/>
+          <T_setup value="1e-09" port="bram_prim.rst_a" clock="clk"/>
+          <T_setup value="1e-09" port="bram_prim.regce_a" clock="clk"/>
+          <T_setup value="1e-09" port="bram_prim.addr_b" clock="clk"/>
+          <T_setup value="1e-09" port="bram_prim.di_b" clock="clk"/>
+          <T_setup value="1e-09" port="bram_prim.we_b" clock="clk"/>
+          <T_setup value="1e-09" port="bram_prim.en_b" clock="clk"/>
+          <T_setup value="1e-09" port="bram_prim.rst_b" clock="clk"/>
+          <T_setup value="1e-09" port="bram_prim.regce_b" clock="clk"/>
+          <T_clock_to_Q max="2.5e-09" port="bram_prim.do_a" clock="clk"/>
+          <T_clock_to_Q max="2.5e-09" port="bram_prim.do_b" clock="clk"/>
         </pb_type>
         <interconnect>
           <direct name="addr_a" input="bram.addr_a" output="bram_prim.addr_a"/>
@@ -550,21 +550,21 @@
           <output name="p" num_pins="48"/>
           <output name="pcout" num_pins="48"/>
           <clock name="clk" num_pins="1"/>
-          <T_setup value="500e-12" port="dsp_prim.a" clock="clk"/>
-          <T_setup value="500e-12" port="dsp_prim.b" clock="clk"/>
-          <T_setup value="500e-12" port="dsp_prim.c" clock="clk"/>
-          <T_setup value="500e-12" port="dsp_prim.d" clock="clk"/>
-          <T_setup value="500e-12" port="dsp_prim.ce_ad" clock="clk"/>
-          <T_setup value="500e-12" port="dsp_prim.ce_b" clock="clk"/>
-          <T_setup value="500e-12" port="dsp_prim.ce_m" clock="clk"/>
-          <T_setup value="500e-12" port="dsp_prim.ce_p" clock="clk"/>
-          <T_setup value="500e-12" port="dsp_prim.rst_ad" clock="clk"/>
-          <T_setup value="500e-12" port="dsp_prim.rst_b" clock="clk"/>
-          <T_setup value="500e-12" port="dsp_prim.rst_m" clock="clk"/>
-          <T_setup value="500e-12" port="dsp_prim.rst_p" clock="clk"/>
-          <T_setup value="500e-12" port="dsp_prim.pcin" clock="clk"/>
-          <T_clock_to_Q max="1e-9" port="dsp_prim.p" clock="clk"/>
-          <T_clock_to_Q max="1e-9" port="dsp_prim.pcout" clock="clk"/>
+          <T_setup value="1e-09" port="dsp_prim.a" clock="clk"/>
+          <T_setup value="1e-09" port="dsp_prim.b" clock="clk"/>
+          <T_setup value="1e-09" port="dsp_prim.c" clock="clk"/>
+          <T_setup value="1e-09" port="dsp_prim.d" clock="clk"/>
+          <T_setup value="1e-09" port="dsp_prim.ce_ad" clock="clk"/>
+          <T_setup value="1e-09" port="dsp_prim.ce_b" clock="clk"/>
+          <T_setup value="1e-09" port="dsp_prim.ce_m" clock="clk"/>
+          <T_setup value="1e-09" port="dsp_prim.ce_p" clock="clk"/>
+          <T_setup value="1e-09" port="dsp_prim.rst_ad" clock="clk"/>
+          <T_setup value="1e-09" port="dsp_prim.rst_b" clock="clk"/>
+          <T_setup value="1e-09" port="dsp_prim.rst_m" clock="clk"/>
+          <T_setup value="1e-09" port="dsp_prim.rst_p" clock="clk"/>
+          <T_setup value="1e-09" port="dsp_prim.pcin" clock="clk"/>
+          <T_clock_to_Q max="1e-09" port="dsp_prim.p" clock="clk"/>
+          <T_clock_to_Q max="1e-09" port="dsp_prim.pcout" clock="clk"/>
         </pb_type>
         <interconnect>
           <direct name="a" input="dsp.a" output="dsp_prim.a"/>

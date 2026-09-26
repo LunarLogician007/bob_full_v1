@@ -118,11 +118,11 @@ const wavev = {
     go.onclick = () => this.run();
     top.appendChild(go);
     const vcd = el("a", "pill", "export .vcd");
-    vcd.href = "/api/wave/vcd";
+    vcd.href = tokened("/api/wave/vcd");
     vcd.onclick = async (e) => {                  // the app window has no downloads: save natively
       if (!native()) return;
       e.preventDefault();
-      const text = await (await fetch("/api/wave/vcd")).text();
+      const text = await (await fetch(tokened("/api/wave/vcd"))).text();
       const path = await native().save_text((this.cap.design || "pads") + ".vcd", text);
       if (path) logLine("info", `saved ${path}`);
     };

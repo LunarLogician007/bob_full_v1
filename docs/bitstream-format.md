@@ -340,7 +340,7 @@ A type-1 header with count 0 must be followed by a type-2 header carrying the co
 
 **Readback (CFG_OUT).** Each READ packet queues words: FDRO gives frame words from FAR (advancing FAR per frame); STAT, FAR, IDCODE and CRC give one current value per word. A CFG_OUT DR scan shifts the queued words out MSB first, 32 bits per word; with nothing queued (and past the queue) each word reads STAT, so a bare 32-bit CFG_OUT scan is a status read. FDRO needs RCFG armed (else WR_ERROR, zeros).
 
-**Load sequence** (what `bob load` sends; `software/bob/packets.py` builds and parses it):
+**Load sequence** (`packets.load_stream(word)`, the full form; `software/bob/packets.py` builds and parses it):
 
 ```
 FFFFFFFF FFFFFFFF          dummy
@@ -362,13 +362,26 @@ AA995566                   sync
 20000000 20000000          NOP
 ```
 
+**What `bob load` sends: the sparse form** (2026-09-26, `load_stream(word, sparse=True)`, used by
+`cfgplane.load_frames` right after JPROGRAM). JPROGRAM has just cleared every configuration
+flip-flop, swept zeros into every CFGLUT5 (`lut_loader.v`) and invalidated the readback shadow,
+so a frame of zeros need not be sent. After `IDCODE` the stream arms `WCFG` and then sends, for
+every run of consecutive frames with a 1 in them, `FAR <- first frame of the run` and one FDRI
+packet (type 1, or type 1 + type 2 past 2047 words); the BRAM frames, CRC, LFRM, START and
+DESYNC follow as above, and the CRC covers exactly the words sent. A design with no 1 at all
+still sends frame 0, because START needs FDRI data after the CRC reset. The counter example
+sends 29 of 532 frames (210 words instead of 2,154), fir16 317. The FDRO readback still reads
+every frame, so the check covers the frames not sent. A sparse stream is only correct after
+JPROGRAM (`tests/test_packets.py` shows one over an old design leaving that design's frames);
+`tb_frames` [20] runs it on the RTL.
+
 then JTAG: CFG_IN READ of STAT and CFG_OUT (START accepted, no error), FDRO readback of the memory and (M15) of every BRAM's content frames, JSTART + 12 TCK in Run-Test/Idle, DONE. (Up to M14 the BRAM contents went over USER4 at this point; `bob load --mode chain` still does that.) Readback sends `sync, CMD <- RCFG, FAR <- 0, 28006000 4800xxxx (READ FDRO, type-2), DESYNC` on CFG_IN and shifts `32 × 4 × NFRAMES` bits out of CFG_OUT.
 
 ## 11. Host-to-fabric timing assumptions (M13)
 
 These rules make the Vivado timing constraints true (hw/constr/pynq_z2.xdc):
 
-1. **User-clock enables are at least 512 sysclk cycles apart** (4096 ns; 256 = 2048 ns through M15, raised at M16 because the 12×10 fabric's static path through the unconfigured routing muxes is about 2500 ns), enforced in `clock_ctrl.v` for both clock modes (a JTAG step arriving earlier waits; only one waits, so in clock mode 0 with USER1 ce, "one user clock per TCK edge" holds only while TCK edges are further apart than the gap: 4096 ns by default against 1000 ns at 1 MHz. The host's `shift_dr` is one USB round trip per edge, far slower, which is why the counter-step checks still count every edge; a bulk shift in clock mode 0 would merge edges unless the design's `clk_gap` is short). Through M20 every path from a fabric register through the fabric to a fabric register was therefore a 512-cycle multicycle. **From M21** the XDC relaxes sysclk → sysclk by 16 384 cycles (`XDC_SYSCLK_MULTICYCLE`), and what makes that true is software: `timing.contract()` (flow timing stage, `cli.load`) refuses any configuration whose critical path × guard band exceeds its gce spacing (`clk_gap`, or 512 when it is 0). The fabric is flattened (keeping its hierarchy crashed Vivado 2025.2 on the routing loops) and flattening renames its registers, so the constraint is by clock (sysclk → sysclk); the only other sysclk logic, `u_clk` and `u_bram_jtag`, is held to one cycle by cell name (build.tcl lists the caught registers in `sysclk_1cycle.txt`; `tests/test_reports.py` requires gce and the BRAM strobes there), except the cin synchroniser's paths into the fabric.
+1. **User-clock enables are at least 512 sysclk cycles apart** (4096 ns; 256 = 2048 ns through M15, raised at M16 because the 12×10 fabric's static path through the unconfigured routing muxes is about 2500 ns), enforced in `clock_ctrl.v` for both clock modes (a JTAG step arriving earlier waits; only one waits, so in clock mode 0 with USER1 ce, "one user clock per TCK edge" holds only while TCK edges are further apart than the gap: 4096 ns by default against 1000 ns at 1 MHz. The host keeps it true: `cfgplane.user1` marks the probe as stepping while ce is set, and a stepping probe sends every TCK edge in its own USB round trip, at least the loaded design's gce spacing after the last one (`dirtyjtag.py`, "Stepping"; `cfgplane.note_loaded`). Otherwise the probe batches up to ten edges per packet, about 1 µs apart). Through M20 every path from a fabric register through the fabric to a fabric register was therefore a 512-cycle multicycle. **From M21** the XDC relaxes sysclk → sysclk by 16 384 cycles (`XDC_SYSCLK_MULTICYCLE`), and what makes that true is software: `timing.contract()` (flow timing stage, `cli.load`) refuses any configuration whose critical path × guard band exceeds its gce spacing (`clk_gap`, or 512 when it is 0). The fabric is flattened (keeping its hierarchy crashed Vivado 2025.2 on the routing loops) and flattening renames its registers, so the constraint is by clock (sysclk → sysclk); the only other sysclk logic, `u_clk` and `u_bram_jtag`, is held to one cycle by cell name (build.tcl lists the caught registers in `sysclk_1cycle.txt`; `tests/test_reports.py` requires gce and the BRAM strobes there), except the cin synchroniser's paths into the fabric.
 2. **TCK is at most 1 MHz** since M25 (M13–M24: 100 kHz; `software/host/dirtyjtag.py` refuses more, `MAX_TCK_KHZ`) and is constrained at that period (`XDC_TCK_PERIOD_NS`). From M21 the XDC relaxes TCK → TCK to 16 periods: the empty cluster mesh's IR → DSP JTAG path (5.46 µs) passed the 5 µs fall → rise half period at 100 kHz, and at 1 MHz it fits the 16 µs multicycle; a configured design's paths are tens of ns. The M13–M24 bitstreams are constrained for 100 kHz only, so drive them no faster.
 3. **Configuration changes only while GWE = 0**, so the fabric never samples configuration bits while they change - or (M14) while the user clock is frozen and the freeze has been acknowledged in the TCK domain: then no fabric register, BRAM or DSP register is enabled (every one of them is gated by gce), so bits changing under a held enable cannot be captured.
 4. **(M15) BRAM content frame requests are at least 32 TCK periods apart** (one frame word: 32 µs at 1 MHz, 320 µs at 100 kHz; a frame on the sysclk side takes ~12 cycles = 96 ns). Requests travel as a toggle through a two-flop synchroniser with their data stable, as the USER4 commands always did.

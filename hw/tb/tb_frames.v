@@ -32,6 +32,7 @@
 //  [18] M15 BRAM contents as frames (FAR block type 1) before startup: bram0 and, by FAR
 //       auto-increment past bram0's last frame, bram1; FDRO readback of the same frames
 //  [19] a BRAM content frame while the design runs: WR_ERROR, contents unchanged
+//  [20] a sparse full load right after JPROGRAM: only the used frames, the rest read 0
 // -----------------------------------------------------------------------------
 
 `timescale 1ns / 1ps
@@ -434,6 +435,22 @@ module tb_frames;
         check("GRESTORE unfrozen: WR_ERROR", {32'h0, statw}, {32'h0, `GRLOOSE_STAT});
         #400;
         check("  the counter was not reset (still counting)", {63'h0, prq !== 4'h0 || prq0 === 4'h0}, 64'h1);
+
+        $display("");
+        $display("[20] a sparse full load after JPROGRAM: only showcase's %0d used frames are sent", `SPARSE_NFRAMES);
+        jprogram;
+        send(`SPARSE_N, `SPARSE_V);
+        read_stat(statw);
+        check("STAT after the sparse load (START accepted, no error)", {32'h0, statw}, {32'h0, `SPARSE_STAT});
+        check("memory == showcase (the frames not sent read 0)", {63'h0, cfg_mem === `SHOW_W}, 64'h1);
+        start;
+        check("DONE after JSTART", {63'h0, configured}, 64'h1);
+        pad_i = 6'b000001; #40; check("showcase LEDs, SW1..0 = 01", {61'h0, pad_o}, {61'h0, `SHOW_PAD1});
+        pad_i = 6'b000010; #40; check("showcase LEDs, SW1..0 = 10", {61'h0, pad_o}, {61'h0, `SHOW_PAD2});
+        send(`RB_N, `RB_V);
+        shift_ir(IR_PKT_OUT, irc);
+        read_out(32 * `RB_WORDS, big);
+        check("FDRO readback of all frames == showcase (unsent frames read 0)", {63'h0, big[32*`RB_WORDS-1:0] === `RB_EXP}, 64'h1);
 
         $display("    %0d checks", checks);
         if (errors == 0) $display("=== ALL TESTS PASSED ===");

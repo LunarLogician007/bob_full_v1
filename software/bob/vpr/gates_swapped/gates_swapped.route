@@ -1,4 +1,4 @@
-Placement_File: gates_swapped.place Placement_ID: SHA256:c030b4ba9ec0fbdcdc1162cfeae85540b79689cfb50a34952348b63b40f8b86f
+Placement_File: gates_swapped.place Placement_ID: SHA256:1c5752862c423b667b2dcbb325055f41e87d12006a496a098776d760508708c2
 Array size: 14 x 12 logic blocks.
 
 Routing:
@@ -17,10 +17,8 @@ Net 1 (btn[0])
 
 Node:	1664	SOURCE (0,3,0)  Pad: 1  Switch: 0
 Node:	1666	  OPIN (0,3,0)  Pad: 1  Switch: 2
-Node:	7839	 CHANY (0,1,0) to (0,3,0)  Track: 21  Switch: 2
-Node:	6294	 CHANX (1,2,0)  Track: 14  Switch: 2
-Node:	7998	 CHANY (1,3,0) to (1,4,0)  Track: 32  Switch: 1
-Node:	1697	  IPIN (1,3,0)  Pin: 10   clb.I[10] Switch: 0
+Node:	7864	 CHANY (0,3,0) to (0,6,0)  Track: 0  Switch: 1
+Node:	1705	  IPIN (1,3,0)  Pin: 0   clb.I[0] Switch: 0
 Node:	1677	  SINK (1,3,0)  Class: 0  Switch: -1 Net_pin_index: 1
 
 
@@ -47,8 +45,9 @@ Net 4 (btn[1])
 
 Node:	2102	SOURCE (0,4,0)  Pad: 1  Switch: 0
 Node:	2104	  OPIN (0,4,0)  Pad: 1  Switch: 2
-Node:	7841	 CHANY (0,1,0) to (0,4,0)  Track: 23  Switch: 1
-Node:	1705	  IPIN (1,3,0)  Pin: 0   clb.I[0] Switch: 0
+Node:	7841	 CHANY (0,1,0) to (0,4,0)  Track: 23  Switch: 2
+Node:	6472	 CHANX (1,3,0)  Track: 14  Switch: 1
+Node:	1694	  IPIN (1,3,0)  Pin: 13   clb.I[13] Switch: 0
 Node:	1677	  SINK (1,3,0)  Class: 0  Switch: -1 Net_pin_index: 1
 
 
@@ -83,9 +82,9 @@ Node:	6300	 CHANX (1,2,0) to (2,2,0)  Track: 20  Switch: 2
 Node:	8073	 CHANY (2,1,0) to (2,2,0)  Track: 3  Switch: 2
 Node:	6006	 CHANX (3,0,0) to (6,0,0)  Track: 16  Switch: 2
 Node:	6038	 CHANX (6,0,0) to (9,0,0)  Track: 24  Switch: 2
-Node:	6052	 CHANX (8,0,0) to (11,0,0)  Track: 0  Switch: 2
-Node:	6086	 CHANX (11,0,0) to (12,0,0)  Track: 16  Switch: 2
-Node:	9348	 CHANY (12,1,0) to (12,3,0)  Track: 18  Switch: 1
+Node:	6064	 CHANX (9,0,0) to (12,0,0)  Track: 8  Switch: 2
+Node:	6092	 CHANX (12,0,0)  Track: 0  Switch: 2
+Node:	9330	 CHANY (12,1,0) to (12,4,0)  Track: 0  Switch: 1
 Node:	1225	  IPIN (13,1,0)  Pad: 0  Switch: 0
 Node:	1223	  SINK (13,1,0)  Pad: 0  Switch: -1 Net_pin_index: 1
 

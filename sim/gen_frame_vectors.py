@@ -313,6 +313,17 @@ def main():
     assert c.flags["wr_err"] and c.grestores == 1
     out += stream("GRLOOSE", loose) + [f"`define GRLOOSE_STAT 32'h{c.stat(gsr=0, gts=0, gwe=1, done=1):08x}"]
 
+    # [20] a sparse full load right after JPROGRAM (cfgplane.load_frames): only showcase's used
+    # frames, one FAR + FDRI per run; JPROGRAM zeroed the rest (flip-flops, CFGLUT5 sweep, shadow)
+    sparse = P.load_stream(show, sparse=True)
+    assert len(sparse) < len(good)
+    c = P.Controller(mem=pra)
+    c.jprogram()
+    c.shift_in(*P.to_jtag(sparse))
+    assert c.mem == show and c.flags["start_ok"] and not c.errors()
+    out += stream("SPARSE", sparse) + [f"`define SPARSE_STAT 32'h{c.stat():08x}",
+                                       f"`define SPARSE_NFRAMES {len(P.used_frames(show))}"]
+
     # STAT read stream
     out += stream("RDSTAT", P.read_stream("STAT", 1))
     path = os.path.join(HERE, "..", "hw", "tb", "frame_vectors.vh")

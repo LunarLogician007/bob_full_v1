@@ -242,6 +242,26 @@ ARCH_M23 = {
     "cluster": CLUSTER_N4,
 }
 
+# VPR's timing model for bob (ns). VPR packs, places and routes timing-driven, so it has to be told
+# what a hop costs on THIS fabric. Until 2026-09-26 the committed architecture kept OpenFPGA's 40 nm
+# reference numbers (routing mux 58 ps, LUT 261 ps: a LUT worth 4.5 hops); on bob a routing mux
+# costs more than a LUT. These are the M25 build's numbers (software/bob/delays.json from
+# docs/reports/M25/delay_hops.txt: the three mux classes measured, LUT/carry/flip-flop/BRAM/DSP still
+# estimated). They set the switch delays in the rr graph, so changing them means `make rrgraph`
+# (the fabric does not change: tests/test_vpr.py) and `make vpr`. timing.py, which signs designs off,
+# reads delays.json itself; these only steer VPR.
+VPR_DELAYS_NS = {"chan": 4.602, "ipin": 4.651, "xbar": 3.009, "lut": 3.4, "carry": 1.0,
+                 "ff_setup": 1.0, "ff_clk_q": 0.5, "bram_setup": 1.0, "bram_clk_q": 2.5,
+                 "bram_comb": 2.5, "dsp_setup": 1.0, "dsp_clk_q": 1.0, "dsp_comb": 8.0}
+
+
+def vpr_delays(ns=None):
+    """VPR_DELAYS_NS as the architecture file writes them (seconds, as strings)"""
+    return {k: f"{v * 1e-9:.4g}" for k, v in (ns or VPR_DELAYS_NS).items()}
+
+
+ARCH_M23 = dict(ARCH_M23, delays=vpr_delays())
+
 ARCH = ARCH_M23
 
 # Board pads (PYNQ-Z2): pad_i bit order and pad_o bit order used by every host tool

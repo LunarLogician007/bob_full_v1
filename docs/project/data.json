@@ -8066,22 +8066,22 @@
   "vpr": [
    {
     "name": "adder",
-    "wirelength": 108,
+    "wirelength": 112,
     "critical_ns": null
    },
    {
     "name": "atspeed",
-    "wirelength": 461,
+    "wirelength": 410,
     "critical_ns": null
    },
    {
     "name": "bd_demo_bd_wrapper",
-    "wirelength": 111,
+    "wirelength": 123,
     "critical_ns": null
    },
    {
     "name": "big",
-    "wirelength": 464,
+    "wirelength": 447,
     "critical_ns": null
    },
    {
@@ -8091,47 +8091,47 @@
    },
    {
     "name": "counter",
-    "wirelength": 86,
+    "wirelength": 105,
     "critical_ns": null
    },
    {
     "name": "fir",
-    "wirelength": 280,
+    "wirelength": 344,
     "critical_ns": null
    },
    {
     "name": "fir16",
-    "wirelength": 3760,
+    "wirelength": 3689,
     "critical_ns": null
    },
    {
     "name": "gates",
-    "wirelength": 108,
+    "wirelength": 94,
     "critical_ns": null
    },
    {
     "name": "gates_swapped",
-    "wirelength": 95,
+    "wirelength": 94,
     "critical_ns": null
    },
    {
     "name": "mult",
-    "wirelength": 212,
+    "wirelength": 234,
     "critical_ns": null
    },
    {
     "name": "ram",
-    "wirelength": 134,
+    "wirelength": 137,
     "critical_ns": null
    },
    {
     "name": "switches",
-    "wirelength": 103,
+    "wirelength": 102,
     "critical_ns": null
    },
    {
     "name": "wide",
-    "wirelength": 205,
+    "wirelength": 243,
     "critical_ns": null
    }
   ],
@@ -8265,17 +8265,17 @@
  "code": {
   "lines": {
    "other": 1598,
-   "Markdown": 6719,
-   "Python": 25999,
-   "JavaScript": 4614,
+   "Markdown": 7178,
+   "Python": 26534,
+   "JavaScript": 4621,
    "Tcl": 1397,
    "SystemVerilog": 574,
    "XDC": 161,
-   "Verilog": 7454,
+   "Verilog": 7471,
    "shell": 815
   },
   "generated_fabric_lines": 8148,
-  "commits": 112,
+  "commits": 113,
   "tags": [
    "m10",
    "m11",

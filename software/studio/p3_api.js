@@ -21,9 +21,16 @@ const S = {
 const $ = (id) => document.getElementById(id);
 const el = (tag, cls, txt) => { const n = document.createElement(tag); if (cls) n.className = cls; if (txt != null) n.textContent = txt; return n; };
 
+// The backend answers only requests that carry this page's token (software/host/studio.py puts it
+// in <meta name="bob-token">): other web pages in the browser cannot read it, so cannot call the API.
+const TOKEN = (document.querySelector('meta[name="bob-token"]') || {}).content || "";
+// a GET URL with the token, for what cannot set a header: EventSource and download links
+const tokened = (url) => url + (url.includes("?") ? "&" : "?") + "token=" + encodeURIComponent(TOKEN);
+
 async function api(path, body) {
-  const opt = body === undefined ? {} :
-    { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) };
+  const headers = { "X-Bob-Token": TOKEN };
+  const opt = body === undefined ? { headers } :
+    { method: "POST", headers: { ...headers, "Content-Type": "application/json" }, body: JSON.stringify(body) };
   const r = await fetch(path, opt);
   const t = await r.text();
   let j = null;
@@ -45,7 +52,7 @@ function logLine(kind, text) {
 function startBuild(spec, onStage, onDone) {
   return api("/api/build", spec).then((j) => {
     S.job = j.job;
-    const es = new EventSource(`/api/events/${j.job}`);
+    const es = new EventSource(tokened(`/api/events/${j.job}`));
     es.onmessage = (m) => {
       const ev = JSON.parse(m.data);
       if (ev.event === "stage") onStage(ev);

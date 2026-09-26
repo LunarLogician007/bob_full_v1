@@ -34,8 +34,19 @@ hand-off notes are in git history (`git log -p HANDOFF.md`).
     chapter 13 *Onto its own silicon*, volume 3 and GUIDE §3.11 no longer call bob's startup
     "UG470's order", `arch.html` shows 100 CLBs (it drew M22's 81), `bitstream-format.md` §11
     says TCK ≤ 1 MHz, and `docs/project/build.py` renders `**`code`**`.
+  - **the fix pass** (2026-09-26, software only; the review's "Status" table): VPR runs on bob's
+    measured delays (`device.py` `VPR_DELAYS_NS`; fabric byte-identical, examples re-routed);
+    sparse full loads after JPROGRAM (`tb_frames` [20]); the Pico link batched per packet, one
+    edge per round trip while TCK steps the user clock; bob studio's API behind a token and
+    Host/Origin checks; `make check`'s banner at its end; `fcsweep.py` and
+    `docs/research/2026-09-26-fc-sweep.md` for the next hardware milestone.
 
 ## 2. Waiting on the user
+
+- **The board run of the fix pass:** `make hwtest M=M25` on the M25 bitstream. The USB link
+  (`dirtyjtag.py`) and the load stream (sparse) changed; everything was checked against the
+  firmware's command handler ported to Python (`tests/test_dirtyjtag.py`), the RTL and the
+  stand-in board, never the Pico itself. `fast-tck` will show the speed-up.
 
 - `docs/reports/M25/floorplan.txt` from `hw/scripts/floorplan.tcl` (read-only, run in the open
   Vivado project). Then `python3 docs/learn/frames/gen.py` turns chapter 14 of volume 3 into the
@@ -50,8 +61,16 @@ hand-off notes are in git history (`git log -p HANDOFF.md`).
 ## 3. Known open items
 
 - **Delays:** LUT, carry and flip-flop samples name nets that no longer exist in the routed
-  netlist (`probe_names.txt`: the element outputs' `r` nets are gone). A `delays.py plan`
-  change to sample pins that survive, then `delays.tcl` again.
+  netlist (`probe_names.txt`: the element outputs' `r` nets are gone; the crossbar nets
+  `u_clb_x<x>y<y>/x<e>[j]` and the `u_e<e>/q_reg` cells survive). A `delays.py plan` change to
+  sample from those, then `delays.tcl` again. The three mux classes are maxima of 32–91 samples;
+  every mux (`write_sdf`, or `get_net_delays` on the `r<node>` nets) would let the guard band
+  drop from 2× to 1.25×. Both need Vivado.
+- **Connection boxes:** at fc_in 0.10, 3 of every CLB's 16 inputs reach only 2 tracks (VPR
+  hands fractional Fc out in pairs), which looks like what stopped SERV.
+  `docs/research/2026-09-26-fc-sweep.md`: richer boxes cost +364 LUTs, but on the examples they
+  route fir16 less often at W 36 (0-2/3 seeds against 3/3). Route SERV (a pin-limited design,
+  no longer in the tree) on each variant before any hardware milestone changes the fabric.
 - **The `fir` stand-in test** (`test_m11_live_goals_reached_by_a_person[fir]`) sometimes misses
   its 25 s budget; timing-sensitive, not a logic failure (it passed on the last full run).
 - **Routing is bob's limit:** a SERV RISC-V trial fitted (186 LUTs) but did not route (4
