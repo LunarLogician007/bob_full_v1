@@ -49,12 +49,12 @@ A user design goes from Verilog to LEDs with two commands, `./bob build design.v
 
 | | |
 |---|---|
-| Guest device (on the board, M25) | 10 × 10 = 100 CLBs × 4 logic elements = **400 LUT6** (fracturable, carry, 2 FFs, Double Duty) behind a full crossbar; truth tables and crossbar in host CFGLUT5s; 2 × 1024×18 BRAM; 2 DSP48E1-style slices; 44 pads; L4 routing W = 36 |
+| Guest device (on the board, M26) | 10 × 10 = 100 CLBs × 4 logic elements = **400 LUT6** (fracturable, carry, 2 FFs, Double Duty) behind a full crossbar; truth tables and crossbar in host CFGLUT5s; 2 × 1024×18 BRAM; 2 DSP48E1-style slices; 44 pads; L4 routing W = 36 |
 | Configuration memory | 68 096 bits = 532 frames × 4 × 32-bit words; readback from a BRAM shadow |
 | Configuration paths | UG470-style packets (CFG_IN/CFG_OUT: CRC, IDCODE, FAR/FDRI/FDRO, STAT, **partial reconfiguration**, **BRAM content frames**), and a streamed scan chain (CHAIN_IN/CHAIN_OUT + CRC) |
 | User clock | a clock enable on the 125 MHz system clock, spaced by each design's own critical path (up to 62.5 MHz), stepped over JTAG or free-running |
-| On the board | M25 bitstream (IDCODE `0x0B025093`): **71/71**, also at TCK 1 MHz; WNS +0.732 ns, 38 198 LUT (71.8%), 86.8% of the slices |
-| Hardware test runs logged | every milestone M0–M25 ended in a full pass on the board |
+| On the board | M26 bitstream (IDCODE `0x0B026093`): **74/74** at TCK 1 MHz; WNS +0.287 ns, 38 676 LUT (72.7%), 86.9% of the slices |
+| Hardware test runs logged | every milestone M0–M26 ended in a full pass on the board |
 | Simulation (last `make check`) | 23 000+ testbench checks in 13 benches + ~500 pytest tests; every mutant of three mutation suites killed |
 | Since M25 (hardware locked) | measured routing delays; a software pass (`./bob run/new/doctor/examples/pins`, errors with the source line and hints, bob studio's Start page and Build & Program); four animated learning volumes (`docs/learn/`) |
 
@@ -173,6 +173,8 @@ M0–M6 were built on 2026-09-14, M7–M15 on 2026-09-16/17, M16–M17 on 2026-0
 | M24 | Double Duty elements (`dd`): the adder on two bypass inputs beside a free LUT; VPR mode `dd`; bob's packer fills adder elements' LUTs | **69/69**; 38 193 LUT, slices 85.5%; WNS +0.562 ns | `0x0B024093` |
 | M25 | time-travel debugging (GRESTORE, `snapshot.py`, `bob snap`); TCK constrained at 1 MHz | **71/71**, and 71/71 at TCK 1 MHz (now the default); WNS +0.732 ns, TCK WNS +489 ns | `0x0B025093` |
 | (UX) | software pass: CLI helpers and errors, studio Start page; measured delays; `docs/learn/` volumes 3–4 | software only, hardware locked | M25 |
+| (fixes) | the review's software fixes: VPR on bob's delays, sparse loads, the batched Pico link, the studio's API token | on the board inside the M26 run: `fast-tck` 2.9× at 1 MHz | M26 |
+| M26 | each flip-flop's INIT apart from its reset value (UG474 INIT / SRVAL) through yosys, VPR and the Python placer; TDO high impedance outside Shift (IEEE 1149.1); example `initval` | **74/74**; 38 676 LUT, slices 86.9%; WNS +0.287 ns, TCK WNS +479.8 ns | `0x0B026093` |
 
 ---
 
@@ -968,10 +970,11 @@ python3 docs/project/collect.py && python3 docs/project/build.py   # this report
 
 ## 23. Open items and what comes next
 
-**Done:** every milestone **M0–M25** passed on the PYNQ-Z2. The board runs M25: 10 × 10 = 100
+**Done:** every milestone **M0–M26** passed on the PYNQ-Z2. The board runs M26: 10 × 10 = 100
 CLBs × 4 Double Duty elements = 400 LUTs, 532 frames, 68,096 configuration bits, IDCODE
-`0x0B025093`, 71/71 at TCK 1 MHz. The hardware is now locked (10 × 10 is this CLB's ceiling on
-the XC7Z020: 86.8% of the slices), and the work since has been software and documentation.
+`0x0B026093`, 74/74 at TCK 1 MHz. The hardware is locked (10 × 10 is this CLB's ceiling on
+the XC7Z020: 86.9% of the slices); M26 reopened it only for two review items (INIT apart from
+the reset value, TDO high impedance outside Shift).
 
 **Tried and set aside:** a RISC-V soft CPU (SERV) inside bob. Its logic fits (186 LUTs, 221
 flip-flops, both BRAMs, 62–73 of the 100 CLBs) but it does not route at W = 36 and fc_in = 0.10:

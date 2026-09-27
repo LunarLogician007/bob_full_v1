@@ -386,3 +386,5 @@ Status: **same** = byte-identical to `bob/`, **moved** = same content at a new p
 | control sets | `software/bob/pnr/pack.py` | modified: a fracturable pair never joins two flip-flops with different CE or SR |
 | example | `work/examples/initval/initval.v`, `software/bob/vpr/initval/` | **new** |
 | checks | `hwtest.check_init_srval`, `bob-initval`, `pnr-initval`; `designs.d_init_srval`; FakeBob `init_is_srval`; `tb_bob` [1] TDO; `sim/gen_vectors.py`, `gen_clb_vectors.py` draw INIT; mutants `gsr-loads-srval`, `gsr2-loads-srval`, `tdo-always-driven` | **new** |
+
+Passed on the board 2026-09-27: 74/74 (`docs/hwtest/results.log`).

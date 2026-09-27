@@ -7,12 +7,18 @@ hand-off notes are in git history (`git log -p HANDOFF.md`).
 
 ## 1. Where it stands
 
-- **The board runs M25**: 10 × 10 = 100 CLBs × 4 Double Duty elements = 400 LUT6, 2 BRAM,
-  2 DSP, 44 pads, 532 frames = 68,096 configuration bits, IDCODE `0x0B025093`. **71/71** on the
-  board 2026-09-25, and 71/71 again at TCK 1 MHz (now the default). Vivado: 38,198 LUTs (71.8%),
-  slices 86.8%, sysclk WNS +0.732 ns, TCK WNS +489 ns. `main` matches the board; tags `m7`…`m25`.
-- **The hardware is locked** (the user, 2026-09-25): 10 × 10 is this CLB's ceiling on the
-  XC7Z020. Work since then is software and documentation only.
+- **The board runs M26**: 10 × 10 = 100 CLBs × 4 Double Duty elements = 400 LUT6, 2 BRAM,
+  2 DSP, 44 pads, 532 frames = 68,096 configuration bits, IDCODE `0x0B026093`. **74/74** on the
+  board 2026-09-27 at TCK 1 MHz. Vivado: 38,676 LUTs (72.7%), 28,186 FFs, slices 86.9%, sysclk
+  WNS +0.287 ns, TCK WNS +479.8 ns. `main` matches the board; tags `m7`…`m26`.
+- **M26** (the user lifted the hardware lock for two review items, 2026-09-27): each flip-flop's
+  INIT (`ff_init` / `ff2_init`, what GSR and GRESTORE load) apart from its reset value
+  (`ff_rstval`, UG474 SRVAL), carried from yosys through VPR, the Python placer, FASM and
+  `model.py`; TDO high impedance outside Shift-IR/Shift-DR (IEEE 1149.1), TMS/TDI input delays on
+  TCK's falling edge. Example `initval`. PLAN.md §M26, checklist `docs/hwtest/M26.md`. The run
+  was non-interactive: the live checks compared every sample with the model but nobody worked
+  through their goals, and the hand steps were not run.
+- **The hardware is locked** again (10 × 10 is this CLB's ceiling on the XC7Z020).
 - **After M25, on `main`:**
   - measured routing delays: `hw/scripts/delays.tcl` (standalone, no rebuild) →
     `docs/reports/M25/delay_hops.txt`; worst routing mux 4.60 ns, input mux 4.65 ns, crossbar
@@ -39,27 +45,19 @@ hand-off notes are in git history (`git log -p HANDOFF.md`).
     sparse full loads after JPROGRAM (`tb_frames` [20]); the Pico link batched per packet, one
     edge per round trip while TCK steps the user clock; bob studio's API behind a token and
     Host/Origin checks; `make check`'s banner at its end; `fcsweep.py` and
-    `docs/research/2026-09-26-fc-sweep.md` for the next hardware milestone.
-- **M26, on branch `m26` (worktree `.claude/worktrees/m26`), not yet built in Vivado.** The
-  user lifted the hardware lock for two review items (2026-09-27): each flip-flop's INIT
-  (`ff_init` / `ff2_init`, what GSR and GRESTORE load) apart from its reset value
-  (`ff_rstval`, UG474 SRVAL), carried from yosys through VPR, the Python placer, FASM and
-  `model.py`; and TDO high impedance outside Shift-IR/Shift-DR (IEEE 1149.1), with the TMS/TDI
-  input delays on TCK's falling edge. Example `initval`; IDCODE `0x0B026093`. PLAN.md §M26,
-  checklist `docs/hwtest/M26.md`.
+    `docs/research/2026-09-26-fc-sweep.md` for the next hardware milestone. On the board inside
+    the M26 run (2026-09-27): `fast-tck` 2.9× at 1 MHz (2.6×, then 1.0×, before the batching).
 
 ## 2. Waiting on the user
 
-- **M26 on the board:** copy the `m26` worktree's `hw/` over `E:\bob_full_v1\hw`, run
-  `build.tcl`, copy `bob_vivado\out\M26\` into `docs/reports/M26/`, then `make hwtest M=M26`
-  (and `--manual` for the hand steps). Tag `m26` and merge into `main` only after it passes.
-  Then regenerate volume 4 (`python3 docs/learn/tools/gen.py`): its FASM samples predate the
-  `ff_init` features.
-
-- **The board run of the fix pass:** `make hwtest M=M25` on the M25 bitstream. The USB link
-  (`dirtyjtag.py`) and the load stream (sparse) changed; everything was checked against the
-  firmware's command handler ported to Python (`tests/test_dirtyjtag.py`), the RTL and the
-  stand-in board, never the Pico itself. `fast-tck` will show the speed-up.
+- **M26 delays:** `vivado -mode batch -source E:/bob_full_v1/hw/scripts/delays.tcl` on the
+  M26 build (reads it, no rebuild) → `delay_paths.rpt`, then
+  `software/bob/delays.py fold docs/reports/M26/delay_paths.rpt`. Until then `delays.json`
+  holds the M25 measurements. Also the rest of `bob_vivado\out\M26\` (`drc.rpt`,
+  `sysclk_1cycle.txt`, `build_info.txt`, the run logs): only `bob_top.bit`, `timing.rpt` and
+  `util.rpt` were copied.
+- Optional: `make hwtest M=M26 ONLY=live-...` from a terminal to work through the live goals,
+  and the hand steps of `docs/hwtest/M26.md` (`--manual`).
 
 - `docs/reports/M25/floorplan.txt` from `hw/scripts/floorplan.tcl` (read-only, run in the open
   Vivado project). Then `python3 docs/learn/frames/gen.py` turns chapter 14 of volume 3 into the
