@@ -34,36 +34,43 @@
 "ff": {
 "$auto$ff.cc:337:slice$88": {
 "rstval": 0,
+"init": 0,
 "ce": false,
 "sr": false
 },
 "$auto$ff.cc:337:slice$89": {
 "rstval": 0,
+"init": 0,
 "ce": false,
 "sr": false
 },
 "$auto$ff.cc:337:slice$90": {
 "rstval": 0,
+"init": 0,
 "ce": false,
 "sr": false
 },
 "$auto$ff.cc:337:slice$91": {
 "rstval": 0,
+"init": 0,
 "ce": false,
 "sr": false
 },
 "$auto$ff.cc:337:slice$97": {
 "rstval": 0,
+"init": 0,
 "ce": false,
 "sr": false
 },
 "$auto$ff.cc:337:slice$98": {
 "rstval": 0,
+"init": 0,
 "ce": false,
 "sr": false
 },
 "$auto$ff.cc:337:slice$99": {
 "rstval": 0,
+"init": 0,
 "ce": false,
 "sr": false
 }

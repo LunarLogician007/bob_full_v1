@@ -1,0 +1,11 @@
+top initval
+pcf -
+arch_sha256 1d968bac79b9dd28a24e563465cda0b2c4e1ff9c7ab0c728feed85a3d4b16fe8
+eblif_sha256 c09ee7e1781ee5e00afb92806873e29bc73634995ba01d002d387c93b898f898
+seed 1
+image ghcr.io/lnis-uofu/openfpga-master@sha256:2467ffa99296516cc1bcbb07542633c90723ae17ca3f67a175f61cb9f131abbb
+command vpr arch.xml initval.eblif --device bob12x10 --route_chan_width 36 --read_rr_graph rr.xml --fix_clusters initval.pins --seed 1 --absorb_buffer_luts off --const_gen_inference none --sweep_dangling_primary_ios off --sweep_dangling_nets off --sweep_dangling_blocks off --sweep_constant_primary_outputs off --pack --place --route --analysis
+wirelength 126
+cpd_ns 42.5498
+fmax_mhz 28.5665
+result_sha 8bb55dd68ccb2b15

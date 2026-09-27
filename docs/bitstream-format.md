@@ -48,7 +48,7 @@ Bits 5 and 4 follow 7-series usage (openFPGALoader reads DONE and INIT_B there).
 ## 3. Timing contract (unchanged from bob, proven on hardware)
 
 - TMS and TDI are sampled, and the TAP state advances, on the **rising** TCK edge.
-- TDO is launched on the **falling** edge. IR update, CFG_IN commit, JPROGRAM clear and the CFG_CTRL expected-CRC write happen on the **falling** edge during Update-IR/Update-DR.
+- TDO is launched on the **falling** edge, and from M26 driven only in Shift-IR and Shift-DR (high impedance elsewhere, IEEE 1149.1; section 18). IR update, CFG_IN commit, JPROGRAM clear and the CFG_CTRL expected-CRC write happen on the **falling** edge during Update-IR/Update-DR.
 - Status flags and startup phases change on the **rising** edge that leaves Update-IR/Update-DR or that is clocked in Run-Test/Idle.
 - All shift registers are **LSB-first**: the first bit on TDI is bit 0.
 - Test-Logic-Reset is consumed only synchronously. It selects IDCODE and **does not** touch configuration, status or startup.
@@ -530,7 +530,8 @@ the chain width is unchanged.
 ## 17. M25: GRESTORE and snapshots
 
 CMD register value 10, **GRESTORE** (UG470): pulses the fabric's GSR for one packet word
-(32 TCK). Every element flip-flop takes its INIT value (`ff_rstval` / `ff2_rstval`). It is
+(32 TCK). Every element flip-flop takes its INIT value (`ff_init` / `ff2_init` since M26;
+`ff_rstval` / `ff2_rstval` until then, section 18). It is
 accepted only after a matched IDCODE and with the fabric frozen (AGHIGH acknowledged) or
 before startup (GWE = 0); otherwise WR_ERROR and ST_ERR. STAT's version byte is 0x16.
 
@@ -541,3 +542,26 @@ A restore (`packets.restore_streams(mem, init_mem)`) is one partial stream, in t
 
 `software/host/snapshot.py` reads the state through CAPTURE between the second frame write and
 the CRC, while the fabric is still frozen.
+
+
+## 18. M26: INIT apart from the reset value, TDO high impedance
+
+**Two new element flags**, `ff_init` (bit 13 of the element's flags) and `ff2_init` (bit 14):
+the value GSR (startup, and GRESTORE) loads into FF and FF2. `ff_rstval` / `ff2_rstval` keep
+only their other meaning, the value the synchronous SR loads. That is UG474's FDRE / FDSE:
+INIT and SRVAL are separate properties, and a register may start at 1 and reset to 0. Until
+M25 one bit served as both. The two flags move two crossbar selects out of frame 0
+(`lutram_layout` `xbar_head` 15 → 13, `flags_lo` 76 → 68); the chain stays at 68,096 bits,
+532 frames.
+
+The flow fills them from the design: yosys keeps a register's init (`dfflegalize ... 01`),
+`bob_map.v` gives it to `BOB_FDRE` / `BOB_FDSE` as INIT (unset: the reset value, as before),
+and `vpr_run.py` / `place.py` write it into the FASM feature `<element>.ff_init` (and
+`ff2_init`). A time-travel restore (section 17) now writes the snapshot into these bits only.
+
+**TDO** is an OBUFT from M26: `jtag_tap6.v`'s `tdo_oe` is updated on the falling TCK edge with
+TDO, 1 in Shift-IR and Shift-DR, 0 elsewhere. A probe sampling TDO in the Shift states (every
+host path here) sees no change. The XDC now refers the TMS / TDI input delays to TCK's falling
+edge, where the probe launches them (`-clock_fall`: half a TCK period to the sampling edge,
+500 ns at 1 MHz; until M25 they were checked against a whole period).
+

@@ -15,10 +15,11 @@
 //                 frame buffer (frame_load) and the memory takes it on the falling edge
 //            CMD  NULL WCFG LFRM RCFG START RCRC AGHIGH DESYNC GRESTORE
 //                 M25: GRESTORE (UG470 CMD 10) pulses the fabric's GSR for the next packet
-//                 word (32 TCK): every element flip-flop takes its INIT/reset value
-//                 (ff_rstval / ff2_rstval). Only while frozen (AGHIGH acknowledged) or before
-//                 startup; otherwise WR_ERROR. With the INIT bits rewritten to a snapshot
-//                 first, that restores a design's state (software/bob/snapshot.py).
+//                 word (32 TCK): every element flip-flop takes its INIT value (ff_init /
+//                 ff2_init; until M25 the SR value, ff_rstval). Only while frozen (AGHIGH
+//                 acknowledged) or before startup; otherwise WR_ERROR. With the INIT bits
+//                 rewritten to a snapshot first, that restores a design's state
+//                 (software/bob/snapshot.py).
 //            IDCODE must match before FDRI is accepted
 //   CFG_OUT  READ packets queue words (FDRO frames from FAR, STAT, FAR, IDCODE,
 //            CRC); each CFG_OUT scan shifts them out MSB first; with nothing

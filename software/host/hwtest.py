@@ -2339,6 +2339,44 @@ MILESTONE["M25"] = (
     [("time-travel", check_time_travel), ("fast-tck", check_fast_tck)] +
     [MILESTONE["M24"][-1]])
 
+# --- M26: INIT and SRVAL as two bits, TDO high impedance outside Shift -------------------
+
+def check_init_srval(p, ctx):
+    """M26: designs.d_init_srval through INTEST autostep, against model.py. With both switches
+    down LD1..0 must show the two INITs (01) right after startup, SR the two SRVALs (10), CE
+    the two Ds (01). A fabric whose GSR loads SRVAL (every bob before M26) starts at 10."""
+    import cfgplane
+    import fpga
+    import model
+    from designs import d_init_srval
+    bs = d_init_srval().build()
+    if not fpga.load_bitstream(p, bs, verbose=False):
+        return False, "load failed"
+    cfgplane.user1(p, 0x10)                     # autostep, ce off (see check_ce_sr)
+    m = model.Fabric(bs)
+    m.clock(gsr=1)
+    bad, seen = [], []
+    for v in (0b00, 0b10, 0b00, 0b01, 0b00, 0b10, 0b01):   # SW1 = SR, SW0 = CE
+        got = fpga.intest_sweep(p, [v])[0] & 0b11
+        m.clock(pad_i=v)
+        exp = m.outputs(v) & 0b11
+        m.clock(pad_i=v)
+        seen.append(f"{v:02b}->{got:02b}")
+        if got != exp:
+            bad.append(f"SW1..0={v:02b}: LD1..0={got:02b}, model {exp:02b}")
+    cfgplane.user1(p, 0)
+    fpga.go_live(p)
+    return not bad, ("; ".join(bad) or
+                     f"INIT after startup, SRVAL on SR, D on CE, as model.py ({' '.join(seen)})")
+
+
+MILESTONE["M26"] = (
+    MILESTONE["M25"][:-1] +
+    [("init-srval", check_init_srval),
+     ("bob-initval", _bob_check("initval")),              # yosys INIT -> VPR -> FASM -> fabric
+     ("pnr-initval", _bob_check("initval", pnr="python"))] +
+    [MILESTONE["M25"][-1]])
+
 # --- runner ------------------------------------------------------------------
 
 def manual_steps(milestone):

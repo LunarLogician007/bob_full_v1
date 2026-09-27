@@ -7,8 +7,8 @@
 // behaves as the loaded fabric does.
 //
 //   $lut / BOB_LUT  K-input LUT                  -> a CLB's LUT (O6)
-//   BOB_FDRE        D FF, CE, sync reset,  INIT 0 -> a CLB's FF (FDRE, ff_rstval 0)
-//   BOB_FDSE        D FF, CE, sync set,    INIT 1 -> a CLB's FF (FDSE, ff_rstval 1)
+//   BOB_FDRE        D FF, CE, sync reset to 0, INIT 0 or 1 -> a CLB's FF (FDRE: ff_rstval 0, ff_init INIT)
+//   BOB_FDSE        D FF, CE, sync set to 1,   INIT 0 or 1 -> a CLB's FF (FDSE: ff_rstval 1, ff_init INIT)
 //   BOB_ADD         one adder bit                -> a CLB in carry mode: LUT
 //                   S = A ^ B ^ INV_B, O = S ^ CI, CO = S ? CI : A   (XORCY/MUXCY,
 //                   carry generate DI = i[0] = A)
@@ -17,7 +17,7 @@
 //
 // One user clock drives every sequential cell (the fabric has one: sysclk + gce).
 // Reset priority is UG474's: R/S beats CE. Flip-flops power up at INIT, which is
-// the fabric's GSR value.
+// the fabric's GSR value (M26: its own bit, ff_init; the reset value is ff_rstval).
 //
 // Read with `read_verilog -lib` by software/bob/synth.py (bodies ignored), and with
 // the design's netlist by the equivalence simulation.

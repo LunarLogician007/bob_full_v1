@@ -497,3 +497,34 @@ def test_m25_fast_tck_passes_on_a_healthy_board():
 def test_m25_fast_tck_fails_when_loads_break():
     ok, msg = hwtest.check_fast_tck(FakeBob(no_grestore=True), {})
     assert not ok, msg
+
+
+def test_m26_init_srval_passes_on_a_healthy_board():
+    ok, msg = hwtest.check_init_srval(FakeBob(), {})
+    assert ok, msg
+    assert "INIT after startup" in msg
+
+
+def test_m26_init_srval_fails_when_gsr_loads_srval():
+    ok, msg = hwtest.check_init_srval(FakeBob(init_is_srval=True), {})
+    assert not ok, msg
+    assert "SW1..0=00" in msg
+
+
+def test_m26_runs_the_full_m25_list_first():
+    names = [n for n, _f in hwtest.MILESTONE["M26"]]
+    assert names[:len(hwtest.MILESTONE["M25"]) - 1] == [n for n, _f in hwtest.MILESTONE["M25"]][:-1]
+    assert "init-srval" in names
+    assert names[-1] == hwtest.MILESTONE["M25"][-1][0]
+
+
+@pytest.mark.parametrize("pnr", ["vpr", "python"])
+def test_m26_initval_passes_on_a_healthy_board(pnr):
+    ok, msg = hwtest._bob_check("initval", pnr=pnr)(FakeBob(), {})
+    assert ok, msg
+
+
+@pytest.mark.parametrize("pnr", ["vpr", "python"])
+def test_m26_initval_fails_when_gsr_loads_srval(pnr):
+    ok, msg = hwtest._bob_check("initval", pnr=pnr)(FakeBob(init_is_srval=True), {})
+    assert not ok, msg

@@ -1,0 +1,17 @@
+# GENERATED from the yosys netlist of initval - do not edit
+.model initval
+.inputs clk sw[0] btn[0] btn[1] btn[2] btn[3]
+.outputs led[0] led[1] led[2]
+.subckt bob_ff D=ffd1 C=clk Q=led[2] CE=btn[3]
+.cname $auto$ff.cc:337:slice$103
+.names btn[2] ffk2
+0 1
+.subckt bob_ff D=ffk2 C=clk Q=led[1] CE=btn[2] SR=btn[0]
+.cname $auto$ff.cc:337:slice$104
+.names btn[1] ffk3
+1 1
+.subckt bob_ff D=ffk3 C=clk Q=led[0] CE=btn[1] SR=btn[0]
+.cname $auto$ff.cc:337:slice$105
+.names sw[0] ffd1
+1 1
+.end

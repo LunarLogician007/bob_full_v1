@@ -62,6 +62,8 @@ module cfg_test_top #(
 
     reg  [7:0]  counter = 8'h0;
 
+    wire tap_tdo, tap_tdo_oe;                      // M26: TDO and its enable
+
     jtag_tap6 #(
         .IDCODE_VALUE   (IDCODE_VALUE),
         .USERCODE_VALUE (USERCODE_VALUE),
@@ -71,7 +73,8 @@ module cfg_test_top #(
         .tck         (tck_g),
         .tms         (tms),
         .tdi         (tdi),
-        .tdo         (tdo),
+        .tdo         (tap_tdo),
+        .tdo_oe      (tap_tdo_oe),
         .bsr_capture (bsr_capture),
         .bsr_shift   (bsr_shift),
         .bsr_update  (bsr_update),
@@ -107,6 +110,11 @@ module cfg_test_top #(
         .tap_state   (tap_state),
         .ir_value    (ir_value)
     );
+
+    // M26: TDO is high impedance outside Shift-IR / Shift-DR (IEEE 1149.1); the top's
+    // output becomes an OBUFT. Undriven, the line rests where the probe's input pull puts
+    // it; every TDO bit the host keeps comes from Shift-IR or Shift-DR.
+    assign tdo = tap_tdo_oe ? tap_tdo : 1'bz;
 
     cfg_ctrl #(.CHAIN_W(CHAIN_W)) u_ctrl (
         .tck         (tck_g),

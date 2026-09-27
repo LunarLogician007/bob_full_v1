@@ -132,7 +132,8 @@ def random_design(rng, ncells=None):
             ce = sr = None
             if reg[sp]:
                 flags = {"ff_en": 1, "ff_rstval": rng.randrange(2), "ff_d_sel": rng.randrange(2),
-                         "ff_ce_en": int(rng.random() < 0.5), "ff_sr_en": int(rng.random() < 0.3)}
+                         "ff_ce_en": int(rng.random() < 0.5), "ff_sr_en": int(rng.random() < 0.3),
+                         "ff_init": rng.randrange(2)}      # M26: INIT apart from SRVAL
                 cce, csr = ctl.setdefault(sp[:2], (rng.choice(cands), rng.choice(cands)))
                 if flags["ff_ce_en"]:
                     ce = cce

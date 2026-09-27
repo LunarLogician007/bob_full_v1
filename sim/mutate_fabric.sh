@@ -78,10 +78,15 @@ run() {
 }
 
 # M3 startup signals (M21: the element, ble.sv, holds the flip-flops clb.sv held)
-run no-gsr          src/clb/ble.sv        's/if \(gsr\)                          q <= ff_rstval;/if (1'"'"'b0)                         q <= ff_rstval;/'
+run no-gsr          src/clb/ble.sv        's/if \(gsr\)                          q <= ff_init;/if (1'"'"'b0)                         q <= ff_init;/'
+# M26 INIT is its own bit: a GSR that loads SRVAL (every bob before M26) must fail
+run gsr-loads-srval  src/clb/ble.sv       's/if \(gsr\)                          q <= ff_init;/if (gsr)                          q <= ff_rstval;/'
+run gsr2-loads-srval src/clb/ble.sv       's/if \(gsr\)                          q2 <= ff2_init;/if (gsr)                          q2 <= ff2_rstval;/'
 run no-gwe-freeze   src/clb/ble.sv        's/else if \(gwe && gce\) begin/else if (gce) begin/'
 run no-gts          src/fabric/bob_fpga.v 's/gts \? \{NPAD\{1'"'"'b0\}\} : fab_pad_out/fab_pad_out/'
 run done-is-commit  src/fabric/bob_fpga.v 's/assign configured = done;/assign configured = committed;/'
+# M26 TDO drives only in Shift-IR / Shift-DR (IEEE 1149.1), high impedance elsewhere
+run tdo-always-driven src/fabric/bob_fpga.v 's/assign tdo = tap_tdo_oe \? tap_tdo : 1'"'"'bz;/assign tdo = tap_tdo;/'
 # M4 user clock and routed CE
 run no-gce          src/clb/ble.sv        's/else if \(gwe && gce\) begin/else if (gwe) begin/'
 run ce-not-routed   src/clb/ble.sv        's/else if \(!ff_ce_en \|\| ce\)       q <= comb;/else if (1'"'"'b1)       q <= comb;/'

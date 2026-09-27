@@ -194,9 +194,9 @@ After any of these, the committed rr graph is stale on purpose: every tool refus
 **What it is.** From M21 a CLB is a **cluster**, as in OpenFPGA's k6_frac_N10: N = 4 logic elements behind a full crossbar, with 16 inputs from the routing and 8 outputs to it. Each element (`ble.sv`) has:
 - a fracturable LUT6 (O6 the full function; with `frac`, two LUT5s over five shared inputs)
 - the AMD-style carry (MUXCY/XORCY), running through the four elements and then up to the CLB above
-- two flip-flops with FDRE/FDSE semantics, one on O6 and one on O5, sharing the CLB's routable CE and SR
+- two flip-flops with FDRE/FDSE semantics, one on O6 and one on O5, sharing the CLB's routable CE and SR. From M26 each has an INIT bit (`ff_init`, what GSR and GRESTORE load) apart from its reset value (`ff_rstval`, what SR loads), as UG474's INIT and SRVAL; until M25 one bit was both, so `reg q = 1'b1;` with a reset to 0 started at 0
 
-Each element input comes from a **crossbar** mux: any of the 16 CLB inputs, any of the 8 element outputs (feedback), const0 or const1. Per element that is 64 INIT bits, 12 flags and 6 × 5 crossbar select bits, 106 bits in all.
+Each element input comes from a **crossbar** mux: any of the 16 CLB inputs, any of the 8 element outputs (feedback), const0 or const1. Per element that is 64 INIT bits, 15 flags (M26; 12 at M21, 13 with M24's `dd`) and 6 × 5 crossbar select bits, 109 bits in all.
 
 **Why this way.** A one-LUT CLB (M4–M20, `clb.sv`, kept for the M0 bring-up fabric) spends a whole switch box and connection box on every LUT. A cluster lets neighbouring logic talk through the crossbar instead of the routing, so designs pack tighter and run faster (`big`: 64.5 → 23.5 ns critical path at N = 10). The size was measured, not guessed: `software/bob/sweep.py` built N = 4/6/8/10 with full and half crossbars (`docs/reports/M21/cluster_sweep.md`). Host LUTs per guest LUT grow with N because every crossbar mux is host logic, and a half crossbar needed far wider channels. N = 4 with a full crossbar won.
 
@@ -310,7 +310,7 @@ cfgplane.ir(p, "CFG_IN"); cfgplane.frames_send(p, packets.load_stream(word))
 print(cfgplane.ir_status(p))          # {'done': 1, 'init_b': 1, 'committed': 1, 'crc_err': 0}
 ```
 
-**How to tweak it.** Adding an instruction = a code in `jtag_tap6.v`, a `sel_*` strobe, a data register, an entry in `cfgplane.IR`, and a line in the spec's instruction table. The TAP's timing rules (TMS/TDI on the rising edge, TDO and updates on the falling edge, synchronous Test-Logic-Reset) are hardware-proven; do not change them casually.
+**How to tweak it.** Adding an instruction = a code in `jtag_tap6.v`, a `sel_*` strobe, a data register, an entry in `cfgplane.IR`, and a line in the spec's instruction table. The TAP's timing rules (TMS/TDI on the rising edge, TDO and updates on the falling edge, synchronous Test-Logic-Reset) are hardware-proven; do not change them casually. From M26 TDO is driven only in Shift-IR and Shift-DR and is high impedance elsewhere (IEEE 1149.1; `tdo_oe`, an OBUFT on the pin).
 
 ### 3.10 The configuration memory (`cfg_store.v`)
 

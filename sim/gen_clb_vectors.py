@@ -10,14 +10,14 @@ CE, SR and the global gce / GSR / GWE; the expected outputs come from
 software/bob/model.py's element functions, evaluated through the crossbar exactly as
 device.json describes it. What the configurations cover, on purpose:
 
-  every element flag     each of the 12 flags alone on element 0, then random mixes
+  every element flag     each of the 15 flags alone on element 0, then random mixes
   the modes              LUT K (frac 0), two LUT K-1 (frac 1), carry (cy_en) with both
                          generate sources
   every crossbar source  each element input selects const0, const1, a CLB input or a
                          feedback output; over the run every select value of every
                          element input is used
   the carry              chains of carry elements across all N elements, cin -> cout
-  both flip-flops        ff_en / ff2_en, CE / SR / reset values, GSR and GWE
+  both flip-flops        ff_en / ff2_en, CE / SR / reset values, INIT (M26), GSR and GWE
 
 Feedback never makes a loop: an element reads another element's output only when that
 output is registered or comes from an element below it (the carry runs upward too).

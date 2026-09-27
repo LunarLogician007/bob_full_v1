@@ -1,0 +1,17 @@
+Netlist_File: initval.net Netlist_ID: SHA256:4b60a1f72cf624a44341264122b19cd733c48ad952e91e9c9cf05f386c8eba6e
+Array size: 14 x 12 logic blocks
+
+#block name	x	y	subblk	layer	block number
+#----------	--	--	------	-----	------------
+ffk2		2	3	0	0	#0
+ffk3		1	3	0	0	#1
+ffd1		2	2	0	0	#2
+out:led[0]	13	1	0	0	#3
+out:led[1]	13	2	0	0	#4
+out:led[2]	13	3	0	0	#5
+clk		1	0	0	0	#6
+sw[0]		0	1	0	0	#7
+btn[0]		0	3	0	0	#8
+btn[1]		0	4	0	0	#9
+btn[2]		0	5	0	0	#10
+btn[3]		0	6	0	0	#11

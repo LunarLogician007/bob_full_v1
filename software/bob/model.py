@@ -7,7 +7,7 @@ The fabric is evaluated exactly as hw/src/generated/bob_fabric.v wires it: every
 programmed mux passes its selected input (0 const0, IPIN 1 const1), directs
 (carry, DSP cascade) are wires, and each CLB's flip-flop is clb.sv's:
 
-    if gsr:              q <= ff_rstval
+    if gsr:              q <= ff_init             (M26: INIT, its own bit; until M25 = ff_rstval)
     elif gwe and gce:
         if ff_sr_en & sr: q <= ff_rstval          (FDRE/FDSE: SR beats CE)
         elif !ff_ce_en | ce: q <= comb
@@ -59,7 +59,7 @@ def clb_next(q, f, comb, ce, sr, gce=1, gsr=0, gwe=1, ff=""):
     (ff2_*, which registers O5)."""
     rstval, sr_en, ce_en = f[f"ff{ff}_rstval"], f[f"ff{ff}_sr_en"], f[f"ff{ff}_ce_en"]
     if gsr:
-        return rstval
+        return f.get(f"ff{ff}_init", 0)         # M26: INIT (the GSR value), not SRVAL
     if not (gwe and gce):
         return q
     if sr_en and sr:

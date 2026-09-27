@@ -373,3 +373,16 @@ Status: **same** = byte-identical to `bob/`, **moved** = same content at a new p
 | studio access | `software/host/studio.py` `TOKEN`, `Handler._refuse`; `software/studio/p3_api.js`, `p12_wave.js`; `tests/test_studio.py` | modified: Host, Origin and token checks |
 | connection-box sweep | `software/bob/fcsweep.py`, `docs/research/2026-09-26-fc-sweep.md`; `vpr_arch.py` `fc_in_type`, `sweep.vpr(seed=)` | **new** |
 | `make check` banner | `Makefile` | modified: printed after the tests, not before the simulations |
+
+## M26: INIT apart from the reset value, TDO high impedance outside Shift (2026-09-27)
+
+| what | where | reused / new |
+|---|---|---|
+| INIT bits | `software/bob/device.py` `ELEMENT_FIELDS` `ff_init`, `ff2_init`; `hw/src/clb/ble.sv` (GSR loads them); generated `bob_params.vh`, `bob_fabric.v` | modified: UG474 INIT and SRVAL as two bits (one shared bit until M25) |
+| TDO tristate | `hw/src/core/jtag_tap6.v` `tdo_oe`; `hw/src/fabric/bob_fpga.v`, `hw/src/top/cfg_test_top.v` | modified: IEEE 1149.1, TDO high impedance outside Shift-IR / Shift-DR |
+| TMS / TDI timing | `hw/constr/pynq_z2.xdc` | modified: input delays on TCK's falling edge (`-clock_fall`) |
+| init through the flow | `software/bob/synth.py` (`dfflegalize ... 01`), `synth/bob_map.v`, `synth/bob_cells_sim.v`, `vpr_run.py`, `place.py`, `fasm_from_vpr.py`, `model.py`; `software/host/bitstream.py`, `snapshot.py` | modified: a register's own init reaches `ff_init`; restores write INIT only |
+| constant D | `software/bob/vpr_run.py` | modified: a flip-flop with a constant D gets a one-input LUT on CE or SR |
+| control sets | `software/bob/pnr/pack.py` | modified: a fracturable pair never joins two flip-flops with different CE or SR |
+| example | `work/examples/initval/initval.v`, `software/bob/vpr/initval/` | **new** |
+| checks | `hwtest.check_init_srval`, `bob-initval`, `pnr-initval`; `designs.d_init_srval`; FakeBob `init_is_srval`; `tb_bob` [1] TDO; `sim/gen_vectors.py`, `gen_clb_vectors.py` draw INIT; mutants `gsr-loads-srval`, `gsr2-loads-srval`, `tdo-always-driven` | **new** |

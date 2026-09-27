@@ -41,36 +41,43 @@
 "ff": {
 "$auto$ff.cc:337:slice$106": {
 "rstval": 0,
+"init": 0,
 "ce": false,
 "sr": false
 },
 "$auto$ff.cc:337:slice$107": {
 "rstval": 0,
+"init": 0,
 "ce": false,
 "sr": false
 },
 "$auto$ff.cc:337:slice$108": {
 "rstval": 0,
+"init": 0,
 "ce": false,
 "sr": false
 },
 "$auto$ff.cc:337:slice$109": {
 "rstval": 0,
+"init": 0,
 "ce": false,
 "sr": false
 },
 "$auto$ff.cc:337:slice$110": {
 "rstval": 0,
+"init": 0,
 "ce": false,
 "sr": false
 },
 "$auto$ff.cc:337:slice$111": {
 "rstval": 0,
+"init": 0,
 "ce": false,
 "sr": false
 },
 "$auto$ff.cc:337:slice$112": {
 "rstval": 0,
+"init": 0,
 "ce": false,
 "sr": false
 }

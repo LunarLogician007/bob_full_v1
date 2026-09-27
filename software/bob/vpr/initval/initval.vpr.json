@@ -1,50 +1,38 @@
 {
-"top": "switches",
+"top": "initval",
 "lut": {
-"led[1]": {
-"n": 3,
-"tt": 248
-},
-"led[0]": {
-"n": 2,
-"tt": 6
-},
-"n14": {
-"n": 2,
-"tt": 4
-},
-"n15": {
+"ffk2": {
 "n": 1,
 "tt": 1
 },
-"ffd1": {
+"ffk3": {
 "n": 1,
 "tt": 2
 },
-"ffd2": {
+"ffd1": {
 "n": 1,
 "tt": 2
 }
 },
 "add": {},
 "ff": {
-"$auto$ff.cc:337:slice$100": {
+"$auto$ff.cc:337:slice$103": {
 "rstval": 0,
-"init": 0,
-"ce": false,
-"sr": false
-},
-"$auto$ff.cc:337:slice$101": {
-"rstval": 0,
-"init": 0,
-"ce": false,
-"sr": false
-},
-"$auto$ff.cc:337:slice$93": {
-"rstval": 0,
-"init": 0,
+"init": 1,
 "ce": true,
 "sr": false
+},
+"$auto$ff.cc:337:slice$104": {
+"rstval": 1,
+"init": 0,
+"ce": true,
+"sr": true
+},
+"$auto$ff.cc:337:slice$105": {
+"rstval": 0,
+"init": 1,
+"ce": true,
+"sr": true
 }
 },
 "bram": {},
@@ -59,24 +47,19 @@
 "btn[2]": 7,
 "btn[3]": 8,
 "clk": 2,
-"ffd1": 8,
-"ffd2": 13,
+"ffd1": 3,
 "led[0]": 9,
 "led[1]": 10,
 "led[2]": 11,
-"n12": 12,
-"n13": 13,
-"n14": 14,
-"n15": 15,
 "sw[0]": 3,
 "sw[1]": 4
 },
 "pins": {
 "clk": 0,
 "sw[0]": 12,
-"sw[1]": 14,
 "btn[0]": 16,
 "btn[1]": 18,
+"btn[2]": 20,
 "btn[3]": 22,
 "out:led[0]": 13,
 "out:led[1]": 15,

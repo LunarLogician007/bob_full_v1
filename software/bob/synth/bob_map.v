@@ -5,19 +5,22 @@
 // arith_map.v, xc7_dsp_map.v), reduced to what one bob CLB / BRAM / DSP holds.
 // -----------------------------------------------------------------------------
 
-// --- flip-flops: after `dfflegalize -cell $_SDFFE_PP0P_ r -cell $_SDFFE_PP1P_ r`
-// (sync reset beats enable, init = reset value = the fabric's GSR value)
+// --- flip-flops: after `dfflegalize -cell $_SDFFE_PP0P_ 01 -cell $_SDFFE_PP1P_ 01`
+// (sync reset beats enable). M26: the fabric keeps INIT (the GSR value) and SRVAL (the reset
+// value) as two bits, so the init is the wire's own: an FDRE may start at 1, as in UG474.
+// An unset init takes the reset value, which is what every design meant until M25 (then
+// dfflegalize's "r" made init = reset).
 
 module \$_SDFFE_PP0P_ (input C, input R, input E, input D, output Q);
     parameter _TECHMAP_WIREINIT_Q_ = 1'bx;
     wire _TECHMAP_REMOVEINIT_Q_ = 1'b1;
-    BOB_FDRE #(.INIT(1'b0)) _TECHMAP_REPLACE_ (.C(C), .CE(E), .R(R), .D(D), .Q(Q));
+    BOB_FDRE #(.INIT(_TECHMAP_WIREINIT_Q_ === 1'b1)) _TECHMAP_REPLACE_ (.C(C), .CE(E), .R(R), .D(D), .Q(Q));
 endmodule
 
 module \$_SDFFE_PP1P_ (input C, input R, input E, input D, output Q);
     parameter _TECHMAP_WIREINIT_Q_ = 1'bx;
     wire _TECHMAP_REMOVEINIT_Q_ = 1'b1;
-    BOB_FDSE #(.INIT(1'b1)) _TECHMAP_REPLACE_ (.C(C), .CE(E), .S(R), .D(D), .Q(Q));
+    BOB_FDSE #(.INIT(_TECHMAP_WIREINIT_Q_ !== 1'b0)) _TECHMAP_REPLACE_ (.C(C), .CE(E), .S(R), .D(D), .Q(Q));
 endmodule
 
 // --- arithmetic: one BOB_ADD (one CLB in carry mode) per bit -------------------

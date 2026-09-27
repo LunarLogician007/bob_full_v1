@@ -18,7 +18,9 @@
 // Timing contract (IEEE 1149.1):
 //   - TMS and TDI are sampled on the RISING edge of TCK
 //   - the state machine advances on the RISING edge of TCK
-//   - TDO is launched on the FALLING edge of TCK
+//   - TDO is launched on the FALLING edge of TCK, and is driven only in Shift-IR and
+//     Shift-DR (tdo_oe, M26): the standard's "inactive" TDO is high impedance, so several
+//     devices can share a chain. Until M25 it drove 0 in every other state.
 //   - the IR and DR update latches fire on the FALLING edge of TCK
 //   - all shift registers are LSB-first
 //
@@ -42,6 +44,7 @@ module jtag_tap6 #(
     input  wire        tms,
     input  wire        tdi,
     output reg         tdo,
+    output reg         tdo_oe,       // M26: drive TDO only in Shift-IR / Shift-DR (IEEE 1149.1)
 
     // --- boundary scan register (cells live in the top) ---------------------
     output wire        bsr_capture,
@@ -281,6 +284,7 @@ module jtag_tap6 #(
             SHIFT_DR: tdo <= dr_tdo;
             default:  tdo <= 1'b0;
         endcase
+        tdo_oe <= (state == SHIFT_IR) || (state == SHIFT_DR);
     end
 
     // ---------------------------------------------------------------------
@@ -308,7 +312,10 @@ module jtag_tap6 #(
 
     assign step_pulse = manual_step | autostep_arm;
 
-    initial tdo = 1'b0;
+    initial begin
+        tdo    = 1'b0;
+        tdo_oe = 1'b0;
+    end
 
 endmodule
 

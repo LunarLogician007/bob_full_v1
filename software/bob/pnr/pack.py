@@ -189,6 +189,8 @@ def elements(nl):
             shared = len(sa & sb)
             if shared == 0 and len(u) > 2:            # unrelated LUTs only when tiny (buffers)
                 continue
+            if any(len({f.pins[p] for f in (fa, fb) if f and p in f.pins}) > 1 for p in ("CE", "SR")):
+                continue                              # one CE and one SR per CLB (M26: initval)
             score = (2 * shared - len(u), b.name)
             if best_score is None or score[0] > best_score[0]:
                 best, best_score = (b, fb), score

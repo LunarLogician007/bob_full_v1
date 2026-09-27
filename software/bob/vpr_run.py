@@ -309,19 +309,33 @@ def write_eblif(top, mod, pin_map=None):
         d, ce, sr = conn["D"][0], conn["CE"][0], conn["S" if fdse else "R"][0]
         if conn["C"][0] != ports.get("clk", {}).get("bits", [None])[0]:
             raise VprError(f"{n}: clocked by something other than the clk port")
-        if cval(d) is not None:
-            raise VprError(f"{n}: constant D is not supported")
         if cval(ce) == 0 or cval(sr) == 1:
             raise VprError(f"{n}: CE tied 0 / SR tied 1 is not supported")
-        drv = driver.get(d)
-        direct = (drv is not None and loads.get(d, 0) == 1 and
-                  ((cells[drv[0]]["type"] == "$lut") or
-                   (cells[drv[0]]["type"] == "BOB_ADD" and drv[1] == "O")))
-        dnet = N(d)
-        if not direct:
-            buf = new("ffd")
-            buffers.append((dnet, buf))
-            dnet = buf
+        dv = cval(d)
+        if dv is not None:
+            # M26: a constant D (`if (rst) q <= 0; else if (en) q <= 1;`). D only counts
+            # while CE is 1 and SR is 0, so a one-input LUT on CE or SR is the same
+            # flip-flop with a routed D, which VPR packs like any other.
+            if cval(ce) is None:
+                src, tt = ce, 0b10 if dv else 0b01        # D = CE, or ~CE
+            elif cval(sr) is None:
+                src, tt = sr, 0b01 if dv else 0b10        # D = ~SR, or SR
+            else:
+                raise VprError(f"{n}: constant D with neither CE nor SR is not supported")
+            dnet = new("ffk")
+            side["lut"][dnet] = {"n": 1, "tt": tt}
+            body.append(f".names {N(src)} {dnet}")
+            body.append("1 1" if tt == 0b10 else "0 1")
+        else:
+            drv = driver.get(d)
+            direct = (drv is not None and loads.get(d, 0) == 1 and
+                      ((cells[drv[0]]["type"] == "$lut") or
+                       (cells[drv[0]]["type"] == "BOB_ADD" and drv[1] == "O")))
+            dnet = N(d)
+            if not direct:
+                buf = new("ffd")
+                buffers.append((dnet, buf))
+                dnet = buf
         q = conn["Q"][0]
         pins = [f"D={dnet}", f"C={N(conn['C'][0])}", f"Q={N(q)}"]
         if cval(ce) is None:
@@ -330,7 +344,8 @@ def write_eblif(top, mod, pin_map=None):
             pins.append(f"SR={N(sr)}")
         body.append(f".subckt bob_ff {' '.join(pins)}")
         body.append(f".cname {atom(n)}")
-        side["ff"][atom(n)] = {"rstval": int(fdse), "ce": cval(ce) is None, "sr": cval(sr) is None}
+        side["ff"][atom(n)] = {"rstval": int(fdse), "init": _param(c, "INIT", int(fdse)),   # M26: INIT != SRVAL
+                               "ce": cval(ce) is None, "sr": cval(sr) is None}
         clk_used = True
 
     # --- hard blocks --------------------------------------------------------------------
@@ -605,7 +620,7 @@ def summary(work, top):
 
 
 EXAMPLES = ["gates", "adder", "counter", "blinky", "ram", "mult", "switches", "fir", "wide", "big", "atspeed",
-            "fir16"]
+            "fir16", "initval"]
 # results routed with a pin file: name -> (top, pcf). gates_swapped proves .pcf pins reach the pads.
 VARIANTS = {"gates_swapped": ("gates", os.path.join(ROOT, "work", "examples", "gates", "gates_swapped.pcf"))}
 

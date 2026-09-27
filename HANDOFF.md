@@ -1,4 +1,4 @@
-# Handoff — bob_full_v1, 2026-09-26
+# Handoff — bob_full_v1, 2026-09-27
 
 **Read `CLAUDE.md` first (the rules), then this file (the live state), then `PLAN.md` §2 (status).**
 The whole story, milestone by milestone, is `docs/project/REPORT.md`; every part explained is
@@ -40,8 +40,21 @@ hand-off notes are in git history (`git log -p HANDOFF.md`).
     edge per round trip while TCK steps the user clock; bob studio's API behind a token and
     Host/Origin checks; `make check`'s banner at its end; `fcsweep.py` and
     `docs/research/2026-09-26-fc-sweep.md` for the next hardware milestone.
+- **M26, on branch `m26` (worktree `.claude/worktrees/m26`), not yet built in Vivado.** The
+  user lifted the hardware lock for two review items (2026-09-27): each flip-flop's INIT
+  (`ff_init` / `ff2_init`, what GSR and GRESTORE load) apart from its reset value
+  (`ff_rstval`, UG474 SRVAL), carried from yosys through VPR, the Python placer, FASM and
+  `model.py`; and TDO high impedance outside Shift-IR/Shift-DR (IEEE 1149.1), with the TMS/TDI
+  input delays on TCK's falling edge. Example `initval`; IDCODE `0x0B026093`. PLAN.md §M26,
+  checklist `docs/hwtest/M26.md`.
 
 ## 2. Waiting on the user
+
+- **M26 on the board:** copy the `m26` worktree's `hw/` over `E:\bob_full_v1\hw`, run
+  `build.tcl`, copy `bob_vivado\out\M26\` into `docs/reports/M26/`, then `make hwtest M=M26`
+  (and `--manual` for the hand steps). Tag `m26` and merge into `main` only after it passes.
+  Then regenerate volume 4 (`python3 docs/learn/tools/gen.py`): its FASM samples predate the
+  `ff_init` features.
 
 - **The board run of the fix pass:** `make hwtest M=M25` on the M25 bitstream. The USB link
   (`dirtyjtag.py`) and the load stream (sparse) changed; everything was checked against the

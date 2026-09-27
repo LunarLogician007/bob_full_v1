@@ -203,12 +203,12 @@ The 8×8 profile (48 CLBs, 9400 bits) built at M7 is frozen in `release/M7_8x8/`
 
 From M21 a CLB is a **cluster**: N = 4 logic elements behind a full crossbar, with 16 CLB inputs and 8 outputs. Until M20 it was one element per CLB.
 
-Each **element** (`ble.sv`) has 106 configuration bits at K = 6:
+Each **element** (`ble.sv`) has 109 configuration bits at K = 6 (64 INIT, 15 flags, 30 crossbar; M26):
 - **INIT (64 bits):** a LUT6_2-style fracturable LUT. O6 is the full function; with `frac` set it is two LUT5s over five shared inputs, O6 the upper and O5 the lower.
 - **Carry:** MUXCY/XORCY (`cy_en`, `cy_di_sel`). The carry runs through the four elements, then up to the CLB above.
-- **Two flip-flops:** FDRE/FDSE semantics (`ff_en`, `ff_rstval`, and the same for FF2 on O5); routable CE and SR shared by the CLB (`ff_ce_en`, `ff_sr_en`); synchronous SR beats CE; `ff_d_sel` chooses O5/O6.
+- **Two flip-flops:** FDRE/FDSE semantics (`ff_en`, `ff_rstval` = SRVAL, `ff_init` = INIT from M26, and the same for FF2 on O5); routable CE and SR shared by the CLB (`ff_ce_en`, `ff_sr_en`); synchronous SR beats CE; `ff_d_sel` chooses O5/O6.
 - **Crossbar (6 × 5 bits):** each element input picks any of the 16 CLB inputs, any of the 8 element outputs (feedback), const0 or const1.
-- **Global gating:** GSR sets the INIT value; GWE and **gce** (the user clock enable) gate every change.
+- **Global gating:** GSR loads each flip-flop's INIT (`ff_init`; until M25 the reset value `ff_rstval`, one bit for both); GWE and **gce** (the user clock enable) gate every change.
 
 **Why N = 4 and a full crossbar.** `software/bob/sweep.py` built N = 4/6/8/10 with full and half crossbars, routed every example in VPR and synthesised each fabric in yosys (`docs/reports/M21/cluster_sweep.md`). A half crossbar needs far wider channels, and host LUTs per guest LUT grow with N (289 at N = 4, 421 at N = 10), because every crossbar mux is host logic. N = 4 on 7 × 7 CLBs fits the chip; 8 × 8 would be ~86%.
 
@@ -400,8 +400,8 @@ The same freeze serves **time-travel debugging** (after Attia & Betz, TRETS 2022
 `software/host/snapshot.py` does three things:
 - **Save:** freeze the design and read every flip-flop it uses through CAPTURE.
 - **Restore:** one partial stream (`packets.restore_streams`) that
-  1. writes the CLB frames with each used flip-flop's INIT bit (`ff_rstval` / `ff2_rstval`)
-     set to the snapshot,
+  1. writes the CLB frames with each used flip-flop's INIT bit (`ff_init` / `ff2_init` from
+     M26; `ff_rstval` / `ff2_rstval` before) set to the snapshot,
   2. issues **GRESTORE** (UG470 CMD 10, new in `cfg_frames.v`: the fabric's GSR pulses for one
      packet word, and every flip-flop takes its INIT value),
   3. writes the original frames back.

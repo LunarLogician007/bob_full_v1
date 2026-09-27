@@ -25,6 +25,10 @@
 //
 // Control inputs: ce, sr are the CLB's routed pins, shared by every flop of the
 // cluster (UG474: one CE and one SR per slice); gce/gsr/gwe as in clb.sv.
+//
+// M26: each flop has INIT (ff_init, the value GSR and GRESTORE load) and SRVAL (ff_rstval,
+// the value the routed SR loads) as two bits, as UG474's flip-flops do: an FDRE may start at 1.
+// Until M25 one bit was both.
 // ============================================================================
 `timescale 1ns/1ps
 `include "bob_params.vh"
@@ -63,6 +67,8 @@ module ble #(
   wire ff2_ce_en  = cfg[`BOB_ELE_FF2_CE_EN];
   wire ff2_sr_en  = cfg[`BOB_ELE_FF2_SR_EN];
   wire dd         = cfg[`BOB_ELE_DD];
+  wire ff_init    = cfg[`BOB_ELE_FF_INIT];     // M26
+  wire ff2_init   = cfg[`BOB_ELE_FF2_INIT];
 
   // ---- LUT ------------------------------------------------------------------
   wire [4:0] la;                                   // CFGLUT5 address: i[K-2:0]
@@ -104,14 +110,14 @@ module ble #(
   reg q  = 1'b0;
   reg q2 = 1'b0;
   always @(posedge clk) begin
-    if (gsr)                          q <= ff_rstval;    // GSR: INIT value
+    if (gsr)                          q <= ff_init;      // GSR: INIT value (M26: its own bit)
     else if (gwe && gce) begin                           // GWE low or no enable: frozen
       if (ff_sr_en && sr)             q <= ff_rstval;    // synchronous, CE-independent
       else if (!ff_ce_en || ce)       q <= comb;
     end
   end
   always @(posedge clk) begin
-    if (gsr)                          q2 <= ff2_rstval;
+    if (gsr)                          q2 <= ff2_init;
     else if (gwe && gce) begin
       if (ff2_sr_en && sr)            q2 <= ff2_rstval;
       else if (!ff2_ce_en || ce)      q2 <= comb2;

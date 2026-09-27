@@ -9,10 +9,11 @@ Transaction-based Co-Simulation" (TRETS 2022), on bob's own configuration plane:
             every flip-flop through CAPTURE (element i: bit 2i = out[0] = FF q, bit 2i+1 =
             out[1] = FF2 q, for the flip-flops the design uses)
   restore   one partial stream (packets.restore_streams): the CLB frames with each used
-            flip-flop's INIT/reset bit (ff_rstval / ff2_rstval) set to the snapshot, then
-            UG470 GRESTORE (CMD 10: the fabric's GSR, every flip-flop takes its INIT value),
-            then the original frames back, one CRC over it all, LFRM. The state is read back
-            through CAPTURE while still frozen, before the release.
+            flip-flop's INIT bit (ff_init / ff2_init; until M25 the shared INIT/reset bit,
+            ff_rstval) set to the snapshot, then UG470 GRESTORE (CMD 10: the fabric's GSR,
+            every flip-flop takes its INIT value), then the original frames back, one CRC
+            over it all, LFRM. The state is read back through CAPTURE while still frozen,
+            before the release.
   model     a snapshot becomes model.py's state (to_model) and back (from_model): run a
             design on the board, move it into the simulator, step it there, and push the
             simulator's state back onto the chip.
@@ -72,11 +73,13 @@ def from_capture(word, cap):
 
 
 def with_init(word, state):
-    """the design with each used flip-flop's INIT/reset bit set to `state`"""
+    """the design with each used flip-flop's INIT bit set to `state`. M26: INIT is its own bit
+    (ff_init / ff2_init), so the restore no longer touches the reset value (ff_rstval); until
+    M25 it had to rewrite that bit, which was both."""
     bs = B.Bitstream(word)
     by_index = {el["index"]: el["name"] for el in B.ELEMENTS}
     for (i, w), v in state.items():
-        bs.set_block(by_index[i], "ff_rstval" if w == 0 else "ff2_rstval", v)
+        bs.set_block(by_index[i], "ff_init" if w == 0 else "ff2_init", v)
     return bs.to_int()
 
 

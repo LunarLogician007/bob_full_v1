@@ -208,6 +208,21 @@ def d_ce_sr():
     return d
 
 
+def d_init_srval():
+    """M26: INIT and SRVAL are two bits. clb(1,1), CE <- SW0, SR <- SW1 (shared by the CLB):
+    element 0 starts at INIT 1, resets to 0, loads D = 1 (LD0); element 1 starts at INIT 0,
+    resets to 1, loads D = 0 (LD1). After startup with both switches down LD1..0 show the
+    INITs (01); SR shows the SRVALs (10); CE shows D (01). A fabric that loads SRVAL on GSR
+    (every bob before M26) starts at 10."""
+    d = Design()
+    ce, sr = d.input(0), d.input(1)
+    d.output(0, d.lut(1, 1, LUT.const1(), [], ce=ce, sr=sr, e=0,
+                      ff_en=1, ff_init=1, ff_rstval=0, ff_ce_en=1, ff_sr_en=1))
+    d.output(1, d.lut(1, 1, LUT.const0(), [], ce=ce, sr=sr, e=1,
+                      ff_en=1, ff_init=0, ff_rstval=1, ff_ce_en=1, ff_sr_en=1))
+    return d
+
+
 COUNTER_X = 1
 
 

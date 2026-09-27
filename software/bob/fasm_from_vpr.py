@@ -27,7 +27,7 @@ How the parts become features:
             mode "arithmetic": init = I0 ^ I1 (^1 for INV_B), cy_en.
             mode "dd" (M24): dd + cy_en (cy_di_sel = INV_B), the adder on I[K-2], I[K-1];
             init[2**(K-1)-1:0] = the LUT's table on I[K-3:0], repeated over I[K-2] (O5) -> out[1].
-            ff in the cluster: ff_en, ff_rstval (FDSE), ff_ce_en / ff_sr_en when
+            ff in the cluster: ff_en, ff_rstval (FDSE), ff_init (INIT, M26), ff_ce_en / ff_sr_en when
             CE / SR is a net.
   placement VPR's (x, y) is bob's (x, y); the block rooted there names the tile.
   routing   for each net in <top>.route, every node after the first on a branch
@@ -120,6 +120,8 @@ def _ff_features(put, el, side, ffblk, second=False):
     put(f"{el}.{p}_en", 1)
     if ff["rstval"]:
         put(f"{el}.{p}_rstval", 1)
+    if ff.get("init", ff["rstval"]):                  # M26: INIT, its own bit (older results: = SRVAL)
+        put(f"{el}.{p}_init", 1)
     if ff["ce"]:
         put(f"{el}.{p}_ce_en", 1)
     if ff["sr"]:

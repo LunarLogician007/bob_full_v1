@@ -71,6 +71,22 @@ def _no_dd(word):
     return word
 
 
+_FLD = {f["name"]: f["offset"] for f in B.DEVICE["tile_types"]["clb"]["fields"]}
+
+
+def _init_from_srval(word):
+    """M26: a fabric without its own INIT bits (every bob before M26): GSR loads SRVAL, so each
+    flip-flop's ff_init reads as its ff_rstval"""
+    for b in B.DEVICE["blocks"]:
+        if b["type"] != "clb":
+            continue
+        for e in range(B.CLB_N):
+            for ff in ("ff", "ff2"):
+                src, dst = b["chain_lo"] + _FLD[f"e{e}.{ff}_rstval"], b["chain_lo"] + _FLD[f"e{e}.{ff}_init"]
+                word = (word & ~(1 << dst)) | (((word >> src) & 1) << dst)
+    return word
+
+
 def _dead_pin(word, j):
     """every CLB's element input j reads const0 (a crossbar mux whose leaves never load)"""
     for b in B.DEVICE["blocks"]:
@@ -89,13 +105,16 @@ class FakeBob:
         """what the fabric runs: the configuration, less the L-frames on a broken loader"""
         if self.ignore_dd:
             word = _no_dd(word)
+        if self.init_is_srval:
+            word = _init_from_srval(word)
         if self.dead_xbar_pin is not None:
             word = _dead_pin(word, self.dead_xbar_pin)
         return word & ~LBIT_MASK if self.lose_lframes else word
 
     def __init__(self, corrupt_capture=False, corrupt_sample=False, rate_scale=1.0, switches=lambda t: 0,
                  ignore_freeze=False, wipe_on_partial=False, lose_clocks=0, max_hz=None,
-                 budget=None, stale_shadow=False, lose_lframes=False, dead_xbar_pin=None, ignore_dd=False, no_grestore=False):
+                 budget=None, stale_shadow=False, lose_lframes=False, dead_xbar_pin=None, ignore_dd=False, no_grestore=False,
+                 init_is_srval=False):
         self.ir = "IDCODE"
         self.chain = 0
         self.expected = 0
@@ -126,6 +145,7 @@ class FakeBob:
         self.dead_xbar_pin = dead_xbar_pin
         self.ignore_dd = ignore_dd
         self.no_grestore = no_grestore            # broken board: GRESTORE does nothing
+        self.init_is_srval = init_is_srval        # M26: a pre-M26 fabric, GSR loads SRVAL
         # One simulated edge is a model.settle() - a Python fixed point over every mux,
         # about a millisecond at 100 CLBs - so a fast free-running clock asks for more
         # edges than this can run and the backlog grows without end. With a budget (in

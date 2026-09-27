@@ -44,7 +44,9 @@ set_property PULLDOWN true [get_ports tck]
 set_property PULLUP   true [get_ports tms]
 set_property PULLUP   true [get_ports tdi]
 
-# Modest drive on TDO; this is a short point-to-point link, not a bus.
+# Modest drive on TDO; this is a short point-to-point link, not a bus. M26: TDO is an OBUFT,
+# driven only in Shift-IR / Shift-DR (jtag_tap6.v tdo_oe), IEEE 1149.1. Undriven, the line
+# rests where the probe's input pull puts it (RP2040 pads come out of reset pulled down).
 set_property DRIVE 8     [get_ports tdo]
 set_property SLEW  SLOW  [get_ports tdo]
 
@@ -84,10 +86,13 @@ create_clock -period 8.000 -name sysclk [get_ports sysclk]
 # software/bob/device.py; dirtyjtag.py MAX_TCK_KHZ follows it (tests/test_layout.py).
 create_clock -period 1000.000 -name tck [get_ports tck]
 
-# TMS/TDI are launched by the probe on the falling edge and sampled here on the
-# rising edge; TDO is launched here on the falling edge. Loose on purpose.
-set_input_delay  -clock tck -max 20.000 [get_ports {tms tdi}]
-set_input_delay  -clock tck -min  0.000 [get_ports {tms tdi}]
+# TMS/TDI are launched by the probe while TCK is low (pico-dirtyJtag's PIO sets TDI with
+# TCK low, then raises it) and sampled here on the rising edge; TDO is launched here on the
+# falling edge. M26: the input delays are referred to the falling edge that launches them
+# (-clock_fall), which gives them the half period they really have (500 ns at 1 MHz); until
+# M25 they were referred to the rising edge, a whole period. Loose on purpose.
+set_input_delay  -clock tck -clock_fall -max 20.000 [get_ports {tms tdi}]
+set_input_delay  -clock tck -clock_fall -min  0.000 [get_ports {tms tdi}]
 set_output_delay -clock tck -max 20.000 -clock_fall [get_ports tdo]
 set_output_delay -clock tck -min  0.000 -clock_fall [get_ports tdo]
 

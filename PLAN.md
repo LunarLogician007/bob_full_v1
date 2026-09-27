@@ -61,6 +61,7 @@ The 8×8 profile (48 CLBs, 9400 bits, `0x9BEEF093`) is frozen in `release/M7_8x8
 | M25 | **time-travel debugging**: UG470 GRESTORE in the frame parser; `snapshot.py` captures a frozen design's flip-flops, restores them (INIT bits := state, GRESTORE, INIT back, verified while frozen) and hands them to `model.py` and back; `bob snap`; TCK constrained at 1 MHz (10x faster loads, board default 100 kHz until proven); IDCODE `0x0B025093` | **passed on the board 2026-09-25: 71/71**, and 71/71 again with TCK at 1 MHz (now the default: the regression runs in 8 min instead of 10); Vivado WNS +0.732 ns sysclk, **+489 ns TCK at 1 MHz**, 38,198 LUTs, slices 86.8%. Checklist `docs/hwtest/M25.md` |
 | UX | **software pass, hardware locked**: `./bob` guide, `run` / `new` / `examples` / `pins` / `doctor`, readable `info`; failures with file:line, the source line and hints (`software/bob/ux.py`); fit and pin checks with names and numbers; bob studio Start page, Build & Program, hints, save-before-build; `docs/GETTING_STARTED.md` | software only (no new bitstream); `tests/test_cli.py` + `tests/test_studio.py`; the new `load`/`doctor` paths ran against the M25 board (IDCODE `0x0B025093`) |
 | Fixes | **software pass from the whole-repo review** (`docs/research/2026-09-26-review.md`), hardware unchanged: VPR packs, places and routes on bob's measured delays (the 40 nm reference numbers before; the fabric byte-identical); sparse full loads (only frames with a 1, after JPROGRAM; `tb_frames` [20]); the Pico link batched per 64-byte packet, one edge per round trip while TCK steps the user clock; bob studio's API behind a token and Host/Origin checks; `fcsweep.py` measures connection boxes for the next hardware milestone | software only (no new bitstream); `tests/test_dirtyjtag.py`, `test_packets.py`, `test_device.py`, `test_studio.py`; **board run pending**: `make hwtest M=M25` on the M25 bitstream (the link and the load stream changed) |
+| M26 | **INIT apart from the reset value, TDO tristate** (review items, `docs/research/2026-09-26-review.md`): each element's two flip-flops get `ff_init` / `ff2_init`, the value GSR and GRESTORE load, with `ff_rstval` now only the synchronous reset value (UG474 INIT vs SRVAL); yosys keeps a register's own init, VPR and the Python placer carry it, a constant D routes through VPR; time-travel restores write INIT only; `jtag_tap6.v` drives TDO only in Shift-IR/Shift-DR (IEEE 1149.1, OBUFT); TMS/TDI input delays on TCK's falling edge; example `initval`; IDCODE `0x0B026093` | **built on the Mac, Vivado build pending**: sims, lint and `make check`; hwtest `init-srval`, `bob-initval`, `pnr-initval` (FakeBob `init_is_srval` fails all three); mutants `gsr-loads-srval`, `gsr2-loads-srval`, `tdo-always-driven`. Checklist `docs/hwtest/M26.md` |
 
 Hardware results are in `docs/hwtest/results.log`; Vivado reports are in `docs/reports/Mx/`; per-design guest reports in `docs/reports/M11/designs.md`.
 
@@ -296,6 +297,33 @@ simulator and back.
 - **Checks:** tb_frames [19] restores a running counter on the RTL; `tests/test_snapshot.py`;
   hwtest `time-travel` (FakeBob `no_grestore` fails it) and `fast-tck`; mutants
   `grestore-never`, `grestore-unguarded`.
+
+### M26: INIT apart from the reset value, TDO high impedance outside Shift
+
+Two items from the whole-repo review (2026-09-26), chosen by the user for the first hardware
+milestone after the hardware lock.
+- **INIT vs SRVAL (UG474):** a 7-series FDRE/FDSE has INIT (the value GSR loads) and a reset
+  value (the value its synchronous reset loads) as separate properties. bob had one bit
+  (`ff_rstval`) for both, so `reg q = 1'b1;` with a reset to 0 came up at 0. `device.py`
+  adds `ff_init` and `ff2_init` (element fields 13 and 14; the chain stays at 68,096 bits,
+  532 frames). `ble.sv`: GSR loads INIT; SR loads `ff_rstval`.
+- **Flow:** `synth.py` legalises with `dfflegalize ... 01` (the init survives, it no longer
+  follows the reset value); `bob_map.v` passes the wire's init to `BOB_FDRE`/`BOB_FDSE`
+  (unset: the reset value, as before); `vpr_run.py`, `place.py`, `fasm_from_vpr.py`,
+  `model.py`, `bitstream.py` carry `ff_init`. `vpr_run.py` now accepts a constant D (a
+  one-input LUT on CE or SR gives the same flip-flop). `pnr/pack.py` no longer pairs two
+  flip-flops with different CE or SR nets in one fracturable element.
+- **Time travel:** `snapshot.with_init` writes the snapshot into INIT only; the reset values
+  stay the design's.
+- **JTAG:** `jtag_tap6.v` has `tdo_oe`, set on TCK's falling edge in Shift-IR/Shift-DR;
+  `bob_fpga.v` and `cfg_test_top.v` drive TDO through a tristate (IEEE 1149.1). The XDC
+  refers the TMS/TDI input delays to TCK's falling edge (`-clock_fall`), where the probe
+  launches them.
+- **Checks:** `tb_bob` [1] TDO high-Z in Run-Test/Idle, driven in Shift-DR, high-Z after
+  Update-DR; `tb_clb` and the `tb_bob` random nets draw INIT apart from SRVAL; mutants
+  `gsr-loads-srval`, `gsr2-loads-srval`, `tdo-always-driven`; hwtest `init-srval` (one CLB
+  through INTEST against `model.py`), `bob-initval` and `pnr-initval` (`work/examples/initval`
+  through both place-and-route paths), each failing on FakeBob `init_is_srval`.
 
 ## 3. How the user wants this done (non-negotiable)
 

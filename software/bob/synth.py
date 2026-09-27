@@ -12,7 +12,8 @@ bob's cells substituted (software/bob/synth/):
   coarse      cmp2lut/cmp2lcu, alumacc, share, memory -nomap
   map_memory  memory_libmap bob_brams.txt -> BOB_BRAM18     (bob_brams_map.v)
   fine        techmap: $alu -> BOB_ADD (one CLB per bit)    (bob_map.v)
-  map_ffs     dfflegalize $_SDFFE_PP0P_/PP1P_, init = reset -> BOB_FDRE/BOB_FDSE
+  map_ffs     dfflegalize $_SDFFE_PP0P_/PP1P_ -> BOB_FDRE/BOB_FDSE; M26: init 0 or 1 whatever the
+              reset value (the fabric has INIT and SRVAL bits), unset init = the reset value
   map_luts    abc -lut K (K from software/bob/device.json)
 
 Outputs in DIR (default build/synth/<top>):
@@ -75,7 +76,7 @@ memory_map
 opt -full
 techmap -map +/techmap.v -map {lib}/bob_map.v
 opt -fast
-dfflegalize -cell $_SDFFE_PP0P_ r -cell $_SDFFE_PP1P_ r
+dfflegalize -cell $_SDFFE_PP0P_ 01 -cell $_SDFFE_PP1P_ 01
 techmap -map {lib}/bob_map.v
 opt_expr -mux_undef
 abc -lut {k}

@@ -295,7 +295,8 @@ def place(top, seed=0):
         c = cells[f]
         rst = "R" if c["type"] == "BOB_FDRE" else "S"
         ce_b, sr_b = nl.bit(f, "CE"), nl.bit(f, rst)
-        return ({"ff_en": 1, "ff_rstval": int(c["type"] == "BOB_FDSE"),
+        fdse = int(c["type"] == "BOB_FDSE")
+        return ({"ff_en": 1, "ff_rstval": fdse, "ff_init": _param(c, "INIT", fdse),   # M26: INIT != SRVAL
                  "ff_ce_en": int(ce_b != "1"), "ff_sr_en": int(sr_b not in ("0", "x"))},
                 None if ce_b == "1" else S(ce_b), None if sr_b in ("0", "x") else S(sr_b))
 

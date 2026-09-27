@@ -573,6 +573,14 @@ module tb_bob;
         shift_ir(IR_BYPASS, irc);
         shift_dr(32, 128'hD5A73C91, rx);
         check("BYPASS (delayed one TCK)", rx[31:0], 32'hAB4E7922);
+        // M26: TDO is driven only in Shift-IR / Shift-DR (IEEE 1149.1); the scans above read it there
+        check("TDO high impedance in Run-Test/Idle (M26)", {63'h0, tdo === 1'bz}, 64'h1);
+        tick(1'b1, 1'b0); tick(1'b0, 1'b0); tick(1'b0, 1'b0);          // Select-DR, Capture-DR, Shift-DR
+        #(HALF);
+        check("TDO driven in Shift-DR (M26)", {63'h0, tdo !== 1'bz}, 64'h1);
+        tick(1'b1, 1'b0); tick(1'b1, 1'b0); tick(1'b0, 1'b0);          // Exit1-DR, Update-DR, Run-Test/Idle
+        #(HALF);
+        check("TDO high impedance again after Update-DR (M26)", {63'h0, tdo === 1'bz}, 64'h1);
 
         $display("");
         $display("[2] the %0d-bit chain: CRC-checked commit, readback, length, GTS", CFG_W);

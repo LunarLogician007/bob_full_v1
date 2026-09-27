@@ -27,31 +27,37 @@
 "ff": {
 "$auto$ff.cc:337:slice$94": {
 "rstval": 0,
+"init": 0,
 "ce": true,
 "sr": true
 },
 "$auto$ff.cc:337:slice$95": {
 "rstval": 0,
+"init": 0,
 "ce": true,
 "sr": true
 },
 "$auto$ff.cc:337:slice$96": {
 "rstval": 0,
+"init": 0,
 "ce": true,
 "sr": true
 },
 "$auto$ff.cc:337:slice$97": {
 "rstval": 0,
+"init": 0,
 "ce": true,
 "sr": true
 },
 "$auto$ff.cc:337:slice$98": {
 "rstval": 0,
+"init": 0,
 "ce": true,
 "sr": true
 },
 "$auto$ff.cc:337:slice$99": {
 "rstval": 0,
+"init": 0,
 "ce": true,
 "sr": true
 }

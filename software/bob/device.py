@@ -463,19 +463,24 @@ class Device:
         ("frac", 1, "flag", "two LUT(K-1)s: input K-1 reads 1, so O6 = INIT[2**K-1:2**(K-1)] and "
                             "O5 = INIT[2**(K-1)-1:0], both over i[K-2:0]"),
         ("ff_en", 1, "flag", "out[0] = FF q (1) or combinational (0)"),
-        ("ff_rstval", 1, "flag", "INIT and sync reset value: FDRE=0 / FDSE=1"),
+        ("ff_rstval", 1, "flag", "sync reset value (SRVAL): FDRE=0 / FDSE=1; M26: no longer the GSR value"),
         ("ff_ce_en", 1, "flag", "1: FF honours the CLB's routed CE, 0: always enabled"),
         ("ff_sr_en", 1, "flag", "1: FF honours the CLB's routed SR, 0: reset ignored"),
         ("cy_en", 1, "flag", "carry mode: XORCY sum on out[0]'s datapath, MUXCY cout"),
         ("cy_di_sel", 1, "flag", "carry generate: 0 = i[0], 1 = O5"),
         ("ff_d_sel", 1, "flag", "out[0] datapath: 0 = O6, 1 = O5 (ignored if cy_en)"),
         ("ff2_en", 1, "flag", "out[1] = second FF q (1) or O5 (0)"),
-        ("ff2_rstval", 1, "flag", "second FF: INIT and sync reset value"),
+        ("ff2_rstval", 1, "flag", "second FF: sync reset value (SRVAL)"),
         ("ff2_ce_en", 1, "flag", "second FF honours the routed CE"),
         ("ff2_sr_en", 1, "flag", "second FF honours the routed SR"),
         ("dd", 1, "flag", "M24 Double Duty (with cy_en): the adder's operands come straight from "
                           "i[K-2] (A, also DI) and i[K-1] (B), prop = A ^ B ^ cy_di_sel (INV_B), so "
                           "the LUT stays free: out[1] = O5 = a LUT(K-2) over i[K-3:0]"),
+        # M26: INIT and SRVAL are two bits, as 7-series has them (UG474: an FDRE may have INIT 1).
+        # GSR (and GRESTORE, and the power-up after JPROGRAM) loads INIT; the routed SR loads
+        # SRVAL (ff_rstval). Appended, so every older field keeps its bit.
+        ("ff_init", 1, "flag", "M26: INIT, the value GSR / GRESTORE load (UG474 INIT); ff_rstval is SRVAL"),
+        ("ff2_init", 1, "flag", "M26: second FF's INIT"),
     )
 
     @property
