@@ -108,16 +108,25 @@ const project = {
   },
 
   apply(r) {
+    const was = S.proj ? S.proj.path : null;
     S.proj = r.project;
     S.recent = r.recent || [];
     $("projname").textContent = S.proj ? S.proj.name : "";
     if (S.proj) S.project = { ...S.project, top: S.proj.top, name: S.proj.name };
+    // another project, or none: the block design on the canvas was the old project's
+    if ((S.proj ? S.proj.path : null) !== was) {
+      bd.forget();
+      if (tabs.which === "bd") bd.render();
+    }
     if (tabs.which === "project") this.render();
     props.render();
     buttons();
   },
 
   async post(action, body) {
+    if (["new", "open", "close"].includes(action) && bd.dirty
+        && !window.confirm(`${bd.rel} has unsaved changes. Discard them?`))
+      throw new Error(`kept the project open: save ${bd.rel} first (Block Design tab, Save)`);
     const r = await api("/api/project/" + action, body || {});
     this.apply(r);
     return r;
@@ -239,11 +248,12 @@ const project = {
   },
 
   async open(path) {
+    const was = S.proj && S.proj.path;
     await this.post("open", { path });
     logLine("info", `opened ${S.proj.path}`);
     flow.reset();
-    tabs.show("project");
-    if (S.proj.block_designs.length && typeof bd !== "undefined") bd.forget();
+    if (S.proj.path === was) bd.forget();   // the same project again: read its block design afresh
+    tabs.show("project");                   // (another one: apply() has dropped the old design)
   },
 
   addDialog(kind) {

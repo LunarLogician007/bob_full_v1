@@ -19,6 +19,7 @@ Colour only on a terminal, and never with NO_COLOR set (https://no-color.org).
 """
 
 import glob
+import json
 import os
 import re
 import shutil
@@ -84,7 +85,8 @@ def summary(res, load_cmd="./bob load"):
     if t is not None and t.stats.get("fmax_hz"):
         fmax = t.stats["fmax_hz"] / 1e6
         if res.flow.clock == "run" and t.stats.get("hz"):
-            out.append(f"    clock   free-running at {t.stats['hz'] / 1e6:.4g} MHz "
+            hz = t.stats["hz"]                    # a slow clock (the traffic example's 32 Hz) in Hz
+            out.append(f"    clock   free-running at {f'{hz / 1e6:.4g} MHz' if hz >= 1e5 else f'{hz:.4g} Hz'} "
                        f"(this design allows up to {fmax:.3g} MHz)")
         elif res.flow.clock == "run":
             out.append(f"    clock   free-running on the divider (--div {res.flow.div}); "
@@ -257,8 +259,12 @@ def examples():
             line = line.split(". ")[0].rstrip(".:, ")
             if len(line) > 78:
                 line = line[:76].rsplit(" ", 1)[0].rstrip(",:;") + " ..."
-        else:
-            line = "a bob studio project with a block design (./bob build --project ...)"
+        else:                                     # a project: the line is its description
+            try:
+                line = json.load(open(path)).get("description", "")
+            except (OSError, ValueError):
+                line = ""
+            line = line or "a bob studio project with a block design (./bob build --project ...)"
         out.append((name, path, line))
     return out
 

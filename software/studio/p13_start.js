@@ -45,10 +45,12 @@ const start = {
     for (const ex of S.examples || []) {
       const r = el("div", "ex");
       r.appendChild(el("span", "nm", ex.name));
-      r.appendChild(el("span", "ds", ex.desc || ""));
+      const ds = el("span", "ds", ex.desc || "");
+      if (ex.project) ds.prepend(el("span", "tag", "block design"));
+      r.appendChild(ds);
       const bt = el("span", "bt");
       const o = el("button", "sbtn", "Open");
-      o.title = `open ${ex.path} in the editor`;
+      o.title = ex.project ? `open the project ${ex.path} and its block design` : `open ${ex.path} in the editor`;
       o.onclick = () => this.example(ex, false);
       const g = el("button", "sbtn pri", "Build & Program");
       g.title = "open it, run the whole flow and program the target";
@@ -75,7 +77,7 @@ const start = {
       for (const p of S.recent.slice(0, 5)) {
         const a = el("a", null, p.split("/").slice(-2).join("/"));
         a.title = p;
-        a.onclick = () => project.open(p);
+        a.onclick = () => project.open(p).catch((e) => { logLine("error", e.message); dock.show("log"); });
         rc.appendChild(a);
       }
       own.appendChild(rc);
@@ -125,12 +127,21 @@ const start = {
     box.appendChild(tr);
   },
 
-  // an example: a project that is open would win every build, so close it first
+  // an example: a project that is open would win every build, so close it first. A
+  // block-design example is a project itself: open it, and its block design with it.
   async example(ex, go) {
-    if (S.proj) {
-      try { await project.post("close"); } catch (e) { logLine("error", String(e.message || e)); }
+    try {
+      if (ex.project) {
+        await project.open(ex.project);
+        if (S.proj.block_designs.length) await bd.open(S.proj.block_designs[0]);
+      } else {
+        if (S.proj) await project.post("close");
+        await sources.open(ex.path, ex.name);
+      }
+    } catch (e) {
+      logLine("error", String(e.message || e)); dock.show("log");
+      return;
     }
-    await sources.open(ex.path, ex.name);
     if (go) await buildAndProgram();
   },
 };

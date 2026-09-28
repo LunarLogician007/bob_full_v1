@@ -369,17 +369,64 @@ def test_the_bd_file_keeps_the_canvas(tmp_path):
     assert "junk" not in back
 
 
-def test_the_committed_example_project_builds(tmp_path):
-    """work/examples/bd_demo is a project made by the studio; its wrapper is current."""
-    path = os.path.join(ROOT, "work", "examples", "bd_demo", "bd_demo.bobproj")
+@pytest.mark.parametrize("name", ["bd_demo", "traffic"])
+def test_the_committed_example_project_builds(tmp_path, name):
+    """work/examples/bd_demo and traffic are projects made the studio's way; their
+    wrappers are current and they build on the committed VPR result."""
+    path = os.path.join(ROOT, "work", "examples", name, f"{name}.bobproj")
     p = P.Project.open(path)
     doc = BD.load(p.abs(p.data["block_designs"][0]))
     res = BD.check(doc, p)
-    assert res["errors"] == []
+    assert res["errors"] == [] and res["warnings"] == []
     want = BD.wrapper_text(doc, res, p.data["block_designs"][0])
     assert open(p.abs(f"bd/{doc['name']}_wrapper.v")).read() == want, \
-        "bd_demo's wrapper is stale: run software/bob/bd.py generate on it"
+        f"{name}'s wrapper is stale: run software/bob/bd.py generate on it"
+    for b in res["blocks"].values():                 # the IP copied in is today's
+        if b["kind"] == "ip":
+            assert open(p.abs(f"ip/{os.path.basename(b['file'])}")).read() == open(b["file"]).read()
     kw = p.flow_kwargs()
-    kw["out"] = str(tmp_path / "bd_demo.bit")
+    kw["out"] = str(tmp_path / f"{name}.bit")
+    kw["pnr"] = "vpr"               # whatever the studio's pnr is set to, the route is committed
     res = flow.Flow(**kw).run()
     assert res.ok, res.error
+    assert {s.name: s for s in res.stages}["pnr"].stats.get("reused"), "run make vpr: no committed VPR result"
+
+
+def test_the_traffic_example_on_the_fabric(tmp_path):
+    """work/examples/traffic, configured into model.py from its .bit: with SW1 up a tick
+    is 4 clocks, so green lasts 8 ticks, yellow 2, red 5; BTN0 cuts green to 2 ticks; SW0
+    (night) flashes yellow alone, then one red phase leads back to green."""
+    import bitgen
+    import model
+    from bitstream import Bitstream
+    p = P.Project.open(os.path.join(ROOT, "work", "examples", "traffic", "traffic.bobproj"))
+    kw = p.flow_kwargs()
+    kw["out"] = str(tmp_path / "traffic.bit")
+    res = flow.Flow(**kw).run()
+    assert res.ok, res.error
+    t = {s.name: s for s in res.stages}["timing"].stats      # its clock is constrs/traffic.sdc's
+    assert t["sdc"].endswith("constrs/traffic.sdc") and t["slack_ns"] > 0 and abs(t["hz"] - 32) < 0.01
+    m = model.Fabric(Bitstream(bitgen.read_bit(kw["out"])["word"]))
+    m.clock(gsr=1)
+    SW0, SW1, BTN0 = 1, 2, 4                     # pad_i: sw[1:0], then btn[3:0]
+    G, Y, R = 1, 2, 4                            # LD0 green, LD1 yellow, LD2 red
+
+    def phases(n, pad_i):
+        out = []
+        for _ in range(n):
+            v = m.outputs(pad_i)
+            if out and out[-1][0] == v:
+                out[-1][1] += 1
+            else:
+                out.append([v, 1])
+            m.clock(pad_i=pad_i)
+        return [tuple(r) for r in out]
+
+    run = phases(90, SW1)
+    assert run[1:4] == [(G, 32), (Y, 8), (R, 20)] and run[4][0] == G, run
+    run = phases(60, SW1 | BTN0)                 # held: every green is cut to 2 ticks
+    assert (G, 8) in run and all(v != G or n <= 12 for v, n in run), run
+    run = phases(24, SW1 | SW0)
+    assert {v for v, _ in run} == {0, Y} and all(n <= 4 for _v, n in run), run
+    run = phases(40, SW1)
+    assert [v for v, _ in run][:2] == [R, G] and 17 <= run[0][1] <= 21, run

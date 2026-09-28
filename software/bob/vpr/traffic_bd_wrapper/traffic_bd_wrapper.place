@@ -1,0 +1,19 @@
+Netlist_File: traffic_bd_wrapper.net Netlist_ID: SHA256:16ab29f01e2533c2cbe90a46040b30bae49a4a83cf3b500d066cf364fbe8e1a2
+Array size: 14 x 12 logic blocks
+
+#block name	x	y	subblk	layer	block number
+#----------	--	--	------	-----	------------
+bob_gen9	5	1	0	0	#0
+bob_gen6	6	2	0	0	#1
+$auto$alumacc.cc:548:replace_alu$171.slice[3].add	5	4	0	0	#2
+n26		6	3	0	0	#3
+bob_gen1	5	3	0	0	#4
+$auto$alumacc.cc:548:replace_alu$180.slice[3].add	5	2	0	0	#5
+led[2]		7	3	0	0	#6
+out:led[0]	13	1	0	0	#7
+out:led[1]	13	2	0	0	#8
+out:led[2]	13	3	0	0	#9
+clk		1	0	0	0	#10
+sw[0]		0	1	0	0	#11
+sw[1]		0	2	0	0	#12
+btn[0]		0	3	0	0	#13

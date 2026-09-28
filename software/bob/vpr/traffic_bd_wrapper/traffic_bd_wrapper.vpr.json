@@ -1,0 +1,355 @@
+{
+"top": "traffic_bd_wrapper",
+"lut": {
+"n15": {
+"n": 5,
+"tt": 4278252612
+},
+"n14": {
+"n": 4,
+"tt": 1
+},
+"led[0]": {
+"n": 3,
+"tt": 1
+},
+"n13": {
+"n": 5,
+"tt": 4294443008
+},
+"n24": {
+"n": 6,
+"tt": 18446744069430365380
+},
+"n26": {
+"n": 6,
+"tt": 18446744069430365380
+},
+"n27": {
+"n": 4,
+"tt": 52988
+},
+"n28": {
+"n": 4,
+"tt": 304
+},
+"n31": {
+"n": 2,
+"tt": 1
+},
+"n29": {
+"n": 3,
+"tt": 112
+},
+"n30": {
+"n": 5,
+"tt": 32767
+},
+"n39": {
+"n": 6,
+"tt": 4043042816
+},
+"n42": {
+"n": 2,
+"tt": 4
+},
+"n40": {
+"n": 2,
+"tt": 9
+},
+"n44": {
+"n": 6,
+"tt": 18446744073709547793
+},
+"led[2]": {
+"n": 3,
+"tt": 16
+},
+"led[1]": {
+"n": 4,
+"tt": 61508
+},
+"n46": {
+"n": 1,
+"tt": 1
+},
+"n47": {
+"n": 1,
+"tt": 1
+},
+"ffd14": {
+"n": 1,
+"tt": 2
+},
+"ffd15": {
+"n": 1,
+"tt": 2
+},
+"ffd16": {
+"n": 1,
+"tt": 2
+}
+},
+"add": {
+"bob_gen1": {
+"inv": 0
+},
+"$auto$alumacc.cc:548:replace_alu$171.slice[0].add": {
+"inv": 1
+},
+"$auto$alumacc.cc:548:replace_alu$171.slice[1].add": {
+"inv": 1
+},
+"$auto$alumacc.cc:548:replace_alu$171.slice[2].add": {
+"inv": 1
+},
+"$auto$alumacc.cc:548:replace_alu$171.slice[3].add": {
+"inv": 1
+},
+"bob_gen6": {
+"inv": 0
+},
+"$auto$alumacc.cc:548:replace_alu$177.slice[0].add": {
+"inv": 0
+},
+"$auto$alumacc.cc:548:replace_alu$177.slice[1].add": {
+"inv": 0
+},
+"bob_gen9": {
+"inv": 0
+},
+"$auto$alumacc.cc:548:replace_alu$180.slice[0].add": {
+"inv": 0
+},
+"$auto$alumacc.cc:548:replace_alu$180.slice[1].add": {
+"inv": 0
+},
+"$auto$alumacc.cc:548:replace_alu$180.slice[2].add": {
+"inv": 0
+},
+"$auto$alumacc.cc:548:replace_alu$180.slice[3].add": {
+"inv": 0
+}
+},
+"ff": {
+"$auto$ff.cc:337:slice$274": {
+"rstval": 0,
+"init": 0,
+"ce": true,
+"sr": false
+},
+"$auto$ff.cc:337:slice$277": {
+"rstval": 0,
+"init": 0,
+"ce": true,
+"sr": false
+},
+"$auto$ff.cc:337:slice$278": {
+"rstval": 0,
+"init": 0,
+"ce": true,
+"sr": false
+},
+"$auto$ff.cc:337:slice$279": {
+"rstval": 0,
+"init": 0,
+"ce": true,
+"sr": false
+},
+"$auto$ff.cc:337:slice$280": {
+"rstval": 0,
+"init": 0,
+"ce": true,
+"sr": false
+},
+"$auto$ff.cc:337:slice$281": {
+"rstval": 0,
+"init": 0,
+"ce": false,
+"sr": true
+},
+"$auto$ff.cc:337:slice$285": {
+"rstval": 0,
+"init": 0,
+"ce": true,
+"sr": false
+},
+"$auto$ff.cc:337:slice$293": {
+"rstval": 0,
+"init": 0,
+"ce": false,
+"sr": false
+},
+"$auto$ff.cc:337:slice$294": {
+"rstval": 0,
+"init": 0,
+"ce": false,
+"sr": false
+},
+"$auto$ff.cc:337:slice$295": {
+"rstval": 0,
+"init": 0,
+"ce": false,
+"sr": false
+},
+"$auto$ff.cc:337:slice$296": {
+"rstval": 0,
+"init": 0,
+"ce": false,
+"sr": false
+},
+"$auto$ff.cc:337:slice$302": {
+"rstval": 0,
+"init": 0,
+"ce": false,
+"sr": false
+},
+"$auto$ff.cc:337:slice$303": {
+"rstval": 0,
+"init": 0,
+"ce": false,
+"sr": false
+},
+"$auto$ff.cc:337:slice$307": {
+"rstval": 0,
+"init": 0,
+"ce": false,
+"sr": false
+},
+"$auto$ff.cc:337:slice$308": {
+"rstval": 0,
+"init": 0,
+"ce": false,
+"sr": false
+},
+"$auto$ff.cc:337:slice$326": {
+"rstval": 0,
+"init": 0,
+"ce": false,
+"sr": false
+},
+"$auto$ff.cc:337:slice$327": {
+"rstval": 0,
+"init": 1,
+"ce": false,
+"sr": false
+}
+},
+"bram": {},
+"dsp": {},
+"consts": {
+"bob_gen1": {
+"a": 1,
+"b": 1
+},
+"$auto$alumacc.cc:548:replace_alu$171.slice[0].add": {
+"b": 1
+},
+"$auto$alumacc.cc:548:replace_alu$171.slice[1].add": {
+"b": 0
+},
+"$auto$alumacc.cc:548:replace_alu$171.slice[2].add": {
+"b": 0
+},
+"$auto$alumacc.cc:548:replace_alu$171.slice[3].add": {
+"b": 0
+},
+"bob_gen6": {
+"a": 0,
+"b": 0
+},
+"$auto$alumacc.cc:548:replace_alu$177.slice[0].add": {
+"a": 1
+},
+"$auto$alumacc.cc:548:replace_alu$177.slice[1].add": {
+"a": 0
+},
+"bob_gen9": {
+"a": 0,
+"b": 0
+},
+"$auto$alumacc.cc:548:replace_alu$180.slice[0].add": {
+"a": 1
+},
+"$auto$alumacc.cc:548:replace_alu$180.slice[1].add": {
+"a": 0
+},
+"$auto$alumacc.cc:548:replace_alu$180.slice[2].add": {
+"a": 0
+},
+"$auto$alumacc.cc:548:replace_alu$180.slice[3].add": {
+"a": 0
+}
+},
+"out_consts": {},
+"has_clk": true,
+"out_pads": {},
+"net_bits": {
+"btn[0]": 5,
+"btn[1]": 6,
+"btn[2]": 7,
+"btn[3]": 8,
+"clk": 2,
+"ffd14": 43,
+"ffd15": 5,
+"ffd16": 64,
+"led[0]": 9,
+"led[1]": 10,
+"led[2]": 11,
+"n12": 12,
+"n13": 13,
+"n14": 14,
+"n15": 15,
+"n16": 16,
+"n17": 17,
+"n18": 18,
+"n19": 19,
+"n20": 20,
+"n21": 21,
+"n22": 22,
+"n23": 23,
+"n24": 24,
+"n25": 25,
+"n26": 26,
+"n27": 27,
+"n28": 28,
+"n29": 29,
+"n30": 30,
+"n31": 31,
+"n32": 32,
+"n33": 33,
+"n34": 34,
+"n35": 35,
+"n36": 36,
+"n37": 37,
+"n38": 38,
+"n39": 39,
+"n40": 40,
+"n41": 41,
+"n42": 42,
+"n43": 43,
+"n44": 44,
+"n45": 45,
+"n46": 46,
+"n47": 47,
+"n53": 53,
+"n55": 55,
+"n57": 57,
+"n59": 59,
+"n61": 61,
+"n63": 63,
+"n64": 64,
+"sw[0]": 3,
+"sw[1]": 4
+},
+"pins": {
+"clk": 0,
+"sw[0]": 12,
+"sw[1]": 14,
+"btn[0]": 16,
+"out:led[0]": 13,
+"out:led[1]": 15,
+"out:led[2]": 17
+},
+"pcf": null
+}

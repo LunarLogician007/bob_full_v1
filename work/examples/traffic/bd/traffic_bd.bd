@@ -1,0 +1,156 @@
+{
+ "bd": 1,
+ "name": "traffic_bd",
+ "blocks": [
+  {
+   "id": "slow",
+   "kind": "ip",
+   "type": "clkdiv",
+   "params": {
+    "N": 4
+   },
+   "x": 260,
+   "y": 30
+  },
+  {
+   "id": "fast",
+   "kind": "ip",
+   "type": "clkdiv",
+   "params": {
+    "N": 2
+   },
+   "x": 260,
+   "y": 120
+  },
+  {
+   "id": "rate",
+   "kind": "ip",
+   "type": "mux2",
+   "params": {
+    "W": 1
+   },
+   "x": 500,
+   "y": 50
+  },
+  {
+   "id": "walk_btn",
+   "kind": "ip",
+   "type": "debounce",
+   "params": {
+    "N": 1
+   },
+   "x": 260,
+   "y": 330
+  },
+  {
+   "id": "timer",
+   "kind": "module",
+   "type": "phase_timer",
+   "params": {},
+   "x": 740,
+   "y": 50
+  },
+  {
+   "id": "ctrl",
+   "kind": "module",
+   "type": "traffic_fsm",
+   "params": {},
+   "x": 980,
+   "y": 190
+  },
+  {
+   "id": "night",
+   "kind": "module",
+   "type": "night_flash",
+   "params": {},
+   "x": 740,
+   "y": 400
+  },
+  {
+   "id": "lamp",
+   "kind": "ip",
+   "type": "mux2",
+   "params": {
+    "W": 3
+   },
+   "x": 1220,
+   "y": 260
+  }
+ ],
+ "wires": [
+  {
+   "src": "slow.tick",
+   "dst": "rate.a"
+  },
+  {
+   "src": "fast.tick",
+   "dst": "rate.b"
+  },
+  {
+   "src": "board.SW1",
+   "dst": "rate.sel"
+  },
+  {
+   "src": "rate.y",
+   "dst": "timer.tick"
+  },
+  {
+   "src": "rate.y",
+   "dst": "night.tick"
+  },
+  {
+   "src": "board.BTN0",
+   "dst": "walk_btn.d"
+  },
+  {
+   "src": "walk_btn.q",
+   "dst": "ctrl.walk"
+  },
+  {
+   "src": "timer.left",
+   "dst": "ctrl.left"
+  },
+  {
+   "src": "ctrl.load",
+   "dst": "timer.load"
+  },
+  {
+   "src": "ctrl.len",
+   "dst": "timer.len"
+  },
+  {
+   "src": "board.SW0",
+   "dst": "ctrl.night"
+  },
+  {
+   "src": "ctrl.lamps",
+   "dst": "lamp.a"
+  },
+  {
+   "src": "night.lamps",
+   "dst": "lamp.b"
+  },
+  {
+   "src": "board.SW0",
+   "dst": "lamp.sel"
+  },
+  {
+   "src": "lamp.y",
+   "dst": "board.led"
+  }
+ ],
+ "board": {
+  "ix": 20,
+  "iy": 230,
+  "ox": 1460,
+  "oy": 280,
+  "in_pins": [
+   "SW1",
+   "SW0",
+   "BTN0"
+  ],
+  "out_pins": [
+   "led"
+  ]
+ }
+}

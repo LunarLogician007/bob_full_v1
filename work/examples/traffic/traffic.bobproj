@@ -1,0 +1,29 @@
+{
+  "bobproj": 1,
+  "name": "traffic",
+  "description": "a traffic light: three modules and five IP cores wired in a block design",
+  "top": "traffic_bd_wrapper",
+  "sources": [
+    "src/traffic_fsm.v",
+    "src/phase_timer.v",
+    "src/night_flash.v",
+    "ip/ip_clkdiv.v",
+    "ip/ip_mux2.v",
+    "ip/ip_debounce.v",
+    "bd/traffic_bd_wrapper.v"
+  ],
+  "constraints": [
+    "constrs/traffic.sdc"
+  ],
+  "active_pcf": null,
+  "block_designs": [
+    "bd/traffic_bd.bd"
+  ],
+  "settings": {
+    "clock": "run",
+    "div": 0,
+    "seed": 1,
+    "pnr": "vpr",
+    "hz": "div"
+  }
+}

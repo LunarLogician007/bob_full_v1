@@ -22,9 +22,11 @@ rrgraph:
 vpr:
 	for t in gates adder counter blinky ram mult switches fir wide big atspeed fir16 initval; do software/bob/equiv.py work/examples/$$t/$$t.v || exit 1; done
 	software/bob/vpr_run.py --repeat
-	# M18: the block-design example, a project (its sources are listed in its .bobproj)
+	# M18: the block-design examples, projects (their sources are listed in their .bobproj)
 	software/bob/cli.py build --project work/examples/bd_demo/bd_demo.bobproj --pnr python -o build/bit/bd_demo_py.bit
 	software/bob/vpr_run.py --repeat bd_demo_bd_wrapper
+	software/bob/cli.py build --project work/examples/traffic/traffic.bobproj --pnr python -o build/bit/traffic_py.bit
+	software/bob/vpr_run.py --repeat traffic_bd_wrapper
 	software/bob/fasm_from_vpr.py --check
 
 # M12a: bob's own Python pack/place/route vs VPR's committed results (no Docker)

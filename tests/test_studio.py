@@ -148,7 +148,13 @@ def test_device_matches_the_device_description(srv):
 def test_examples_are_listed(srv):
     ex = get(srv, "/api/examples")
     assert {e["name"] for e in ex} >= {"gates", "counter", "fir"}
-    assert all(e["lines"] > 0 for e in ex)
+    assert all(e["lines"] > 0 and e["desc"] for e in ex)
+    # the block-design examples are projects: the Start page opens them as one
+    projs = {e["name"]: e for e in ex if e.get("project")}
+    assert set(projs) >= {"bd_demo", "traffic"}
+    for e in projs.values():
+        assert e["project"].endswith(".bobproj") and os.path.isfile(e["project"])
+        assert e["path"] == os.path.relpath(e["project"], ROOT) and e["routed"]
 
 
 def test_a_source_file_can_be_read(srv):

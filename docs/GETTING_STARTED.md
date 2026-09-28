@@ -122,7 +122,9 @@ running design for another, rewriting only the frames that differ, with its cloc
 ```
 
 It opens on the **Start page**: the flow in five steps, every example with **Open** and
-**Build & Program**, your projects, and the setup check. In the editor, **⌘/Ctrl Enter** builds
+**Build & Program**, your projects, and the setup check. The examples marked *block design*
+(`bd_demo`, and `traffic`: a traffic light built from several modules) open as projects, on
+their block design. In the editor, **⌘/Ctrl Enter** builds
 and **⌘/Ctrl ⇧ Enter** builds and programs; unsaved edits are saved first. A failed build
 lists its errors under **Messages** with a hint; clicking one jumps to the line. **Device**
 shows where the design landed, **Board** the LEDs and switches, **Waveform** a logic analyser on

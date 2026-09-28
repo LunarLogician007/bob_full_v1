@@ -1,6 +1,7 @@
 {
   "bobproj": 1,
   "name": "bd_demo",
+  "description": "a block design of four IP cores: counter, mux, edge detector, toggle",
   "top": "bd_demo_bd_wrapper",
   "sources": [
     "ip/ip_counter.v",

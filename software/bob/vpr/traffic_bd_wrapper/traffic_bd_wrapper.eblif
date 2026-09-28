@@ -1,0 +1,321 @@
+# GENERATED from the yosys netlist of traffic_bd_wrapper - do not edit
+.model traffic_bd_wrapper
+.inputs clk sw[0] sw[1] btn[0]
+.outputs led[0] led[1] led[2]
+.subckt bob_add cout=cy2
+.cname bob_gen1
+.subckt bob_add a=n18 cin=cy2 cout=cy3 sumout=n23
+.cname $auto$alumacc.cc:548:replace_alu$171.slice[0].add
+.subckt bob_add a=n19 cin=cy3 cout=cy4 sumout=n12
+.cname $auto$alumacc.cc:548:replace_alu$171.slice[1].add
+.subckt bob_add a=n17 cin=cy4 cout=cy5 sumout=n25
+.cname $auto$alumacc.cc:548:replace_alu$171.slice[2].add
+.subckt bob_add a=n16 cin=cy5 sumout=n38
+.cname $auto$alumacc.cc:548:replace_alu$171.slice[3].add
+.subckt bob_add cout=cy7
+.cname bob_gen6
+.subckt bob_add b=n33 cin=cy7 cout=cy8 sumout=n53
+.cname $auto$alumacc.cc:548:replace_alu$177.slice[0].add
+.subckt bob_add b=n32 cin=cy8 sumout=n55
+.cname $auto$alumacc.cc:548:replace_alu$177.slice[1].add
+.subckt bob_add cout=cy10
+.cname bob_gen9
+.subckt bob_add b=n37 cin=cy10 cout=cy11 sumout=n57
+.cname $auto$alumacc.cc:548:replace_alu$180.slice[0].add
+.subckt bob_add b=n34 cin=cy11 cout=cy12 sumout=n59
+.cname $auto$alumacc.cc:548:replace_alu$180.slice[1].add
+.subckt bob_add b=n35 cin=cy12 cout=cy13 sumout=n61
+.cname $auto$alumacc.cc:548:replace_alu$180.slice[2].add
+.subckt bob_add b=n36 cin=cy13 sumout=n63
+.cname $auto$alumacc.cc:548:replace_alu$180.slice[3].add
+.names sw[0] n12 n13 led[0] n14 n15
+01000 1
+01100 1
+01010 1
+00110 1
+10110 1
+01110 1
+11110 1
+00011 1
+10011 1
+01011 1
+11011 1
+00111 1
+10111 1
+01111 1
+11111 1
+.names n16 n17 n18 n19 n14
+0000 1
+.names n20 n21 sw[0] led[0]
+000 1
+.names n18 n19 n17 n16 n22 n13
+11001 1
+00101 1
+10101 1
+01101 1
+11101 1
+00011 1
+10011 1
+01011 1
+11011 1
+00111 1
+10111 1
+01111 1
+11111 1
+.names n13 n23 n20 n21 n14 sw[0] n24
+010000 1
+011000 1
+111000 1
+010100 1
+110100 1
+011100 1
+111100 1
+001010 1
+101010 1
+011010 1
+111010 1
+000001 1
+100001 1
+010001 1
+110001 1
+001001 1
+101001 1
+011001 1
+111001 1
+000101 1
+100101 1
+010101 1
+110101 1
+001101 1
+101101 1
+011101 1
+111101 1
+000011 1
+100011 1
+010011 1
+110011 1
+001011 1
+101011 1
+011011 1
+111011 1
+000111 1
+100111 1
+010111 1
+110111 1
+001111 1
+101111 1
+011111 1
+111111 1
+.names n13 n25 n20 n21 n14 sw[0] n26
+010000 1
+011000 1
+111000 1
+010100 1
+110100 1
+011100 1
+111100 1
+001010 1
+101010 1
+011010 1
+111010 1
+000001 1
+100001 1
+010001 1
+110001 1
+001001 1
+101001 1
+011001 1
+111001 1
+000101 1
+100101 1
+010101 1
+110101 1
+001101 1
+101101 1
+011101 1
+111101 1
+000011 1
+100011 1
+010011 1
+110011 1
+001011 1
+101011 1
+011011 1
+111011 1
+000111 1
+100111 1
+010111 1
+110111 1
+001111 1
+101111 1
+011111 1
+111111 1
+.names n20 sw[0] n21 n14 n27
+0100 1
+1100 1
+0010 1
+1010 1
+0110 1
+1110 1
+1001 1
+0101 1
+1101 1
+0111 1
+1111 1
+.names n21 sw[0] n20 n14 n28
+0010 1
+1010 1
+0001 1
+.names n29 n30 n31
+00 1
+.names n32 n33 sw[1] n29
+001 1
+101 1
+011 1
+.names n34 n35 n36 n37 sw[1] n30
+00000 1
+10000 1
+01000 1
+11000 1
+00100 1
+10100 1
+01100 1
+11100 1
+00010 1
+10010 1
+01010 1
+11010 1
+00110 1
+10110 1
+01110 1
+.names n20 n13 n21 n14 n38 sw[0] n39
+001100 1
+101100 1
+011100 1
+111100 1
+000010 1
+100010 1
+110010 1
+001010 1
+101010 1
+011010 1
+111010 1
+001110 1
+101110 1
+011110 1
+111110 1
+.names n40 n41 n42
+01 1
+.names n43 n22 n40
+00 1
+11 1
+.names n30 n29 n13 led[0] sw[0] n14 n44
+000000 1
+001000 1
+000100 1
+001100 1
+101100 1
+011100 1
+111100 1
+000010 1
+100010 1
+010010 1
+110010 1
+001010 1
+101010 1
+011010 1
+111010 1
+000110 1
+100110 1
+010110 1
+110110 1
+001110 1
+101110 1
+011110 1
+111110 1
+000001 1
+100001 1
+010001 1
+110001 1
+001001 1
+101001 1
+011001 1
+111001 1
+000101 1
+100101 1
+010101 1
+110101 1
+001101 1
+101101 1
+011101 1
+111101 1
+000011 1
+100011 1
+010011 1
+110011 1
+001011 1
+101011 1
+011011 1
+111011 1
+000111 1
+100111 1
+010111 1
+110111 1
+001111 1
+101111 1
+011111 1
+111111 1
+.names n20 sw[0] n21 led[2]
+001 1
+.names n21 n20 n45 sw[0] led[1]
+0100 1
+0110 1
+0011 1
+1011 1
+0111 1
+1111 1
+.names n41 n46
+0 1
+.names n45 n47
+0 1
+.subckt bob_ff D=n47 C=clk Q=n45 CE=n31
+.cname $auto$ff.cc:337:slice$274
+.subckt bob_ff D=n24 C=clk Q=n18 CE=n44
+.cname $auto$ff.cc:337:slice$277
+.subckt bob_ff D=n15 C=clk Q=n19 CE=n44
+.cname $auto$ff.cc:337:slice$278
+.subckt bob_ff D=n26 C=clk Q=n17 CE=n44
+.cname $auto$ff.cc:337:slice$279
+.subckt bob_ff D=n39 C=clk Q=n16 CE=n44
+.cname $auto$ff.cc:337:slice$280
+.subckt bob_ff D=n46 C=clk Q=n41 SR=n40
+.cname $auto$ff.cc:337:slice$281
+.subckt bob_ff D=ffd14 C=clk Q=n22 CE=n42
+.cname $auto$ff.cc:337:slice$285
+.subckt bob_ff D=n57 C=clk Q=n37
+.cname $auto$ff.cc:337:slice$293
+.subckt bob_ff D=n59 C=clk Q=n34
+.cname $auto$ff.cc:337:slice$294
+.subckt bob_ff D=n61 C=clk Q=n35
+.cname $auto$ff.cc:337:slice$295
+.subckt bob_ff D=n63 C=clk Q=n36
+.cname $auto$ff.cc:337:slice$296
+.subckt bob_ff D=n53 C=clk Q=n33
+.cname $auto$ff.cc:337:slice$302
+.subckt bob_ff D=n55 C=clk Q=n32
+.cname $auto$ff.cc:337:slice$303
+.subckt bob_ff D=ffd15 C=clk Q=n64
+.cname $auto$ff.cc:337:slice$307
+.subckt bob_ff D=ffd16 C=clk Q=n43
+.cname $auto$ff.cc:337:slice$308
+.subckt bob_ff D=n28 C=clk Q=n20
+.cname $auto$ff.cc:337:slice$326
+.subckt bob_ff D=n27 C=clk Q=n21
+.cname $auto$ff.cc:337:slice$327
+.names n43 ffd14
+1 1
+.names btn[0] ffd15
+1 1
+.names n64 ffd16
+1 1
+.end

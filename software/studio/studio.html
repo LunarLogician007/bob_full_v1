@@ -307,6 +307,8 @@
   .ex:last-child { border-bottom: 0 }
   .ex .nm { font-family: var(--mono); font-weight: 600; color: var(--ink) }
   .ex .ds { color: var(--ink-2); line-height: 1.35 }
+  .ex .tag { font-family: var(--mono); font-size: 10px; color: var(--accent); border: 1px solid var(--rule);
+    border-radius: 3px; padding: 0 4px; margin-right: 6px; white-space: nowrap }
   .ex .bt { display: flex; gap: 6px }
   .sbtn { border: 1px solid var(--rule); background: var(--paper); color: var(--ink); border-radius: 4px;
           padding: 3px 9px; font-size: 11.5px; white-space: nowrap }
@@ -2124,16 +2126,25 @@ const project = {
   },
 
   apply(r) {
+    const was = S.proj ? S.proj.path : null;
     S.proj = r.project;
     S.recent = r.recent || [];
     $("projname").textContent = S.proj ? S.proj.name : "";
     if (S.proj) S.project = { ...S.project, top: S.proj.top, name: S.proj.name };
+    // another project, or none: the block design on the canvas was the old project's
+    if ((S.proj ? S.proj.path : null) !== was) {
+      bd.forget();
+      if (tabs.which === "bd") bd.render();
+    }
     if (tabs.which === "project") this.render();
     props.render();
     buttons();
   },
 
   async post(action, body) {
+    if (["new", "open", "close"].includes(action) && bd.dirty
+        && !window.confirm(`${bd.rel} has unsaved changes. Discard them?`))
+      throw new Error(`kept the project open: save ${bd.rel} first (Block Design tab, Save)`);
     const r = await api("/api/project/" + action, body || {});
     this.apply(r);
     return r;
@@ -2255,11 +2266,12 @@ const project = {
   },
 
   async open(path) {
+    const was = S.proj && S.proj.path;
     await this.post("open", { path });
     logLine("info", `opened ${S.proj.path}`);
     flow.reset();
-    tabs.show("project");
-    if (S.proj.block_designs.length && typeof bd !== "undefined") bd.forget();
+    if (S.proj.path === was) bd.forget();   // the same project again: read its block design afresh
+    tabs.show("project");                   // (another one: apply() has dropped the old design)
   },
 
   addDialog(kind) {
@@ -2517,18 +2529,43 @@ const bd = {
   drag: null,
   topAfter: true,        // Generate wrapper also sets it as the top
 
-  forget() { this.rel = null; this.doc = null; this.ports = {}; this.sel = null; this.check = null; this.dirty = false; },
+  gen: 0,                // every open() and forget() bumps it: an open still loading when
+                         // it moves on belongs to a design no longer wanted, and stops
 
-  async open(rel) {
+  forget() {
+    this.rel = null; this.doc = null; this.ports = {}; this.sel = null; this.check = null; this.dirty = false;
+    this.palette = null; this.failed = null; this.opening = null;   // the palette lists the old project's modules
+    this.gen++;
+  },
+
+  async open(rel, show = true) {
     if (this.dirty && this.rel && this.rel !== rel && !window.confirm(`${this.rel} has unsaved changes. Open ${rel} anyway?`)) return;
+    const gen = ++this.gen;
     const r = await api("/api/bd?rel=" + encodeURIComponent(rel));
+    if (gen !== this.gen) return;
     this.rel = rel; this.doc = r.bd; this.sel = null; this.check = null; this.dirty = false;
     this.doc.board = this.doc.board || {};
     this.ports = {};
     await this.loadPalette();
+    if (gen !== this.gen) return;
     await Promise.all(this.doc.blocks.map((b) => this.fetchPorts(b)));
-    tabs.show("bd");
+    if (gen !== this.gen) return;
+    if (show) tabs.show("bd");
+    else if (tabs.which === "bd") this.render();
     logLine("info", `opened block design ${rel}`);
+  },
+
+  // Nothing on the canvas but the project has block designs (it was just opened, or it
+  // replaced another project): open its first, as Vivado reopens a project's design.
+  openFirst() {
+    const first = S.proj && S.proj.block_designs[0];
+    if (!first || this.failed === first) return false;
+    if (this.opening === first) return true;
+    this.opening = first;
+    this.open(first, false)
+      .catch((e) => { this.failed = first; logLine("error", `${first}: ${e.message}`); dock.show("log"); this.render(); })
+      .finally(() => { if (this.opening === first) this.opening = null; });
+    return true;
   },
 
   async loadPalette() {
@@ -2629,7 +2666,8 @@ const bd = {
       const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
       t.setAttribute("x", 40); t.setAttribute("y", 60);
       t.setAttribute("style", "font:13px var(--sans);fill:var(--faint)");
-      t.textContent = S.proj ? "No block design open: Create Block Design in the Project Manager, or open one there."
+      t.textContent = this.openFirst() ? `opening ${S.proj.block_designs[0]}…`
+        : S.proj ? "No block design open: Create Block Design in the Project Manager, or open one there."
         : "Open or create a project first: block designs belong to a project.";
       svg.appendChild(t);
       return;
@@ -3384,10 +3422,12 @@ const start = {
     for (const ex of S.examples || []) {
       const r = el("div", "ex");
       r.appendChild(el("span", "nm", ex.name));
-      r.appendChild(el("span", "ds", ex.desc || ""));
+      const ds = el("span", "ds", ex.desc || "");
+      if (ex.project) ds.prepend(el("span", "tag", "block design"));
+      r.appendChild(ds);
       const bt = el("span", "bt");
       const o = el("button", "sbtn", "Open");
-      o.title = `open ${ex.path} in the editor`;
+      o.title = ex.project ? `open the project ${ex.path} and its block design` : `open ${ex.path} in the editor`;
       o.onclick = () => this.example(ex, false);
       const g = el("button", "sbtn pri", "Build & Program");
       g.title = "open it, run the whole flow and program the target";
@@ -3414,7 +3454,7 @@ const start = {
       for (const p of S.recent.slice(0, 5)) {
         const a = el("a", null, p.split("/").slice(-2).join("/"));
         a.title = p;
-        a.onclick = () => project.open(p);
+        a.onclick = () => project.open(p).catch((e) => { logLine("error", e.message); dock.show("log"); });
         rc.appendChild(a);
       }
       own.appendChild(rc);
@@ -3464,12 +3504,21 @@ const start = {
     box.appendChild(tr);
   },
 
-  // an example: a project that is open would win every build, so close it first
+  // an example: a project that is open would win every build, so close it first. A
+  // block-design example is a project itself: open it, and its block design with it.
   async example(ex, go) {
-    if (S.proj) {
-      try { await project.post("close"); } catch (e) { logLine("error", String(e.message || e)); }
+    try {
+      if (ex.project) {
+        await project.open(ex.project);
+        if (S.proj.block_designs.length) await bd.open(S.proj.block_designs[0]);
+      } else {
+        if (S.proj) await project.post("close");
+        await sources.open(ex.path, ex.name);
+      }
+    } catch (e) {
+      logLine("error", String(e.message || e)); dock.show("log");
+      return;
     }
-    await sources.open(ex.path, ex.name);
     if (go) await buildAndProgram();
   },
 };

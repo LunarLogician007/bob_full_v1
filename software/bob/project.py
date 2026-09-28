@@ -208,9 +208,11 @@ class Project:
             raise ProjectError(f"the project already has a clock constraint: {others[0]}")
         path = os.path.join(self.dir, "constrs", f"{self.name}.sdc")
         os.makedirs(os.path.dirname(path), exist_ok=True)
+        mhz = 1e3 / period_ns
         with open(path, "w") as fh:
             fh.write(f"# {self.name}.sdc - the fabric clock this design must meet (M20)\n"
-                     f"# {1e3 / period_ns:.6g} MHz. The build fails if the design's timing misses it.\n"
+                     f"# {f'{mhz:.6g} MHz' if mhz >= 0.1 else f'{mhz * 1e6:.6g} Hz'}. "
+                     "The build fails if the design's timing misses it.\n"
                      f"create_clock -period {period_ns:.3f} -name clk [get_ports clk]\n")
         return self.add_constraint(path)
 

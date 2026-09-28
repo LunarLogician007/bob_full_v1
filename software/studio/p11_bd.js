@@ -18,18 +18,43 @@ const bd = {
   drag: null,
   topAfter: true,        // Generate wrapper also sets it as the top
 
-  forget() { this.rel = null; this.doc = null; this.ports = {}; this.sel = null; this.check = null; this.dirty = false; },
+  gen: 0,                // every open() and forget() bumps it: an open still loading when
+                         // it moves on belongs to a design no longer wanted, and stops
 
-  async open(rel) {
+  forget() {
+    this.rel = null; this.doc = null; this.ports = {}; this.sel = null; this.check = null; this.dirty = false;
+    this.palette = null; this.failed = null; this.opening = null;   // the palette lists the old project's modules
+    this.gen++;
+  },
+
+  async open(rel, show = true) {
     if (this.dirty && this.rel && this.rel !== rel && !window.confirm(`${this.rel} has unsaved changes. Open ${rel} anyway?`)) return;
+    const gen = ++this.gen;
     const r = await api("/api/bd?rel=" + encodeURIComponent(rel));
+    if (gen !== this.gen) return;
     this.rel = rel; this.doc = r.bd; this.sel = null; this.check = null; this.dirty = false;
     this.doc.board = this.doc.board || {};
     this.ports = {};
     await this.loadPalette();
+    if (gen !== this.gen) return;
     await Promise.all(this.doc.blocks.map((b) => this.fetchPorts(b)));
-    tabs.show("bd");
+    if (gen !== this.gen) return;
+    if (show) tabs.show("bd");
+    else if (tabs.which === "bd") this.render();
     logLine("info", `opened block design ${rel}`);
+  },
+
+  // Nothing on the canvas but the project has block designs (it was just opened, or it
+  // replaced another project): open its first, as Vivado reopens a project's design.
+  openFirst() {
+    const first = S.proj && S.proj.block_designs[0];
+    if (!first || this.failed === first) return false;
+    if (this.opening === first) return true;
+    this.opening = first;
+    this.open(first, false)
+      .catch((e) => { this.failed = first; logLine("error", `${first}: ${e.message}`); dock.show("log"); this.render(); })
+      .finally(() => { if (this.opening === first) this.opening = null; });
+    return true;
   },
 
   async loadPalette() {
@@ -130,7 +155,8 @@ const bd = {
       const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
       t.setAttribute("x", 40); t.setAttribute("y", 60);
       t.setAttribute("style", "font:13px var(--sans);fill:var(--faint)");
-      t.textContent = S.proj ? "No block design open: Create Block Design in the Project Manager, or open one there."
+      t.textContent = this.openFirst() ? `opening ${S.proj.block_designs[0]}…`
+        : S.proj ? "No block design open: Create Block Design in the Project Manager, or open one there."
         : "Open or create a project first: block designs belong to a project.";
       svg.appendChild(t);
       return;

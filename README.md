@@ -189,7 +189,11 @@ software/bob/bd.py generate ~/fpga/demo/demo.bobproj bd/demo_bd.bd --top
 ```
 
 `work/examples/bd_demo/` is a project made this way (four IP cores on the switches and
-LEDs). A new design has no committed VPR route, so either set **pnr** to `python` in the
+LEDs), and so is `work/examples/traffic/`: a traffic light from three modules of its own
+(`src/traffic_fsm.v`, `phase_timer.v`, `night_flash.v`) and five IP cores, the controller and
+its timer wired both ways, clocked at 32 Hz by its clock constraint (`constrs/traffic.sdc`). LD2/LD1/LD0 are red/yellow/green;
+BTN0 (a pedestrian) cuts green short, SW0 is night mode (yellow flashing), SW1 runs it 4× faster.
+On the Start page both open as projects, straight into their block design. A new design has no committed VPR route, so either set **pnr** to `python` in the
 properties panel or start Docker (`colima start`).
 
 Without a project open, the studio works on loose files as before.
@@ -235,7 +239,7 @@ sim/run_cosim_sim.sh                      # golden co-simulation: source live vs
 sim/run_synth_sim.sh                      # the same bitstreams on the complete FPGA RTL
 ```
 
-Examples in `work/examples/`: `gates`, `adder`, `counter`, `blinky`, `ram`, `mult`, `switches`, `fir`, `wide`, `big`, `atspeed` (M20's self-checking at-speed counter), `fir16` (M21: a 16-tap FIR in logic, 147 LUTs), `initval` (M26: flip-flops that start at one value and reset to the other), and the block-design project `bd_demo` (per-design report: `docs/reports/M11/designs.md`).
+Examples in `work/examples/`: `gates`, `adder`, `counter`, `blinky`, `ram`, `mult`, `switches`, `fir`, `wide`, `big`, `atspeed` (M20's self-checking at-speed counter), `fir16` (M21: a 16-tap FIR in logic, 147 LUTs), `initval` (M26: flip-flops that start at one value and reset to the other), and the block-design projects `bd_demo` and `traffic` (per-design report: `docs/reports/M11/designs.md`).
 
 ### The user clock (M20)
 

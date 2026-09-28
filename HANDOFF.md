@@ -40,6 +40,13 @@ hand-off notes are in git history (`git log -p HANDOFF.md`).
     chapter 13 *Onto its own silicon*, volume 3 and GUIDE §3.11 no longer call bob's startup
     "UG470's order", `arch.html` shows 100 CLBs (it drew M22's 81), `bitstream-format.md` §11
     says TCK ≤ 1 MHz, and `docs/project/build.py` renders `**`code`**`.
+  - **block-design example and studio fixes** (2026-09-28, software only): `work/examples/traffic`,
+    a traffic light from three modules and five IP cores wired in a block design, clocked by its
+    32 Hz clock constraint `constrs/traffic.sdc` (VPR route
+    committed, `make vpr` re-routes it); the Start page opens block-design examples as projects;
+    the Block Design tab follows the open project (it kept the previous one's design);
+    `tests/test_studio_page.py` runs the page's script under JavaScriptCore. On the board:
+    `./bob run work/examples/traffic` (not run there yet).
   - **the fix pass** (2026-09-26, software only; the review's "Status" table): VPR runs on bob's
     measured delays (`device.py` `VPR_DELAYS_NS`; fabric byte-identical, examples re-routed);
     sparse full loads after JPROGRAM (`tb_frames` [20]); the Pico link batched per packet, one

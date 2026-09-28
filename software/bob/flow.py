@@ -457,7 +457,7 @@ class Flow:
         word = bitgen.word_from_features(self._features)
         trip = bitgen.word_from_features(bitgen.features_from_word(word)) == word
         detail = f"{B.CHAIN_W}-bit chain; bits -> FASM -> bits identical: {trip}"
-        if self.clock == "run" and self.hz is None:
+        if self.clock == "run" and self.hz is None and self.sdc is None:   # else timing sets it
             hz = B.guest_hz("run", self.div)
             detail += (f"; free-running 125 MHz / 2^{self.div + B.DIV_MIN_SHIFT} = {hz:.4g} Hz "
                        f"(one user clock every {1 / hz:.3g} s)")
@@ -516,8 +516,8 @@ class Flow:
             word = bs.to_int()
             hz = B.guest_hz("run", self._pdiv, self._period, self._gap)
             every = self._period << self._pdiv
-            detail += (f"; free-running every {every} sysclk cycles = {hz / 1e6:.4g} MHz "
-                       f"(gap {self._gap})")
+            detail += (f"; free-running every {every} sysclk cycles = "
+                       f"{f'{hz / 1e6:.4g} MHz' if hz >= 1e5 else f'{hz:.4g} Hz'} (gap {self._gap})")
             if self._check and self._sdc is None:
                 detail += f"; slack {self._check['slack_ns']:+.3f} ns"
         # M21: the XDC no longer times the fabric, so every word, stepped or free-running,

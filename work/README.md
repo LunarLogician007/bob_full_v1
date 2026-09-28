@@ -19,7 +19,8 @@ user clock and every flip-flop is enabled by it. Without a `.pcf` the ports must
 
 A bob studio project can live anywhere on disk: **New Project** makes
 `<location>/<name>/<name>.bobproj` with `src/ bd/ ip/ constrs/ build/`. The
-block-design example `work/examples/bd_demo/` is one. See the README's *Projects and
+block-design examples `work/examples/bd_demo/` and `work/examples/traffic/` (a traffic
+light: three modules and five IP cores) are two. See the README's *Projects and
 block designs*. From the command line: `./bob build --project path/to/x.bobproj`.
 
 ## Clock constraints (M20)

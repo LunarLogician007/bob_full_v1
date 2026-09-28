@@ -379,21 +379,29 @@ def bitstreams():
 
 
 def examples():
-    """One folder per example under work/examples/<name>/<name>.v, the same shape a
-    design of your own has."""
+    """One folder per example under work/examples/: <name>/<name>.v, the same shape a
+    design of your own has, or a project (<name>/<name>.bobproj, a block design), which
+    the Start page opens as a project: `project` is its absolute path."""
     out = []
     if not os.path.isdir(EXAMPLES):
         return out
     import ux
-    _desc = {n: line for n, _p, line in ux.examples()}
-    for name in sorted(os.listdir(EXAMPLES)):
-        src = os.path.join(EXAMPLES, name, f"{name}.v")
-        if not os.path.isfile(src):
-            continue
-        stamp = vpr_run.read_stamp(name) or {}
-        out.append({"name": name, "path": os.path.relpath(src, ROOT), "desc": _desc.get(name, ""),
-                    "lines": sum(1 for _ in open(src)),
-                    "routed": bool(stamp), "wirelength": stamp.get("wirelength")})
+    for name, path, desc in ux.examples():
+        rec = {"name": name, "path": os.path.relpath(path, ROOT), "desc": desc}
+        if path.endswith(P.EXT):
+            try:
+                proj = P.Project.open(path)
+                files = proj.hdl_files()
+            except P.ProjectError:
+                continue
+            rec["project"] = proj.path
+            result = proj.result_name() if proj.data.get("top") else name
+        else:
+            files, result = [path], name
+        stamp = vpr_run.read_stamp(result) or {}
+        rec.update(lines=sum(sum(1 for _ in open(f)) for f in files),
+                   routed=bool(stamp), wirelength=stamp.get("wirelength"))
+        out.append(rec)
     return out
 
 
