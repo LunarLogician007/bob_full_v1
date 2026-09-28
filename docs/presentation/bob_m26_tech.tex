@@ -19,6 +19,7 @@
 \usepackage{lmodern}
 \usepackage{amssymb}
 \usepackage{booktabs}
+\usepackage{array}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning,calc,fit,backgrounds}
 
@@ -56,6 +57,8 @@
 % a key number and its caption; the caption may hold \\ for a second line
 \newcommand{\kpi}[2]{\begin{tabular}[t]{@{}c@{}}{\Large\bfseries\color{bobteal}#1}\\[-2pt]\scriptsize\color{bobmute}\begin{tabular}[t]{@{}c@{}}#2\end{tabular}\end{tabular}}
 \newcommand{\src}[1]{{\scriptsize\color{bobmute}#1}}
+% a ragged-right paragraph column: no stretched or hyphenated table cells
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
 \newcommand{\mtag}[1]{{\setlength{\fboxsep}{1pt}\colorbox{bobamber!25}{\tiny\bfseries #1}}}
 % 0..3 filled dots, for the comparison scorecard
 \newcommand{\rate}[1]{\tikz[baseline=-0.6ex]{\foreach \k in {1,2,3}{\ifnum\k>#1\relax\draw[bobmute!70] (\k*0.26,0) circle (0.085);\else\fill[bobteal] (\k*0.26,0) circle (0.085);\fi}}}
@@ -96,16 +99,16 @@
   \centering
   \begin{tikzpicture}[font=\scriptsize]
     \foreach \n/\x/\ti/\su/\col in {
-      1/0/{The system}/{two FPGAs, two flows\\one source of truth\\the repository}/bobink,
-      2/2.85/{RTL}/{module hierarchy\\CLB, routing, BRAM, DSP\\clock, JTAG, host cost}/bobteal,
-      3/5.7/{Configuration}/{frames and packets\\startup, partial reload\\time travel, debug}/bobviolet,
-      4/8.55/{Software}/{flow stages, yosys\\VPR and bob's PnR\\bitgen, timing, host}/bobblue,
-      5/11.4/{Why + OpenFPGA}/{design decisions\\verification\\comparison}/bobamber}
+      1/0/{The system}/{two FPGAs\\two flows\\one source}/bobink,
+      2/2.85/{RTL}/{hierarchy, CLB\\routing, hard blocks\\clock, JTAG}/bobteal,
+      3/5.7/{Configuration}/{frames, packets\\startup, reload\\time travel}/bobviolet,
+      4/8.55/{Software}/{flow stages\\yosys, VPR, PnR\\bitgen, host}/bobblue,
+      5/11.4/{Comparison}/{decisions\\verification\\vs OpenFPGA}/bobamber}
     {
       \node[draw=\col, fill=\col!8, rounded corners=3pt, minimum width=26mm, minimum height=30mm] (b\n) at (\x,0) {};
       \node[font=\LARGE\bfseries, text=\col] at ($(b\n.north)+(0,-0.5)$) {\n};
       \node[font=\small\bfseries, text=bobink] at ($(b\n.north)+(0,-1.05)$) {\ti};
-      \node[font=\scriptsize, text=bobmute, align=center] at ($(b\n.center)+(0,-0.55)$) {\su};
+      \node[font=\scriptsize, text=bobmute, align=center, text width=23mm] at ($(b\n.center)+(0,-0.55)$) {\su};
     }
     \foreach \a/\b in {1/2,2/3,3/4,4/5} \draw[arr] (b\a.east) -- (b\b.west);
   \end{tikzpicture}
@@ -176,16 +179,16 @@
 \begin{frame}{One description generates everything: \texttt{device.py}}
   \centering
   \begin{tikzpicture}[font=\scriptsize]
-    \node[sw, text width=30mm, align=left] (dev) at (1.6,4.4) {\textbf{device.py}\\[1pt]\tiny 12 $\times$ 10 core, W 36, L4, $F_s$ 3\\\tiny fc$_{in}$ 0.10, fc$_{out}$ 0.10\\\tiny CLB: N 4, I 16, K 6, full crossbar\\\tiny BRAM x 3, DSP x 8, height 5\\\tiny bob's measured delays, for VPR};
-    \node[sw] (va) at (4.6,4.4) {\texttt{vpr\_arch.py}};
-    \node[file] (ax) at (6.55,4.4) {bob\_k6.xml};
-    \node[hot] (vpr) at (8.85,4.4) {VPR 9 (Docker)\\\texttt{--write\_rr\_graph}};
-    \node[file] (rr) at (11.9,4.4) {bob\_k6\_rr.xml.gz\\\rmfamily committed, sha256 stamp};
+    \node[sw, text width=31mm, align=left, font=\tiny] (dev) at (1.65,4.1) {{\scriptsize\textbf{device.py}}\\[1pt]12 $\times$ 10 CLBs, W 36, L4\\N 4, I 16, K 6, full crossbar\\fc 0.10, BRAM and DSP columns\\bob's measured delays};
+    \node[sw] (va) at (4.6,4.1) {\texttt{vpr\_arch.py}};
+    \node[file] (ax) at (6.55,4.1) {bob\_k6.xml};
+    \node[hot] (vpr) at (8.85,4.1) {VPR 9 (Docker)\\\texttt{-{}-write\_rr\_graph}};
+    \node[file] (rr) at (11.9,4.1) {bob\_k6\_rr.xml.gz\\\sffamily committed, sha256 stamp};
     \node[sw, text width=38mm] (lay) at (11.9,2.75) {\textbf{device.py}, layout pass\\\tiny every rr node with fan-in = a mux;\\\tiny chain offsets, frames, FAR table};
     \node[sw] (fg) at (11.9,1.75) {\texttt{fabric\_gen.py}};
-    \node[file, text width=34mm] (fab) at (11.9,0.6) {bob\_fabric.v\\\rmfamily 8\,148 lines: 5\,695 \texttt{bob\_mux},\\\rmfamily 100 \texttt{bob\_clb}, 2 BRAM, 2 DSP};
-    \node[file, text width=36mm] (dj) at (2.4,0.6) {device.json\\\rmfamily read by bitgen, fasm, model,\\\rmfamily timing, cfgplane, fakeboard, studio};
-    \node[file, text width=30mm] (vh) at (6.8,0.6) {bob\_params.vh\\\rmfamily widths, pads, FAR table\\\rmfamily for every RTL module};
+    \node[file, text width=34mm] (fab) at (11.9,0.6) {bob\_fabric.v\\\sffamily 8\,148 lines: 5\,695 \texttt{bob\_mux},\\\sffamily 100 \texttt{bob\_clb}, 2 BRAM, 2 DSP};
+    \node[file, text width=36mm] (dj) at (2.4,0.6) {device.json\\\sffamily read by bitgen, fasm, model,\\\sffamily timing, cfgplane, fakeboard, studio};
+    \node[file, text width=30mm] (vh) at (6.8,0.6) {bob\_params.vh\\\sffamily widths, pads, FAR table\\\sffamily for every RTL module};
     \draw[arr] (dev) -- (va); \draw[arr] (va) -- (ax); \draw[arr] (ax) -- (vpr); \draw[arr] (vpr) -- (rr);
     \draw[arr] (rr) -- (lay); \draw[arr] (lay) -- (fg); \draw[arr] (fg) -- (fab);
     \draw[arr] (lay.west) -| (vh.north);
@@ -194,7 +197,7 @@
   \vspace{2mm}
 
   \small Change the grid: edit one dictionary, then \texttt{make rrgraph} $\rightarrow$ \texttt{make device} $\rightarrow$ \texttt{make vpr}.\\
-  The router's graph and the hardware are the same object: a route VPR finds always exists in the RTL.
+  The router's graph and the hardware are one object: every route VPR finds exists in the RTL.
 \end{frame}
 
 % =============================================================================
@@ -256,30 +259,29 @@
   \centering
   \begin{tikzpicture}[font=\scriptsize]
     \node[font=\tiny, align=right] (pins) at (-0.25,3.0) {TCK\\TMS\\TDI\\TDO};
-    \node[hot, minimum width=18mm, minimum height=16mm] (tap) at (1.3,3.0) {\texttt{jtag\_tap6}\\IEEE 1149.1\\6-bit IR\\\tiny TDO tristate \mtag{M26}};
-    \node[cfg, minimum width=27mm] (frm) at (4.4,4.5) {\texttt{cfg\_frames}\\packets, FAR, CRC-32C};
-    \node[cfg, minimum width=27mm] (ctl) at (4.4,3.3) {\texttt{cfg\_ctrl}\\chain CRC, startup FSM};
-    \node[lbl] at (4.4,2.62) {DONE $\rightarrow$ LD3};
-    \node[blk, minimum width=27mm] (dbg) at (4.4,1.9) {USER1, CAPTURE, USER4\\DSP register, INTEST};
-    \node[cfg, minimum width=25mm, minimum height=17mm] (st) at (7.6,4.0) {\texttt{cfg\_store}\\128-bit frame buffer\\22\,870 config FFs\\shadow BRAM};
-    \node[cfg, minimum width=25mm] (ld) at (7.6,2.4) {\texttt{lut\_loader}\\32 TCK per frame};
-    \node[blk, minimum width=25mm] (ck) at (7.6,1.15) {\texttt{clock\_ctrl}\\sysclk 125 MHz $\rightarrow$ gce};
-    \node[acc, minimum width=34mm, minimum height=42mm, anchor=west] (fab) at (9.8,2.75) {};
+    \node[hot, text width=17mm, minimum height=16mm] (tap) at (1.15,3.0) {\texttt{jtag\_tap6}\\IEEE 1149.1\\6-bit IR\\\tiny TDO tristate \mtag{M26}};
+    \node[cfg, text width=26mm] (frm) at (4.55,4.45) {\texttt{cfg\_frames}\\packets, FAR, CRC-32C};
+    \node[cfg, text width=26mm] (ctl) at (4.55,3.3) {\texttt{cfg\_ctrl}\\chain CRC, startup\\\tiny DONE $\rightarrow$ LD3};
+    \node[blk, text width=26mm] (dbg) at (4.55,1.55) {USER1, CAPTURE, USER4\\DSP register, INTEST};
+    \node[cfg, text width=25mm, minimum height=17mm] (st) at (7.9,3.9) {\texttt{cfg\_store}\\128-bit frame buffer\\22\,870 config FFs\\shadow BRAM};
+    \node[cfg, text width=25mm] (ld) at (7.9,2.35) {\texttt{lut\_loader}\\32 TCK per frame};
+    \node[blk, text width=25mm] (ck) at (7.9,1.1) {\texttt{clock\_ctrl}\\sysclk $\rightarrow$ gce};
+    \node[acc, minimum width=33mm, minimum height=42mm, anchor=west] (fab) at (10.3,2.75) {};
     \node[anchor=north west, font=\scriptsize\bfseries] at (fab.north west) {\ \texttt{bob\_fabric} (generated)};
-    \node[anchor=west, font=\scriptsize, align=left] at ($(fab.west)+(0.1,-0.25)$) {5\,695 routing \texttt{bob\_mux}\\100 \texttt{bob\_clb} = 400 elements\\\quad 12\,800 CFGLUT5\\2 \texttt{bram\_block}\\2 \texttt{dsp\_block}\\44 pads};
-    \node[hot, minimum width=34mm, anchor=west] (bsc) at (9.8,0.0) {boundary scan: 88 BC\_1 cells};
+    \node[anchor=west, font=\scriptsize, align=left] at ($(fab.west)+(0.1,-0.25)$) {5\,695 routing \texttt{bob\_mux}\\100 \texttt{bob\_clb}\\\quad 400 elements\\\quad 12\,800 CFGLUT5\\2 \texttt{bram\_block}\\2 \texttt{dsp\_block}\\44 pads};
+    \node[hot, minimum width=33mm, anchor=west] (bsc) at (10.3,0.0) {boundary scan: 88 BC\_1 cells};
     \node[lbl, below=0.5mm of bsc] {SW, BTN, LD on fixed pads};
     \draw[arr] (pins) -- (tap);
-    \draw[arr] (tap.east) -- ++(0.35,0) |- node[pos=0.75, above, lbl]{CFG\_IN/OUT} (frm.west);
-    \draw[arr] (tap.east) -- ++(0.35,0) |- node[pos=0.75, above, lbl]{CHAIN} (ctl.west);
-    \draw[arr] (tap.east) -- ++(0.35,0) |- (dbg.west);
+    \draw[arr] (tap.east) -- ++(0.3,0) |- node[pos=0.75, above, lbl]{packets} (frm.west);
+    \draw[arr] (tap.east) -- ++(0.3,0) |- node[pos=0.75, above, lbl]{chain} (ctl.west);
+    \draw[arr] (tap.east) -- ++(0.3,0) |- node[pos=0.75, above, lbl]{debug} (dbg.west);
     \draw[arr] (frm.east) -- (st.west |- frm.east);
     \draw[arr] (ctl.east) -- (st.west |- ctl.east);
-    \draw[arr] (ctl.east) -- ++(0.35,0) |- node[pos=0.15, left, lbl]{GSR, GWE} (ck.west);
+    \draw[arr] (ctl.east) -- ++(0.3,0) |- node[pos=0.15, left, lbl]{GSR, GWE} (ck.west);
     \draw[arr] (dbg.east) -- ++(0.15,0) |- ($(ck.west)+(0,-0.2)$);
     \draw[arr] (st) -- (ld);
-    \draw[arr] (st.east) -- node[above, lbl]{flags, routing} (fab.west |- st.east);
-    \draw[arr] (ld.east) -- node[above, lbl]{tables, crossbar} (fab.west |- ld.east);
+    \draw[arr] (st.east) -- node[above, lbl]{FFs} (fab.west |- st.east);
+    \draw[arr] (ld.east) -- node[above, lbl]{tables} (fab.west |- ld.east);
     \draw[arr] (ck.east) -- node[above, lbl]{gce} (fab.west |- ck.east);
     \draw[arr2] (bsc.north) -- (fab.south);
   \end{tikzpicture}
@@ -404,22 +406,22 @@
       \node[lbl] at (1.6,-0.35) {one CE, one SR, one clock};
     \end{tikzpicture}
     \column{0.43\textwidth}
-    \small
+    \footnotesize
     \begin{itemize}
-      \item After OpenFPGA's \texttt{k6\_frac\_N10}; \textbf{N = 4} with a full crossbar won a measured sweep (N 4/6/8/10, full/half)
-      \item Each element input: 16 CLB inputs, 8 element outputs, const0, const1 (5-bit select)
+      \item After OpenFPGA's \texttt{k6\_frac\_N10}; \textbf{N = 4} with a full crossbar won a measured sweep (N 4, 6, 8, 10)
+      \item Each element input picks one of 16 CLB inputs, 8 element outputs, const0, const1
       \item Carry: e0 $\rightarrow$ e3, then the CLB above
     \end{itemize}
     \vspace{1mm}
     \centering
     \begin{tikzpicture}[font=\tiny]
-      \foreach \k in {0,...,4} \node[acc, minimum width=9mm, minimum height=3.5mm, font=\tiny] (l\k) at (0,-\k*0.45) {CFGLUT5};
-      \node[blk, minimum width=6mm, minimum height=10mm] (or) at (1.5,-0.9) {OR};
+      \foreach \k in {0,...,4} \node[acc, minimum width=9mm, minimum height=3mm, inner sep=1pt, font=\tiny] (l\k) at (0,-\k*0.36) {CFGLUT5};
+      \node[blk, minimum width=6mm, minimum height=9mm] (or) at (1.4,-0.72) {OR};
       \foreach \k in {0,...,4} \draw[arr] (l\k.east) -- (or.west);
-      \draw[arr] (or.east) -- ++(0.5,0) node[right]{element input};
+      \draw[arr] (or.east) -- ++(0.45,0) node[right]{element input};
     \end{tikzpicture}
 
-    \src{One crossbar mux (\texttt{lxor.v}, M23): five leaves of five sources and a fixed OR; an unselected leaf holds zeros. 128 CFGLUT5 per CLB.}
+    \src{One crossbar mux (\texttt{lxor.v}): five leaves and a fixed OR; an unselected leaf holds zeros. 128 CFGLUT5 per CLB.}
   \end{columns}
 \end{frame}
 
@@ -428,8 +430,8 @@
   \begin{columns}[c]
     \column{0.48\textwidth}
     \centering
-    \begin{tikzpicture}[font=\scriptsize, x=1cm, y=1cm]
-      \node[acc, minimum width=16mm, minimum height=16mm] (clb) at (0,0) {CLB};
+    \begin{tikzpicture}[font=\scriptsize, x=0.85cm, y=0.85cm]
+      \node[acc, minimum width=14mm, minimum height=14mm] (clb) at (0,0) {CLB};
       \fill[bobmute!20] (-1.3,1.05) rectangle (1.05,1.55);
       \fill[bobmute!20] (1.05,-1.3) rectangle (1.55,1.05);
       \foreach \tr in {1.13,1.22,1.31,1.40,1.49} \draw[bobmute] (-1.3,\tr) -- (1.05,\tr);
@@ -443,38 +445,38 @@
       \node[lbl] at (0.2,-1.55) {connection box: fc\_in 0.10 $\rightarrow$ 4 (or 2) tracks per pin};
       \node[lbl] at (0.2,-1.85) {switch box: Wilton, $F_s$ = 3; L4 unidirectional wires};
     \end{tikzpicture}
-    \column{0.5\textwidth}
-    \small
-    \begin{itemize}
-      \item VPR builds the \textbf{routing-resource graph}: every wire and pin a node, every switch an edge
-      \item \texttt{fabric\_gen.py} (the OpenFPGA method): \alert{every node with fan-in is a mux}, its select bits are configuration bits
-      \item Value 0 = const0: an all-zero configuration is a dark, loop-free fabric
-    \end{itemize}
-    \centering
+
+    \vspace{2mm}
     \begin{tikzpicture}[font=\tiny]
-      \foreach \k in {0,...,3} \node[blk, minimum width=9mm, minimum height=3.5mm, font=\tiny] (q\k) at (0,-\k*0.45) {LUT6 4:1};
-      \node[mx] (m7a) at (1.1,-0.225) {F7};
-      \node[mx] (m7b) at (1.1,-1.125) {F7};
-      \node[mx, minimum height=12mm] (m8) at (2.0,-0.675) {F8};
+      \foreach \k in {0,...,3} \node[blk, minimum width=9mm, minimum height=3mm, inner sep=1pt, font=\tiny] (q\k) at (0,-\k*0.36) {LUT6 4:1};
+      \node[mx, minimum height=6mm] (m7a) at (1.1,-0.18) {F7};
+      \node[mx, minimum height=6mm] (m7b) at (1.1,-0.9) {F7};
+      \node[mx, minimum height=11mm] (m8) at (1.9,-0.54) {F8};
       \draw[arr] (q0.east) -- (m7a); \draw[arr] (q1.east) -- (m7a);
       \draw[arr] (q2.east) -- (m7b); \draw[arr] (q3.east) -- (m7b);
       \draw[arr] (m7a) -- (m8); \draw[arr] (m7b) -- (m8);
-      \draw[arr] (m8.east) -- ++(0.4,0) node[right]{16:1};
-      \node[lbl] at (1.1,-1.8) {\texttt{bob\_mux}: one slice; sel[1:0], sel[2], sel[3]};
+      \draw[arr] (m8.east) -- ++(0.4,0) node[right]{16:1 \texttt{bob\_mux}: one slice};
     \end{tikzpicture}
+    \column{0.5\textwidth}
+    \footnotesize
+    \begin{itemize}
+      \item VPR builds the \textbf{routing-resource graph}: every wire and pin a node, every switch an edge
+      \item \texttt{fabric\_gen.py} (the OpenFPGA method): \alert{every node with fan-in is a mux}; its select bits are configuration bits
+      \item Value 0 = const0: an all-zero configuration is a dark, loop-free fabric
+    \end{itemize}
+    \vspace{2mm}
+    \centering
+    \scriptsize
+    \begin{tabular}{@{}lrr@{}}
+      \toprule
+      mux kind (inputs) & muxes & select bits \\
+      \midrule
+      IPIN, connection box (4 or 2) & 2\,220 & 6\,296 \\
+      CHANX, CHANY, switch box (1--13) & 3\,475 & 10\,486 \\
+      crossbar, in the CLBs (24 + 2 const) & 2\,400 & 12\,000 \\
+      \bottomrule
+    \end{tabular}
   \end{columns}
-  \vspace{1mm}
-  \centering
-  \scriptsize
-  \begin{tabular}{@{}lrll@{}}
-    \toprule
-    mux kind & count & inputs & select bits \\
-    \midrule
-    IPIN, connection box & 2\,220 & 4 (1\,856 muxes), 2 (364) & 6\,296 \\
-    CHANX / CHANY, switch box & 1\,837 / 1\,638 & 1 to 13 & 10\,486 \\
-    crossbar, inside the CLBs & 2\,400 & 24 + 2 constants & 12\,000 \\
-    \bottomrule
-  \end{tabular}
 \end{frame}
 
 % =============================================================================
@@ -601,7 +603,7 @@
     \src{Vivado's host LUT count divided by the guest's LUT6 count, per build. Below each bar: the guest's size.}
     \column{0.46\textwidth}
     \scriptsize
-    \begin{tabular}{@{}p{9mm}p{50mm}@{}}
+    \begin{tabular}{@{}L{10mm}L{50mm}@{}}
       \toprule
       \textbf{M21} & the cluster CLB (N 4, full crossbar); readback from a shadow BRAM instead of a 256:1 mux: $-$11.8k LUTs \\
       \textbf{M22} & truth tables and crossbar in CFGLUT5: a CLB 469 $\rightarrow$ 193 host LUTs (yosys) \\
@@ -619,15 +621,15 @@
 \begin{frame}{The user clock: an enable, not a clock (\texttt{clock\_ctrl.v})}
   \centering
   \begin{tikzpicture}[font=\scriptsize]
-    \node[hot, text width=21mm] (in1) at (1.15,3.7) {TCK edges\\USER1 ce, step, autostep};
-    \node[cfg, text width=21mm] (in2) at (1.15,2.4) {ctrl tile: clk\_mode, clk\_div, clk\_period, clk\_gap};
-    \node[cfg, text width=21mm] (in3) at (1.15,1.1) {AGHIGH freeze\\(\texttt{cfg\_frames})};
-    \node[blk, minimum width=13mm, minimum height=36mm] (sy) at (3.3,2.4) {2-FF\\sync\\\tiny ASYNC\_REG};
-    \node[acc, text width=24mm] (gen) at (5.75,2.4) {\textbf{pulse source}\\mode 0: one per TCK edge\\mode 1: every clk\_period $\times$ $2^{\mathrm{clk\_div}}$};
-    \node[acc, text width=22mm] (gap) at (8.45,2.4) {\textbf{spacing guard}\\$\geq$ clk\_gap cycles\\\tiny default 512 = 4.1\,$\mu$s, floor 2};
-    \node[cfg, text width=17mm] (frz) at (10.85,2.4) {\textbf{freeze}\\hold, ack\\$\rightarrow$ GHIGH\_B};
-    \node[acc, text width=15mm, minimum height=20mm] (fab) at (13.05,2.4) {every FF, BRAM, DSP register: CE};
-    \node[blk, minimum width=60mm] (clk) at (8.45,4.45) {sysclk 125 MHz on a BUFG: the fabric's only clock};
+    \node[hot, text width=21mm, font=\tiny] (in1) at (1.15,3.05) {TCK edges; USER1 ce, step, autostep};
+    \node[cfg, text width=21mm, font=\tiny] (in2) at (1.15,2.2) {ctrl tile: clk\_mode, clk\_div, clk\_period, clk\_gap};
+    \node[cfg, text width=21mm, font=\tiny] (in3) at (1.15,1.35) {AGHIGH freeze (\texttt{cfg\_frames})};
+    \node[blk, minimum width=12mm, minimum height=26mm] (sy) at (3.3,2.2) {2-FF\\sync};
+    \node[acc, text width=26mm] (gen) at (5.8,2.2) {\textbf{pulse source}\\\tiny mode 0: one per TCK edge\\\tiny mode 1: every clk\_period $\times\,2^{\mathrm{clk\_div}}$};
+    \node[acc, text width=22mm] (gap) at (8.55,2.2) {\textbf{spacing guard}\\\tiny $\geq$ clk\_gap cycles\\\tiny default 512 = 4.1\,$\mu$s, floor 2};
+    \node[cfg, text width=16mm] (frz) at (10.9,2.2) {\textbf{freeze}\\\tiny hold, then ack\\\tiny (GHIGH\_B)};
+    \node[acc, text width=15mm, minimum height=16mm] (fab) at (13.05,2.2) {every FF, BRAM, DSP register: CE};
+    \node[blk, minimum width=60mm] (clk) at (8.55,3.75) {sysclk 125 MHz on a BUFG: the fabric's only clock};
     \draw[arr] (in1.east) -- (sy.west |- in1.east);
     \draw[arr] (in2.east) -- (sy.west |- in2.east);
     \draw[arr] (in3.east) -- (sy.west |- in3.east);
@@ -643,16 +645,16 @@
     \small\textbf{Why an enable}
     \scriptsize
     \begin{itemize}
-      \item One real clock: no derived or gated clocks (UG949), nothing new for Vivado to time
-      \item Cycle-exact: step one user clock per scan and compare the board with \texttt{model.py} after every clock
-      \item Freeze = hold \texttt{gce}: partial reconfiguration and snapshots keep every register's state
+      \item One real clock: nothing derived or gated (UG949)
+      \item Cycle-exact: one user clock per scan, board vs \texttt{model.py} every clock
+      \item Freeze = hold \texttt{gce}: partial reload and snapshots keep all state
     \end{itemize}
     \column{0.46\textwidth}
     \small\textbf{Per design}
     \scriptsize
     \begin{itemize}
-      \item \texttt{timing.py} sets \texttt{clk\_gap} from the design's own critical path
-      \item \texttt{counter}: 12.9 ns $\times$ 2 guard $\rightarrow$ 4 cycles of 8 ns $\rightarrow$ \textbf{31.25 MHz}
+      \item \texttt{timing.py} sets \texttt{clk\_gap} from the design's own path
+      \item \texttt{counter}: 12.9 ns $\times$ 2 $\rightarrow$ 4 cycles $\rightarrow$ \textbf{31.25 MHz}
       \item Hardware floor: 2 cycles = 62.5 MHz
     \end{itemize}
   \end{columns}
@@ -758,7 +760,7 @@
 % =============================================================================
 \begin{frame}{One CLB tile = 5 frames (M26 layout)}
   \centering
-  \begin{tikzpicture}[font=\tiny, x=0.7mm, y=7.5mm]
+  \begin{tikzpicture}[font=\tiny, x=0.7mm, y=6.2mm]
     \node[anchor=east, font=\scriptsize] at (-2,4.5) {f0};
     \fill[bobviolet!25] (0,4) rectangle (65,5); \node at (32.5,4.5) {crossbar selects 1--13 (65 b)};
     \fill[bobmute!15] (65,4) rectangle (68,5);
@@ -781,9 +783,9 @@
     \draw[bobviolet, thick] (131,1.05) -- (131,4.95);
     \node[anchor=west, font=\scriptsize, align=left] at (133,3) {f0--f3 are shifted into\\the host's \textbf{CFGLUT5}s\\as each one is written\\(\texttt{lut\_loader}, 32 TCK)};
   \end{tikzpicture}
-  \vspace{3mm}
+  \vspace{2mm}
 
-  \small
+  \footnotesize
   \begin{itemize}
     \item Tile \texttt{clb\_x1y1} = chain bits 640--1279 = frames 5--9 (FAR column 2, minors 1--5): 439 CLB bits, then 159 routing bits
     \item Flags and routing selects land in flip-flops; each 5-bit crossbar select is expanded at load time into its five leaf tables (\texttt{lut\_expand.v})
@@ -797,24 +799,24 @@
     \column{0.52\textwidth}
     \ttfamily\scriptsize
     \begin{tabular}{@{}ll@{}}
-      FFFFFFFF FFFFFFFF & \rmfamily dummy \\
-      \textcolor{bobamber}{AA995566} & \textcolor{bobamber}{\rmfamily sync word} \\
-      30008001 00000007 & \rmfamily CMD = RCRC \\
-      30018001 \textcolor{bobteal}{0B026093} & \rmfamily IDCODE must match \\
-      30008001 00000001 & \rmfamily CMD = WCFG \\
-      30002001 00000080 & \rmfamily FAR: column 1, minor 0 \\
-      30004008 \rmfamily 8 words & \rmfamily FDRI: 2 frames \\
-      30002001 00000119 & \rmfamily FAR: column 2, minor 25 \\
-      30004004 00100000 \dots & \rmfamily FDRI: holds \texttt{rr6840} \\
-      \rmfamily \dots\ 24 runs, 30 frames \dots & \\
-      30000001 95ADDD48 & \rmfamily CRC-32C check \\
-      30008001 00000003 & \rmfamily LFRM \\
-      30008001 00000005 & \rmfamily START \\
-      30008001 0000000D & \rmfamily DESYNC \\
+      FFFFFFFF FFFFFFFF & \sffamily dummy \\
+      \textcolor{bobamber}{AA995566} & \textcolor{bobamber}{\sffamily sync word} \\
+      30008001 00000007 & \sffamily CMD = RCRC \\
+      30018001 \textcolor{bobteal}{0B026093} & \sffamily IDCODE must match \\
+      30008001 00000001 & \sffamily CMD = WCFG \\
+      30002001 00000080 & \sffamily FAR: column 1, minor 0 \\
+      30004008 \sffamily 8 words & \sffamily FDRI: 2 frames \\
+      30002001 00000119 & \sffamily FAR: column 2, minor 25 \\
+      30004004 00100000 \dots & \sffamily FDRI: holds \texttt{rr6840} \\
+      \sffamily \dots\ 24 runs, 30 frames \dots & \\
+      30000001 95ADDD48 & \sffamily CRC-32C check \\
+      30008001 00000003 & \sffamily LFRM \\
+      30008001 00000005 & \sffamily START \\
+      30008001 0000000D & \sffamily DESYNC \\
     \end{tabular}
 
     \vspace{2mm}
-    \rmfamily\tiny
+    \sffamily\tiny
     \begin{tabular}{@{}ll@{}}
       \toprule
       type 1 & \texttt{[31:29]} = 001, op \texttt{[28:27]}, register \texttt{[17:13]}, count \texttt{[10:0]} \\
@@ -822,13 +824,13 @@
       \bottomrule
     \end{tabular}
     \column{0.46\textwidth}
-    \small
+    \footnotesize
     \begin{itemize}
-      \item The parser \alert{hunts} for the sync word bit by bit, then reads 32-bit words: one stream may span any number of JTAG scans
+      \item The parser \alert{hunts} for the sync word bit by bit, then reads 32-bit words: a stream may span any number of JTAG scans
       \item Registers CRC, FAR, FDRI, FDRO, CMD, STAT, IDCODE at 7-series addresses
       \item \textbf{CRC-32C} over \{register, data\} of every write: one wrong bit and START is refused
       \item Frames need WCFG, the right IDCODE and GWE = 0
-      \item \textbf{Sparse}: after JPROGRAM only frames holding a 1\\\texttt{counter}: \textbf{214 words} instead of 2\,154
+      \item \textbf{Sparse}: after JPROGRAM only frames holding a 1. \texttt{counter}: \textbf{214 words}, not 2\,154
     \end{itemize}
   \end{columns}
 \end{frame}
@@ -849,18 +851,18 @@
   \end{tikzpicture}
   \vspace{3mm}
 
-  \small
+  \footnotesize
   \begin{columns}[T]
     \column{0.48\textwidth}
     \begin{itemize}
-      \item \textbf{One 128-bit buffer}: every write, chain or frame, passes through it. A computed part-select over the memory was a 12\,000-LUT barrel shifter; Vivado ran out of memory
+      \item \textbf{One 128-bit buffer}: every write, chain or frame, passes through it. A computed part-select over the memory was a 12\,000-LUT barrel shifter
       \item \textbf{Shadow readback}: FDRO reads a BRAM copy, not a 256-way mux ($-$11.8k LUTs)
     \end{itemize}
     \column{0.48\textwidth}
     \begin{itemize}
-      \item \textbf{JPROGRAM}: FFs cleared, \texttt{lut\_loader} sweeps zeros into every CFGLUT5: dark, loop-free
-      \item A frame takes $\geq$ 128 TCK to arrive, its CFGLUT5 shift 32: loads never overlap; JSTART waits for the loader
-      \item Startup order is bob's: DONE last, so LD3 lit = running
+      \item \textbf{JPROGRAM}: FFs cleared, zeros swept into every CFGLUT5: a dark, loop-free fabric
+      \item A frame takes $\geq$ 128 TCK to arrive and 32 to shift: loads never overlap
+      \item DONE comes last, so LD3 lit = running
     \end{itemize}
   \end{columns}
 \end{frame}
@@ -869,7 +871,7 @@
 \begin{frame}{Partial reconfiguration and time travel: both hold \texttt{gce}}
   \centering
   \begin{tikzpicture}[font=\scriptsize, st/.style={bx, minimum height=10mm, text width=21mm}]
-    \node[font=\small\bfseries, anchor=west] at (0,5.25) {Partial reconfiguration (M14): \texttt{./bob load --partial b.bit}};
+    \node[font=\small\bfseries, anchor=west] at (0,5.25) {Partial reconfiguration (M14): \texttt{./bob load -{}-partial b.bit}};
     \node[cfg, st] (p1) at (1.25,4.3) {\texttt{CMD AGHIGH}\\freeze: gce held};
     \node[cfg, st] (p2) at (4.05,4.3) {STAT GHIGH\_B = 0\\acknowledged};
     \node[acc, st] (p3) at (6.85,4.3) {FAR + FDRI\\changed frames only};
@@ -893,7 +895,7 @@
   \centering
   \begin{tikzpicture}[font=\scriptsize]
     \node[acc, minimum width=36mm, minimum height=24mm] (fab) at (7,2.6) {\small\textbf{bob fabric}\\[1pt]400 elements, 800 outputs\\2 BRAM, 2 DSP, 44 pads};
-    \node[cfg, text width=46mm] (rb) at (7,5.0) {\textbf{FDRO, CHAIN\_OUT}: every configuration frame, read from the shadow BRAM};
+    \node[cfg, text width=58mm] (rb) at (7,5.0) {\textbf{FDRO, CHAIN\_OUT}: every configuration frame,\\read from the shadow BRAM};
     \node[cfg, text width=34mm] (cap) at (1.9,3.3) {\textbf{CAPTURE} (USER3): all 800 element outputs = every user FF, in one scan};
     \node[hot, text width=34mm] (bs) at (12.1,3.3) {\textbf{boundary scan}: SAMPLE = 44 pins at once; INTEST drives the inputs};
     \node[blk, text width=34mm] (u4) at (1.9,1.5) {\textbf{USER4}: BRAM contents\\\textbf{DSP register}: drive, read P};
@@ -947,7 +949,7 @@
   \centering
   \begin{tikzpicture}[font=\scriptsize, proc/.style={sw, minimum width=21mm, minimum height=7.5mm}, dat/.style={file, minimum width=19mm}, res/.style={lbl, anchor=north}]
     % row 1
-    \node[dat] (v) at (1.1,4.7) {counter.v\\\rmfamily + .pcf, .sdc};
+    \node[dat] (v) at (1.1,4.7) {counter.v\\\sffamily + .pcf, .sdc};
     \node[proc] (s1) at (3.8,4.7) {\textbf{1 synth}\\yosys + equiv};
     \node[dat, minimum width=22mm] (nl) at (6.7,4.7) {.json .blif\\\_syn.v golden.v};
     \node[proc] (s2) at (9.5,4.7) {\textbf{2 prepare}\\\texttt{vpr\_run}};
@@ -959,7 +961,7 @@
     \node[dat] (fa) at (4.2,2.85) {.fasm};
     \node[proc] (s5) at (1.6,2.85) {\textbf{5 bits}\\\texttt{bitgen}};
     % row 3
-    \node[dat] (w) at (1.6,1.0) {word\\\rmfamily 68\,096 bits};
+    \node[dat] (w) at (1.6,1.0) {word\\\sffamily 68\,096 bits};
     \node[proc] (s6) at (4.1,1.0) {\textbf{6 timing}\\+ delays.json};
     \node[proc] (s7) at (6.6,1.0) {\textbf{7 model}\\\texttt{model.py}};
     \node[proc, minimum width=16mm] (s8) at (8.9,1.0) {\textbf{8 write}};
@@ -971,7 +973,7 @@
     \node[res] at (9.5,4.28) {chains cut, pins fixed};
     \node[res] at (12.3,2.43) {2 CLBs, wirelength 105};
     \node[res] at (6.7,2.43) {78 features, all legal};
-    \node[res] at (1.6,2.43) {round trip identical};
+    \node[res, anchor=north west] at (1.72,2.43) {round trip identical};
     \node[res] at (4.1,0.58) {12.9 ns $\rightarrow$ 31.25 MHz};
     \node[res] at (6.6,0.58) {600/600 == source};
     \node[res] at (8.9,0.58) {3.4 s in all};
@@ -1015,7 +1017,7 @@
     \end{tabular}
     \vspace{3mm}
 
-    \small
+    \footnotesize
     \begin{itemize}
       \item \textbf{counter}: 6 \texttt{BOB\_ADD} + 6 \texttt{BOB\_FDRE}, 0 LUTs
       \item Then \texttt{equiv.py}: source $\parallel$ netlist $\parallel$ golden netlist in iverilog, 300 biased random cycles
@@ -1026,7 +1028,7 @@
 \end{frame}
 
 % =============================================================================
-\begin{frame}{Stages 2--3: preparing the netlist, then two place-and-route engines}
+\begin{frame}{Stages 2--3: prepare, then two place-and-route engines}
   \centering
   \begin{tikzpicture}[font=\scriptsize, prep/.style={cfg, text width=29mm, font=\tiny, minimum height=9mm}, eng/.style={sw, minimum width=22mm, minimum height=9mm, font=\tiny}]
     \node[font=\scriptsize\bfseries, anchor=west] at (0,5.55) {\texttt{vpr\_run.prepare}: \texttt{counter.json} $\rightarrow$ \texttt{counter.eblif} + \texttt{counter.vpr.json}};
@@ -1042,7 +1044,7 @@
     \node[eng] (b1) at (4.2,1.95) {\texttt{pack.py}\\+ Double Duty};
     \node[eng] (b2) at (6.7,1.95) {\texttt{place.py}\\VPR's schedule};
     \node[eng] (b3) at (9.2,1.95) {\texttt{route.py}\\PathFinder + A*};
-    \node[file, minimum height=16mm, text width=22mm] (o) at (12.5,2.6) {counter.net\\counter.place\\counter.route\\\rmfamily same formats};
+    \node[file, minimum height=16mm, text width=22mm] (o) at (12.5,2.6) {counter.net\\counter.place\\counter.route\\\sffamily same formats};
     \foreach \a/\b in {vl/v1,v1/v2,v2/v3,bl/b1,b1/b2,b2/b3} \draw[arr] (\a) -- (\b);
     \draw[arr] (v3.east) -- (o.west |- v3.east);
     \draw[arr] (b3.east) -- (o.west |- b3.east);
@@ -1105,7 +1107,7 @@ clb_x1y3.e2.init = 64'hcccc0000ffee5544
 \begin{frame}{Stage 6, timing: signed off from the configured bits}
   \begin{columns}[T]
     \column{0.5\textwidth}
-    \small
+    \footnotesize
     \textbf{Why Vivado cannot do it}
     \begin{itemize}
       \item An \emph{unconfigured} fabric is a mesh of combinational loops (M21: a 6\,349-level path through empty muxes)
@@ -1117,8 +1119,8 @@ clb_x1y3.e2.init = 64'hcccc0000ffee5544
       \item The \textbf{contract}: a build or load is refused unless path $\times$ guard fits the design's gce spacing; a loop is refused too
     \end{itemize}
     \column{0.48\textwidth}
-    \small
-    \textbf{Delays measured in Vivado} (\texttt{delays.tcl}, no rebuild)
+    \footnotesize
+    \textbf{Delays measured in Vivado} (\texttt{delays.tcl})
     \vspace{1mm}
 
     \centering
@@ -1138,16 +1140,17 @@ clb_x1y3.e2.init = 64'hcccc0000ffee5544
 
     \raggedright
     \src{Estimates keep a 2$\times$ guard band (1.25$\times$ once all are measured). VPR places and routes on these same numbers.}
+
+    \vspace{3mm}
+    \textbf{\footnotesize The counter's critical path}\\[1mm]
+    \begin{tikzpicture}[x=4.6mm, y=4.6mm, font=\tiny]
+      \foreach \a/\b/\tx/\col in {0/0.5/{}/bobviolet, 0.5/3.509/3.01/bobviolet, 3.509/6.909/3.4/bobteal, 6.909/11.909/5 $\times$ 1.0/bobamber, 11.909/12.909/1.0/bobviolet}
+        { \fill[\col!30] (\a,0) rectangle (\b,1); \draw[bobink!50] (\a,0) rectangle (\b,1); \node at ({(\a+\b)/2},0.5) {\tx}; }
+      \foreach \xx in {0,4,8,12} \node[color=bobmute] at (\xx,-0.45) {\xx\,ns};
+    \end{tikzpicture}\\[1mm]
+    {\scriptsize clk$\rightarrow$Q, crossbar, element, carry, setup = 12.909 ns;\\
+     $\times$ 2 = 25.8 ns $\rightarrow$ 4 cycles of 8 ns: \textbf{31.25 MHz}}
   \end{columns}
-  \vspace{2mm}
-  \centering
-  \begin{tikzpicture}[x=5.2mm, y=5mm, font=\tiny]
-    \foreach \a/\b/\tx/\col in {0/0.5/{}/bobviolet, 0.5/3.509/crossbar 3.01/bobviolet, 3.509/6.909/element 3.4/bobteal, 6.909/11.909/carry 5 $\times$ 1.0/bobamber, 11.909/12.909/setup/bobviolet}
-      { \fill[\col!30] (\a,0) rectangle (\b,1); \draw[bobink!50] (\a,0) rectangle (\b,1); \node at ({(\a+\b)/2},0.5) {\tx}; }
-    \node[anchor=east, font=\scriptsize] at (-0.2,0.5) {\texttt{counter}};
-    \node[anchor=west, font=\scriptsize, align=left] at (13.1,0.5) {12.909 ns $\times$ 2 = 25.8 ns\\$\rightarrow$ 4 cycles of 8 ns: \textbf{31.25 MHz}};
-    \foreach \xx in {0,4,8,12} \node[color=bobmute] at (\xx,-0.4) {\xx\,ns};
-  \end{tikzpicture}
 \end{frame}
 
 % =============================================================================
@@ -1166,7 +1169,8 @@ clb_x1y3.e2.init = 64'hcccc0000ffee5544
     \end{tikzpicture}
 
     \vspace{1mm}
-    \src{\texttt{--mode chain}: the same word over CHAIN\_IN with its CRC in CFG\_CTRL. \texttt{--partial}: only the frames that differ.}
+    \raggedright
+    \src{\texttt{-{}-mode chain}: the same word over CHAIN\_IN with its CRC in CFG\_CTRL. \texttt{-{}-partial}: only the frames that differ.}
     \column{0.43\textwidth}
     \centering
     \begin{tikzpicture}[font=\scriptsize, node distance=3.5mm, tier/.style={bx, minimum width=44mm}]
@@ -1181,7 +1185,8 @@ clb_x1y3.e2.init = 64'hcccc0000ffee5544
     \kpi{2.9$\times$}{13 designs: 28.2 s at 100 kHz,\\9.8 s at 1 MHz}
 
     \vspace{1mm}
-    \src{\texttt{--probe fake}: \texttt{fakeboard.py} answers the same JTAG out of \texttt{model.py} and \texttt{packets.Controller}.}
+    \raggedright
+    \src{\texttt{-{}-probe fake}: \texttt{fakeboard.py} answers the same JTAG out of \texttt{model.py} and \texttt{packets.Controller}.}
   \end{columns}
 \end{frame}
 
@@ -1189,12 +1194,12 @@ clb_x1y3.e2.init = 64'hcccc0000ffee5544
 \begin{frame}{bob studio: an EDA tool over the same engine}
   \centering
   \begin{tikzpicture}[font=\scriptsize]
-    \node[sw, minimum width=34mm, minimum height=14mm] (pg) at (1.9,3.9) {\textbf{studio.html}\\one page, 13 parts\\no external libraries};
-    \node[sw, minimum width=34mm, minimum height=14mm] (be) at (7.0,3.9) {\textbf{studio.py}\\stdlib \texttt{http.server}\\pywebview window};
+    \node[sw, minimum width=34mm, minimum height=14mm] (pg) at (1.8,3.9) {\textbf{studio.html}\\one page, 13 parts\\no external libraries};
+    \node[sw, minimum width=34mm, minimum height=14mm] (be) at (7.4,3.9) {\textbf{studio.py}\\stdlib \texttt{http.server}\\pywebview window};
     \draw[arr2] (pg) -- node[above, lbl]{HTTP + SSE} node[below, lbl]{token, Host, Origin} (be);
-    \node[sw] (fl) at (10.9,4.75) {\texttt{flow.py}};
-    \node[sw] (cp) at (10.9,3.9) {\texttt{cfgplane.py} $\rightarrow$ Pico};
-    \node[sw] (fk) at (10.9,3.05) {\texttt{fakeboard.py}};
+    \node[sw] (fl) at (11.3,4.75) {\texttt{flow.py}};
+    \node[sw] (cp) at (11.3,3.9) {\texttt{cfgplane.py} $\rightarrow$ Pico};
+    \node[sw] (fk) at (11.3,3.05) {\texttt{fakeboard.py}};
     \draw[arr] (be.east) -- ++(0.4,0) |- (fl.west);
     \draw[arr] (be.east) -- (cp.west);
     \draw[arr] (be.east) -- ++(0.4,0) |- (fk.west);
@@ -1212,7 +1217,7 @@ clb_x1y3.e2.init = 64'hcccc0000ffee5544
   \end{tikzpicture}
   \vspace{2mm}
 
-  \small \texttt{./bob studio} (add \texttt{--probe fake} with no board). The studio never re-implements a stage: every route calls \texttt{flow.py} or \texttt{cfgplane.py}; failures show \texttt{ux.py}'s hints, clickable to the source line.
+  \small \texttt{./bob studio} (\texttt{-{}-probe fake} without a board). It never re-implements a stage: every route calls \texttt{flow.py} or \texttt{cfgplane.py}.
 \end{frame}
 
 % =============================================================================
@@ -1229,12 +1234,13 @@ clb_x1y3.e2.init = 64'hcccc0000ffee5544
       5/9cm/8.6cm/bobblue/{\textbf{pytest} (585), verilator lint, the \textbf{stand-in board}: each check passes a good board, fails a broken one},
       6/8cm/7.6cm/bobamber/{\textbf{PYNQ-Z2}, \texttt{make hwtest}: full regression + new checks, \textbf{74/74 at M26}}}
     {
-      \node[draw=\col, fill=\col!12, rounded corners=2pt, minimum width=\w, text width=\tw, align=center, minimum height=6.5mm, inner sep=1.5pt] at (0,\i*0.76) {\tx};
+      \node[draw=\col, fill=\col!12, rounded corners=2pt, minimum width=\w, text width=\tw, align=center, minimum height=5.8mm, inner sep=1.2pt] at (0,\i*0.68) {\tx};
     }
   \end{tikzpicture}
   \vspace{2mm}
 
-  \small A testbench that reads its answers off the RTL only proves the RTL agrees with itself. Mutants prove the \emph{guards} are tested: the first length check (M2) could be deleted with every test still passing.
+  \small A testbench that reads its answers off the RTL only proves the RTL agrees with itself.\\
+  Mutants prove the \emph{guards} are tested: M2's first length check could be deleted unnoticed.
 \end{frame}
 
 % =============================================================================
@@ -1242,7 +1248,7 @@ clb_x1y3.e2.init = 64'hcccc0000ffee5544
   \centering
   \scriptsize
   \renewcommand{\arraystretch}{1.2}
-  \begin{tabular}{@{}p{30mm}p{40mm}p{60mm}@{}}
+  \begin{tabular}{@{}L{30mm}L{40mm}L{60mm}@{}}
     \toprule
     \textbf{what} & \textbf{used for} & \textbf{why} \\
     \midrule
@@ -1264,7 +1270,7 @@ clb_x1y3.e2.init = 64'hcccc0000ffee5544
   \centering
   \scriptsize
   \renewcommand{\arraystretch}{1.1}
-  \begin{tabular}{@{}p{40mm}p{32mm}p{58mm}@{}}
+  \begin{tabular}{@{}L{40mm}L{32mm}L{58mm}@{}}
     \toprule
     \textbf{chosen} & \textbf{instead of} & \textbf{because} \\
     \midrule
@@ -1286,18 +1292,18 @@ clb_x1y3.e2.init = 64'hcccc0000ffee5544
 \begin{frame}{bob and OpenFPGA: the same core, different goals}
   \centering
   \begin{tikzpicture}[font=\scriptsize]
-    \node[font=\small\bfseries, anchor=west, text=bobmute] at (0,5.2) {OpenFPGA: a framework that generates FPGAs};
-    \node[file, text width=27mm, font=\tiny\ttfamily] (o1) at (1.55,4.3) {VPR arch XML\\OpenFPGA arch XML\\\rmfamily circuit library, protocol};
-    \node[blk, text width=30mm] (o2) at (5.2,4.3) {openfpga shell\\yosys $\rightarrow$ VPR $\rightarrow$ build\_fabric};
-    \node[blk, text width=34mm, font=\tiny] (o3) at (9.1,4.3) {fabric netlists (tiles)\\bitstream as plain bits\\testbenches, SDC};
-    \node[blk, text width=20mm, font=\tiny, draw=bobmute!50, fill=white, text=bobmute] (o4) at (12.6,4.3) {ASIC flow, SPICE\\(not compared)};
+    \node[font=\small\bfseries, anchor=west, text=bobmute] at (0,5.35) {OpenFPGA: a framework that generates FPGAs};
+    \node[file, text width=27mm, font=\tiny\ttfamily] (o1) at (1.55,4.45) {VPR arch XML\\OpenFPGA arch XML\\\sffamily circuit library, protocol};
+    \node[blk, text width=34mm, font=\tiny] (o2) at (5.35,4.45) {\scriptsize openfpga shell\\yosys $\rightarrow$ VPR $\rightarrow$ build\_fabric};
+    \node[blk, text width=32mm, font=\tiny] (o3) at (9.15,4.45) {fabric netlists (tiles)\\bitstream as plain bits\\testbenches, SDC};
+    \node[blk, text width=20mm, font=\tiny, draw=bobmute!50, fill=white, text=bobmute] (o4) at (12.6,4.45) {ASIC flow, SPICE\\(not compared)};
     \draw[arr] (o1) -- (o2); \draw[arr] (o2) -- (o3); \draw[arr, bobmute!50] (o3) -- (o4);
-    \node[acc, text width=120mm, minimum height=8mm] (core) at (7,2.85) {\textbf{shared core}: the fabric \emph{is} VPR's routing-resource graph turned into muxes $\cdot$ bob's architecture starts from OpenFPGA's \texttt{k6\_frac\_N10\_tileable\_adder\_chain\_dpram8K\_dsp36\_fracff\_40nm} $\cdot$ its scan-chain protocol};
-    \node[font=\small\bfseries, anchor=west, text=bobteal] at (0,1.85) {bob: one complete FPGA product};
-    \node[file, text width=27mm, font=\tiny\ttfamily] (b1) at (1.55,0.95) {device.py\\\rmfamily one Python description};
-    \node[sw, text width=30mm] (b2) at (5.2,0.95) {rr graph $\rightarrow$ RTL + device.json\\yosys $\rightarrow$ VPR / bob PnR};
-    \node[sw, text width=34mm, font=\tiny] (b3) at (9.1,0.95) {FASM $\rightarrow$ packetised \texttt{.bit}\\timing contract, models, mutants};
-    \node[hot, text width=20mm, font=\tiny] (b4) at (12.6,0.95) {running chip: JTAG load, readback, debug};
+    \node[acc, text width=128mm, minimum height=8mm, font=\tiny] (core) at (7,3.0) {\scriptsize\textbf{shared core}: the fabric \emph{is} VPR's routing-resource graph turned into muxes\\bob's architecture starts from OpenFPGA's \texttt{k6\_frac\_N10\_tileable\_adder\_chain\_dpram8K\_dsp36\_fracff\_40nm} and its scan-chain protocol};
+    \node[font=\small\bfseries, anchor=west, text=bobteal] at (0,1.95) {bob: one complete FPGA product};
+    \node[file, text width=27mm, font=\tiny\ttfamily] (b1) at (1.55,1.0) {device.py\\\sffamily one Python description};
+    \node[sw, text width=34mm, font=\tiny] (b2) at (5.35,1.0) {\scriptsize rr graph $\rightarrow$ RTL, device.json\\yosys $\rightarrow$ VPR or bob PnR};
+    \node[sw, text width=32mm, font=\tiny] (b3) at (9.15,1.0) {FASM $\rightarrow$ packetised \texttt{.bit}\\timing contract, models, mutants};
+    \node[hot, text width=20mm, font=\tiny] (b4) at (12.6,1.0) {running chip: JTAG load, readback, debug};
     \draw[arr] (b1) -- (b2); \draw[arr] (b2) -- (b3); \draw[arr] (b3) -- (b4);
     \draw[arr, dashed, bobteal] (core.north -| o2.south) -- (o2.south);
     \draw[arr, dashed, bobteal] (core.south -| b2.north) -- (b2.north);
@@ -1309,7 +1315,7 @@ clb_x1y3.e2.init = 64'hcccc0000ffee5544
   \centering
   \scriptsize
   \renewcommand{\arraystretch}{1.12}
-  \begin{tabular}{@{}p{44mm}ccp{54mm}@{}}
+  \begin{tabular}{@{}L{44mm}ccL{54mm}@{}}
     \toprule
     & \textbf{OpenFPGA} & \textbf{bob} & \textbf{evidence (OpenFPGA vs bob)} \\
     \midrule
@@ -1431,7 +1437,7 @@ clb_x1y3.e2.init = 64'hcccc0000ffee5544
   \vspace{18mm}
   {\Huge\bfseries Thank you}\\[6mm]
   {\large Questions?}\\[12mm]
-  \src{Live demo: \texttt{./bob run work/examples/counter/counter.v --probe fake} \quad$\cdot$\quad \texttt{./bob fasm counter.bit} \quad$\cdot$\quad \texttt{./bob studio}}
+  \src{Live demo: \texttt{./bob run work/examples/counter/counter.v -{}-probe fake} \quad$\cdot$\quad \texttt{./bob fasm counter.bit} \quad$\cdot$\quad \texttt{./bob studio}}
 \end{frame}
 
 \end{document}
