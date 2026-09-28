@@ -1,0 +1,17 @@
+
+41. Printing statistics.
+
+=== counter ===
+
+        +----------Local Count, excluding submodules.
+        | 
+        7 wires
+       29 wire bits
+        5 public wires
+       16 public wire bits
+        4 ports
+       10 port bits
+       12 cells
+        6   BOB_ADD
+        6   BOB_FDRE
+

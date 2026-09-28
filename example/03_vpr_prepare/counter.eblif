@@ -1,0 +1,31 @@
+# GENERATED from the yosys netlist of counter - do not edit
+.model counter
+.inputs clk btn[0] btn[1]
+.outputs led[0] led[1] led[2]
+.subckt bob_add cout=cy2
+.cname bob_gen1
+.subckt bob_add b=n12 cin=cy2 cout=cy3 sumout=n14
+.cname $auto$alumacc.cc:548:replace_alu$16.slice[0].add
+.subckt bob_add b=n15 cin=cy3 cout=cy4 sumout=n17
+.cname $auto$alumacc.cc:548:replace_alu$16.slice[1].add
+.subckt bob_add b=n18 cin=cy4 cout=cy5 sumout=n20
+.cname $auto$alumacc.cc:548:replace_alu$16.slice[2].add
+.subckt bob_add b=led[0] cin=cy5 cout=cy6 sumout=n22
+.cname $auto$alumacc.cc:548:replace_alu$16.slice[3].add
+.subckt bob_add b=led[1] cin=cy6 cout=cy7 sumout=n24
+.cname $auto$alumacc.cc:548:replace_alu$16.slice[4].add
+.subckt bob_add b=led[2] cin=cy7 sumout=n26
+.cname $auto$alumacc.cc:548:replace_alu$16.slice[5].add
+.subckt bob_ff D=n14 C=clk Q=n12 CE=btn[0] SR=btn[1]
+.cname $auto$ff.cc:337:slice$94
+.subckt bob_ff D=n17 C=clk Q=n15 CE=btn[0] SR=btn[1]
+.cname $auto$ff.cc:337:slice$95
+.subckt bob_ff D=n20 C=clk Q=n18 CE=btn[0] SR=btn[1]
+.cname $auto$ff.cc:337:slice$96
+.subckt bob_ff D=n22 C=clk Q=led[0] CE=btn[0] SR=btn[1]
+.cname $auto$ff.cc:337:slice$97
+.subckt bob_ff D=n24 C=clk Q=led[1] CE=btn[0] SR=btn[1]
+.cname $auto$ff.cc:337:slice$98
+.subckt bob_ff D=n26 C=clk Q=led[2] CE=btn[0] SR=btn[1]
+.cname $auto$ff.cc:337:slice$99
+.end

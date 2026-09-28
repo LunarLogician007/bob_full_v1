@@ -1,0 +1,4 @@
+$ ./bob load example/07_bitstream/counter.bit --probe fake
+
+  PASS  load example/07_bitstream/counter.bit: loaded 30 of 532 frames (120 words; JPROGRAM zeroed the rest) through CFG_IN, CRC 95ADDD48, FDRO readback verified (all 532 frames), DONE
+    LEDs    LD2..0 = 000   (SW1..0 = 00, BTN3..0 = 0000); add --watch to follow them

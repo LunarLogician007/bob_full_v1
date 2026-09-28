@@ -1,0 +1,241 @@
+Every FASM feature of counter.fasm, where its bits land, and what it does.
+chain bit k = configuration memory bit k; frame f = bits [128f + 127 : 128f];
+word w bit k of a frame = frame bit 32w + k (docs/bitstream-format.md).
+
+ctrl.clk_mode = 1'h0
+    chain bits 0  ->  frame 0 bit 0 (word 0 bit 0)  ->  FAR 0x00000000 (column 0, minor 0)
+    0: fabric clock enable = one pulse per TCK rising edge while USER1 ce (JTAG-stepped); 1: free-running divider
+rr7864 = 4'h1
+    chain bits 229..232  ->  frame 1 bit 101 (word 3 bit 5)  ->  FAR 0x00000080 (column 1, minor 0)
+    mux driving CHANY (0,3)->(0,6)     track 0,2,4,6: input 0 = node 1666 [OPIN  (0,3)            pin 1]
+rr7841 = 4'h1
+    chain bits 256..259  ->  frame 2 bit 0 (word 0 bit 0)  ->  FAR 0x00000081 (column 1, minor 1)
+    mux driving CHANY (0,1)->(0,4)     track 23,21,19,17: input 0 = node 2104 [OPIN  (0,4)            pin 1]
+rr7886 = 4'h7
+    chain bits 307..310  ->  frame 2 bit 51 (word 1 bit 19)  ->  FAR 0x00000081 (column 1, minor 1)
+    mux driving CHANY (0,5)->(0,8)     track 8,10,12,14: input 6 = node 7864 [CHANY (0,3)->(0,6)     track 0,2,4,6]
+rr5980 = 1'h1
+    chain bits 543  ->  frame 4 bit 31 (word 0 bit 31)  ->  FAR 0x00000100 (column 2, minor 0)
+    mux driving CHANX (1,0)->(4,0)     track 24,26,28,30: input 0 = node 7841 [CHANY (0,1)->(0,4)     track 23,21,19,17]
+rr6840 = 2'h2
+    chain bits 3731..3732  ->  frame 29 bit 19 (word 0 bit 19)  ->  FAR 0x00000119 (column 2, minor 25)
+    mux driving CHANX (1,5)->(3,5)     track 26,28,30: input 1 = node 7886 [CHANY (0,5)->(0,8)     track 8,10,12,14]
+rr6002 = 3'h3
+    chain bits 13587..13589  ->  frame 106 bit 19 (word 0 bit 19)  ->  FAR 0x00000200 (column 4, minor 0)
+    mux driving CHANX (3,0)->(6,0)     track 0,2,4,6: input 2 = node 5980 [CHANX (1,0)->(4,0)     track 24,26,28,30]
+rr6862 = 4'h3
+    chain bits 13974..13977  ->  frame 109 bit 22 (word 0 bit 22)  ->  FAR 0x00000203 (column 4, minor 3)
+    mux driving CHANX (3,5)->(6,5)     track 8,10,12,14: input 2 = node 6840 [CHANX (1,5)->(3,5)     track 26,28,30]
+rr8237 = 4'h4
+    chain bits 13998..14001  ->  frame 109 bit 46 (word 1 bit 14)  ->  FAR 0x00000203 (column 4, minor 3)
+    mux driving CHANY (3,2)->(3,5)     track 23,21,19,17: input 3 = node 6840 [CHANX (1,5)->(3,5)     track 26,28,30]
+rr6014 = 4'h2
+    chain bits 14486..14489  ->  frame 113 bit 22 (word 0 bit 22)  ->  FAR 0x00000280 (column 5, minor 0)
+    mux driving CHANX (4,0)->(7,0)     track 8,10,12,14: input 1 = node 5980 [CHANX (1,0)->(4,0)     track 24,26,28,30]
+rr6344 = 2'h3
+    chain bits 15751..15752  ->  frame 123 bit 7 (word 0 bit 7)  ->  FAR 0x0000028A (column 5, minor 10)
+    mux driving CHANX (4,2)->(6,2)     track 18,20,22: input 2 = node 8237 [CHANY (3,2)->(3,5)     track 23,21,19,17]
+rr6024 = 4'h3
+    chain bits 21014..21017  ->  frame 164 bit 22 (word 0 bit 22)  ->  FAR 0x00000300 (column 6, minor 0)
+    mux driving CHANX (5,0)->(8,0)     track 8,10,12,14: input 2 = node 6002 [CHANX (3,0)->(6,0)     track 0,2,4,6]
+rr6040 = 3'h1
+    chain bits 27553..27555  ->  frame 215 bit 33 (word 1 bit 1)  ->  FAR 0x00000380 (column 7, minor 0)
+    mux driving CHANX (6,0)->(7,0)     track 32,34: input 0 = node 6014 [CHANX (4,0)->(7,0)     track 8,10,12,14]
+rr8585 = 4'h3
+    chain bits 28822..28825  ->  frame 225 bit 22 (word 0 bit 22)  ->  FAR 0x0000038A (column 7, minor 10)
+    mux driving CHANY (6,1)->(6,2)     track 11,9: input 2 = node 6344 [CHANX (4,2)->(6,2)     track 18,20,22]
+rr8587 = 4'hb
+    chain bits 29462..29465  ->  frame 230 bit 22 (word 0 bit 22)  ->  FAR 0x0000038F (column 7, minor 15)
+    mux driving CHANY (6,1)->(6,3)     track 13,11,9: input 10 = node 8611 [CHANY (6,2)->(6,5)     track 7,5,3,1]
+rr8624 = 4'h1
+    chain bits 29486..29489  ->  frame 230 bit 46 (word 1 bit 14)  ->  FAR 0x0000038F (column 7, minor 15)
+    mux driving CHANY (6,3)->(6,6)     track 16,18,20,22: input 0 = node 1904 [OPIN  (7,3)            pin 21]
+rr8611 = 4'h2
+    chain bits 30738..30741  ->  frame 240 bit 18 (word 0 bit 18)  ->  FAR 0x00000399 (column 7, minor 25)
+    mux driving CHANY (6,2)->(6,5)     track 7,5,3,1: input 1 = node 6862 [CHANX (3,5)->(6,5)     track 8,10,12,14]
+rr8726 = 2'h2
+    chain bits 34763..34764  ->  frame 271 bit 75 (word 2 bit 11)  ->  FAR 0x00000405 (column 8, minor 5)
+    mux driving CHANY (7,1)->(7,3)     track 26,28,30: input 1 = node 6024 [CHANX (5,0)->(8,0)     track 8,10,12,14]
+rr8728 = 2'h2
+    chain bits 34765..34766  ->  frame 271 bit 77 (word 2 bit 13)  ->  FAR 0x00000405 (column 8, minor 5)
+    mux driving CHANY (7,1)->(7,2)     track 28,30: input 1 = node 6040 [CHANX (6,0)->(7,0)     track 32,34]
+clb_x7y2.e1.x4 = 5'h1
+    chain bits 34866..34870  ->  frame 272 bit 50 (word 1 bit 18)  ->  FAR 0x00000406 (column 8, minor 6)
+    crossbar: element 1 input i4 <- const1
+clb_x7y2.e1.x5 = 5'h14
+    chain bits 34871..34875  ->  frame 272 bit 55 (word 1 bit 23)  ->  FAR 0x00000406 (column 8, minor 6)
+    crossbar: element 1 input i5 <- O[2]
+clb_x7y2.e0.cy_en = 1'h1
+    chain bits 34889  ->  frame 272 bit 73 (word 2 bit 9)  ->  FAR 0x00000406 (column 8, minor 6)
+    carry mode: XORCY sum on out[0]'s datapath, MUXCY cout
+clb_x7y2.e0.dd = 1'h1
+    chain bits 34896  ->  frame 272 bit 80 (word 2 bit 16)  ->  FAR 0x00000406 (column 8, minor 6)
+    M24 Double Duty (with cy_en): the adder's operands come straight from i[K-2] (A, also DI) and i[K-1] (B), prop = A ^ B ^ cy_di_sel (INV_B), so the LUT stays free: out[1] = O5 = a LUT(K-2) over i[K-3:0]
+clb_x7y2.e1.ff_en = 1'h1
+    chain bits 34900  ->  frame 272 bit 84 (word 2 bit 20)  ->  FAR 0x00000406 (column 8, minor 6)
+    out[0] = FF q (1) or combinational (0)
+clb_x7y2.e1.ff_ce_en = 1'h1
+    chain bits 34902  ->  frame 272 bit 86 (word 2 bit 22)  ->  FAR 0x00000406 (column 8, minor 6)
+    1: FF honours the CLB's routed CE, 0: always enabled
+clb_x7y2.e1.ff_sr_en = 1'h1
+    chain bits 34903  ->  frame 272 bit 87 (word 2 bit 23)  ->  FAR 0x00000406 (column 8, minor 6)
+    1: FF honours the CLB's routed SR, 0: reset ignored
+clb_x7y2.e1.cy_en = 1'h1
+    chain bits 34904  ->  frame 272 bit 88 (word 2 bit 24)  ->  FAR 0x00000406 (column 8, minor 6)
+    carry mode: XORCY sum on out[0]'s datapath, MUXCY cout
+clb_x7y2.e1.dd = 1'h1
+    chain bits 34911  ->  frame 272 bit 95 (word 2 bit 31)  ->  FAR 0x00000406 (column 8, minor 6)
+    M24 Double Duty (with cy_en): the adder's operands come straight from i[K-2] (A, also DI) and i[K-1] (B), prop = A ^ B ^ cy_di_sel (INV_B), so the LUT stays free: out[1] = O5 = a LUT(K-2) over i[K-3:0]
+clb_x7y2.e2.ff_en = 1'h1
+    chain bits 34915  ->  frame 272 bit 99 (word 3 bit 3)  ->  FAR 0x00000406 (column 8, minor 6)
+    out[0] = FF q (1) or combinational (0)
+clb_x7y2.e2.ff_ce_en = 1'h1
+    chain bits 34917  ->  frame 272 bit 101 (word 3 bit 5)  ->  FAR 0x00000406 (column 8, minor 6)
+    1: FF honours the CLB's routed CE, 0: always enabled
+clb_x7y2.e2.ff_sr_en = 1'h1
+    chain bits 34918  ->  frame 272 bit 102 (word 3 bit 6)  ->  FAR 0x00000406 (column 8, minor 6)
+    1: FF honours the CLB's routed SR, 0: reset ignored
+clb_x7y2.e2.cy_en = 1'h1
+    chain bits 34919  ->  frame 272 bit 103 (word 3 bit 7)  ->  FAR 0x00000406 (column 8, minor 6)
+    carry mode: XORCY sum on out[0]'s datapath, MUXCY cout
+clb_x7y2.e2.dd = 1'h1
+    chain bits 34926  ->  frame 272 bit 110 (word 3 bit 14)  ->  FAR 0x00000406 (column 8, minor 6)
+    M24 Double Duty (with cy_en): the adder's operands come straight from i[K-2] (A, also DI) and i[K-1] (B), prop = A ^ B ^ cy_di_sel (INV_B), so the LUT stays free: out[1] = O5 = a LUT(K-2) over i[K-3:0]
+clb_x7y2.e3.ff_en = 1'h1
+    chain bits 34930  ->  frame 272 bit 114 (word 3 bit 18)  ->  FAR 0x00000406 (column 8, minor 6)
+    out[0] = FF q (1) or combinational (0)
+clb_x7y2.e3.ff_ce_en = 1'h1
+    chain bits 34932  ->  frame 272 bit 116 (word 3 bit 20)  ->  FAR 0x00000406 (column 8, minor 6)
+    1: FF honours the CLB's routed CE, 0: always enabled
+clb_x7y2.e3.ff_sr_en = 1'h1
+    chain bits 34933  ->  frame 272 bit 117 (word 3 bit 21)  ->  FAR 0x00000406 (column 8, minor 6)
+    1: FF honours the CLB's routed SR, 0: reset ignored
+clb_x7y2.e3.cy_en = 1'h1
+    chain bits 34934  ->  frame 272 bit 118 (word 3 bit 22)  ->  FAR 0x00000406 (column 8, minor 6)
+    carry mode: XORCY sum on out[0]'s datapath, MUXCY cout
+clb_x7y2.e3.dd = 1'h1
+    chain bits 34941  ->  frame 272 bit 125 (word 3 bit 29)  ->  FAR 0x00000406 (column 8, minor 6)
+    M24 Double Duty (with cy_en): the adder's operands come straight from i[K-2] (A, also DI) and i[K-1] (B), prop = A ^ B ^ cy_di_sel (INV_B), so the LUT stays free: out[1] = O5 = a LUT(K-2) over i[K-3:0]
+clb_x7y2.e2.x5 = 5'h16
+    chain bits 35220..35224  ->  frame 275 bit 20 (word 0 bit 20)  ->  FAR 0x00000409 (column 8, minor 9)
+    crossbar: element 2 input i5 <- O[4]
+clb_x7y2.e3.x5 = 5'h18
+    chain bits 35250..35254  ->  frame 275 bit 50 (word 1 bit 18)  ->  FAR 0x00000409 (column 8, minor 9)
+    crossbar: element 3 input i5 <- O[6]
+rr1476 = 3'h4
+    chain bits 35277..35279  ->  frame 275 bit 77 (word 2 bit 13)  ->  FAR 0x00000409 (column 8, minor 9)
+    mux driving IPIN  (7,2)            pin 17: input 2 = node 8728 [CHANY (7,1)->(7,2)     track 28,30]
+rr1486 = 3'h2
+    chain bits 35303..35305  ->  frame 275 bit 103 (word 3 bit 7)  ->  FAR 0x00000409 (column 8, minor 9)
+    mux driving IPIN  (7,2)            pin 16: input 0 = node 8585 [CHANY (6,1)->(6,2)     track 11,9]
+rr8719 = 3'h7
+    chain bits 35370..35372  ->  frame 276 bit 42 (word 1 bit 10)  ->  FAR 0x0000040A (column 8, minor 10)
+    mux driving CHANY (7,1)->(7,2)     track 19,17: input 6 = node 8745 [CHANY (7,2)->(7,3)     track 35,33]
+clb_x7y3.e0.x5 = 5'h12
+    chain bits 35481..35485  ->  frame 277 bit 25 (word 0 bit 25)  ->  FAR 0x0000040B (column 8, minor 11)
+    crossbar: element 0 input i5 <- O[0]
+clb_x7y3.e1.x5 = 5'h14
+    chain bits 35511..35515  ->  frame 277 bit 55 (word 1 bit 23)  ->  FAR 0x0000040B (column 8, minor 11)
+    crossbar: element 1 input i5 <- O[2]
+clb_x7y3.e0.ff_en = 1'h1
+    chain bits 35525  ->  frame 277 bit 69 (word 2 bit 5)  ->  FAR 0x0000040B (column 8, minor 11)
+    out[0] = FF q (1) or combinational (0)
+clb_x7y3.e0.ff_ce_en = 1'h1
+    chain bits 35527  ->  frame 277 bit 71 (word 2 bit 7)  ->  FAR 0x0000040B (column 8, minor 11)
+    1: FF honours the CLB's routed CE, 0: always enabled
+clb_x7y3.e0.ff_sr_en = 1'h1
+    chain bits 35528  ->  frame 277 bit 72 (word 2 bit 8)  ->  FAR 0x0000040B (column 8, minor 11)
+    1: FF honours the CLB's routed SR, 0: reset ignored
+clb_x7y3.e0.cy_en = 1'h1
+    chain bits 35529  ->  frame 277 bit 73 (word 2 bit 9)  ->  FAR 0x0000040B (column 8, minor 11)
+    carry mode: XORCY sum on out[0]'s datapath, MUXCY cout
+clb_x7y3.e0.dd = 1'h1
+    chain bits 35536  ->  frame 277 bit 80 (word 2 bit 16)  ->  FAR 0x0000040B (column 8, minor 11)
+    M24 Double Duty (with cy_en): the adder's operands come straight from i[K-2] (A, also DI) and i[K-1] (B), prop = A ^ B ^ cy_di_sel (INV_B), so the LUT stays free: out[1] = O5 = a LUT(K-2) over i[K-3:0]
+clb_x7y3.e1.ff_en = 1'h1
+    chain bits 35540  ->  frame 277 bit 84 (word 2 bit 20)  ->  FAR 0x0000040B (column 8, minor 11)
+    out[0] = FF q (1) or combinational (0)
+clb_x7y3.e1.ff_ce_en = 1'h1
+    chain bits 35542  ->  frame 277 bit 86 (word 2 bit 22)  ->  FAR 0x0000040B (column 8, minor 11)
+    1: FF honours the CLB's routed CE, 0: always enabled
+clb_x7y3.e1.ff_sr_en = 1'h1
+    chain bits 35543  ->  frame 277 bit 87 (word 2 bit 23)  ->  FAR 0x0000040B (column 8, minor 11)
+    1: FF honours the CLB's routed SR, 0: reset ignored
+clb_x7y3.e1.cy_en = 1'h1
+    chain bits 35544  ->  frame 277 bit 88 (word 2 bit 24)  ->  FAR 0x0000040B (column 8, minor 11)
+    carry mode: XORCY sum on out[0]'s datapath, MUXCY cout
+clb_x7y3.e1.dd = 1'h1
+    chain bits 35551  ->  frame 277 bit 95 (word 2 bit 31)  ->  FAR 0x0000040B (column 8, minor 11)
+    M24 Double Duty (with cy_en): the adder's operands come straight from i[K-2] (A, also DI) and i[K-1] (B), prop = A ^ B ^ cy_di_sel (INV_B), so the LUT stays free: out[1] = O5 = a LUT(K-2) over i[K-3:0]
+clb_x7y3.e2.ff_en = 1'h1
+    chain bits 35555  ->  frame 277 bit 99 (word 3 bit 3)  ->  FAR 0x0000040B (column 8, minor 11)
+    out[0] = FF q (1) or combinational (0)
+clb_x7y3.e2.ff_ce_en = 1'h1
+    chain bits 35557  ->  frame 277 bit 101 (word 3 bit 5)  ->  FAR 0x0000040B (column 8, minor 11)
+    1: FF honours the CLB's routed CE, 0: always enabled
+clb_x7y3.e2.ff_sr_en = 1'h1
+    chain bits 35558  ->  frame 277 bit 102 (word 3 bit 6)  ->  FAR 0x0000040B (column 8, minor 11)
+    1: FF honours the CLB's routed SR, 0: reset ignored
+clb_x7y3.e2.cy_en = 1'h1
+    chain bits 35559  ->  frame 277 bit 103 (word 3 bit 7)  ->  FAR 0x0000040B (column 8, minor 11)
+    carry mode: XORCY sum on out[0]'s datapath, MUXCY cout
+clb_x7y3.e2.dd = 1'h1
+    chain bits 35566  ->  frame 277 bit 110 (word 3 bit 14)  ->  FAR 0x0000040B (column 8, minor 11)
+    M24 Double Duty (with cy_en): the adder's operands come straight from i[K-2] (A, also DI) and i[K-1] (B), prop = A ^ B ^ cy_di_sel (INV_B), so the LUT stays free: out[1] = O5 = a LUT(K-2) over i[K-3:0]
+clb_x7y3.e2.x5 = 5'h16
+    chain bits 35860..35864  ->  frame 280 bit 20 (word 0 bit 20)  ->  FAR 0x0000040E (column 8, minor 14)
+    crossbar: element 2 input i5 <- O[4]
+rr1914 = 3'h3
+    chain bits 35917..35919  ->  frame 280 bit 77 (word 2 bit 13)  ->  FAR 0x0000040E (column 8, minor 14)
+    mux driving IPIN  (7,3)            pin 17: input 1 = node 8726 [CHANY (7,1)->(7,3)     track 26,28,30]
+rr1924 = 3'h2
+    chain bits 35943..35945  ->  frame 280 bit 103 (word 3 bit 7)  ->  FAR 0x0000040E (column 8, minor 14)
+    mux driving IPIN  (7,3)            pin 16: input 0 = node 8587 [CHANY (6,1)->(6,3)     track 13,11,9]
+rr8705 = 4'h2
+    chain bits 36002..36005  ->  frame 281 bit 34 (word 1 bit 2)  ->  FAR 0x0000040F (column 8, minor 15)
+    mux driving CHANY (7,1)->(7,3)     track 5,3,1: input 1 = node 1901 [OPIN  (7,3)            pin 23]
+rr8745 = 3'h1
+    chain bits 36016..36018  ->  frame 281 bit 48 (word 1 bit 16)  ->  FAR 0x0000040F (column 8, minor 15)
+    mux driving CHANY (7,2)->(7,3)     track 35,33: input 0 = node 1900 [OPIN  (7,3)            pin 19]
+rr6900 = 4'h6
+    chain bits 37246..37249  ->  frame 290 bit 126 (word 3 bit 30) .. frame 291 bit 1  ->  FAR 0x00000418 (column 8, minor 24)
+    mux driving CHANX (7,5)->(10,5)    track 0,2,4,6: input 5 = node 8624 [CHANY (6,3)->(6,6)     track 16,18,20,22]
+rr6052 = 3'h6
+    chain bits 40595..40597  ->  frame 317 bit 19 (word 0 bit 19)  ->  FAR 0x00000480 (column 9, minor 0)
+    mux driving CHANX (8,0)->(11,0)    track 0,2,4,6: input 5 = node 8719 [CHANY (7,1)->(7,2)     track 19,17]
+rr6058 = 3'h4
+    chain bits 40606..40608  ->  frame 317 bit 30 (word 0 bit 30)  ->  FAR 0x00000480 (column 9, minor 0)
+    mux driving CHANX (8,0)->(11,0)    track 24,26,28,30: input 3 = node 8705 [CHANY (7,1)->(7,3)     track 5,3,1]
+rr6922 = 4'h3
+    chain bits 45058..45061  ->  frame 352 bit 2 (word 0 bit 2)  ->  FAR 0x00000519 (column 10, minor 25)
+    mux driving CHANX (9,5)->(12,5)    track 8,10,12,14: input 2 = node 6900 [CHANX (7,5)->(10,5)    track 0,2,4,6]
+rr6072 = 3'h3
+    chain bits 48403..48405  ->  frame 378 bit 19 (word 0 bit 19)  ->  FAR 0x00000580 (column 11, minor 0)
+    mux driving CHANX (10,0)->(12,0)   track 0,2,4: input 2 = node 6058 [CHANX (8,0)->(11,0)    track 24,26,28,30]
+rr6086 = 4'h2
+    chain bits 54938..54941  ->  frame 429 bit 26 (word 0 bit 26)  ->  FAR 0x00000600 (column 12, minor 0)
+    mux driving CHANX (11,0)->(12,0)   track 16,18: input 1 = node 6052 [CHANX (8,0)->(11,0)    track 0,2,4,6]
+rr9348 = 2'h2
+    chain bits 62137..62138  ->  frame 485 bit 57 (word 1 bit 25)  ->  FAR 0x00000685 (column 13, minor 5)
+    mux driving CHANY (12,1)->(12,3)   track 18,20,22: input 1 = node 6086 [CHANX (11,0)->(12,0)   track 16,18]
+rr9362 = 1'h1
+    chain bits 62150  ->  frame 485 bit 70 (word 2 bit 6)  ->  FAR 0x00000685 (column 13, minor 5)
+    mux driving CHANY (12,1)->(12,2)   track 32,34: input 0 = node 6072 [CHANX (10,0)->(12,0)   track 0,2,4]
+rr9333 = 4'h8
+    chain bits 62754..62757  ->  frame 490 bit 34 (word 1 bit 2)  ->  FAR 0x0000068A (column 13, minor 10)
+    mux driving CHANY (12,1)->(12,2)   track 3,1: input 7 = node 9369 [CHANY (12,2)->(12,5)   track 15,13,11,9]
+rr9370 = 3'h7
+    chain bits 62778..62780  ->  frame 490 bit 58 (word 1 bit 26)  ->  FAR 0x0000068A (column 13, minor 10)
+    mux driving CHANY (12,2)->(12,5)   track 16,18,20,22: input 6 = node 9362 [CHANY (12,1)->(12,2)   track 32,34]
+rr9369 = 4'h2
+    chain bits 64678..64681  ->  frame 505 bit 38 (word 1 bit 6)  ->  FAR 0x00000699 (column 13, minor 25)
+    mux driving CHANY (12,2)->(12,5)   track 15,13,11,9: input 1 = node 6922 [CHANX (9,5)->(12,5)    track 8,10,12,14]
+rr1225 = 3'h4
+    chain bits 67968..67970  ->  frame 531 bit 0 (word 0 bit 0)  ->  FAR 0x00000700 (column 14, minor 0)
+    mux driving IPIN  (13,1)           pin 0: input 2 = node 9348 [CHANY (12,1)->(12,3)   track 18,20,22]
+rr1663 = 3'h2
+    chain bits 67971..67973  ->  frame 531 bit 3 (word 0 bit 3)  ->  FAR 0x00000700 (column 14, minor 0)
+    mux driving IPIN  (13,2)           pin 0: input 0 = node 9333 [CHANY (12,1)->(12,2)   track 3,1]
+rr2101 = 3'h4
+    chain bits 67974..67976  ->  frame 531 bit 6 (word 0 bit 6)  ->  FAR 0x00000700 (column 14, minor 0)
+    mux driving IPIN  (13,3)           pin 0: input 2 = node 9370 [CHANY (12,2)->(12,5)   track 16,18,20,22]

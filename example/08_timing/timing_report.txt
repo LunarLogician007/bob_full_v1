@@ -1,0 +1,35 @@
+Static timing of counter from its configuration bits alone (software/bob/timing.py).
+Only the selected mux inputs are walked, register to register.
+
+critical path  12.909 ns  (provisional delays, guard band x 2.0)
+gce spacing    4 sysclk cycles of 8 ns -> Fmax 31.25 MHz
+endpoints      370
+the timing contract holds: path x 2.0 fits the spacing this .bit runs at (512 sysclk cycles; a JTAG-stepped build keeps the safe default)
+
+the critical path, node by node:
+    0.500 ns  (+0.500)  OPIN      OPIN  (7,2)            pin 21
+    3.509 ns  (+3.009)  EIN       EIN   (7,2)            ptc 1,5
+    6.909 ns  (+3.400)  ECY       ECY   (7,2)            ptc 1,0
+    7.909 ns  (+1.000)  ECY       ECY   (7,2)            ptc 2,0
+    8.909 ns  (+1.000)  OPIN      OPIN  (7,2)            pin 27
+    8.909 ns  (+0.000)  IPIN      IPIN  (7,3)            pin 18
+    9.909 ns  (+1.000)  ECY       ECY   (7,3)            ptc 0,0
+   10.909 ns  (+1.000)  ECY       ECY   (7,3)            ptc 1,0
+   11.909 ns  (+1.000)  internal  clb_x7y3.e2.comb
+   12.909 ns  (+1.000)  setup     the flip-flop's setup time
+
+delays used (software/bob/delays.json, measured: docs/reports/M25/delay_paths.rpt):
+  mux_chan     4.602 ns
+  mux_ipin     4.651 ns
+  mux_xbar     3.009 ns
+  lut          3.4 ns
+  carry        1.0 ns
+  wire         0.0 ns
+  direct       0.0 ns
+  ff_clk_q     0.5 ns
+  ff_setup     1.0 ns
+  bram_clk_q   2.5 ns
+  bram_setup   1.0 ns
+  dsp_clk_q    1.0 ns
+  dsp_comb     8.0 ns
+  dsp_setup    1.0 ns

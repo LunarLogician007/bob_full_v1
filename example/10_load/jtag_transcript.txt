@@ -1,0 +1,37 @@
+Every JTAG operation of cfgplane.load_frames, on the stand-in board (fakeboard.py answers
+exactly as the PYNQ-Z2 does). IR = an instruction scan, DR = a data scan, hex MSB first.
+JPROGRAM clears, CFG_IN takes the packets, BYPASS/CFG_OUT read STAT, CFG_OUT reads every
+frame back (FDRO), JSTART runs GSR -> GTS -> GWE -> DONE.
+
+result: OK: loaded 30 of 532 frames (120 words; JPROGRAM zeroed the rest) through CFG_IN, CRC 95ADDD48, FDRO readback verified (all 532 frames), DONE
+
+IR    JPROGRAM   (001011)   Capture-IR 010001: DONE=0 INIT_B=1 COMMITTED=0 CRC_ERR=0
+IR    CFG_IN     (000101)   Capture-IR 010001: DONE=0 INIT_B=1 COMMITTED=0 CRC_ERR=0
+DR      6848 bits  in 0000000400000004B0000000...FFFFFFFFFFFFFFFF (1712 hex digits)
+                   out 000000000000000000000000...0000000000000000 (1712 hex digits)   the load stream, 214 words (07_bitstream/stream_sparse.txt)
+IR    CFG_OUT    (000100)   Capture-IR 010001: DONE=0 INIT_B=1 COMMITTED=0 CRC_ERR=0
+DR        32 bits  in 00000000
+                   out 0118681E   reads 1 word back (STAT)
+IR    CFG_IN     (000101)   Capture-IR 010001: DONE=0 INIT_B=1 COMMITTED=0 CRC_ERR=0
+DR       384 bits  in 00000004B00000008001000C...66AA9955FFFFFFFF (96 hex digits)
+                   out 000000000000000000000000...0000000000000000 (96 hex digits)   packets, 12 words:
+                       FFFFFFFF  dummy
+                       AA995566  sync
+                       20000000  type-1 NOP  count 0
+                       30008001  type-1 WRITE CMD count 1
+                       00000004    CMD RCFG data
+                       30002001  type-1 WRITE FAR count 1
+                       00000000    FAR data
+                       28006000  type-1 READ FDRO count 0
+                       48000850  type-2 count 2128
+                       30008001  type-1 WRITE CMD count 1
+                       0000000D    CMD DESYNC data
+                       20000000  dummy
+IR    CFG_OUT    (000100)   Capture-IR 010001: DONE=0 INIT_B=1 COMMITTED=0 CRC_ERR=0
+DR     68096 bits  in 000000000000000000000000...0000000000000000 (17024 hex digits)
+                   out 000000000000000000000000...0000000000000000 (17024 hex digits)   reads 2128 words back (104 bits set: the design's configuration)
+IR    JSTART     (001100)   Capture-IR 010001: DONE=0 INIT_B=1 COMMITTED=0 CRC_ERR=0
+      Run-Test/Idle, 12 TCK
+IR    CFG_CTRL   (000011)   Capture-IR 110001: DONE=1 INIT_B=1 COMMITTED=0 CRC_ERR=0
+DR        64 bits  in 0000000000000000
+                   out 0280000000000000

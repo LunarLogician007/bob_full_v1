@@ -1,0 +1,16 @@
+VPR run now in Docker, seed 1
+  image   ghcr.io/lnis-uofu/openfpga-master:latest
+  arch    inputs/bob_k6.xml (VPR's arch.xml)
+  rr      inputs/bob_k6_rr.xml.gz (--read_rr_graph: the graph the RTL was generated from)
+
+  wirelength   105
+  cpd_ns       33.6819
+  fmax_mhz     34.2862
+  clbs         2
+  result_sha   7e51476cf3a4ca19
+  pads         6
+
+against the committed result in software/bob/vpr/counter:
+  counter.net    identical  (after blanking architecture_id / atom_netlist_id, as vpr_run.commit does)
+  counter.place  identical
+  counter.route  identical

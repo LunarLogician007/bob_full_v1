@@ -1,0 +1,31 @@
+$ ./bob info example/07_bitstream/counter.bit
+example/07_bitstream/counter.bit
+    design  counter (top module counter), from work/examples/counter/counter.v
+    device  bob12x10: 68096-bit configuration, CRC 0x10BA954B, 78 configuration settings
+    pins    the sw/btn/led defaults (./bob pins)
+    placed  VPR (result 7e51476cf3a4ca19)
+    BRAM    none used
+    timing  critical path 12.909 ns, up to 31.2 MHz (estimated delays x 2.0)
+    clock   stepped over JTAG (the host steps it)
+    next    ./bob load example/07_bitstream/counter.bit   (--raw: every stored field)
+
+$ ./bob info --raw example/07_bitstream/counter.bit
+example/07_bitstream/counter.bit: device bob12x10, 68096-bit chain, crc 0x10BA954B, file version 2, 78 FASM features, BRAM contents none
+  clock: jtag
+  cpd_ns: 12.909
+  design: counter
+  div: 0
+  fasm_sha256: ca977b0c147ef383598f2a3efa29909ad48fb6606c81468e2cd0f2193c2acb81
+  gap: 0
+  pcf: None
+  pdiv: 0
+  period: 0
+  period_ns: None
+  pnr: vpr
+  pnr_seed: None
+  sdc: None
+  slack_ns: None
+  source_sha256: c0e584b6ac82d3ad5e64b6fd4530aff3a9b2448c29aafac6aff284d22bc24899
+  sources: ['work/examples/counter/counter.v']
+  top: counter
+  vpr_result: 7e51476cf3a4ca19

@@ -1,0 +1,14 @@
+$ ./bob build work/examples/counter/counter.v -o example/07_bitstream/counter.bit
+
+bob build work/examples/counter/counter.v
+  synth    counter: {'BOB_ADD': 6, 'BOB_FDRE': 6}; source == netlist == golden, 300 random cycles
+  pnr      reused committed software/bob/vpr/counter (routed from this netlist and arch)
+  fasm     78 features, legal against device.json
+  bits     68096-bit chain; bits -> FASM -> bits identical: True
+  timing   critical path 12.909 ns (1 routing hops, provisional delays x 2.0): Fmax 31.2 MHz
+  model    600/600 samples == source trace
+  write    example/07_bitstream/counter.bit: 68096-bit chain
+  PASS  built example/07_bitstream/counter.bit in 3.4 s
+    uses    LUTs 0/400  flip-flops 6/400 (2%)  carry bits 6/400 (2%)  BRAMs 0/2  DSPs 0/2
+    clock   stepped over JTAG; for a free-running clock up to 31.2 MHz build with --clock run --hz auto
+    next    ./bob load example/07_bitstream/counter.bit   (no board? add --probe fake)

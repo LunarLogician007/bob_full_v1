@@ -1,0 +1,9 @@
+vpr_run.prepare rewrote the yosys netlist into what VPR can pack:
+  constants on block pins -> IPIN constants (in .vpr.json, set by FASM later)
+  carry chains cut to the column height, with generator/tap adders
+  a buffer LUT where a flip-flop's D is not its own element's output
+  every port fixed to its board pad (.pins, from device.json or a .pcf)
+
+eblif sha256 179e7e664e61d0d768912af8f21a57bc5ea13f8171a2ec186f61424900cd10fa
+committed stamp  179e7e664e61d0d768912af8f21a57bc5ea13f8171a2ec186f61424900cd10fa
+same netlist as the committed result: True

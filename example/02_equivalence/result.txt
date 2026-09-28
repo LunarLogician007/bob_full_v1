@@ -1,0 +1,51 @@
+source work/examples/counter/counter.v == yosys netlist == golden netlist: EQUAL
+300 biased random cycles in iverilog, compared before and after every edge.
+
+iverilog said:
+  EQUIV_OK
+  /Users/sk/work/bob/bob_full_v1/build/synth/counter/tb_equiv.v:321: $finish called at 2700000 (1ps)
+
+The first 40 cycles of the trace (board inputs as bits BTN3..0 SW1..0; outputs as the
+design's output ports). model.py and the board are later held to this same trace.
+
+cycle    inputs  out before  out after
+    0  00000101           0          0
+    1  00010101           0          0
+    2  00010101           0          0
+    3  00010101           0          0
+    4  00010101           0          0
+    5  00010100           0          0
+    6  00010101           0          0
+    7  00010101           0          1
+    8  00010100           1          1
+    9  00010101           1          1
+   10  00010101           1          1
+   11  00010101           1          1
+   12  00010101           1          1
+   13  00011101           1          0
+   14  00010101           0          0
+   15  00110101           0          0
+   16  00010101           0          0
+   17  00010101           0          0
+   18  00010101           0          0
+   19  00010101           0          0
+   20  00010101           0          0
+   21  00010100           0          1
+   22  00010101           1          1
+   23  00010101           1          1
+   24  00010101           1          1
+   25  00010101           1          1
+   26  00010101           1          1
+   27  00010101           1          1
+   28  00010101           1          1
+   29  00010101           1         10
+   30  00010101          10         10
+   31  00010101          10         10
+   32  00010101          10         10
+   33  00010101          10         10
+   34  00010101          10         10
+   35  00010101          10         10
+   36  00010101          10         10
+   37  00010101          10         11
+   38  00010101          11         11
+   39  00010101          11         11

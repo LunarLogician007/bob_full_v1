@@ -1,0 +1,230 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1076" height="1002" viewBox="0 0 1076 1002" font-family="Helvetica, Arial, sans-serif">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="34" y="24" font-size="15" font-weight="bold" fill="#16202b">counter: placement and routing on bob12x10 (from counter.place and counter.route)</text>
+<rect x="34" y="754" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="34" y="682" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="34" y="610" width="42" height="42" rx="3" fill="#6a4db3" fill-opacity="0.85" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="34" y="538" width="42" height="42" rx="3" fill="#6a4db3" fill-opacity="0.85" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="34" y="466" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="34" y="394" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="34" y="322" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="34" y="250" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="34" y="178" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="34" y="106" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="106" y="826" width="42" height="42" rx="3" fill="#6a4db3" fill-opacity="0.85" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="106" y="754" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="106" y="682" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="106" y="610" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="106" y="538" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="106" y="466" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="106" y="394" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="106" y="322" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="106" y="250" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="106" y="178" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="106" y="106" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="106" y="34" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="178" y="826" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="178" y="754" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="178" y="682" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="178" y="610" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="178" y="538" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="178" y="466" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="178" y="394" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="178" y="322" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="178" y="250" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="178" y="178" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="178" y="106" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="178" y="34" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="250" y="826" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="250" y="466" width="42" height="330" rx="3" fill="#d9ecf7" fill-opacity="1" stroke="#2f6db5" stroke-width="0.8"/>
+<text x="271.0" y="631.0" font-size="10" text-anchor="middle" fill="#16202b" transform="rotate(-90 271.0 631.0)">BRAM</text>
+<rect x="250" y="106" width="42" height="330" rx="3" fill="#d9ecf7" fill-opacity="1" stroke="#2f6db5" stroke-width="0.8"/>
+<text x="271.0" y="271.0" font-size="10" text-anchor="middle" fill="#16202b" transform="rotate(-90 271.0 271.0)">BRAM</text>
+<rect x="250" y="34" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="322" y="826" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="322" y="754" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="322" y="682" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="322" y="610" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="322" y="538" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="322" y="466" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="322" y="394" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="322" y="322" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="322" y="250" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="322" y="178" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="322" y="106" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="322" y="34" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="394" y="826" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="394" y="754" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="394" y="682" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="394" y="610" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="394" y="538" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="394" y="466" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="394" y="394" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="394" y="322" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="394" y="250" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="394" y="178" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="394" y="106" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="394" y="34" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="466" y="826" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="466" y="754" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="466" y="682" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="466" y="610" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="466" y="538" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="466" y="466" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="466" y="394" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="466" y="322" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="466" y="250" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="466" y="178" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="466" y="106" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="466" y="34" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="538" y="826" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="538" y="754" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="538" y="682" width="42" height="42" rx="3" fill="#0c7a64" fill-opacity="0.85" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="538" y="610" width="42" height="42" rx="3" fill="#0c7a64" fill-opacity="0.85" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="538" y="538" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="538" y="466" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="538" y="394" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="538" y="322" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="538" y="250" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="538" y="178" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="538" y="106" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="538" y="34" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="610" y="826" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="610" y="466" width="42" height="330" rx="3" fill="#f5e4d6" fill-opacity="1" stroke="#e38a1f" stroke-width="0.8"/>
+<text x="631.0" y="631.0" font-size="10" text-anchor="middle" fill="#16202b" transform="rotate(-90 631.0 631.0)">DSP</text>
+<rect x="610" y="106" width="42" height="330" rx="3" fill="#f5e4d6" fill-opacity="1" stroke="#e38a1f" stroke-width="0.8"/>
+<text x="631.0" y="271.0" font-size="10" text-anchor="middle" fill="#16202b" transform="rotate(-90 631.0 271.0)">DSP</text>
+<rect x="610" y="34" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="682" y="826" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="682" y="754" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="682" y="682" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="682" y="610" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="682" y="538" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="682" y="466" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="682" y="394" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="682" y="322" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="682" y="250" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="682" y="178" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="682" y="106" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="682" y="34" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="754" y="826" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="754" y="754" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="754" y="682" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="754" y="610" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="754" y="538" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="754" y="466" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="754" y="394" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="754" y="322" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="754" y="250" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="754" y="178" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="754" y="106" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="754" y="34" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="826" y="826" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="826" y="754" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="826" y="682" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="826" y="610" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="826" y="538" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="826" y="466" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="826" y="394" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="826" y="322" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="826" y="250" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="826" y="178" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="826" y="106" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="826" y="34" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="898" y="826" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="898" y="754" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="898" y="682" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="898" y="610" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="898" y="538" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="898" y="466" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="898" y="394" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="898" y="322" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="898" y="250" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="898" y="178" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="898" y="106" width="42" height="42" rx="3" fill="#dfe7ef" fill-opacity="1" stroke="#0c7a64" stroke-width="0.8"/>
+<rect x="898" y="34" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="970" y="754" width="42" height="42" rx="3" fill="#6a4db3" fill-opacity="0.85" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="970" y="682" width="42" height="42" rx="3" fill="#6a4db3" fill-opacity="0.85" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="970" y="610" width="42" height="42" rx="3" fill="#6a4db3" fill-opacity="0.85" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="970" y="538" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="970" y="466" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="970" y="394" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="970" y="322" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="970" y="250" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="970" y="178" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<rect x="970" y="106" width="42" height="42" rx="3" fill="#e9e4f3" fill-opacity="1" stroke="#6a4db3" stroke-width="0.8"/>
+<text x="559.0" y="706.5" font-size="10" text-anchor="middle" fill="#ffffff" font-weight="bold">CLB<title>bob_gen1</title></text>
+<text x="559.0" y="634.5" font-size="10" text-anchor="middle" fill="#ffffff" font-weight="bold">CLB<title>$auto$alumacc.cc:548:replace_alu$16.slice[3].add</title></text>
+<text x="991.0" y="778.5" font-size="10" text-anchor="middle" fill="#ffffff" font-weight="bold">led[0]<title>out:led[0]</title></text>
+<text x="991.0" y="706.5" font-size="10" text-anchor="middle" fill="#ffffff" font-weight="bold">led[1]<title>out:led[1]</title></text>
+<text x="991.0" y="634.5" font-size="10" text-anchor="middle" fill="#ffffff" font-weight="bold">led[2]<title>out:led[2]</title></text>
+<text x="127.0" y="850.5" font-size="10" text-anchor="middle" fill="#ffffff" font-weight="bold">clk<title>clk</title></text>
+<text x="55.0" y="634.5" font-size="10" text-anchor="middle" fill="#ffffff" font-weight="bold">btn[0]<title>btn[0]</title></text>
+<text x="55.0" y="562.5" font-size="10" text-anchor="middle" fill="#ffffff" font-weight="bold">btn[1]<title>btn[1]</title></text>
+<line x1="76.0" y1="631.0" x2="76.4" y2="631.0" stroke="#2a78d6" stroke-width="1.4" stroke-dasharray="2 2"/>
+<circle cx="76.0" cy="631.0" r="3.4" fill="#2a78d6" stroke="#ffffff" stroke-width="1"><title>btn[0]: OPIN  (0,3)            pin 1</title></circle>
+<line x1="76.4" y1="394.0" x2="76.4" y2="652.0" stroke="#2a78d6" stroke-width="2" stroke-linecap="round"><title>btn[0]: CHANY (0,3)->(0,6)     track 0,2,4,6</title></line>
+<line x1="83.1" y1="250.0" x2="83.1" y2="508.0" stroke="#2a78d6" stroke-width="2" stroke-linecap="round"><title>btn[0]: CHANY (0,5)->(0,8)     track 8,10,12,14</title></line>
+<line x1="106.0" y1="458.1" x2="292.0" y2="458.1" stroke="#2a78d6" stroke-width="2" stroke-linecap="round"><title>btn[0]: CHANX (1,5)->(3,5)     track 26,28,30</title></line>
+<line x1="250.0" y1="443.1" x2="508.0" y2="443.1" stroke="#2a78d6" stroke-width="2" stroke-linecap="round"><title>btn[0]: CHANX (3,5)->(6,5)     track 8,10,12,14</title></line>
+<line x1="514.2" y1="466.0" x2="514.2" y2="724.0" stroke="#2a78d6" stroke-width="2" stroke-linecap="round"><title>btn[0]: CHANY (6,2)->(6,5)     track 7,5,3,1</title></line>
+<line x1="519.2" y1="610.0" x2="519.2" y2="796.0" stroke="#2a78d6" stroke-width="2" stroke-linecap="round"><title>btn[0]: CHANY (6,1)->(6,3)     track 13,11,9</title></line>
+<line x1="538.0" y1="631.0" x2="519.2" y2="631.0" stroke="#2a78d6" stroke-width="1.4" stroke-dasharray="2 2"/>
+<circle cx="538.0" cy="631.0" r="3.4" fill="#2a78d6" stroke="#ffffff" stroke-width="1"><title>btn[0]: IPIN  (7,3)            pin 16</title></circle>
+<line x1="106.0" y1="458.1" x2="292.0" y2="458.1" stroke="#2a78d6" stroke-width="2" stroke-linecap="round"><title>btn[0]: CHANX (1,5)->(3,5)     track 26,28,30</title></line>
+<line x1="311.6" y1="466.0" x2="311.6" y2="724.0" stroke="#2a78d6" stroke-width="2" stroke-linecap="round"><title>btn[0]: CHANY (3,2)->(3,5)     track 23,21,19,17</title></line>
+<line x1="322.0" y1="667.4" x2="508.0" y2="667.4" stroke="#2a78d6" stroke-width="2" stroke-linecap="round"><title>btn[0]: CHANX (4,2)->(6,2)     track 18,20,22</title></line>
+<line x1="517.6" y1="682.0" x2="517.6" y2="796.0" stroke="#2a78d6" stroke-width="2" stroke-linecap="round"><title>btn[0]: CHANY (6,1)->(6,2)     track 11,9</title></line>
+<line x1="538.0" y1="703.0" x2="517.6" y2="703.0" stroke="#2a78d6" stroke-width="1.4" stroke-dasharray="2 2"/>
+<circle cx="538.0" cy="703.0" r="3.4" fill="#2a78d6" stroke="#ffffff" stroke-width="1"><title>btn[0]: IPIN  (7,2)            pin 16</title></circle>
+<line x1="76.0" y1="559.0" x2="95.6" y2="559.0" stroke="#eb6834" stroke-width="1.4" stroke-dasharray="2 2"/>
+<circle cx="76.0" cy="559.0" r="3.4" fill="#eb6834" stroke="#ffffff" stroke-width="1"><title>btn[1]: OPIN  (0,4)            pin 1</title></circle>
+<line x1="95.6" y1="538.0" x2="95.6" y2="796.0" stroke="#eb6834" stroke-width="2" stroke-linecap="round"><title>btn[1]: CHANY (0,1)->(0,4)     track 23,21,19,17</title></line>
+<line x1="106.0" y1="816.4" x2="364.0" y2="816.4" stroke="#eb6834" stroke-width="2" stroke-linecap="round"><title>btn[1]: CHANX (1,0)->(4,0)     track 24,26,28,30</title></line>
+<line x1="250.0" y1="796.4" x2="508.0" y2="796.4" stroke="#eb6834" stroke-width="2" stroke-linecap="round"><title>btn[1]: CHANX (3,0)->(6,0)     track 0,2,4,6</title></line>
+<line x1="394.0" y1="803.1" x2="652.0" y2="803.1" stroke="#eb6834" stroke-width="2" stroke-linecap="round"><title>btn[1]: CHANX (5,0)->(8,0)     track 8,10,12,14</title></line>
+<line x1="602.1" y1="610.0" x2="602.1" y2="796.0" stroke="#eb6834" stroke-width="2" stroke-linecap="round"><title>btn[1]: CHANY (7,1)->(7,3)     track 26,28,30</title></line>
+<line x1="580.0" y1="631.0" x2="602.1" y2="631.0" stroke="#eb6834" stroke-width="1.4" stroke-dasharray="2 2"/>
+<circle cx="580.0" cy="631.0" r="3.4" fill="#eb6834" stroke="#ffffff" stroke-width="1"><title>btn[1]: IPIN  (7,3)            pin 17</title></circle>
+<line x1="106.0" y1="816.4" x2="364.0" y2="816.4" stroke="#eb6834" stroke-width="2" stroke-linecap="round"><title>btn[1]: CHANX (1,0)->(4,0)     track 24,26,28,30</title></line>
+<line x1="322.0" y1="803.1" x2="580.0" y2="803.1" stroke="#eb6834" stroke-width="2" stroke-linecap="round"><title>btn[1]: CHANX (4,0)->(7,0)     track 8,10,12,14</title></line>
+<line x1="466.0" y1="823.1" x2="580.0" y2="823.1" stroke="#eb6834" stroke-width="2" stroke-linecap="round"><title>btn[1]: CHANX (6,0)->(7,0)     track 32,34</title></line>
+<line x1="603.8" y1="682.0" x2="603.8" y2="796.0" stroke="#eb6834" stroke-width="2" stroke-linecap="round"><title>btn[1]: CHANY (7,1)->(7,2)     track 28,30</title></line>
+<line x1="580.0" y1="703.0" x2="603.8" y2="703.0" stroke="#eb6834" stroke-width="1.4" stroke-dasharray="2 2"/>
+<circle cx="580.0" cy="703.0" r="3.4" fill="#eb6834" stroke="#ffffff" stroke-width="1"><title>btn[1]: IPIN  (7,2)            pin 17</title></circle>
+<line x1="559.0" y1="682.0" x2="559.0" y2="652.0" stroke="#1baf7a" stroke-width="3"><title>cy5: direct OPIN  (7,2)            pin 27 -> IPIN  (7,3)            pin 18</title></line>
+<line x1="580.0" y1="631.0" x2="609.6" y2="631.0" stroke="#eda100" stroke-width="1.4" stroke-dasharray="2 2"/>
+<circle cx="580.0" cy="631.0" r="3.4" fill="#eda100" stroke="#ffffff" stroke-width="1"><title>led[0]: OPIN  (7,3)            pin 19</title></circle>
+<line x1="609.6" y1="610.0" x2="609.6" y2="724.0" stroke="#eda100" stroke-width="2" stroke-linecap="round"><title>led[0]: CHANY (7,2)->(7,3)     track 35,33</title></line>
+<line x1="596.2" y1="682.0" x2="596.2" y2="796.0" stroke="#eda100" stroke-width="2" stroke-linecap="round"><title>led[0]: CHANY (7,1)->(7,2)     track 19,17</title></line>
+<line x1="610.0" y1="796.4" x2="868.0" y2="796.4" stroke="#eda100" stroke-width="2" stroke-linecap="round"><title>led[0]: CHANX (8,0)->(11,0)    track 0,2,4,6</title></line>
+<line x1="826.0" y1="809.8" x2="940.0" y2="809.8" stroke="#eda100" stroke-width="2" stroke-linecap="round"><title>led[0]: CHANX (11,0)->(12,0)   track 16,18</title></line>
+<line x1="955.4" y1="610.0" x2="955.4" y2="796.0" stroke="#eda100" stroke-width="2" stroke-linecap="round"><title>led[0]: CHANY (12,1)->(12,3)   track 18,20,22</title></line>
+<line x1="970.0" y1="775.0" x2="955.4" y2="775.0" stroke="#eda100" stroke-width="1.4" stroke-dasharray="2 2"/>
+<circle cx="970.0" cy="775.0" r="3.4" fill="#eda100" stroke="#ffffff" stroke-width="1"><title>led[0]: IPIN  (13,1)           pin 0</title></circle>
+<line x1="538.0" y1="631.0" x2="521.8" y2="631.0" stroke="#e87ba4" stroke-width="1.4" stroke-dasharray="2 2"/>
+<circle cx="538.0" cy="631.0" r="3.4" fill="#e87ba4" stroke="#ffffff" stroke-width="1"><title>led[1]: OPIN  (7,3)            pin 21</title></circle>
+<line x1="521.8" y1="394.0" x2="521.8" y2="652.0" stroke="#e87ba4" stroke-width="2" stroke-linecap="round"><title>led[1]: CHANY (6,3)->(6,6)     track 16,18,20,22</title></line>
+<line x1="538.0" y1="436.4" x2="796.0" y2="436.4" stroke="#e87ba4" stroke-width="2" stroke-linecap="round"><title>led[1]: CHANX (7,5)->(10,5)    track 0,2,4,6</title></line>
+<line x1="682.0" y1="443.1" x2="940.0" y2="443.1" stroke="#e87ba4" stroke-width="2" stroke-linecap="round"><title>led[1]: CHANX (9,5)->(12,5)    track 8,10,12,14</title></line>
+<line x1="952.9" y1="466.0" x2="952.9" y2="724.0" stroke="#e87ba4" stroke-width="2" stroke-linecap="round"><title>led[1]: CHANY (12,2)->(12,5)   track 15,13,11,9</title></line>
+<line x1="942.9" y1="682.0" x2="942.9" y2="796.0" stroke="#e87ba4" stroke-width="2" stroke-linecap="round"><title>led[1]: CHANY (12,1)->(12,2)   track 3,1</title></line>
+<line x1="970.0" y1="703.0" x2="942.9" y2="703.0" stroke="#e87ba4" stroke-width="1.4" stroke-dasharray="2 2"/>
+<circle cx="970.0" cy="703.0" r="3.4" fill="#e87ba4" stroke="#ffffff" stroke-width="1"><title>led[1]: IPIN  (13,2)           pin 0</title></circle>
+<line x1="580.0" y1="631.0" x2="584.6" y2="631.0" stroke="#008300" stroke-width="1.4" stroke-dasharray="2 2"/>
+<circle cx="580.0" cy="631.0" r="3.4" fill="#008300" stroke="#ffffff" stroke-width="1"><title>led[2]: OPIN  (7,3)            pin 23</title></circle>
+<line x1="584.6" y1="610.0" x2="584.6" y2="796.0" stroke="#008300" stroke-width="2" stroke-linecap="round"><title>led[2]: CHANY (7,1)->(7,3)     track 5,3,1</title></line>
+<line x1="610.0" y1="816.4" x2="868.0" y2="816.4" stroke="#008300" stroke-width="2" stroke-linecap="round"><title>led[2]: CHANX (8,0)->(11,0)    track 24,26,28,30</title></line>
+<line x1="754.0" y1="796.4" x2="940.0" y2="796.4" stroke="#008300" stroke-width="2" stroke-linecap="round"><title>led[2]: CHANX (10,0)->(12,0)   track 0,2,4</title></line>
+<line x1="967.1" y1="682.0" x2="967.1" y2="796.0" stroke="#008300" stroke-width="2" stroke-linecap="round"><title>led[2]: CHANY (12,1)->(12,2)   track 32,34</title></line>
+<line x1="953.8" y1="466.0" x2="953.8" y2="724.0" stroke="#008300" stroke-width="2" stroke-linecap="round"><title>led[2]: CHANY (12,2)->(12,5)   track 16,18,20,22</title></line>
+<line x1="970.0" y1="631.0" x2="953.8" y2="631.0" stroke="#008300" stroke-width="1.4" stroke-dasharray="2 2"/>
+<circle cx="970.0" cy="631.0" r="3.4" fill="#008300" stroke="#ffffff" stroke-width="1"><title>led[2]: IPIN  (13,3)           pin 0</title></circle>
+<line x1="34" y1="912" x2="52" y2="912" stroke="#2a78d6" stroke-width="3"/><text x="58" y="916" font-size="11" fill="#16202b">btn[0]</text>
+<line x1="184" y1="912" x2="202" y2="912" stroke="#eb6834" stroke-width="3"/><text x="208" y="916" font-size="11" fill="#16202b">btn[1]</text>
+<line x1="334" y1="912" x2="352" y2="912" stroke="#1baf7a" stroke-width="3"/><text x="358" y="916" font-size="11" fill="#16202b">cy5</text>
+<line x1="484" y1="912" x2="502" y2="912" stroke="#eda100" stroke-width="3"/><text x="508" y="916" font-size="11" fill="#16202b">led[0]</text>
+<line x1="634" y1="912" x2="652" y2="912" stroke="#e87ba4" stroke-width="3"/><text x="658" y="916" font-size="11" fill="#16202b">led[1]</text>
+<line x1="784" y1="912" x2="802" y2="912" stroke="#008300" stroke-width="3"/><text x="808" y="916" font-size="11" fill="#16202b">led[2]</text>
+<text x="34" y="942" font-size="10" fill="#566372">Each wire is drawn at its track in the 36-track channel (CHANX above a row, CHANY right of a column); dotted = a block pin to its channel. Filled tiles are used; hover for names.</text>
+</svg>

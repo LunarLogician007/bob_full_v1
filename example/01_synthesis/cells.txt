@@ -1,0 +1,11 @@
+counter: yosys onto bob's cell library (software/bob/synth.py)
+
+  BOB_ADD      6
+  BOB_FDRE     6
+
+named nets:
+  btn  bits [5, 6, 7, 8]
+  clk  bits [2]
+  led  bits [9, 10, 11]
+  q  bits [12, 15, 18, 9, 10, 11]
+  sw  bits [3, 4]

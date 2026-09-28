@@ -1,0 +1,27 @@
+counter on the 14 x 12 VPR grid (y up). '#' = used by this design.
+C/c CLB, P/p I/O pad, B/b BRAM, D/d DSP. A hard block is 5 rows tall: b./d. is its root
+tile (where it is placed and configured), bb/dd the rows above it that it covers.
+
+y11     p. p. p. p. p. p. p. p. p. p. p. p.   
+y10  p. c. c. bb c. c. c. c. dd c. c. c. c. p.
+y 9  p. c. c. bb c. c. c. c. dd c. c. c. c. p.
+y 8  p. c. c. bb c. c. c. c. dd c. c. c. c. p.
+y 7  p. c. c. bb c. c. c. c. dd c. c. c. c. p.
+y 6  p. c. c. b. c. c. c. c. d. c. c. c. c. p.
+y 5  p. c. c. bb c. c. c. c. dd c. c. c. c. p.
+y 4  P# c. c. bb c. c. c. c. dd c. c. c. c. p.
+y 3  P# c. c. bb c. c. c. C# dd c. c. c. c. P#
+y 2  p. c. c. bb c. c. c. C# dd c. c. c. c. P#
+y 1  p. c. c. b. c. c. c. c. d. c. c. c. c. P#
+y 0     P# p. p. p. p. p. p. p. p. p. p. p.   
+      0  1  2  3  4  5  6  7  8  9 10 11 12 13
+
+placed clusters (.place):
+  clk                                              at x= 1 y= 0  (io_x1y0)
+  out:led[0]                                       at x=13 y= 1  (io_x13y1)
+  bob_gen1                                         at x= 7 y= 2  (clb_x7y2)
+  out:led[1]                                       at x=13 y= 2  (io_x13y2)
+  btn[0]                                           at x= 0 y= 3  (io_x0y3)
+  $auto$alumacc.cc:548:replace_alu$16.slice[3].add at x= 7 y= 3  (clb_x7y3)
+  out:led[2]                                       at x=13 y= 3  (io_x13y3)
+  btn[1]                                           at x= 0 y= 4  (io_x0y4)

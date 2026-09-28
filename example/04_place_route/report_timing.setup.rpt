@@ -1,0 +1,638 @@
+#Timing report of worst 21 path(s)
+# Unit scale: 1e-09 seconds
+# Output precision: 3
+
+#Path 1
+Startpoint: btn[0].inpad[0] (.input clocked by clk)
+Endpoint  : $auto$ff.cc:337:slice$99.CE[0] (bob_ff clocked by clk)
+Path Type : setup
+
+Point                                                             Incr      Path
+--------------------------------------------------------------------------------
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+input external delay                                             0.000     0.000
+btn[0].inpad[0] (.input)                                         0.000     0.000
+$auto$ff.cc:337:slice$99.CE[0] (bob_ff)                         32.724    32.724
+data arrival time                                                         32.724
+
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+clk.inpad[0] (.input)                                            0.000     0.000
+$auto$ff.cc:337:slice$99.C[0] (bob_ff)                           0.042     0.042
+clock uncertainty                                                0.000     0.042
+cell setup time                                                 -1.000    -0.958
+data required time                                                        -0.958
+--------------------------------------------------------------------------------
+data required time                                                        -0.958
+data arrival time                                                        -32.724
+--------------------------------------------------------------------------------
+slack (VIOLATED)                                                         -33.682
+
+
+#Path 2
+Startpoint: btn[0].inpad[0] (.input clocked by clk)
+Endpoint  : $auto$ff.cc:337:slice$97.CE[0] (bob_ff clocked by clk)
+Path Type : setup
+
+Point                                                             Incr      Path
+--------------------------------------------------------------------------------
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+input external delay                                             0.000     0.000
+btn[0].inpad[0] (.input)                                         0.000     0.000
+$auto$ff.cc:337:slice$97.CE[0] (bob_ff)                         32.724    32.724
+data arrival time                                                         32.724
+
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+clk.inpad[0] (.input)                                            0.000     0.000
+$auto$ff.cc:337:slice$97.C[0] (bob_ff)                           0.042     0.042
+clock uncertainty                                                0.000     0.042
+cell setup time                                                 -1.000    -0.958
+data required time                                                        -0.958
+--------------------------------------------------------------------------------
+data required time                                                        -0.958
+data arrival time                                                        -32.724
+--------------------------------------------------------------------------------
+slack (VIOLATED)                                                         -33.682
+
+
+#Path 3
+Startpoint: btn[0].inpad[0] (.input clocked by clk)
+Endpoint  : $auto$ff.cc:337:slice$98.CE[0] (bob_ff clocked by clk)
+Path Type : setup
+
+Point                                                             Incr      Path
+--------------------------------------------------------------------------------
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+input external delay                                             0.000     0.000
+btn[0].inpad[0] (.input)                                         0.000     0.000
+$auto$ff.cc:337:slice$98.CE[0] (bob_ff)                         32.724    32.724
+data arrival time                                                         32.724
+
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+clk.inpad[0] (.input)                                            0.000     0.000
+$auto$ff.cc:337:slice$98.C[0] (bob_ff)                           0.042     0.042
+clock uncertainty                                                0.000     0.042
+cell setup time                                                 -1.000    -0.958
+data required time                                                        -0.958
+--------------------------------------------------------------------------------
+data required time                                                        -0.958
+data arrival time                                                        -32.724
+--------------------------------------------------------------------------------
+slack (VIOLATED)                                                         -33.682
+
+
+#Path 4
+Startpoint: btn[0].inpad[0] (.input clocked by clk)
+Endpoint  : $auto$ff.cc:337:slice$94.CE[0] (bob_ff clocked by clk)
+Path Type : setup
+
+Point                                                             Incr      Path
+--------------------------------------------------------------------------------
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+input external delay                                             0.000     0.000
+btn[0].inpad[0] (.input)                                         0.000     0.000
+$auto$ff.cc:337:slice$94.CE[0] (bob_ff)                         32.682    32.682
+data arrival time                                                         32.682
+
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+clk.inpad[0] (.input)                                            0.000     0.000
+$auto$ff.cc:337:slice$94.C[0] (bob_ff)                           0.042     0.042
+clock uncertainty                                                0.000     0.042
+cell setup time                                                 -1.000    -0.958
+data required time                                                        -0.958
+--------------------------------------------------------------------------------
+data required time                                                        -0.958
+data arrival time                                                        -32.682
+--------------------------------------------------------------------------------
+slack (VIOLATED)                                                         -33.639
+
+
+#Path 5
+Startpoint: btn[0].inpad[0] (.input clocked by clk)
+Endpoint  : $auto$ff.cc:337:slice$95.CE[0] (bob_ff clocked by clk)
+Path Type : setup
+
+Point                                                             Incr      Path
+--------------------------------------------------------------------------------
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+input external delay                                             0.000     0.000
+btn[0].inpad[0] (.input)                                         0.000     0.000
+$auto$ff.cc:337:slice$95.CE[0] (bob_ff)                         32.682    32.682
+data arrival time                                                         32.682
+
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+clk.inpad[0] (.input)                                            0.000     0.000
+$auto$ff.cc:337:slice$95.C[0] (bob_ff)                           0.042     0.042
+clock uncertainty                                                0.000     0.042
+cell setup time                                                 -1.000    -0.958
+data required time                                                        -0.958
+--------------------------------------------------------------------------------
+data required time                                                        -0.958
+data arrival time                                                        -32.682
+--------------------------------------------------------------------------------
+slack (VIOLATED)                                                         -33.639
+
+
+#Path 6
+Startpoint: btn[0].inpad[0] (.input clocked by clk)
+Endpoint  : $auto$ff.cc:337:slice$96.CE[0] (bob_ff clocked by clk)
+Path Type : setup
+
+Point                                                             Incr      Path
+--------------------------------------------------------------------------------
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+input external delay                                             0.000     0.000
+btn[0].inpad[0] (.input)                                         0.000     0.000
+$auto$ff.cc:337:slice$96.CE[0] (bob_ff)                         32.682    32.682
+data arrival time                                                         32.682
+
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+clk.inpad[0] (.input)                                            0.000     0.000
+$auto$ff.cc:337:slice$96.C[0] (bob_ff)                           0.042     0.042
+clock uncertainty                                                0.000     0.042
+cell setup time                                                 -1.000    -0.958
+data required time                                                        -0.958
+--------------------------------------------------------------------------------
+data required time                                                        -0.958
+data arrival time                                                        -32.682
+--------------------------------------------------------------------------------
+slack (VIOLATED)                                                         -33.639
+
+
+#Path 7
+Startpoint: btn[1].inpad[0] (.input clocked by clk)
+Endpoint  : $auto$ff.cc:337:slice$99.SR[0] (bob_ff clocked by clk)
+Path Type : setup
+
+Point                                                             Incr      Path
+--------------------------------------------------------------------------------
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+input external delay                                             0.000     0.000
+btn[1].inpad[0] (.input)                                         0.000     0.000
+$auto$ff.cc:337:slice$99.SR[0] (bob_ff)                         28.066    28.066
+data arrival time                                                         28.066
+
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+clk.inpad[0] (.input)                                            0.000     0.000
+$auto$ff.cc:337:slice$99.C[0] (bob_ff)                           0.042     0.042
+clock uncertainty                                                0.000     0.042
+cell setup time                                                 -1.000    -0.958
+data required time                                                        -0.958
+--------------------------------------------------------------------------------
+data required time                                                        -0.958
+data arrival time                                                        -28.066
+--------------------------------------------------------------------------------
+slack (VIOLATED)                                                         -29.024
+
+
+#Path 8
+Startpoint: btn[1].inpad[0] (.input clocked by clk)
+Endpoint  : $auto$ff.cc:337:slice$97.SR[0] (bob_ff clocked by clk)
+Path Type : setup
+
+Point                                                             Incr      Path
+--------------------------------------------------------------------------------
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+input external delay                                             0.000     0.000
+btn[1].inpad[0] (.input)                                         0.000     0.000
+$auto$ff.cc:337:slice$97.SR[0] (bob_ff)                         28.066    28.066
+data arrival time                                                         28.066
+
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+clk.inpad[0] (.input)                                            0.000     0.000
+$auto$ff.cc:337:slice$97.C[0] (bob_ff)                           0.042     0.042
+clock uncertainty                                                0.000     0.042
+cell setup time                                                 -1.000    -0.958
+data required time                                                        -0.958
+--------------------------------------------------------------------------------
+data required time                                                        -0.958
+data arrival time                                                        -28.066
+--------------------------------------------------------------------------------
+slack (VIOLATED)                                                         -29.024
+
+
+#Path 9
+Startpoint: btn[1].inpad[0] (.input clocked by clk)
+Endpoint  : $auto$ff.cc:337:slice$98.SR[0] (bob_ff clocked by clk)
+Path Type : setup
+
+Point                                                             Incr      Path
+--------------------------------------------------------------------------------
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+input external delay                                             0.000     0.000
+btn[1].inpad[0] (.input)                                         0.000     0.000
+$auto$ff.cc:337:slice$98.SR[0] (bob_ff)                         28.066    28.066
+data arrival time                                                         28.066
+
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+clk.inpad[0] (.input)                                            0.000     0.000
+$auto$ff.cc:337:slice$98.C[0] (bob_ff)                           0.042     0.042
+clock uncertainty                                                0.000     0.042
+cell setup time                                                 -1.000    -0.958
+data required time                                                        -0.958
+--------------------------------------------------------------------------------
+data required time                                                        -0.958
+data arrival time                                                        -28.066
+--------------------------------------------------------------------------------
+slack (VIOLATED)                                                         -29.024
+
+
+#Path 10
+Startpoint: btn[1].inpad[0] (.input clocked by clk)
+Endpoint  : $auto$ff.cc:337:slice$94.SR[0] (bob_ff clocked by clk)
+Path Type : setup
+
+Point                                                             Incr      Path
+--------------------------------------------------------------------------------
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+input external delay                                             0.000     0.000
+btn[1].inpad[0] (.input)                                         0.000     0.000
+$auto$ff.cc:337:slice$94.SR[0] (bob_ff)                         27.999    27.999
+data arrival time                                                         27.999
+
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+clk.inpad[0] (.input)                                            0.000     0.000
+$auto$ff.cc:337:slice$94.C[0] (bob_ff)                           0.042     0.042
+clock uncertainty                                                0.000     0.042
+cell setup time                                                 -1.000    -0.958
+data required time                                                        -0.958
+--------------------------------------------------------------------------------
+data required time                                                        -0.958
+data arrival time                                                        -27.999
+--------------------------------------------------------------------------------
+slack (VIOLATED)                                                         -28.957
+
+
+#Path 11
+Startpoint: btn[1].inpad[0] (.input clocked by clk)
+Endpoint  : $auto$ff.cc:337:slice$96.SR[0] (bob_ff clocked by clk)
+Path Type : setup
+
+Point                                                             Incr      Path
+--------------------------------------------------------------------------------
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+input external delay                                             0.000     0.000
+btn[1].inpad[0] (.input)                                         0.000     0.000
+$auto$ff.cc:337:slice$96.SR[0] (bob_ff)                         27.999    27.999
+data arrival time                                                         27.999
+
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+clk.inpad[0] (.input)                                            0.000     0.000
+$auto$ff.cc:337:slice$96.C[0] (bob_ff)                           0.042     0.042
+clock uncertainty                                                0.000     0.042
+cell setup time                                                 -1.000    -0.958
+data required time                                                        -0.958
+--------------------------------------------------------------------------------
+data required time                                                        -0.958
+data arrival time                                                        -27.999
+--------------------------------------------------------------------------------
+slack (VIOLATED)                                                         -28.957
+
+
+#Path 12
+Startpoint: btn[1].inpad[0] (.input clocked by clk)
+Endpoint  : $auto$ff.cc:337:slice$95.SR[0] (bob_ff clocked by clk)
+Path Type : setup
+
+Point                                                             Incr      Path
+--------------------------------------------------------------------------------
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+input external delay                                             0.000     0.000
+btn[1].inpad[0] (.input)                                         0.000     0.000
+$auto$ff.cc:337:slice$95.SR[0] (bob_ff)                         27.999    27.999
+data arrival time                                                         27.999
+
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+clk.inpad[0] (.input)                                            0.000     0.000
+$auto$ff.cc:337:slice$95.C[0] (bob_ff)                           0.042     0.042
+clock uncertainty                                                0.000     0.042
+cell setup time                                                 -1.000    -0.958
+data required time                                                        -0.958
+--------------------------------------------------------------------------------
+data required time                                                        -0.958
+data arrival time                                                        -27.999
+--------------------------------------------------------------------------------
+slack (VIOLATED)                                                         -28.957
+
+
+#Path 13
+Startpoint: $auto$ff.cc:337:slice$98.Q[0] (bob_ff clocked by clk)
+Endpoint  : out:led[1].outpad[0] (.output clocked by clk)
+Path Type : setup
+
+Point                                                             Incr      Path
+--------------------------------------------------------------------------------
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+clk.inpad[0] (.input)                                            0.000     0.000
+$auto$ff.cc:337:slice$98.C[0] (bob_ff)                           0.042     0.042
+$auto$ff.cc:337:slice$98.Q[0] (bob_ff) [clock-to-output]         0.500     0.542
+out:led[1].outpad[0] (.output)                                  28.066    28.608
+data arrival time                                                         28.608
+
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+clock uncertainty                                                0.000     0.000
+output external delay                                            0.000     0.000
+data required time                                                         0.000
+--------------------------------------------------------------------------------
+data required time                                                         0.000
+data arrival time                                                        -28.608
+--------------------------------------------------------------------------------
+slack (VIOLATED)                                                         -28.608
+
+
+#Path 14
+Startpoint: $auto$ff.cc:337:slice$99.Q[0] (bob_ff clocked by clk)
+Endpoint  : out:led[2].outpad[0] (.output clocked by clk)
+Path Type : setup
+
+Point                                                             Incr      Path
+--------------------------------------------------------------------------------
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+clk.inpad[0] (.input)                                            0.000     0.000
+$auto$ff.cc:337:slice$99.C[0] (bob_ff)                           0.042     0.042
+$auto$ff.cc:337:slice$99.Q[0] (bob_ff) [clock-to-output]         0.500     0.542
+out:led[2].outpad[0] (.output)                                  28.018    28.560
+data arrival time                                                         28.560
+
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+clock uncertainty                                                0.000     0.000
+output external delay                                            0.000     0.000
+data required time                                                         0.000
+--------------------------------------------------------------------------------
+data required time                                                         0.000
+data arrival time                                                        -28.560
+--------------------------------------------------------------------------------
+slack (VIOLATED)                                                         -28.560
+
+
+#Path 15
+Startpoint: $auto$ff.cc:337:slice$97.Q[0] (bob_ff clocked by clk)
+Endpoint  : out:led[0].outpad[0] (.output clocked by clk)
+Path Type : setup
+
+Point                                                             Incr      Path
+--------------------------------------------------------------------------------
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+clk.inpad[0] (.input)                                            0.000     0.000
+$auto$ff.cc:337:slice$97.C[0] (bob_ff)                           0.042     0.042
+$auto$ff.cc:337:slice$97.Q[0] (bob_ff) [clock-to-output]         0.500     0.542
+out:led[0].outpad[0] (.output)                                  27.957    28.500
+data arrival time                                                         28.500
+
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+clock uncertainty                                                0.000     0.000
+output external delay                                            0.000     0.000
+data required time                                                         0.000
+--------------------------------------------------------------------------------
+data required time                                                         0.000
+data arrival time                                                        -28.500
+--------------------------------------------------------------------------------
+slack (VIOLATED)                                                         -28.500
+
+
+#Path 16
+Startpoint: $auto$ff.cc:337:slice$94.Q[0] (bob_ff clocked by clk)
+Endpoint  : $auto$ff.cc:337:slice$99.D[0] (bob_ff clocked by clk)
+Path Type : setup
+
+Point                                                                                       Incr      Path
+----------------------------------------------------------------------------------------------------------
+clock clk (rise edge)                                                                      0.000     0.000
+clock source latency                                                                       0.000     0.000
+clk.inpad[0] (.input)                                                                      0.000     0.000
+$auto$ff.cc:337:slice$94.C[0] (bob_ff)                                                     0.042     0.042
+$auto$ff.cc:337:slice$94.Q[0] (bob_ff) [clock-to-output]                                   0.500     0.542
+$auto$alumacc.cc:548:replace_alu$16.slice[0].add.b[0] (bob_add)                            3.054     3.596
+$auto$alumacc.cc:548:replace_alu$16.slice[0].add.cout[0] (bob_add)                         3.400     6.996
+$auto$alumacc.cc:548:replace_alu$16.slice[1].add.cin[0] (bob_add)                          0.000     6.996
+$auto$alumacc.cc:548:replace_alu$16.slice[1].add.cout[0] (bob_add)                         1.000     7.996
+$auto$alumacc.cc:548:replace_alu$16.slice[2].add.cin[0] (bob_add)                          0.000     7.996
+$auto$alumacc.cc:548:replace_alu$16.slice[2].add.cout[0] (bob_add)                         1.000     8.996
+$auto$alumacc.cc:548:replace_alu$16.slice[3].add.cin[0] (bob_add)                          0.000     8.996
+$auto$alumacc.cc:548:replace_alu$16.slice[3].add.cout[0] (bob_add)                         1.000     9.996
+$auto$alumacc.cc:548:replace_alu$16.slice[4].add.cin[0] (bob_add)                          0.000     9.996
+$auto$alumacc.cc:548:replace_alu$16.slice[4].add.cout[0] (bob_add)                         1.000    10.996
+$auto$alumacc.cc:548:replace_alu$16.slice[5].add.cin[0] (bob_add)                          0.000    10.996
+$auto$alumacc.cc:548:replace_alu$16.slice[5].add.sumout[0] (bob_add)                       3.400    14.396
+$auto$ff.cc:337:slice$99.D[0] (bob_ff)                                                     0.000    14.396
+data arrival time                                                                                   14.396
+
+clock clk (rise edge)                                                                      0.000     0.000
+clock source latency                                                                       0.000     0.000
+clk.inpad[0] (.input)                                                                      0.000     0.000
+$auto$ff.cc:337:slice$99.C[0] (bob_ff)                                                     0.042     0.042
+clock uncertainty                                                                          0.000     0.042
+cell setup time                                                                           -1.000    -0.958
+data required time                                                                                  -0.958
+----------------------------------------------------------------------------------------------------------
+data required time                                                                                  -0.958
+data arrival time                                                                                  -14.396
+----------------------------------------------------------------------------------------------------------
+slack (VIOLATED)                                                                                   -15.354
+
+
+#Path 17
+Startpoint: $auto$ff.cc:337:slice$94.Q[0] (bob_ff clocked by clk)
+Endpoint  : $auto$ff.cc:337:slice$98.D[0] (bob_ff clocked by clk)
+Path Type : setup
+
+Point                                                                                       Incr      Path
+----------------------------------------------------------------------------------------------------------
+clock clk (rise edge)                                                                      0.000     0.000
+clock source latency                                                                       0.000     0.000
+clk.inpad[0] (.input)                                                                      0.000     0.000
+$auto$ff.cc:337:slice$94.C[0] (bob_ff)                                                     0.042     0.042
+$auto$ff.cc:337:slice$94.Q[0] (bob_ff) [clock-to-output]                                   0.500     0.542
+$auto$alumacc.cc:548:replace_alu$16.slice[0].add.b[0] (bob_add)                            3.054     3.596
+$auto$alumacc.cc:548:replace_alu$16.slice[0].add.cout[0] (bob_add)                         3.400     6.996
+$auto$alumacc.cc:548:replace_alu$16.slice[1].add.cin[0] (bob_add)                          0.000     6.996
+$auto$alumacc.cc:548:replace_alu$16.slice[1].add.cout[0] (bob_add)                         1.000     7.996
+$auto$alumacc.cc:548:replace_alu$16.slice[2].add.cin[0] (bob_add)                          0.000     7.996
+$auto$alumacc.cc:548:replace_alu$16.slice[2].add.cout[0] (bob_add)                         1.000     8.996
+$auto$alumacc.cc:548:replace_alu$16.slice[3].add.cin[0] (bob_add)                          0.000     8.996
+$auto$alumacc.cc:548:replace_alu$16.slice[3].add.cout[0] (bob_add)                         1.000     9.996
+$auto$alumacc.cc:548:replace_alu$16.slice[4].add.cin[0] (bob_add)                          0.000     9.996
+$auto$alumacc.cc:548:replace_alu$16.slice[4].add.sumout[0] (bob_add)                       3.400    13.396
+$auto$ff.cc:337:slice$98.D[0] (bob_ff)                                                     0.000    13.396
+data arrival time                                                                                   13.396
+
+clock clk (rise edge)                                                                      0.000     0.000
+clock source latency                                                                       0.000     0.000
+clk.inpad[0] (.input)                                                                      0.000     0.000
+$auto$ff.cc:337:slice$98.C[0] (bob_ff)                                                     0.042     0.042
+clock uncertainty                                                                          0.000     0.042
+cell setup time                                                                           -1.000    -0.958
+data required time                                                                                  -0.958
+----------------------------------------------------------------------------------------------------------
+data required time                                                                                  -0.958
+data arrival time                                                                                  -13.396
+----------------------------------------------------------------------------------------------------------
+slack (VIOLATED)                                                                                   -14.354
+
+
+#Path 18
+Startpoint: $auto$ff.cc:337:slice$94.Q[0] (bob_ff clocked by clk)
+Endpoint  : $auto$ff.cc:337:slice$97.D[0] (bob_ff clocked by clk)
+Path Type : setup
+
+Point                                                                                       Incr      Path
+----------------------------------------------------------------------------------------------------------
+clock clk (rise edge)                                                                      0.000     0.000
+clock source latency                                                                       0.000     0.000
+clk.inpad[0] (.input)                                                                      0.000     0.000
+$auto$ff.cc:337:slice$94.C[0] (bob_ff)                                                     0.042     0.042
+$auto$ff.cc:337:slice$94.Q[0] (bob_ff) [clock-to-output]                                   0.500     0.542
+$auto$alumacc.cc:548:replace_alu$16.slice[0].add.b[0] (bob_add)                            3.054     3.596
+$auto$alumacc.cc:548:replace_alu$16.slice[0].add.cout[0] (bob_add)                         3.400     6.996
+$auto$alumacc.cc:548:replace_alu$16.slice[1].add.cin[0] (bob_add)                          0.000     6.996
+$auto$alumacc.cc:548:replace_alu$16.slice[1].add.cout[0] (bob_add)                         1.000     7.996
+$auto$alumacc.cc:548:replace_alu$16.slice[2].add.cin[0] (bob_add)                          0.000     7.996
+$auto$alumacc.cc:548:replace_alu$16.slice[2].add.cout[0] (bob_add)                         1.000     8.996
+$auto$alumacc.cc:548:replace_alu$16.slice[3].add.cin[0] (bob_add)                          0.000     8.996
+$auto$alumacc.cc:548:replace_alu$16.slice[3].add.sumout[0] (bob_add)                       3.400    12.396
+$auto$ff.cc:337:slice$97.D[0] (bob_ff)                                                     0.000    12.396
+data arrival time                                                                                   12.396
+
+clock clk (rise edge)                                                                      0.000     0.000
+clock source latency                                                                       0.000     0.000
+clk.inpad[0] (.input)                                                                      0.000     0.000
+$auto$ff.cc:337:slice$97.C[0] (bob_ff)                                                     0.042     0.042
+clock uncertainty                                                                          0.000     0.042
+cell setup time                                                                           -1.000    -0.958
+data required time                                                                                  -0.958
+----------------------------------------------------------------------------------------------------------
+data required time                                                                                  -0.958
+data arrival time                                                                                  -12.396
+----------------------------------------------------------------------------------------------------------
+slack (VIOLATED)                                                                                   -13.354
+
+
+#Path 19
+Startpoint: $auto$ff.cc:337:slice$94.Q[0] (bob_ff clocked by clk)
+Endpoint  : $auto$ff.cc:337:slice$96.D[0] (bob_ff clocked by clk)
+Path Type : setup
+
+Point                                                                                       Incr      Path
+----------------------------------------------------------------------------------------------------------
+clock clk (rise edge)                                                                      0.000     0.000
+clock source latency                                                                       0.000     0.000
+clk.inpad[0] (.input)                                                                      0.000     0.000
+$auto$ff.cc:337:slice$94.C[0] (bob_ff)                                                     0.042     0.042
+$auto$ff.cc:337:slice$94.Q[0] (bob_ff) [clock-to-output]                                   0.500     0.542
+$auto$alumacc.cc:548:replace_alu$16.slice[0].add.b[0] (bob_add)                            3.054     3.596
+$auto$alumacc.cc:548:replace_alu$16.slice[0].add.cout[0] (bob_add)                         3.400     6.996
+$auto$alumacc.cc:548:replace_alu$16.slice[1].add.cin[0] (bob_add)                          0.000     6.996
+$auto$alumacc.cc:548:replace_alu$16.slice[1].add.cout[0] (bob_add)                         1.000     7.996
+$auto$alumacc.cc:548:replace_alu$16.slice[2].add.cin[0] (bob_add)                          0.000     7.996
+$auto$alumacc.cc:548:replace_alu$16.slice[2].add.sumout[0] (bob_add)                       3.400    11.396
+$auto$ff.cc:337:slice$96.D[0] (bob_ff)                                                     0.000    11.396
+data arrival time                                                                                   11.396
+
+clock clk (rise edge)                                                                      0.000     0.000
+clock source latency                                                                       0.000     0.000
+clk.inpad[0] (.input)                                                                      0.000     0.000
+$auto$ff.cc:337:slice$96.C[0] (bob_ff)                                                     0.042     0.042
+clock uncertainty                                                                          0.000     0.042
+cell setup time                                                                           -1.000    -0.958
+data required time                                                                                  -0.958
+----------------------------------------------------------------------------------------------------------
+data required time                                                                                  -0.958
+data arrival time                                                                                  -11.396
+----------------------------------------------------------------------------------------------------------
+slack (VIOLATED)                                                                                   -12.354
+
+
+#Path 20
+Startpoint: $auto$ff.cc:337:slice$94.Q[0] (bob_ff clocked by clk)
+Endpoint  : $auto$ff.cc:337:slice$95.D[0] (bob_ff clocked by clk)
+Path Type : setup
+
+Point                                                                                       Incr      Path
+----------------------------------------------------------------------------------------------------------
+clock clk (rise edge)                                                                      0.000     0.000
+clock source latency                                                                       0.000     0.000
+clk.inpad[0] (.input)                                                                      0.000     0.000
+$auto$ff.cc:337:slice$94.C[0] (bob_ff)                                                     0.042     0.042
+$auto$ff.cc:337:slice$94.Q[0] (bob_ff) [clock-to-output]                                   0.500     0.542
+$auto$alumacc.cc:548:replace_alu$16.slice[0].add.b[0] (bob_add)                            3.054     3.596
+$auto$alumacc.cc:548:replace_alu$16.slice[0].add.cout[0] (bob_add)                         3.400     6.996
+$auto$alumacc.cc:548:replace_alu$16.slice[1].add.cin[0] (bob_add)                          0.000     6.996
+$auto$alumacc.cc:548:replace_alu$16.slice[1].add.sumout[0] (bob_add)                       3.400    10.396
+$auto$ff.cc:337:slice$95.D[0] (bob_ff)                                                     0.000    10.396
+data arrival time                                                                                   10.396
+
+clock clk (rise edge)                                                                      0.000     0.000
+clock source latency                                                                       0.000     0.000
+clk.inpad[0] (.input)                                                                      0.000     0.000
+$auto$ff.cc:337:slice$95.C[0] (bob_ff)                                                     0.042     0.042
+clock uncertainty                                                                          0.000     0.042
+cell setup time                                                                           -1.000    -0.958
+data required time                                                                                  -0.958
+----------------------------------------------------------------------------------------------------------
+data required time                                                                                  -0.958
+data arrival time                                                                                  -10.396
+----------------------------------------------------------------------------------------------------------
+slack (VIOLATED)                                                                                   -11.354
+
+
+#Path 21
+Startpoint: $auto$ff.cc:337:slice$94.Q[0] (bob_ff clocked by clk)
+Endpoint  : $auto$ff.cc:337:slice$94.D[0] (bob_ff clocked by clk)
+Path Type : setup
+
+Point                                                                                       Incr      Path
+----------------------------------------------------------------------------------------------------------
+clock clk (rise edge)                                                                      0.000     0.000
+clock source latency                                                                       0.000     0.000
+clk.inpad[0] (.input)                                                                      0.000     0.000
+$auto$ff.cc:337:slice$94.C[0] (bob_ff)                                                     0.042     0.042
+$auto$ff.cc:337:slice$94.Q[0] (bob_ff) [clock-to-output]                                   0.500     0.542
+$auto$alumacc.cc:548:replace_alu$16.slice[0].add.b[0] (bob_add)                            3.054     3.596
+$auto$alumacc.cc:548:replace_alu$16.slice[0].add.sumout[0] (bob_add)                       3.400     6.996
+$auto$ff.cc:337:slice$94.D[0] (bob_ff)                                                     0.000     6.996
+data arrival time                                                                                    6.996
+
+clock clk (rise edge)                                                                      0.000     0.000
+clock source latency                                                                       0.000     0.000
+clk.inpad[0] (.input)                                                                      0.000     0.000
+$auto$ff.cc:337:slice$94.C[0] (bob_ff)                                                     0.042     0.042
+clock uncertainty                                                                          0.000     0.042
+cell setup time                                                                           -1.000    -0.958
+data required time                                                                                  -0.958
+----------------------------------------------------------------------------------------------------------
+data required time                                                                                  -0.958
+data arrival time                                                                                   -6.996
+----------------------------------------------------------------------------------------------------------
+slack (VIOLATED)                                                                                    -7.954
+
+
+#End of timing report

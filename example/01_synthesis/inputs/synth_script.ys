@@ -1,0 +1,50 @@
+
+read_verilog -lib /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v
+read_verilog -sv /Users/sk/work/bob/bob_full_v1/work/examples/counter/counter.v
+hierarchy -check -top counter
+proc
+flatten
+tribuf -logic
+deminout
+opt_expr
+opt_clean
+check
+opt -nodffe -nosdff
+fsm
+opt
+wreduce
+peepopt
+opt_clean
+memory_dff
+techmap -map +/mul2dsp.v -map /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_map.v -D DSP_A_MAXWIDTH=25 -D DSP_B_MAXWIDTH=18 -D DSP_A_MINWIDTH=2 -D DSP_B_MINWIDTH=2 -D DSP_SIGNEDONLY -D DSP_NAME=$__MUL25X18
+select a:mul2dsp
+setattr -unset mul2dsp
+opt_expr -fine
+wreduce
+select -clear
+chtype -set $mul t:$__soft_mul
+techmap -map +/cmp2lut.v -map +/cmp2lcu.v -D LUT_WIDTH=6
+alumacc
+share
+opt
+memory -nomap
+opt_clean
+memory_libmap -lib /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_brams.txt
+techmap -map /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_brams_map.v
+opt -fast -full
+memory_map
+opt -full
+techmap -map +/techmap.v -map /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_map.v
+opt -fast
+dfflegalize -cell $_SDFFE_PP0P_ 01 -cell $_SDFFE_PP1P_ 01
+techmap -map /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_map.v
+opt_expr -mux_undef
+abc -lut 6
+opt_clean -purge
+hierarchy -check
+check
+tee -o /Users/sk/work/bob/bob_full_v1/build/synth/counter/counter.stat stat
+write_json /Users/sk/work/bob/bob_full_v1/build/synth/counter/counter.json
+write_blif -param -cname /Users/sk/work/bob/bob_full_v1/build/synth/counter/counter.blif
+techmap -map /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_lut_map.v
+write_verilog -noattr /Users/sk/work/bob/bob_full_v1/build/synth/counter/counter_syn.v

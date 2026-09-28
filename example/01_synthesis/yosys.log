@@ -1,0 +1,1604 @@
+
+ /----------------------------------------------------------------------------\
+ |  yosys -- Yosys Open SYnthesis Suite                                       |
+ |  Copyright (C) 2012 - 2026  Claire Xenia Wolf <claire@yosyshq.com>         |
+ |  Distributed under an ISC-like license, type "license" to see terms        |
+ \----------------------------------------------------------------------------/
+ Yosys 0.69+post (git sha1 143eb14f9cc55d6f8927e68523b0c9d2166ed02c, Release, AppleClang clang++ 21.0.0.21000101)
+
+-- Executing script file `/Users/sk/work/bob/bob_full_v1/build/synth/counter/counter.ys' --
+
+1. Executing Verilog-2005 frontend: /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v
+Parsing Verilog input from `/Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v' to AST representation.
+Generating RTLIL representation for module `\BOB_LUT'.
+Generating RTLIL representation for module `\BOB_FDRE'.
+Generating RTLIL representation for module `\BOB_FDSE'.
+Generating RTLIL representation for module `\BOB_ADD'.
+Generating RTLIL representation for module `\BOB_BRAM18'.
+Warning: wire '$for_loop$1[0].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[1].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[2].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[3].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[4].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[5].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[6].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[7].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[8].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[9].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[10].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[11].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[12].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[13].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[14].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[15].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[16].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[17].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[18].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[19].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[20].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[21].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[22].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[23].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[24].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[25].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[26].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[27].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[28].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[29].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[30].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[31].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[32].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[33].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[34].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[35].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[36].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[37].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[38].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[39].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[40].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[41].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[42].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[43].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[44].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[45].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[46].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[47].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[48].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[49].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[50].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[51].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[52].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[53].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[54].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[55].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[56].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[57].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[58].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[59].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[60].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[61].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[62].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[63].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[64].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[65].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[66].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[67].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[68].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[69].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[70].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[71].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[72].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[73].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[74].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[75].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[76].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[77].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[78].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[79].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[80].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[81].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[82].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[83].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[84].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[85].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[86].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[87].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[88].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[89].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[90].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[91].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[92].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[93].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[94].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[95].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[96].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[97].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[98].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[99].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[100].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[101].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[102].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[103].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[104].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[105].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[106].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[107].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[108].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[109].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[110].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[111].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[112].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[113].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[114].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[115].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[116].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[117].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[118].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[119].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[120].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[121].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[122].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[123].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[124].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[125].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[126].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[127].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[128].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[129].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[130].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[131].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[132].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[133].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[134].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[135].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[136].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[137].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[138].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[139].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[140].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[141].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[142].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[143].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[144].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[145].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[146].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[147].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[148].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[149].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[150].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[151].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[152].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[153].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[154].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[155].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[156].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[157].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[158].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[159].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[160].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[161].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[162].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[163].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[164].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[165].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[166].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[167].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[168].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[169].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[170].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[171].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[172].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[173].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[174].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[175].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[176].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[177].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[178].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[179].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[180].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[181].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[182].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[183].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[184].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[185].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[186].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[187].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[188].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[189].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[190].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[191].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[192].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[193].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[194].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[195].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[196].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[197].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[198].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[199].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[200].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[201].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[202].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[203].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[204].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[205].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[206].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[207].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[208].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[209].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[210].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[211].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[212].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[213].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[214].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[215].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[216].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[217].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[218].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[219].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[220].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[221].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[222].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[223].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[224].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[225].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[226].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[227].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[228].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[229].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[230].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[231].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[232].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[233].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[234].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[235].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[236].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[237].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[238].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[239].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[240].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[241].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[242].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[243].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[244].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[245].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[246].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[247].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[248].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[249].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[250].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[251].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[252].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[253].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[254].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[255].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[256].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[257].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[258].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[259].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[260].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[261].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[262].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[263].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[264].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[265].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[266].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[267].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[268].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[269].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[270].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[271].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[272].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[273].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[274].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[275].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[276].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[277].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[278].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[279].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[280].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[281].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[282].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[283].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[284].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[285].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[286].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[287].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[288].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[289].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[290].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[291].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[292].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[293].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[294].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[295].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[296].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[297].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[298].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[299].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[300].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[301].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[302].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[303].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[304].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[305].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[306].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[307].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[308].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[309].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[310].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[311].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[312].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[313].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[314].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[315].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[316].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[317].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[318].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[319].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[320].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[321].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[322].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[323].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[324].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[325].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[326].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[327].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[328].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[329].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[330].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[331].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[332].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[333].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[334].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[335].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[336].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[337].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[338].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[339].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[340].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[341].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[342].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[343].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[344].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[345].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[346].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[347].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[348].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[349].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[350].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[351].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[352].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[353].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[354].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[355].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[356].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[357].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[358].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[359].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[360].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[361].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[362].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[363].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[364].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[365].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[366].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[367].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[368].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[369].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[370].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[371].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[372].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[373].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[374].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[375].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[376].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[377].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[378].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[379].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[380].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[381].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[382].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[383].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[384].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[385].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[386].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[387].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[388].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[389].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[390].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[391].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[392].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[393].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[394].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[395].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[396].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[397].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[398].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[399].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[400].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[401].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[402].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[403].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[404].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[405].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[406].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[407].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[408].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[409].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[410].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[411].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[412].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[413].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[414].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[415].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[416].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[417].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[418].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[419].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[420].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[421].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[422].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[423].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[424].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[425].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[426].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[427].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[428].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[429].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[430].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[431].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[432].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[433].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[434].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[435].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[436].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[437].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[438].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[439].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[440].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[441].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[442].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[443].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[444].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[445].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[446].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[447].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[448].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[449].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[450].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[451].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[452].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[453].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[454].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[455].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[456].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[457].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[458].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[459].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[460].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[461].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[462].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[463].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[464].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[465].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[466].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[467].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[468].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[469].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[470].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[471].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[472].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[473].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[474].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[475].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[476].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[477].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[478].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[479].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[480].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[481].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[482].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[483].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[484].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[485].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[486].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[487].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[488].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[489].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[490].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[491].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[492].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[493].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[494].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[495].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[496].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[497].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[498].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[499].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[500].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[501].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[502].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[503].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[504].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[505].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[506].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[507].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[508].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[509].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[510].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[511].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[512].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[513].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[514].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[515].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[516].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[517].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[518].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[519].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[520].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[521].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[522].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[523].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[524].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[525].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[526].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[527].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[528].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[529].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[530].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[531].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[532].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[533].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[534].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[535].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[536].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[537].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[538].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[539].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[540].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[541].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[542].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[543].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[544].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[545].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[546].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[547].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[548].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[549].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[550].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[551].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[552].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[553].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[554].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[555].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[556].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[557].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[558].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[559].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[560].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[561].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[562].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[563].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[564].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[565].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[566].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[567].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[568].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[569].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[570].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[571].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[572].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[573].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[574].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[575].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[576].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[577].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[578].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[579].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[580].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[581].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[582].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[583].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[584].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[585].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[586].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[587].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[588].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[589].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[590].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[591].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[592].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[593].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[594].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[595].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[596].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[597].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[598].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[599].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[600].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[601].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[602].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[603].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[604].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[605].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[606].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[607].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[608].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[609].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[610].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[611].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[612].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[613].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[614].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[615].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[616].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[617].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[618].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[619].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[620].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[621].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[622].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[623].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[624].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[625].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[626].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[627].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[628].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[629].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[630].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[631].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[632].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[633].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[634].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[635].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[636].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[637].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[638].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[639].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[640].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[641].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[642].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[643].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[644].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[645].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[646].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[647].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[648].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[649].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[650].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[651].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[652].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[653].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[654].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[655].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[656].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[657].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[658].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[659].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[660].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[661].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[662].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[663].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[664].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[665].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[666].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[667].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[668].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[669].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[670].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[671].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[672].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[673].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[674].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[675].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[676].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[677].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[678].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[679].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[680].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[681].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[682].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[683].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[684].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[685].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[686].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[687].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[688].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[689].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[690].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[691].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[692].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[693].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[694].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[695].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[696].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[697].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[698].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[699].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[700].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[701].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[702].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[703].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[704].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[705].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[706].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[707].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[708].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[709].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[710].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[711].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[712].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[713].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[714].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[715].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[716].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[717].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[718].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[719].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[720].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[721].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[722].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[723].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[724].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[725].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[726].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[727].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[728].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[729].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[730].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[731].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[732].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[733].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[734].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[735].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[736].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[737].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[738].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[739].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[740].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[741].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[742].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[743].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[744].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[745].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[746].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[747].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[748].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[749].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[750].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[751].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[752].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[753].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[754].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[755].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[756].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[757].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[758].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[759].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[760].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[761].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[762].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[763].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[764].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[765].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[766].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[767].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[768].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[769].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[770].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[771].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[772].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[773].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[774].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[775].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[776].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[777].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[778].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[779].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[780].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[781].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[782].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[783].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[784].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[785].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[786].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[787].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[788].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[789].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[790].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[791].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[792].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[793].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[794].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[795].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[796].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[797].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[798].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[799].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[800].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[801].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[802].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[803].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[804].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[805].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[806].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[807].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[808].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[809].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[810].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[811].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[812].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[813].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[814].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[815].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[816].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[817].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[818].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[819].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[820].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[821].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[822].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[823].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[824].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[825].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[826].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[827].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[828].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[829].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[830].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[831].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[832].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[833].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[834].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[835].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[836].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[837].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[838].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[839].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[840].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[841].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[842].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[843].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[844].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[845].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[846].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[847].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[848].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[849].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[850].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[851].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[852].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[853].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[854].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[855].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[856].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[857].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[858].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[859].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[860].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[861].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[862].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[863].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[864].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[865].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[866].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[867].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[868].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[869].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[870].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[871].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[872].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[873].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[874].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[875].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[876].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[877].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[878].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[879].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[880].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[881].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[882].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[883].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[884].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[885].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[886].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[887].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[888].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[889].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[890].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[891].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[892].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[893].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[894].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[895].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[896].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[897].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[898].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[899].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[900].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[901].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[902].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[903].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[904].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[905].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[906].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[907].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[908].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[909].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[910].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[911].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[912].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[913].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[914].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[915].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[916].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[917].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[918].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[919].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[920].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[921].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[922].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[923].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[924].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[925].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[926].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[927].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[928].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[929].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[930].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[931].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[932].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[933].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[934].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[935].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[936].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[937].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[938].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[939].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[940].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[941].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[942].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[943].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[944].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[945].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[946].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[947].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[948].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[949].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[950].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[951].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[952].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[953].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[954].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[955].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[956].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[957].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[958].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[959].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[960].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[961].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[962].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[963].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[964].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[965].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[966].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[967].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[968].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[969].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[970].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[971].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[972].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[973].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[974].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[975].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[976].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[977].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[978].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[979].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[980].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[981].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[982].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[983].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[984].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[985].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[986].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[987].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[988].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[989].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[990].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[991].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[992].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[993].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[994].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[995].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[996].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[997].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[998].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[999].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[1000].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[1001].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[1002].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[1003].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[1004].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[1005].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[1006].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[1007].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[1008].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[1009].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[1010].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[1011].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[1012].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[1013].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[1014].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[1015].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[1016].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[1017].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[1018].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[1019].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[1020].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[1021].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[1022].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Warning: wire '$for_loop$1[1023].u_core.mem' is assigned in a block at /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_cells_sim.v:110.46-110.78.
+Generating RTLIL representation for module `\BOB_DSP'.
+Successfully finished Verilog frontend.
+
+2. Executing Verilog-2005 frontend: /Users/sk/work/bob/bob_full_v1/work/examples/counter/counter.v
+Parsing SystemVerilog input from `/Users/sk/work/bob/bob_full_v1/work/examples/counter/counter.v' to AST representation.
+Generating RTLIL representation for module `\counter'.
+Successfully finished Verilog frontend.
+
+3. Executing HIERARCHY pass (managing design hierarchy).
+
+3.1. Analyzing design hierarchy..
+Top module:  \counter
+
+3.2. Analyzing design hierarchy..
+Top module:  \counter
+Removed 0 unused modules.
+
+4. Executing PROC pass (convert processes to netlists).
+
+4.1. Executing PROC_CLEAN pass (remove empty switches from decision trees).
+Cleaned up 0 empty switches.
+
+4.2. Executing PROC_RMDEAD pass (remove dead branches from decision trees).
+Marked 1 switch rules as full_case in process $proc$/Users/sk/work/bob/bob_full_v1/work/examples/counter/counter.v:9$2 in module counter.
+Removed a total of 0 dead cases.
+
+4.3. Executing PROC_PRUNE pass (remove redundant assignments in processes).
+Removed 0 redundant assignments.
+Promoted 1 assignment to connection.
+
+4.4. Executing PROC_INIT pass (extract init attributes).
+Found init rule in `\counter.$proc$/Users/sk/work/bob/bob_full_v1/work/examples/counter/counter.v:8$4'.
+  Set init value: \q = 6'000000
+
+4.5. Executing PROC_ARST pass (detect async resets in processes).
+
+4.6. Executing PROC_ROM pass (convert switches to ROMs).
+Converted 0 switches.
+<suppressed ~2 debug messages>
+
+4.7. Executing PROC_MUX pass (convert decision trees to multiplexers).
+Creating decoders for process `\counter.$proc$/Users/sk/work/bob/bob_full_v1/work/examples/counter/counter.v:8$4'.
+Creating decoders for process `\counter.$proc$/Users/sk/work/bob/bob_full_v1/work/examples/counter/counter.v:9$2'.
+     1/1: $0\q[5:0]
+
+4.8. Executing PROC_DLATCH pass (convert process syncs to latches).
+
+4.9. Executing PROC_DFF pass (convert process syncs to FFs).
+Creating register for signal `\counter.\q' using process `\counter.$proc$/Users/sk/work/bob/bob_full_v1/work/examples/counter/counter.v:9$2'.
+  created $dff cell `$procdff$10' with positive edge clock.
+
+4.10. Executing PROC_MEMWR pass (convert process memory writes to cells).
+
+4.11. Executing PROC_CLEAN pass (remove empty switches from decision trees).
+Removing empty process `counter.$proc$/Users/sk/work/bob/bob_full_v1/work/examples/counter/counter.v:8$4'.
+Found and cleaned up 2 empty switches in `\counter.$proc$/Users/sk/work/bob/bob_full_v1/work/examples/counter/counter.v:9$2'.
+Removing empty process `counter.$proc$/Users/sk/work/bob/bob_full_v1/work/examples/counter/counter.v:9$2'.
+Cleaned up 2 empty switches.
+
+4.12. Executing OPT_EXPR pass (perform const folding).
+Optimizing module counter.
+
+5. Executing FLATTEN pass (flatten design).
+
+6. Executing TRIBUF pass.
+
+7. Executing DEMINOUT pass (demote inout ports to input or output).
+
+8. Executing OPT_EXPR pass (perform const folding).
+Optimizing module counter.
+
+9. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \counter..
+Removed 0 unused cells and 4 unused wires.
+<suppressed ~1 debug messages>
+
+10. Executing CHECK pass (checking for obvious problems).
+Checking module counter...
+Found and reported 0 problems.
+
+11. Executing OPT pass (performing simple optimizations).
+
+11.1. Executing OPT_EXPR pass (perform const folding).
+Optimizing module counter.
+
+11.2. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\counter'.
+Computing hashes of 4 cells of `\counter'.
+Finding duplicate cells in `\counter'.
+Removed a total of 0 cells.
+
+11.3. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \counter..
+  Creating internal representation of mux trees.
+  Evaluating internal representation of mux trees.
+  Analyzing evaluation results.
+Removed 0 multiplexer ports.
+<suppressed ~3 debug messages>
+
+11.4. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \counter.
+Performed a total of 0 changes.
+
+11.5. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\counter'.
+Computing hashes of 4 cells of `\counter'.
+Finding duplicate cells in `\counter'.
+Removed a total of 0 cells.
+
+11.6. Executing OPT_DFF pass (perform DFF optimizations).
+
+11.7. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \counter..
+
+11.8. Executing OPT_EXPR pass (perform const folding).
+Optimizing module counter.
+
+11.9. Finished fast OPT passes. (There is nothing left to do.)
+
+12. Executing FSM pass (extract and optimize FSM).
+
+12.1. Executing FSM_DETECT pass (finding FSMs in design).
+
+12.2. Executing FSM_EXTRACT pass (extracting FSM from design).
+
+12.3. Executing FSM_OPT pass (simple optimizations of FSMs).
+
+12.4. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \counter..
+
+12.5. Executing FSM_OPT pass (simple optimizations of FSMs).
+
+12.6. Executing FSM_RECODE pass (re-assigning FSM state encoding).
+
+12.7. Executing FSM_INFO pass (dumping all available information on FSM cells).
+
+12.8. Executing FSM_MAP pass (mapping FSMs to basic logic).
+
+13. Executing OPT pass (performing simple optimizations).
+
+13.1. Executing OPT_EXPR pass (perform const folding).
+Optimizing module counter.
+
+13.2. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\counter'.
+Computing hashes of 4 cells of `\counter'.
+Finding duplicate cells in `\counter'.
+Removed a total of 0 cells.
+
+13.3. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \counter..
+  Creating internal representation of mux trees.
+  Evaluating internal representation of mux trees.
+  Analyzing evaluation results.
+Removed 0 multiplexer ports.
+<suppressed ~3 debug messages>
+
+13.4. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \counter.
+Performed a total of 0 changes.
+
+13.5. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\counter'.
+Computing hashes of 4 cells of `\counter'.
+Finding duplicate cells in `\counter'.
+Removed a total of 0 cells.
+
+13.6. Executing OPT_DFF pass (perform DFF optimizations).
+Adding SRST signal on $procdff$10 ($dff) from module counter (D = $procmux$5_Y, Q = \q, rval = 6'000000).
+Adding EN signal on $auto$ff.cc:337:slice$11 ($sdff) from module counter (D = $add$/Users/sk/work/bob/bob_full_v1/work/examples/counter/counter.v:11$3_Y, Q = \q).
+
+13.7. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \counter..
+Removed 2 unused cells and 2 unused wires.
+<suppressed ~3 debug messages>
+
+13.8. Executing OPT_EXPR pass (perform const folding).
+Optimizing module counter.
+
+13.9. Rerunning OPT passes. (Maybe there is more to do..)
+
+13.10. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \counter..
+  Creating internal representation of mux trees.
+  No muxes found in this module.
+Removed 0 multiplexer ports.
+
+13.11. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \counter.
+Performed a total of 0 changes.
+
+13.12. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\counter'.
+Computing hashes of 2 cells of `\counter'.
+Finding duplicate cells in `\counter'.
+Removed a total of 0 cells.
+
+13.13. Executing OPT_DFF pass (perform DFF optimizations).
+
+13.14. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \counter..
+
+13.15. Executing OPT_EXPR pass (perform const folding).
+Optimizing module counter.
+
+13.16. Finished fast OPT passes. (There is nothing left to do.)
+
+14. Executing WREDUCE pass (reducing word size of cells).
+Removed top 5 bits (of 6) from port B of cell counter.$add$/Users/sk/work/bob/bob_full_v1/work/examples/counter/counter.v:11$3 ($add).
+
+15. Executing PEEPOPT pass (run peephole optimizers).
+
+16. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \counter..
+
+17. Executing MEMORY_DFF pass (merging $dff cells to $memrd).
+
+18. Executing TECHMAP pass (map to technology primitives).
+
+18.1. Executing Verilog-2005 frontend: /opt/homebrew/bin/../share/yosys/mul2dsp.v
+Parsing Verilog input from `/opt/homebrew/bin/../share/yosys/mul2dsp.v' to AST representation.
+Generating RTLIL representation for module `\_80_mul'.
+Generating RTLIL representation for module `\_90_soft_mul'.
+Successfully finished Verilog frontend.
+
+18.2. Executing Verilog-2005 frontend: /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_map.v
+Parsing Verilog input from `/Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_map.v' to AST representation.
+Generating RTLIL representation for module `$_SDFFE_PP0P_'.
+Generating RTLIL representation for module `$_SDFFE_PP1P_'.
+Generating RTLIL representation for module `\_80_bob_alu'.
+Generating RTLIL representation for module `$__MUL25X18'.
+Successfully finished Verilog frontend.
+
+18.3. Continuing TECHMAP pass.
+No more expansions possible.
+<suppressed ~8 debug messages>
+
+19. Executing OPT_EXPR pass (perform const folding).
+
+20. Executing WREDUCE pass (reducing word size of cells).
+
+21. Executing TECHMAP pass (map to technology primitives).
+
+21.1. Executing Verilog-2005 frontend: /opt/homebrew/bin/../share/yosys/cmp2lut.v
+Parsing Verilog input from `/opt/homebrew/bin/../share/yosys/cmp2lut.v' to AST representation.
+Generating RTLIL representation for module `\_90_lut_cmp_'.
+Successfully finished Verilog frontend.
+
+21.2. Executing Verilog-2005 frontend: /opt/homebrew/bin/../share/yosys/cmp2lcu.v
+Parsing Verilog input from `/opt/homebrew/bin/../share/yosys/cmp2lcu.v' to AST representation.
+Generating RTLIL representation for module `\_80_lcu_cmp_'.
+Generating RTLIL representation for module `$__CMP2LCU'.
+Successfully finished Verilog frontend.
+
+21.3. Continuing TECHMAP pass.
+No more expansions possible.
+<suppressed ~7 debug messages>
+
+22. Executing ALUMACC pass (create $alu and $macc cells).
+Extracting $alu and $macc cells in module counter:
+  creating $macc model for $add$/Users/sk/work/bob/bob_full_v1/work/examples/counter/counter.v:11$3 ($add).
+  creating $alu model for $macc $add$/Users/sk/work/bob/bob_full_v1/work/examples/counter/counter.v:11$3.
+  creating $alu cell for $add$/Users/sk/work/bob/bob_full_v1/work/examples/counter/counter.v:11$3: $auto$alumacc.cc:548:replace_alu$16
+  created 1 $alu and 0 $macc cells.
+
+23. Executing SHARE pass (SAT-based resource sharing).
+
+24. Executing OPT pass (performing simple optimizations).
+
+24.1. Executing OPT_EXPR pass (perform const folding).
+Optimizing module counter.
+
+24.2. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\counter'.
+Computing hashes of 2 cells of `\counter'.
+Finding duplicate cells in `\counter'.
+Removed a total of 0 cells.
+
+24.3. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \counter..
+  Creating internal representation of mux trees.
+  No muxes found in this module.
+Removed 0 multiplexer ports.
+
+24.4. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \counter.
+Performed a total of 0 changes.
+
+24.5. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\counter'.
+Computing hashes of 2 cells of `\counter'.
+Finding duplicate cells in `\counter'.
+Removed a total of 0 cells.
+
+24.6. Executing OPT_DFF pass (perform DFF optimizations).
+
+24.7. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \counter..
+
+24.8. Executing OPT_EXPR pass (perform const folding).
+Optimizing module counter.
+
+24.9. Finished fast OPT passes. (There is nothing left to do.)
+
+25. Executing MEMORY pass.
+
+25.1. Executing OPT_MEM pass (optimize memories).
+Performed a total of 0 transformations.
+
+25.2. Executing OPT_MEM_PRIORITY pass (removing unnecessary memory write priority relations).
+Performed a total of 0 transformations.
+
+25.3. Executing OPT_MEM_FEEDBACK pass (finding memory read-to-write feedback paths).
+
+25.4. Executing MEMORY_BMUX2ROM pass (converting muxes to ROMs).
+
+25.5. Executing MEMORY_DFF pass (merging $dff cells to $memrd).
+
+25.6. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \counter..
+
+25.7. Executing MEMORY_SHARE pass (consolidating $memrd/$memwr cells).
+
+25.8. Executing OPT_MEM_WIDEN pass (optimize memories where all ports are wide).
+Performed a total of 0 transformations.
+
+25.9. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \counter..
+
+25.10. Executing MEMORY_COLLECT pass (generating $mem cells).
+
+26. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \counter..
+
+27. Executing MEMORY_LIBMAP pass (mapping memories to cells).
+
+28. Executing TECHMAP pass (map to technology primitives).
+
+28.1. Executing Verilog-2005 frontend: /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_brams_map.v
+Parsing Verilog input from `/Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_brams_map.v' to AST representation.
+Generating RTLIL representation for module `$__BOB_BRAM_'.
+Successfully finished Verilog frontend.
+
+28.2. Continuing TECHMAP pass.
+No more expansions possible.
+<suppressed ~3 debug messages>
+
+29. Executing OPT pass (performing simple optimizations).
+
+29.1. Executing OPT_EXPR pass (perform const folding).
+Optimizing module counter.
+
+29.2. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\counter'.
+Computing hashes of 2 cells of `\counter'.
+Finding duplicate cells in `\counter'.
+Removed a total of 0 cells.
+
+29.3. Executing OPT_DFF pass (perform DFF optimizations).
+
+29.4. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \counter..
+
+29.5. Finished fast OPT passes.
+
+30. Executing MEMORY_MAP pass (converting memories to logic and flip-flops).
+
+31. Executing OPT pass (performing simple optimizations).
+
+31.1. Executing OPT_EXPR pass (perform const folding).
+Optimizing module counter.
+
+31.2. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\counter'.
+Computing hashes of 2 cells of `\counter'.
+Finding duplicate cells in `\counter'.
+Removed a total of 0 cells.
+
+31.3. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \counter..
+  Creating internal representation of mux trees.
+  No muxes found in this module.
+Removed 0 multiplexer ports.
+
+31.4. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \counter.
+Performed a total of 0 changes.
+
+31.5. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\counter'.
+Computing hashes of 2 cells of `\counter'.
+Finding duplicate cells in `\counter'.
+Removed a total of 0 cells.
+
+31.6. Executing OPT_SHARE pass.
+
+31.7. Executing OPT_DFF pass (perform DFF optimizations).
+
+31.8. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \counter..
+
+31.9. Executing OPT_EXPR pass (perform const folding).
+Optimizing module counter.
+
+31.10. Finished fast OPT passes. (There is nothing left to do.)
+
+32. Executing TECHMAP pass (map to technology primitives).
+
+32.1. Executing Verilog-2005 frontend: /opt/homebrew/bin/../share/yosys/techmap.v
+Parsing Verilog input from `/opt/homebrew/bin/../share/yosys/techmap.v' to AST representation.
+Generating RTLIL representation for module `\_90_simplemap_bool_ops'.
+Generating RTLIL representation for module `\_90_simplemap_reduce_ops'.
+Generating RTLIL representation for module `\_90_simplemap_logic_ops'.
+Generating RTLIL representation for module `\_90_simplemap_compare_ops'.
+Generating RTLIL representation for module `\_90_simplemap_various'.
+Generating RTLIL representation for module `\_90_simplemap_registers'.
+Generating RTLIL representation for module `\_90_shift_ops_shr_shl_sshl_sshr'.
+Generating RTLIL representation for module `\_90_shift_shiftx'.
+Generating RTLIL representation for module `\_90_fa'.
+Generating RTLIL representation for module `\_90_lcu_brent_kung'.
+Generating RTLIL representation for module `\_90_alu'.
+Generating RTLIL representation for module `\_90_macc'.
+Generating RTLIL representation for module `\_90_alumacc'.
+Generating RTLIL representation for module `$__div_mod_u'.
+Generating RTLIL representation for module `$__div_mod_trunc'.
+Generating RTLIL representation for module `\_90_div'.
+Generating RTLIL representation for module `\_90_mod'.
+Generating RTLIL representation for module `$__div_mod_floor'.
+Generating RTLIL representation for module `\_90_divfloor'.
+Generating RTLIL representation for module `\_90_modfloor'.
+Generating RTLIL representation for module `\_90_pow'.
+Generating RTLIL representation for module `\_90_demux'.
+Generating RTLIL representation for module `\_90_lut'.
+Generating RTLIL representation for module `$connect'.
+Generating RTLIL representation for module `$input_port'.
+Successfully finished Verilog frontend.
+
+32.2. Executing Verilog-2005 frontend: /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_map.v
+Parsing Verilog input from `/Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_map.v' to AST representation.
+Generating RTLIL representation for module `$_SDFFE_PP0P_'.
+Generating RTLIL representation for module `$_SDFFE_PP1P_'.
+Generating RTLIL representation for module `\_80_bob_alu'.
+Generating RTLIL representation for module `$__MUL25X18'.
+Successfully finished Verilog frontend.
+
+32.3. Continuing TECHMAP pass.
+Using template $paramod$9d5a0fa969a4b7be2c1d467fca044b7b789f0232\_80_bob_alu for cells of type $alu.
+Using extmapper simplemap for cells of type $sdffe.
+Using template $paramod$_SDFFE_PP0P_\_TECHMAP_WIREINIT_Q_=1'0 for cells of type $_SDFFE_PP0P_.
+Using extmapper simplemap for cells of type $xor.
+Using extmapper simplemap for cells of type $pos.
+No more expansions possible.
+<suppressed ~121 debug messages>
+
+33. Executing OPT pass (performing simple optimizations).
+
+33.1. Executing OPT_EXPR pass (perform const folding).
+Optimizing module counter.
+<suppressed ~6 debug messages>
+
+33.2. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\counter'.
+Computing hashes of 13 cells of `\counter'.
+Finding duplicate cells in `\counter'.
+Removed a total of 0 cells.
+
+33.3. Executing OPT_DFF pass (perform DFF optimizations).
+
+33.4. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \counter..
+Removed 1 unused cells and 50 unused wires.
+<suppressed ~2 debug messages>
+
+33.5. Finished fast OPT passes.
+
+34. Executing DFFLEGALIZE pass (convert FFs and LATCHes to types supported by the target).
+
+35. Executing TECHMAP pass (map to technology primitives).
+
+35.1. Executing Verilog-2005 frontend: /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_map.v
+Parsing Verilog input from `/Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_map.v' to AST representation.
+Generating RTLIL representation for module `$_SDFFE_PP0P_'.
+Generating RTLIL representation for module `$_SDFFE_PP1P_'.
+Generating RTLIL representation for module `\_80_bob_alu'.
+Generating RTLIL representation for module `$__MUL25X18'.
+Successfully finished Verilog frontend.
+
+35.2. Continuing TECHMAP pass.
+No more expansions possible.
+<suppressed ~6 debug messages>
+
+36. Executing OPT_EXPR pass (perform const folding).
+Optimizing module counter.
+
+37. Executing ABC pass (technology mapping using ABC).
+
+37.1. Extracting gate netlist of module `\counter' to `<abc-temp-dir>/input.blif'..
+
+37.1.1. Executed ABC.
+Extracted 0 gates and 0 wires to a netlist network with 0 inputs and 0 outputs.
+Don't call ABC as there is nothing to map.
+Removing temp directory.
+Removing global temp directory.
+
+38. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \counter..
+
+39. Executing HIERARCHY pass (managing design hierarchy).
+Attribute `top' found on module `counter'. Setting top module to counter.
+
+39.1. Analyzing design hierarchy..
+Top module:  \counter
+
+39.2. Analyzing design hierarchy..
+Top module:  \counter
+Removed 0 unused modules.
+
+40. Executing CHECK pass (checking for obvious problems).
+Checking module counter...
+Found and reported 0 problems.
+
+41. Printing statistics.
+
+=== counter ===
+
+        +----------Local Count, excluding submodules.
+        | 
+        7 wires
+       29 wire bits
+        5 public wires
+       16 public wire bits
+        4 ports
+       10 port bits
+       12 cells
+        6   BOB_ADD
+        6   BOB_FDRE
+
+42. Executing JSON backend.
+
+43. Executing BLIF backend.
+
+44. Executing TECHMAP pass (map to technology primitives).
+
+44.1. Executing Verilog-2005 frontend: /Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_lut_map.v
+Parsing Verilog input from `/Users/sk/work/bob/bob_full_v1/software/bob/synth/bob_lut_map.v' to AST representation.
+Generating RTLIL representation for module `\_90_bob_lut'.
+Successfully finished Verilog frontend.
+
+44.2. Continuing TECHMAP pass.
+No more expansions possible.
+<suppressed ~3 debug messages>
+
+45. Executing Verilog backend.
+
+45.1. Executing BMUXMAP pass.
+
+45.2. Executing DEMUXMAP pass.
+Dumping module `\counter'.
+
+Warnings: 1024 unique messages, 1024 total
+End of script. Logfile hash: 063b4b9b3c, time: 0.14s, user: 0.11s, system: 0.02s, MEM: 23.70 MB peak
+Yosys 0.69+post (git sha1 143eb14f9cc55d6f8927e68523b0c9d2166ed02c, Release, AppleClang clang++ 21.0.0.21000101)
+Time spent: 91% 13x read_verilog (0 sec), 1% 11x opt_merge (0 sec), ...

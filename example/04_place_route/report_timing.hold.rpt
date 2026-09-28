@@ -1,0 +1,608 @@
+#Timing report of worst 21 path(s)
+# Unit scale: 1e-09 seconds
+# Output precision: 3
+
+#Path 1
+Startpoint: $auto$ff.cc:337:slice$99.Q[0] (bob_ff clocked by clk)
+Endpoint  : $auto$ff.cc:337:slice$99.D[0] (bob_ff clocked by clk)
+Path Type : hold
+
+Point                                                                                       Incr      Path
+----------------------------------------------------------------------------------------------------------
+clock clk (rise edge)                                                                      0.000     0.000
+clock source latency                                                                       0.000     0.000
+clk.inpad[0] (.input)                                                                      0.000     0.000
+$auto$ff.cc:337:slice$99.C[0] (bob_ff)                                                     0.000     0.000
+$auto$ff.cc:337:slice$99.Q[0] (bob_ff) [clock-to-output]                                   0.500     0.500
+$auto$alumacc.cc:548:replace_alu$16.slice[5].add.b[0] (bob_add)                            0.000     0.500
+$auto$alumacc.cc:548:replace_alu$16.slice[5].add.sumout[0] (bob_add)                       3.400     3.900
+$auto$ff.cc:337:slice$99.D[0] (bob_ff)                                                     0.000     3.900
+data arrival time                                                                                    3.900
+
+clock clk (rise edge)                                                                      0.000     0.000
+clock source latency                                                                       0.000     0.000
+clk.inpad[0] (.input)                                                                      0.000     0.000
+$auto$ff.cc:337:slice$99.C[0] (bob_ff)                                                     0.000     0.000
+clock uncertainty                                                                          0.000     0.000
+cell hold time                                                                             1.000     1.000
+data required time                                                                                   1.000
+----------------------------------------------------------------------------------------------------------
+data required time                                                                                  -1.000
+data arrival time                                                                                    3.900
+----------------------------------------------------------------------------------------------------------
+slack (MET)                                                                                          2.900
+
+
+#Path 2
+Startpoint: $auto$ff.cc:337:slice$98.Q[0] (bob_ff clocked by clk)
+Endpoint  : $auto$ff.cc:337:slice$98.D[0] (bob_ff clocked by clk)
+Path Type : hold
+
+Point                                                                                       Incr      Path
+----------------------------------------------------------------------------------------------------------
+clock clk (rise edge)                                                                      0.000     0.000
+clock source latency                                                                       0.000     0.000
+clk.inpad[0] (.input)                                                                      0.000     0.000
+$auto$ff.cc:337:slice$98.C[0] (bob_ff)                                                     0.000     0.000
+$auto$ff.cc:337:slice$98.Q[0] (bob_ff) [clock-to-output]                                   0.500     0.500
+$auto$alumacc.cc:548:replace_alu$16.slice[4].add.b[0] (bob_add)                            0.000     0.500
+$auto$alumacc.cc:548:replace_alu$16.slice[4].add.sumout[0] (bob_add)                       3.400     3.900
+$auto$ff.cc:337:slice$98.D[0] (bob_ff)                                                     0.000     3.900
+data arrival time                                                                                    3.900
+
+clock clk (rise edge)                                                                      0.000     0.000
+clock source latency                                                                       0.000     0.000
+clk.inpad[0] (.input)                                                                      0.000     0.000
+$auto$ff.cc:337:slice$98.C[0] (bob_ff)                                                     0.000     0.000
+clock uncertainty                                                                          0.000     0.000
+cell hold time                                                                             1.000     1.000
+data required time                                                                                   1.000
+----------------------------------------------------------------------------------------------------------
+data required time                                                                                  -1.000
+data arrival time                                                                                    3.900
+----------------------------------------------------------------------------------------------------------
+slack (MET)                                                                                          2.900
+
+
+#Path 3
+Startpoint: $auto$ff.cc:337:slice$97.Q[0] (bob_ff clocked by clk)
+Endpoint  : $auto$ff.cc:337:slice$97.D[0] (bob_ff clocked by clk)
+Path Type : hold
+
+Point                                                                                       Incr      Path
+----------------------------------------------------------------------------------------------------------
+clock clk (rise edge)                                                                      0.000     0.000
+clock source latency                                                                       0.000     0.000
+clk.inpad[0] (.input)                                                                      0.000     0.000
+$auto$ff.cc:337:slice$97.C[0] (bob_ff)                                                     0.000     0.000
+$auto$ff.cc:337:slice$97.Q[0] (bob_ff) [clock-to-output]                                   0.500     0.500
+$auto$alumacc.cc:548:replace_alu$16.slice[3].add.b[0] (bob_add)                            0.000     0.500
+$auto$alumacc.cc:548:replace_alu$16.slice[3].add.sumout[0] (bob_add)                       3.400     3.900
+$auto$ff.cc:337:slice$97.D[0] (bob_ff)                                                     0.000     3.900
+data arrival time                                                                                    3.900
+
+clock clk (rise edge)                                                                      0.000     0.000
+clock source latency                                                                       0.000     0.000
+clk.inpad[0] (.input)                                                                      0.000     0.000
+$auto$ff.cc:337:slice$97.C[0] (bob_ff)                                                     0.000     0.000
+clock uncertainty                                                                          0.000     0.000
+cell hold time                                                                             1.000     1.000
+data required time                                                                                   1.000
+----------------------------------------------------------------------------------------------------------
+data required time                                                                                  -1.000
+data arrival time                                                                                    3.900
+----------------------------------------------------------------------------------------------------------
+slack (MET)                                                                                          2.900
+
+
+#Path 4
+Startpoint: $auto$ff.cc:337:slice$96.Q[0] (bob_ff clocked by clk)
+Endpoint  : $auto$ff.cc:337:slice$96.D[0] (bob_ff clocked by clk)
+Path Type : hold
+
+Point                                                                                       Incr      Path
+----------------------------------------------------------------------------------------------------------
+clock clk (rise edge)                                                                      0.000     0.000
+clock source latency                                                                       0.000     0.000
+clk.inpad[0] (.input)                                                                      0.000     0.000
+$auto$ff.cc:337:slice$96.C[0] (bob_ff)                                                     0.000     0.000
+$auto$ff.cc:337:slice$96.Q[0] (bob_ff) [clock-to-output]                                   0.500     0.500
+$auto$alumacc.cc:548:replace_alu$16.slice[2].add.b[0] (bob_add)                            0.000     0.500
+$auto$alumacc.cc:548:replace_alu$16.slice[2].add.sumout[0] (bob_add)                       3.400     3.900
+$auto$ff.cc:337:slice$96.D[0] (bob_ff)                                                     0.000     3.900
+data arrival time                                                                                    3.900
+
+clock clk (rise edge)                                                                      0.000     0.000
+clock source latency                                                                       0.000     0.000
+clk.inpad[0] (.input)                                                                      0.000     0.000
+$auto$ff.cc:337:slice$96.C[0] (bob_ff)                                                     0.000     0.000
+clock uncertainty                                                                          0.000     0.000
+cell hold time                                                                             1.000     1.000
+data required time                                                                                   1.000
+----------------------------------------------------------------------------------------------------------
+data required time                                                                                  -1.000
+data arrival time                                                                                    3.900
+----------------------------------------------------------------------------------------------------------
+slack (MET)                                                                                          2.900
+
+
+#Path 5
+Startpoint: $auto$ff.cc:337:slice$95.Q[0] (bob_ff clocked by clk)
+Endpoint  : $auto$ff.cc:337:slice$95.D[0] (bob_ff clocked by clk)
+Path Type : hold
+
+Point                                                                                       Incr      Path
+----------------------------------------------------------------------------------------------------------
+clock clk (rise edge)                                                                      0.000     0.000
+clock source latency                                                                       0.000     0.000
+clk.inpad[0] (.input)                                                                      0.000     0.000
+$auto$ff.cc:337:slice$95.C[0] (bob_ff)                                                     0.000     0.000
+$auto$ff.cc:337:slice$95.Q[0] (bob_ff) [clock-to-output]                                   0.500     0.500
+$auto$alumacc.cc:548:replace_alu$16.slice[1].add.b[0] (bob_add)                            0.000     0.500
+$auto$alumacc.cc:548:replace_alu$16.slice[1].add.sumout[0] (bob_add)                       3.400     3.900
+$auto$ff.cc:337:slice$95.D[0] (bob_ff)                                                     0.000     3.900
+data arrival time                                                                                    3.900
+
+clock clk (rise edge)                                                                      0.000     0.000
+clock source latency                                                                       0.000     0.000
+clk.inpad[0] (.input)                                                                      0.000     0.000
+$auto$ff.cc:337:slice$95.C[0] (bob_ff)                                                     0.000     0.000
+clock uncertainty                                                                          0.000     0.000
+cell hold time                                                                             1.000     1.000
+data required time                                                                                   1.000
+----------------------------------------------------------------------------------------------------------
+data required time                                                                                  -1.000
+data arrival time                                                                                    3.900
+----------------------------------------------------------------------------------------------------------
+slack (MET)                                                                                          2.900
+
+
+#Path 6
+Startpoint: $auto$ff.cc:337:slice$94.Q[0] (bob_ff clocked by clk)
+Endpoint  : $auto$ff.cc:337:slice$94.D[0] (bob_ff clocked by clk)
+Path Type : hold
+
+Point                                                                                       Incr      Path
+----------------------------------------------------------------------------------------------------------
+clock clk (rise edge)                                                                      0.000     0.000
+clock source latency                                                                       0.000     0.000
+clk.inpad[0] (.input)                                                                      0.000     0.000
+$auto$ff.cc:337:slice$94.C[0] (bob_ff)                                                     0.000     0.000
+$auto$ff.cc:337:slice$94.Q[0] (bob_ff) [clock-to-output]                                   0.500     0.500
+$auto$alumacc.cc:548:replace_alu$16.slice[0].add.b[0] (bob_add)                            0.000     0.500
+$auto$alumacc.cc:548:replace_alu$16.slice[0].add.sumout[0] (bob_add)                       3.400     3.900
+$auto$ff.cc:337:slice$94.D[0] (bob_ff)                                                     0.000     3.900
+data arrival time                                                                                    3.900
+
+clock clk (rise edge)                                                                      0.000     0.000
+clock source latency                                                                       0.000     0.000
+clk.inpad[0] (.input)                                                                      0.000     0.000
+$auto$ff.cc:337:slice$94.C[0] (bob_ff)                                                     0.000     0.000
+clock uncertainty                                                                          0.000     0.000
+cell hold time                                                                             1.000     1.000
+data required time                                                                                   1.000
+----------------------------------------------------------------------------------------------------------
+data required time                                                                                  -1.000
+data arrival time                                                                                    3.900
+----------------------------------------------------------------------------------------------------------
+slack (MET)                                                                                          2.900
+
+
+#Path 7
+Startpoint: btn[1].inpad[0] (.input clocked by clk)
+Endpoint  : $auto$ff.cc:337:slice$94.SR[0] (bob_ff clocked by clk)
+Path Type : hold
+
+Point                                                             Incr      Path
+--------------------------------------------------------------------------------
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+input external delay                                             0.000     0.000
+btn[1].inpad[0] (.input)                                         0.000     0.000
+$auto$ff.cc:337:slice$94.SR[0] (bob_ff)                         27.957    27.957
+data arrival time                                                         27.957
+
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+clk.inpad[0] (.input)                                            0.000     0.000
+$auto$ff.cc:337:slice$94.C[0] (bob_ff)                           0.000     0.000
+clock uncertainty                                                0.000     0.000
+cell hold time                                                   1.000     1.000
+data required time                                                         1.000
+--------------------------------------------------------------------------------
+data required time                                                        -1.000
+data arrival time                                                         27.957
+--------------------------------------------------------------------------------
+slack (MET)                                                               26.957
+
+
+#Path 8
+Startpoint: btn[1].inpad[0] (.input clocked by clk)
+Endpoint  : $auto$ff.cc:337:slice$96.SR[0] (bob_ff clocked by clk)
+Path Type : hold
+
+Point                                                             Incr      Path
+--------------------------------------------------------------------------------
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+input external delay                                             0.000     0.000
+btn[1].inpad[0] (.input)                                         0.000     0.000
+$auto$ff.cc:337:slice$96.SR[0] (bob_ff)                         27.957    27.957
+data arrival time                                                         27.957
+
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+clk.inpad[0] (.input)                                            0.000     0.000
+$auto$ff.cc:337:slice$96.C[0] (bob_ff)                           0.000     0.000
+clock uncertainty                                                0.000     0.000
+cell hold time                                                   1.000     1.000
+data required time                                                         1.000
+--------------------------------------------------------------------------------
+data required time                                                        -1.000
+data arrival time                                                         27.957
+--------------------------------------------------------------------------------
+slack (MET)                                                               26.957
+
+
+#Path 9
+Startpoint: btn[1].inpad[0] (.input clocked by clk)
+Endpoint  : $auto$ff.cc:337:slice$95.SR[0] (bob_ff clocked by clk)
+Path Type : hold
+
+Point                                                             Incr      Path
+--------------------------------------------------------------------------------
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+input external delay                                             0.000     0.000
+btn[1].inpad[0] (.input)                                         0.000     0.000
+$auto$ff.cc:337:slice$95.SR[0] (bob_ff)                         27.957    27.957
+data arrival time                                                         27.957
+
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+clk.inpad[0] (.input)                                            0.000     0.000
+$auto$ff.cc:337:slice$95.C[0] (bob_ff)                           0.000     0.000
+clock uncertainty                                                0.000     0.000
+cell hold time                                                   1.000     1.000
+data required time                                                         1.000
+--------------------------------------------------------------------------------
+data required time                                                        -1.000
+data arrival time                                                         27.957
+--------------------------------------------------------------------------------
+slack (MET)                                                               26.957
+
+
+#Path 10
+Startpoint: btn[1].inpad[0] (.input clocked by clk)
+Endpoint  : $auto$ff.cc:337:slice$97.SR[0] (bob_ff clocked by clk)
+Path Type : hold
+
+Point                                                             Incr      Path
+--------------------------------------------------------------------------------
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+input external delay                                             0.000     0.000
+btn[1].inpad[0] (.input)                                         0.000     0.000
+$auto$ff.cc:337:slice$97.SR[0] (bob_ff)                         28.024    28.024
+data arrival time                                                         28.024
+
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+clk.inpad[0] (.input)                                            0.000     0.000
+$auto$ff.cc:337:slice$97.C[0] (bob_ff)                           0.000     0.000
+clock uncertainty                                                0.000     0.000
+cell hold time                                                   1.000     1.000
+data required time                                                         1.000
+--------------------------------------------------------------------------------
+data required time                                                        -1.000
+data arrival time                                                         28.024
+--------------------------------------------------------------------------------
+slack (MET)                                                               27.024
+
+
+#Path 11
+Startpoint: btn[1].inpad[0] (.input clocked by clk)
+Endpoint  : $auto$ff.cc:337:slice$98.SR[0] (bob_ff clocked by clk)
+Path Type : hold
+
+Point                                                             Incr      Path
+--------------------------------------------------------------------------------
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+input external delay                                             0.000     0.000
+btn[1].inpad[0] (.input)                                         0.000     0.000
+$auto$ff.cc:337:slice$98.SR[0] (bob_ff)                         28.024    28.024
+data arrival time                                                         28.024
+
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+clk.inpad[0] (.input)                                            0.000     0.000
+$auto$ff.cc:337:slice$98.C[0] (bob_ff)                           0.000     0.000
+clock uncertainty                                                0.000     0.000
+cell hold time                                                   1.000     1.000
+data required time                                                         1.000
+--------------------------------------------------------------------------------
+data required time                                                        -1.000
+data arrival time                                                         28.024
+--------------------------------------------------------------------------------
+slack (MET)                                                               27.024
+
+
+#Path 12
+Startpoint: btn[1].inpad[0] (.input clocked by clk)
+Endpoint  : $auto$ff.cc:337:slice$99.SR[0] (bob_ff clocked by clk)
+Path Type : hold
+
+Point                                                             Incr      Path
+--------------------------------------------------------------------------------
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+input external delay                                             0.000     0.000
+btn[1].inpad[0] (.input)                                         0.000     0.000
+$auto$ff.cc:337:slice$99.SR[0] (bob_ff)                         28.024    28.024
+data arrival time                                                         28.024
+
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+clk.inpad[0] (.input)                                            0.000     0.000
+$auto$ff.cc:337:slice$99.C[0] (bob_ff)                           0.000     0.000
+clock uncertainty                                                0.000     0.000
+cell hold time                                                   1.000     1.000
+data required time                                                         1.000
+--------------------------------------------------------------------------------
+data required time                                                        -1.000
+data arrival time                                                         28.024
+--------------------------------------------------------------------------------
+slack (MET)                                                               27.024
+
+
+#Path 13
+Startpoint: $auto$ff.cc:337:slice$97.Q[0] (bob_ff clocked by clk)
+Endpoint  : out:led[0].outpad[0] (.output clocked by clk)
+Path Type : hold
+
+Point                                                             Incr      Path
+--------------------------------------------------------------------------------
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+clk.inpad[0] (.input)                                            0.000     0.000
+$auto$ff.cc:337:slice$97.C[0] (bob_ff)                           0.000     0.000
+$auto$ff.cc:337:slice$97.Q[0] (bob_ff) [clock-to-output]         0.500     0.500
+out:led[0].outpad[0] (.output)                                  27.898    28.398
+data arrival time                                                         28.398
+
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+clock uncertainty                                                0.000     0.000
+output external delay                                            0.000     0.000
+data required time                                                         0.000
+--------------------------------------------------------------------------------
+data required time                                                        -0.000
+data arrival time                                                         28.398
+--------------------------------------------------------------------------------
+slack (MET)                                                               28.398
+
+
+#Path 14
+Startpoint: $auto$ff.cc:337:slice$99.Q[0] (bob_ff clocked by clk)
+Endpoint  : out:led[2].outpad[0] (.output clocked by clk)
+Path Type : hold
+
+Point                                                             Incr      Path
+--------------------------------------------------------------------------------
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+clk.inpad[0] (.input)                                            0.000     0.000
+$auto$ff.cc:337:slice$99.C[0] (bob_ff)                           0.000     0.000
+$auto$ff.cc:337:slice$99.Q[0] (bob_ff) [clock-to-output]         0.500     0.500
+out:led[2].outpad[0] (.output)                                  27.959    28.459
+data arrival time                                                         28.459
+
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+clock uncertainty                                                0.000     0.000
+output external delay                                            0.000     0.000
+data required time                                                         0.000
+--------------------------------------------------------------------------------
+data required time                                                        -0.000
+data arrival time                                                         28.459
+--------------------------------------------------------------------------------
+slack (MET)                                                               28.459
+
+
+#Path 15
+Startpoint: $auto$ff.cc:337:slice$98.Q[0] (bob_ff clocked by clk)
+Endpoint  : out:led[1].outpad[0] (.output clocked by clk)
+Path Type : hold
+
+Point                                                             Incr      Path
+--------------------------------------------------------------------------------
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+clk.inpad[0] (.input)                                            0.000     0.000
+$auto$ff.cc:337:slice$98.C[0] (bob_ff)                           0.000     0.000
+$auto$ff.cc:337:slice$98.Q[0] (bob_ff) [clock-to-output]         0.500     0.500
+out:led[1].outpad[0] (.output)                                  28.007    28.507
+data arrival time                                                         28.507
+
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+clock uncertainty                                                0.000     0.000
+output external delay                                            0.000     0.000
+data required time                                                         0.000
+--------------------------------------------------------------------------------
+data required time                                                        -0.000
+data arrival time                                                         28.507
+--------------------------------------------------------------------------------
+slack (MET)                                                               28.507
+
+
+#Path 16
+Startpoint: btn[0].inpad[0] (.input clocked by clk)
+Endpoint  : $auto$ff.cc:337:slice$96.CE[0] (bob_ff clocked by clk)
+Path Type : hold
+
+Point                                                             Incr      Path
+--------------------------------------------------------------------------------
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+input external delay                                             0.000     0.000
+btn[0].inpad[0] (.input)                                         0.000     0.000
+$auto$ff.cc:337:slice$96.CE[0] (bob_ff)                         32.639    32.639
+data arrival time                                                         32.639
+
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+clk.inpad[0] (.input)                                            0.000     0.000
+$auto$ff.cc:337:slice$96.C[0] (bob_ff)                           0.000     0.000
+clock uncertainty                                                0.000     0.000
+cell hold time                                                   1.000     1.000
+data required time                                                         1.000
+--------------------------------------------------------------------------------
+data required time                                                        -1.000
+data arrival time                                                         32.639
+--------------------------------------------------------------------------------
+slack (MET)                                                               31.639
+
+
+#Path 17
+Startpoint: btn[0].inpad[0] (.input clocked by clk)
+Endpoint  : $auto$ff.cc:337:slice$95.CE[0] (bob_ff clocked by clk)
+Path Type : hold
+
+Point                                                             Incr      Path
+--------------------------------------------------------------------------------
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+input external delay                                             0.000     0.000
+btn[0].inpad[0] (.input)                                         0.000     0.000
+$auto$ff.cc:337:slice$95.CE[0] (bob_ff)                         32.639    32.639
+data arrival time                                                         32.639
+
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+clk.inpad[0] (.input)                                            0.000     0.000
+$auto$ff.cc:337:slice$95.C[0] (bob_ff)                           0.000     0.000
+clock uncertainty                                                0.000     0.000
+cell hold time                                                   1.000     1.000
+data required time                                                         1.000
+--------------------------------------------------------------------------------
+data required time                                                        -1.000
+data arrival time                                                         32.639
+--------------------------------------------------------------------------------
+slack (MET)                                                               31.639
+
+
+#Path 18
+Startpoint: btn[0].inpad[0] (.input clocked by clk)
+Endpoint  : $auto$ff.cc:337:slice$94.CE[0] (bob_ff clocked by clk)
+Path Type : hold
+
+Point                                                             Incr      Path
+--------------------------------------------------------------------------------
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+input external delay                                             0.000     0.000
+btn[0].inpad[0] (.input)                                         0.000     0.000
+$auto$ff.cc:337:slice$94.CE[0] (bob_ff)                         32.639    32.639
+data arrival time                                                         32.639
+
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+clk.inpad[0] (.input)                                            0.000     0.000
+$auto$ff.cc:337:slice$94.C[0] (bob_ff)                           0.000     0.000
+clock uncertainty                                                0.000     0.000
+cell hold time                                                   1.000     1.000
+data required time                                                         1.000
+--------------------------------------------------------------------------------
+data required time                                                        -1.000
+data arrival time                                                         32.639
+--------------------------------------------------------------------------------
+slack (MET)                                                               31.639
+
+
+#Path 19
+Startpoint: btn[0].inpad[0] (.input clocked by clk)
+Endpoint  : $auto$ff.cc:337:slice$98.CE[0] (bob_ff clocked by clk)
+Path Type : hold
+
+Point                                                             Incr      Path
+--------------------------------------------------------------------------------
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+input external delay                                             0.000     0.000
+btn[0].inpad[0] (.input)                                         0.000     0.000
+$auto$ff.cc:337:slice$98.CE[0] (bob_ff)                         32.682    32.682
+data arrival time                                                         32.682
+
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+clk.inpad[0] (.input)                                            0.000     0.000
+$auto$ff.cc:337:slice$98.C[0] (bob_ff)                           0.000     0.000
+clock uncertainty                                                0.000     0.000
+cell hold time                                                   1.000     1.000
+data required time                                                         1.000
+--------------------------------------------------------------------------------
+data required time                                                        -1.000
+data arrival time                                                         32.682
+--------------------------------------------------------------------------------
+slack (MET)                                                               31.682
+
+
+#Path 20
+Startpoint: btn[0].inpad[0] (.input clocked by clk)
+Endpoint  : $auto$ff.cc:337:slice$99.CE[0] (bob_ff clocked by clk)
+Path Type : hold
+
+Point                                                             Incr      Path
+--------------------------------------------------------------------------------
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+input external delay                                             0.000     0.000
+btn[0].inpad[0] (.input)                                         0.000     0.000
+$auto$ff.cc:337:slice$99.CE[0] (bob_ff)                         32.682    32.682
+data arrival time                                                         32.682
+
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+clk.inpad[0] (.input)                                            0.000     0.000
+$auto$ff.cc:337:slice$99.C[0] (bob_ff)                           0.000     0.000
+clock uncertainty                                                0.000     0.000
+cell hold time                                                   1.000     1.000
+data required time                                                         1.000
+--------------------------------------------------------------------------------
+data required time                                                        -1.000
+data arrival time                                                         32.682
+--------------------------------------------------------------------------------
+slack (MET)                                                               31.682
+
+
+#Path 21
+Startpoint: btn[0].inpad[0] (.input clocked by clk)
+Endpoint  : $auto$ff.cc:337:slice$97.CE[0] (bob_ff clocked by clk)
+Path Type : hold
+
+Point                                                             Incr      Path
+--------------------------------------------------------------------------------
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+input external delay                                             0.000     0.000
+btn[0].inpad[0] (.input)                                         0.000     0.000
+$auto$ff.cc:337:slice$97.CE[0] (bob_ff)                         32.682    32.682
+data arrival time                                                         32.682
+
+clock clk (rise edge)                                            0.000     0.000
+clock source latency                                             0.000     0.000
+clk.inpad[0] (.input)                                            0.000     0.000
+$auto$ff.cc:337:slice$97.C[0] (bob_ff)                           0.000     0.000
+clock uncertainty                                                0.000     0.000
+cell hold time                                                   1.000     1.000
+data required time                                                         1.000
+--------------------------------------------------------------------------------
+data required time                                                        -1.000
+data arrival time                                                         32.682
+--------------------------------------------------------------------------------
+slack (MET)                                                               31.682
+
+
+#End of timing report

@@ -1,0 +1,62 @@
+Every routed net, node by node, from the .route file. A node with fan-in is a bob_mux
+in the RTL; its FASM feature rr<node> is the select value that picks the previous node.
+
+net btn[0]
+    1666 OPIN  (0,3)            pin 1
+    7864 CHANY (0,3)->(0,6)     track 0,2,4,6   rr7864 = 1  (selects node 1666)
+    7886 CHANY (0,5)->(0,8)     track 8,10,12,14   rr7886 = 7  (selects node 7864)
+    6840 CHANX (1,5)->(3,5)     track 26,28,30   rr6840 = 2  (selects node 7886)
+    6862 CHANX (3,5)->(6,5)     track 8,10,12,14   rr6862 = 3  (selects node 6840)
+    8611 CHANY (6,2)->(6,5)     track 7,5,3,1   rr8611 = 2  (selects node 6862)
+    8587 CHANY (6,1)->(6,3)     track 13,11,9   rr8587 = 11  (selects node 8611)
+    1924 IPIN  (7,3)            pin 16   rr1924 = 2  (selects node 8587)
+         ... next branch, from node 6840 (already routed above)
+    8237 CHANY (3,2)->(3,5)     track 23,21,19,17   rr8237 = 4  (selects node 6840)
+    6344 CHANX (4,2)->(6,2)     track 18,20,22   rr6344 = 3  (selects node 8237)
+    8585 CHANY (6,1)->(6,2)     track 11,9   rr8585 = 3  (selects node 6344)
+    1486 IPIN  (7,2)            pin 16   rr1486 = 2  (selects node 8585)
+
+net btn[1]
+    2104 OPIN  (0,4)            pin 1
+    7841 CHANY (0,1)->(0,4)     track 23,21,19,17   rr7841 = 1  (selects node 2104)
+    5980 CHANX (1,0)->(4,0)     track 24,26,28,30   rr5980 = 1  (selects node 7841)
+    6002 CHANX (3,0)->(6,0)     track 0,2,4,6   rr6002 = 3  (selects node 5980)
+    6024 CHANX (5,0)->(8,0)     track 8,10,12,14   rr6024 = 3  (selects node 6002)
+    8726 CHANY (7,1)->(7,3)     track 26,28,30   rr8726 = 2  (selects node 6024)
+    1914 IPIN  (7,3)            pin 17   rr1914 = 3  (selects node 8726)
+         ... next branch, from node 5980 (already routed above)
+    6014 CHANX (4,0)->(7,0)     track 8,10,12,14   rr6014 = 2  (selects node 5980)
+    6040 CHANX (6,0)->(7,0)     track 32,34   rr6040 = 1  (selects node 6014)
+    8728 CHANY (7,1)->(7,2)     track 28,30   rr8728 = 2  (selects node 6040)
+    1476 IPIN  (7,2)            pin 17   rr1476 = 4  (selects node 8728)
+
+net cy5
+    1461 OPIN  (7,2)            pin 27
+    1919 IPIN  (7,3)            pin 18
+
+net led[0]
+    1900 OPIN  (7,3)            pin 19
+    8745 CHANY (7,2)->(7,3)     track 35,33   rr8745 = 1  (selects node 1900)
+    8719 CHANY (7,1)->(7,2)     track 19,17   rr8719 = 7  (selects node 8745)
+    6052 CHANX (8,0)->(11,0)    track 0,2,4,6   rr6052 = 6  (selects node 8719)
+    6086 CHANX (11,0)->(12,0)   track 16,18   rr6086 = 2  (selects node 6052)
+    9348 CHANY (12,1)->(12,3)   track 18,20,22   rr9348 = 2  (selects node 6086)
+    1225 IPIN  (13,1)           pin 0   rr1225 = 4  (selects node 9348)
+
+net led[1]
+    1904 OPIN  (7,3)            pin 21
+    8624 CHANY (6,3)->(6,6)     track 16,18,20,22   rr8624 = 1  (selects node 1904)
+    6900 CHANX (7,5)->(10,5)    track 0,2,4,6   rr6900 = 6  (selects node 8624)
+    6922 CHANX (9,5)->(12,5)    track 8,10,12,14   rr6922 = 3  (selects node 6900)
+    9369 CHANY (12,2)->(12,5)   track 15,13,11,9   rr9369 = 2  (selects node 6922)
+    9333 CHANY (12,1)->(12,2)   track 3,1   rr9333 = 8  (selects node 9369)
+    1663 IPIN  (13,2)           pin 0   rr1663 = 2  (selects node 9333)
+
+net led[2]
+    1901 OPIN  (7,3)            pin 23
+    8705 CHANY (7,1)->(7,3)     track 5,3,1   rr8705 = 2  (selects node 1901)
+    6058 CHANX (8,0)->(11,0)    track 24,26,28,30   rr6058 = 4  (selects node 8705)
+    6072 CHANX (10,0)->(12,0)   track 0,2,4   rr6072 = 3  (selects node 6058)
+    9362 CHANY (12,1)->(12,2)   track 32,34   rr9362 = 1  (selects node 6072)
+    9370 CHANY (12,2)->(12,5)   track 16,18,20,22   rr9370 = 7  (selects node 9362)
+    2101 IPIN  (13,3)           pin 0   rr2101 = 4  (selects node 9370)

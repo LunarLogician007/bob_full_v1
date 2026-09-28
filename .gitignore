@@ -21,4 +21,5 @@ build/
 # evidence that must stay versioned despite *.log above
 !docs/hwtest/results.log
 !docs/reports/**/*.log
+!example/**/*.log
 graphify-out/

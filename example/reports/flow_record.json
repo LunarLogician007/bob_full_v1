@@ -1,0 +1,240 @@
+{
+  "design": "counter",
+  "top": "counter",
+  "ok": true,
+  "seconds": 3.382,
+  "bit": "example/07_bitstream/counter.bit",
+  "pnr": "vpr",
+  "clock": "jtag",
+  "div": 0,
+  "seed": 1,
+  "device": {
+    "name": "bob12x10",
+    "chain_w": 68096,
+    "nclb": 100,
+    "frames": 532
+  },
+  "stages": [
+    {
+      "name": "synth",
+      "ok": true,
+      "seconds": 0.229,
+      "stats": {
+        "cells": {
+          "BOB_ADD": 6,
+          "BOB_FDRE": 6
+        },
+        "usage": [
+          {
+            "name": "LUTs",
+            "used": 0,
+            "cap": 400
+          },
+          {
+            "name": "flip-flops",
+            "used": 6,
+            "cap": 400
+          },
+          {
+            "name": "carry bits",
+            "used": 6,
+            "cap": 400
+          },
+          {
+            "name": "BRAMs",
+            "used": 0,
+            "cap": 2
+          },
+          {
+            "name": "DSPs",
+            "used": 0,
+            "cap": 2
+          }
+        ],
+        "equiv": true,
+        "equiv_cycles": 300,
+        "ports": [
+          {
+            "name": "btn",
+            "width": 4,
+            "dir": "input"
+          },
+          {
+            "name": "clk",
+            "width": 1,
+            "dir": "input"
+          },
+          {
+            "name": "led",
+            "width": 3,
+            "dir": "output"
+          },
+          {
+            "name": "sw",
+            "width": 2,
+            "dir": "input"
+          }
+        ],
+        "port_names": [
+          "btn",
+          "clk",
+          "led",
+          "sw"
+        ]
+      },
+      "messages": [],
+      "detail": "counter: {'BOB_ADD': 6, 'BOB_FDRE': 6}; source == netlist == golden, 300 random cycles"
+    },
+    {
+      "name": "pnr",
+      "ok": true,
+      "seconds": 0.001,
+      "stats": {
+        "engine": "vpr",
+        "reused": true,
+        "work": "software/bob/vpr/counter",
+        "wirelength": "105",
+        "result_sha": "7e51476cf3a4ca19"
+      },
+      "messages": [],
+      "detail": "reused committed software/bob/vpr/counter (routed from this netlist and arch)"
+    },
+    {
+      "name": "fasm",
+      "ok": true,
+      "seconds": 0.002,
+      "stats": {
+        "features": 78,
+        "bram_used": []
+      },
+      "messages": [],
+      "detail": "78 features, legal against device.json"
+    },
+    {
+      "name": "bits",
+      "ok": true,
+      "seconds": 0.021,
+      "stats": {
+        "chain_w": 68096,
+        "roundtrip": true,
+        "clock": "jtag",
+        "div": 0,
+        "hz": null
+      },
+      "messages": [],
+      "detail": "68096-bit chain; bits -> FASM -> bits identical: True"
+    },
+    {
+      "name": "timing",
+      "ok": true,
+      "seconds": 0.026,
+      "stats": {
+        "cpd_ns": 12.909,
+        "fmax_hz": 31250000.0,
+        "gap": 4,
+        "margin": 2.0,
+        "provisional": true,
+        "period": 0,
+        "clk_gap": 0,
+        "hz": null,
+        "clk_div": 0,
+        "period_ns": null,
+        "slack_ns": null,
+        "sdc": null,
+        "path": [
+          {
+            "node": 1466,
+            "kind": "OPIN",
+            "at_ns": 0.5
+          },
+          {
+            "node": 9873,
+            "kind": "EIN",
+            "at_ns": 3.509
+          },
+          {
+            "node": 9874,
+            "kind": "ECY",
+            "at_ns": 6.909
+          },
+          {
+            "node": 9881,
+            "kind": "ECY",
+            "at_ns": 7.909
+          },
+          {
+            "node": 1461,
+            "kind": "OPIN",
+            "at_ns": 8.909
+          },
+          {
+            "node": 1919,
+            "kind": "IPIN",
+            "at_ns": 8.909
+          },
+          {
+            "node": 10137,
+            "kind": "ECY",
+            "at_ns": 9.909
+          },
+          {
+            "node": 10144,
+            "kind": "ECY",
+            "at_ns": 10.909
+          },
+          {
+            "node": "clb_x7y3.e2.comb",
+            "kind": "internal",
+            "at_ns": 11.909
+          }
+        ]
+      },
+      "messages": [],
+      "detail": "critical path 12.909 ns (1 routing hops, provisional delays x 2.0): Fmax 31.2 MHz"
+    },
+    {
+      "name": "model",
+      "ok": true,
+      "seconds": 3.01,
+      "stats": {
+        "samples": 600,
+        "bad": 0
+      },
+      "messages": [],
+      "detail": "600/600 samples == source trace"
+    },
+    {
+      "name": "write",
+      "ok": true,
+      "seconds": 0.092,
+      "stats": {
+        "path": "example/07_bitstream/counter.bit",
+        "bram": [],
+        "meta": {
+          "design": "counter",
+          "top": "counter",
+          "sources": [
+            "work/examples/counter/counter.v"
+          ],
+          "source_sha256": "c0e584b6ac82d3ad5e64b6fd4530aff3a9b2448c29aafac6aff284d22bc24899",
+          "pcf": null,
+          "pnr": "vpr",
+          "vpr_result": "7e51476cf3a4ca19",
+          "pnr_seed": null,
+          "clock": "jtag",
+          "div": 0,
+          "period": 0,
+          "gap": 0,
+          "pdiv": 0,
+          "cpd_ns": 12.909,
+          "sdc": null,
+          "period_ns": null,
+          "slack_ns": null
+        }
+      },
+      "messages": [],
+      "detail": "example/07_bitstream/counter.bit: 68096-bit chain"
+    }
+  ],
+  "error": null
+}

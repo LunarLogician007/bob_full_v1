@@ -1,0 +1,1 @@
+vpr arch.xml counter.eblif --device bob12x10 --route_chan_width 36 --read_rr_graph rr.xml --fix_clusters counter.pins --seed 1 --absorb_buffer_luts off --const_gen_inference none --sweep_dangling_primary_ios off --sweep_dangling_nets off --sweep_dangling_blocks off --sweep_constant_primary_outputs off --pack --place --route --analysis
