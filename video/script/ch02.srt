@@ -1,0 +1,116 @@
+1
+00:00:00,000 --> 00:00:10,312
+Most FPGA projects describe their hardware twice: once for the chip and once for the tools. bob describes it once, in data, and generates everything else.
+
+2
+00:00:11,867 --> 00:00:16,711
+Everything about bob's architecture is one Python file, device.py.
+
+3
+00:00:17,031 --> 00:00:28,145
+It says how big the grid is, which tile types exist and which configuration fields each one has, where the memory and multiplier columns go, and which pad is which switch or LED.
+
+4
+00:00:28,600 --> 00:00:42,536
+From it come the device file every tool reads, the Verilog parameters, the fabric itself, the architecture file for the VPR router, the names of every configuration feature, and through them the Python models and the board checks.
+
+5
+00:00:42,856 --> 00:00:46,952
+Two copies of a number is a bug waiting to happen; here there is one.
+
+6
+00:00:48,533 --> 00:00:53,932
+Here is the grid that description produces: 14 columns by 12 rows of tiles.
+
+7
+00:00:54,252 --> 00:00:58,348
+The outer ring is 44 I/O pads, and the corners are empty.
+
+8
+00:00:58,800 --> 00:01:08,091
+Inside, the columns are logic blocks, except column 3, which holds block RAM, and column 8, which holds DSP slices.
+
+9
+00:01:08,411 --> 00:01:15,717
+A memory or a multiplier is taller than a logic block, so each one spans 5 rows, and each column holds two.
+
+10
+00:01:16,037 --> 00:01:19,088
+That leaves exactly ten by ten logic blocks.
+
+11
+00:01:19,567 --> 00:01:25,183
+The board's switches and buttons sit on fixed pads on the west edge, and the LEDs on the east edge.
+
+12
+00:01:25,503 --> 00:01:31,985
+Every other pad has no wire to the outside world: it is reached only through boundary scan, over JTAG.
+
+13
+00:01:33,567 --> 00:01:39,769
+device.py also writes an architecture file for VPR, the academic place-and-route tool.
+
+14
+00:01:40,089 --> 00:01:50,506
+It describes each tile's pins: a logic block has sixteen inputs from the routing, eight outputs back to it, a carry in and out, and clock enable, reset and clock.
+
+15
+00:01:50,967 --> 00:02:03,683
+And it describes the wires: channels 36 tracks wide, made of unidirectional wires that each span 4 tiles, joined by Wilton switch boxes, with ten percent of the tracks reachable from each pin.
+
+16
+00:02:04,003 --> 00:02:09,573
+These numbers follow OpenFPGA's reference architecture, and chapter four draws them.
+
+17
+00:02:11,133 --> 00:02:15,011
+Here is the central idea, borrowed from OpenFPGA.
+
+18
+00:02:15,331 --> 00:02:26,677
+Instead of inventing a routing network and hoping the router can use it, bob asks VPR to build its routing resource graph from the architecture file, once, and commits that graph.
+
+19
+00:02:27,133 --> 00:02:29,409
+Then fabric_gen walks the graph.
+
+20
+00:02:29,729 --> 00:02:37,569
+Every node that has more than one possible driver becomes a multiplexer in Verilog, and its select bits become configuration bits.
+
+21
+00:02:37,889 --> 00:02:40,951
+The result is compiled by Vivado into the host.
+
+22
+00:02:41,433 --> 00:02:44,928
+So the router's model of the chip and the chip are the same object.
+
+23
+00:02:45,248 --> 00:02:51,567
+A route VPR finds can always be loaded, and every mux in the hardware exists in the router's graph.
+
+24
+00:02:51,887 --> 00:02:59,414
+If the architecture changes, the committed graph is stale on purpose, and every tool refuses to run until it is rebuilt.
+
+25
+00:03:00,967 --> 00:03:05,257
+Counted, the graph has 9,928 nodes.
+
+26
+00:03:05,577 --> 00:03:14,475
+Horizontal and vertical wire segments, block output and input pins, and inside each logic block the element inputs and carry nodes of its crossbar.
+
+27
+00:03:14,933 --> 00:03:25,664
+8,095 of those nodes have a choice of drivers, so the fabric has 8,095 multiplexers and 28,782 select bits.
+
+28
+00:03:25,984 --> 00:03:33,609
+The 138 direct connections, the carry chains and the DSP cascade, have no choice and so no bits.
+
+29
+00:03:35,167 --> 00:03:48,887
+These are the files behind this chapter. device.py and the architecture writer are written by hand; the device file, the routing graph and the fabric are generated; and the device tests check that every mux encoding and every pin agree.
+

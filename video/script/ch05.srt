@@ -1,0 +1,148 @@
+1
+00:00:00,000 --> 00:00:05,388
+Some things logic does badly: storing kilobits, and multiplying wide numbers.
+
+2
+00:00:05,708 --> 00:00:11,156
+Real FPGAs add hard blocks for them, and so does bob, modelled on AMD's own.
+
+3
+00:00:12,733 --> 00:00:14,651
+bob has 2 block RAMs.
+
+4
+00:00:14,971 --> 00:00:24,331
+Each is a subset of AMD's RAMB18 from UG473: 1024 words of 18 bits, as one physical array.
+
+5
+00:00:24,800 --> 00:00:35,484
+It has two complete ports, A and B, each with its own address, data in, write enable, enable, reset and output-register enable, and its own data out.
+
+6
+00:00:35,804 --> 00:00:41,762
+Both ports can read or write the same array in the same cycle: that is what true dual port means.
+
+7
+00:00:43,333 --> 00:00:47,504
+When a port writes, what should its output show on that same clock edge?
+
+8
+00:00:47,824 --> 00:00:53,445
+UG473 offers three answers, and bob implements all three, per port.
+
+9
+00:00:53,900 --> 00:00:55,865
+Write first shows the new data.
+
+10
+00:00:56,185 --> 00:00:58,870
+Read first shows what was there before the write.
+
+11
+00:00:59,190 --> 00:01:02,293
+And no change leaves the output exactly as it was.
+
+12
+00:01:02,613 --> 00:01:07,411
+In every mode the memory holds the new word afterwards; only the output differs.
+
+13
+00:01:07,867 --> 00:01:18,620
+bob builds the other two modes from read first, in the way Vivado infers a real RAMB18, so the host chip gives it a genuine block RAM rather than eighteen kilobits of LUTs.
+
+14
+00:01:20,200 --> 00:01:32,692
+So the configuration of a block RAM is just 8 bits: a write mode for each port, an output register for each port, and two bits that let JTAG drive a port directly, which the board tests use.
+
+15
+00:01:34,267 --> 00:01:36,602
+One distinction matters a great deal.
+
+16
+00:01:36,922 --> 00:01:40,160
+The eight configuration bits say how the RAM behaves.
+
+17
+00:01:40,480 --> 00:01:47,019
+Its contents, eighteen thousand bits, are data, and AMD keeps them apart from configuration.
+
+18
+00:01:47,339 --> 00:01:48,384
+So does bob.
+
+19
+00:01:48,867 --> 00:02:02,359
+Contents arrive one of two ways: through a dedicated JTAG register called USER4, or, since milestone fifteen, as frames of their own inside the configuration stream, protected by the same checksum.
+
+20
+00:02:02,679 --> 00:02:05,816
+Keeping two independent paths caught several bugs.
+
+21
+00:02:06,267 --> 00:02:08,638
+And contents survive a JPROGRAM.
+
+22
+00:02:08,958 --> 00:02:15,417
+An early loader wrote only up to the last non-zero word, so a new design could read the previous design's data.
+
+23
+00:02:15,737 --> 00:02:17,353
+Now every word is written.
+
+24
+00:02:18,933 --> 00:02:26,307
+Each of the 2 DSP slices is a trimmed copy of AMD's DSP48E1 from UG479.
+
+25
+00:02:26,627 --> 00:02:30,688
+Four operand buses come in: A, B, C and D.
+
+26
+00:02:31,167 --> 00:02:33,933
+A pre-adder can form D plus or minus A.
+
+27
+00:02:34,253 --> 00:02:38,836
+The result is multiplied by B in a twenty-five by eighteen signed multiplier.
+
+28
+00:02:39,156 --> 00:02:47,156
+The product, M, goes into a forty-eight-bit adder whose other input is chosen by the operation mode, and lands in the P register.
+
+29
+00:02:47,633 --> 00:02:52,106
+Every stage has an optional pipeline register, as on the real slice.
+
+30
+00:02:52,426 --> 00:03:00,754
+And P cascades into the next slice's PCIN over a dedicated wire, so two slices can build a filter without touching the routing.
+
+31
+00:03:02,333 --> 00:03:19,899
+The real DSP48 chooses its operation every cycle from control pins. bob's slice chooses it once, in configuration, from four modes: multiply, multiply-add, multiply-accumulate, and the shifted cascade that joins two slices into one wider multiplier.
+
+32
+00:03:20,367 --> 00:03:28,461
+Dynamic control would need more pins, which means more routing and more configuration, for features a fabric this size will not use.
+
+33
+00:03:28,781 --> 00:03:34,224
+This is one of the places where bob deliberately simplifies its reference, and says so.
+
+34
+00:03:35,800 --> 00:03:47,872
+The whole slice is configured by 16 bits: the operation mode, the pre-adder's use and sign, six optional registers, and the bits that let a JTAG instruction drive its inputs for testing.
+
+35
+00:03:48,192 --> 00:03:52,545
+Synthesis maps every multiplication in a design onto it automatically.
+
+36
+00:03:54,100 --> 00:04:01,579
+Both cores are written in Vivado's inference style, so they become a real block RAM and a real DSP slice in the host.
+
+37
+00:04:01,899 --> 00:04:08,586
+Their testbenches walk every mode against the Python model, and the board checks repeat the same vectors over JTAG.
+

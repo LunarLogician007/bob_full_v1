@@ -1,0 +1,164 @@
+1
+00:00:00,000 --> 00:00:04,055
+Routing is most of an FPGA's area, and most of bob's.
+
+2
+00:00:04,375 --> 00:00:11,118
+This chapter follows a signal from a pin, along the wires, through the boxes that join them, to another block.
+
+3
+00:00:12,700 --> 00:00:18,554
+Between every row and column of tiles runs a channel of wires: 36 tracks wide in bob.
+
+4
+00:00:18,874 --> 00:00:24,707
+Horizontal wires are called CHANX and vertical ones CHANY, VPR's names.
+
+5
+00:00:25,167 --> 00:00:31,333
+Each wire is 4 tiles long, so a signal crosses the chip in a few hops instead of one per tile.
+
+6
+00:00:31,653 --> 00:00:38,553
+And each wire is unidirectional: it has exactly one driver, a multiplexer at the end where it starts.
+
+7
+00:00:38,873 --> 00:00:42,368
+Some wires run east or north, others west or south.
+
+8
+00:00:43,933 --> 00:00:47,848
+Where a horizontal and a vertical channel cross sits a switch box.
+
+9
+00:00:48,168 --> 00:00:56,124
+A wire that ends there can continue straight on, or turn left or right: three choices, which is what Fs equals three means.
+
+10
+00:00:56,600 --> 00:01:05,774
+Because wires are unidirectional, the box is really a set of multiplexers: each wire leaving it is driven by a mux whose inputs are the wires arriving.
+
+11
+00:01:06,094 --> 00:01:12,108
+The Wilton pattern changes the track number when a signal turns, so that the network mixes well.
+
+12
+00:01:13,667 --> 00:01:16,804
+Blocks connect to the channels through connection boxes.
+
+13
+00:01:17,124 --> 00:01:26,821
+A block input pin is a multiplexer too, but it can only reach a fraction of the tracks: with fc in equal to nought point one, about four of the thirty-six.
+
+14
+00:01:27,300 --> 00:01:34,350
+Its select value zero means constant zero, one means constant one, and from two upwards it picks a track.
+
+15
+00:01:34,670 --> 00:01:41,570
+Outputs work the other way round: a block output pin appears as an input on the muxes of a tenth of the tracks beside it.
+
+16
+00:01:43,133 --> 00:01:46,596
+Every routing multiplexer in bob uses one encoding.
+
+17
+00:01:46,916 --> 00:01:49,171
+Value zero is constant zero.
+
+18
+00:01:49,491 --> 00:01:52,455
+On block input pins value one is constant one.
+
+19
+00:01:52,775 --> 00:01:59,145
+After that the drivers follow in ascending node number, and any value past the last driver also reads zero.
+
+20
+00:01:59,600 --> 00:02:02,233
+The choice of zero matters more than it looks.
+
+21
+00:02:02,553 --> 00:02:08,651
+A configuration of all zeros connects nothing to anything, so it cannot contain a combinational loop.
+
+22
+00:02:08,971 --> 00:02:14,461
+The fabric powers up dark and safe, and JPROGRAM returns it to exactly that state.
+
+23
+00:02:16,033 --> 00:02:19,647
+Most routing muxes are small: two to twelve drivers.
+
+24
+00:02:19,967 --> 00:02:22,509
+The tall bar on the right is the crossbars.
+
+25
+00:02:22,829 --> 00:02:28,626
+Every one of the twenty-four element inputs in each of the hundred blocks chooses among twenty-four sources.
+
+26
+00:02:30,200 --> 00:02:35,428
+Inside the host, each routing mux is now built by hand from AMD primitives.
+
+27
+00:02:35,748 --> 00:02:40,169
+Four-input slices of the mux are LUT6s on the two low select bits.
+
+28
+00:02:40,489 --> 00:02:44,504
+Two of those meet in a MUXF7, and two of those in a MUXF8.
+
+29
+00:02:44,824 --> 00:02:48,089
+A sixteen-way mux fills exactly one slice.
+
+30
+00:02:48,567 --> 00:02:53,411
+Left to itself, synthesis had spent nearly a whole LUT on each small mux.
+
+31
+00:02:53,731 --> 00:03:02,173
+Building them from primitives cut the routing's host LUTs by about thirty percent, and together with the crossbar change it made room for the ten by ten grid.
+
+32
+00:03:03,733 --> 00:03:06,461
+Here is a real route from the counter example.
+
+33
+00:03:06,781 --> 00:03:13,364
+The reset button, btn one, enters at a pad on the west edge, at x zero, y four.
+
+34
+00:03:13,684 --> 00:03:19,144
+Its destination is a logic block at x seven, y three, where the counter lives.
+
+35
+00:03:19,600 --> 00:03:28,032
+VPR chose 5 wires: down the west channel, east along the bottom on three consecutive length-four wires, then up into the block.
+
+36
+00:03:28,352 --> 00:03:33,748
+Each hop is one multiplexer, and its configuration value selects the hop before it.
+
+37
+00:03:35,300 --> 00:03:38,972
+And this is the price of building an FPGA out of another one.
+
+38
+00:03:39,292 --> 00:03:47,469
+A single routing hop costs up to 4.6 nanoseconds, because it is a host LUT, a MUXF7 and real host wiring.
+
+39
+00:03:47,789 --> 00:03:54,601
+These three numbers were measured on the routed host design; the LUT, carry and flip-flop figures are still estimates.
+
+40
+00:03:55,067 --> 00:04:02,384
+VPR now routes using these delays, and chapter six shows how bob turns them into a safe clock for every design.
+
+41
+00:04:03,967 --> 00:04:17,234
+The mux cell is written by hand and checked against its old behavioural table at every width; every instance is generated; and the fabric testbench routes random netlists and compares every output with the model after every clock.
+

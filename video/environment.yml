@@ -1,0 +1,8 @@
+# mamba env create -f video/environment.yml   (about 0.8 GB)
+name: bobvideo
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - manim=0.20
+  - ffmpeg

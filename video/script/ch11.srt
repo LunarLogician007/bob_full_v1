@@ -1,0 +1,132 @@
+1
+00:00:00,000 --> 00:00:04,020
+An FPGA that only works in simulation proves very little.
+
+2
+00:00:04,340 --> 00:00:12,302
+This last chapter is about evidence: how bob is checked, what the board showed, and how the project compares with its references.
+
+3
+00:00:13,867 --> 00:00:17,051
+Every claim in this film rests on a chain of evidence.
+
+4
+00:00:17,371 --> 00:00:19,185
+At the top are the references.
+
+5
+00:00:19,505 --> 00:00:33,046
+From them come Python models of the hardware, and every expected value in every testbench comes from those models, never from the Verilog, because a testbench that asks the design what it should do only proves the design agrees with itself.
+
+6
+00:00:33,500 --> 00:00:38,739
+Below them, mutation tests break each guard on purpose to show a test catches it.
+
+7
+00:00:39,059 --> 00:00:45,481
+Golden co-simulation runs the source, the golden netlist and the whole loaded FPGA side by side.
+
+8
+00:00:45,801 --> 00:00:50,750
+A stand-in board in Python tests every hardware check, both passing and failing.
+
+9
+00:00:51,070 --> 00:00:53,779
+And then the real board, every milestone.
+
+10
+00:00:55,333 --> 00:01:02,395
+In simulation, the last full check ran about 24,177 testbench checks.
+
+11
+00:01:02,715 --> 00:01:13,861
+The largest are the co-simulation of every example through both place-and-route flows, the block RAM's every mode, and the logic block's every flag and crossbar value, at two LUT sizes.
+
+12
+00:01:15,433 --> 00:01:18,974
+Passing tests are only meaningful if the tests can fail.
+
+13
+00:01:19,294 --> 00:01:29,709
+So 76 mutants each break one guard: the CRC polynomial, the write key, the freeze, a crossbar select off by one, the IDCODE check.
+
+14
+00:01:30,029 --> 00:01:31,959
+Every mutant must be killed.
+
+15
+00:01:32,279 --> 00:01:36,785
+Several were not at first, and those gaps became new test scenarios.
+
+16
+00:01:38,367 --> 00:01:48,320
+Every milestone ended on the board, and every run re-ran all the earlier checks, so the number of checks grows from eleven at M0 to 74 at M26.
+
+17
+00:01:48,640 --> 00:01:54,654
+The few amber runs had failures; each was diagnosed, fixed, and passed in a later run.
+
+18
+00:01:56,233 --> 00:02:13,779
+Inside the host, the M26 build uses 87 percent of the XC7Z020's slices and 73 percent of its LUTs, nearly three quarters of the LUTs that can act as memory, and meets timing with a worst slack of plus 0.287 nanoseconds.
+
+19
+00:02:14,233 --> 00:02:19,113
+A grid sweep found the real wall: the slices that can hold CFGLUT5s.
+
+20
+00:02:19,433 --> 00:02:23,377
+Ten by ten is the largest grid of this logic block that fits this chip.
+
+21
+00:02:24,933 --> 00:02:26,422
+Where does bob stand?
+
+22
+00:02:26,742 --> 00:02:34,298
+OpenFPGA is a research framework that generates whole FPGAs for silicon, and bob borrows its central method.
+
+23
+00:02:34,618 --> 00:02:37,921
+Aegis generates fabrics and takes them to tape-out.
+
+24
+00:02:38,241 --> 00:02:46,910
+ZUMA is the classic overlay, and bob borrows its trick of keeping LUTs in host memory. prjxray documents the real Xilinx format bob imitates.
+
+25
+00:02:47,367 --> 00:02:49,528
+bob is far smaller than any of them.
+
+26
+00:02:49,848 --> 00:02:56,259
+What it has is the whole loop, at a size one person can hold in their head, with hardware evidence at every step.
+
+27
+00:02:57,833 --> 00:03:12,395
+Its strengths: one description generates everything; two configuration protocols share one memory; partial reconfiguration keeps state; the clock is backed by a contract rather than a hope; and every guard is tested by breaking it.
+
+28
+00:03:12,867 --> 00:03:24,457
+Its weaknesses, plainly: one fabric shape at a modest size, some delays still estimated, a single clock domain, and a bitstream that is shaped like AMD's but simplified.
+
+29
+00:03:24,777 --> 00:03:28,170
+Every one of these is written down in the project's documents.
+
+30
+00:03:29,733 --> 00:03:33,158
+These are the sources this film, and bob, follow.
+
+31
+00:03:34,733 --> 00:03:49,338
+That is bob, from a single lookup table to a configured, verified fabric: its logic blocks, routing, memories and multipliers, its JTAG port, its two ways of loading, and the tools that turn Verilog into its bits.
+
+32
+00:03:49,658 --> 00:03:55,382
+The guide, the report and the bitstream specification in the repository go deeper into every part.
+
+33
+00:03:55,702 --> 00:03:57,134
+Thank you for watching.
+

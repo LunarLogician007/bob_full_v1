@@ -1,0 +1,132 @@
+1
+00:00:00,000 --> 00:00:09,437
+This film explains bob from A to Z. bob is a complete, programmable FPGA, written in Verilog, that runs inside a real FPGA.
+
+2
+00:00:09,757 --> 00:00:15,495
+Every number you will see is read from the repository itself, at milestone M26.
+
+3
+00:00:17,067 --> 00:00:22,825
+There are two FPGAs in this project, and keeping them apart is the first thing to understand.
+
+4
+00:00:23,145 --> 00:00:29,055
+The host is real silicon: a Xilinx XC7Z020 on a PYNQ-Z2 board.
+
+5
+00:00:29,533 --> 00:00:30,683
+The guest is bob.
+
+6
+00:00:31,003 --> 00:00:39,586
+It is our own fabric of logic blocks, memories, multipliers and routing, written in Verilog and compiled by Vivado into the host.
+
+7
+00:00:40,067 --> 00:00:46,432
+Vivado, on a Windows machine, programs the host once, with a bitstream called bob_top.bit.
+
+8
+00:00:46,752 --> 00:00:49,000
+After that the host never changes.
+
+9
+00:00:49,467 --> 00:00:51,891
+The guest is programmed as often as you like.
+
+10
+00:00:52,211 --> 00:01:02,222
+A Mac runs bob's own tools, and sends the guest's configuration over USB to a Raspberry Pi Pico, which speaks JTAG to the guest's own configuration port.
+
+11
+00:01:03,800 --> 00:01:07,806
+So whenever something is confusing, ask whose bitstream it is.
+
+12
+00:01:08,126 --> 00:01:13,173
+The host's bitstream is made by Vivado and changes only when bob's hardware changes.
+
+13
+00:01:13,493 --> 00:01:21,005
+The guest's bitstream is made by bob's own tool chain from your Verilog, and it is loaded over JTAG every time you build a design.
+
+14
+00:01:22,567 --> 00:01:26,108
+Here is the guest, drawn from its own device description.
+
+15
+00:01:26,428 --> 00:01:35,684
+A ring of 44 I/O pads surrounds a ten by ten array of logic blocks, with one column of block RAM and one column of DSP slices cut into it.
+
+16
+00:01:36,167 --> 00:01:44,454
+That is 100 configurable logic blocks holding 400 six-input lookup tables, 2 block RAMs and 2 DSP slices.
+
+17
+00:01:44,774 --> 00:01:52,451
+Everything is set by 68,096 configuration bits, organised as 532 frames.
+
+18
+00:01:54,033 --> 00:01:55,940
+bob is built in five layers.
+
+19
+00:01:56,260 --> 00:02:03,258
+The architecture is one Python file, device.py, and it is the only place where architecture numbers live.
+
+20
+00:02:03,578 --> 00:02:05,619
+The hardware is generated from it.
+
+21
+00:02:05,939 --> 00:02:10,999
+The configuration layer is the memory that holds the guest's bits and the controller that fills it.
+
+22
+00:02:11,319 --> 00:02:17,089
+The tools turn a design into those bits, and the host software loads them and checks the result on the board.
+
+23
+00:02:17,567 --> 00:02:19,958
+This one rule holds the project together.
+
+24
+00:02:20,278 --> 00:02:26,875
+Growing the grid from 16 to 36 to 100 logic blocks was an edit to one dictionary and two commands.
+
+25
+00:02:28,433 --> 00:02:36,999
+The project was built in twenty seven milestones, from M0 to M26, and no milestone was closed by simulation alone.
+
+26
+00:02:37,319 --> 00:02:43,075
+Each one ended with a hardware test on the board, which also re-ran every earlier milestone's checks.
+
+27
+00:02:43,533 --> 00:02:56,467
+The pieces came first, then a fabric generated from the router's own graph, then the tool flow, AMD-style configuration frames, the cluster logic block, and the largest grid this chip can hold.
+
+28
+00:02:56,787 --> 00:03:02,163
+The last run, M26, passed 74 of 74 checks.
+
+29
+00:03:03,733 --> 00:03:05,554
+The chapters follow the layers.
+
+30
+00:03:05,874 --> 00:03:11,026
+First what an FPGA is, and how bob's architecture is described as data.
+
+31
+00:03:11,346 --> 00:03:16,826
+Then the logic block, the routing, the memories and multipliers, the pads and the clock.
+
+32
+00:03:17,146 --> 00:03:22,104
+Then JTAG, the configuration memory, the scan chain and the frame protocol.
+
+33
+00:03:22,424 --> 00:03:27,268
+And finally how a design becomes a bitstream, and how all of it was verified.
+

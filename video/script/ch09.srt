@@ -1,0 +1,244 @@
+1
+00:00:00,000 --> 00:00:12,144
+The second way into the configuration memory is the one bob load uses by default: AMD-style frames, carried in packets, exactly as a seven-series bitstream reaches a real part.
+
+2
+00:00:13,700 --> 00:00:15,699
+Why have a second path at all?
+
+3
+00:00:16,019 --> 00:00:23,377
+The project was asked for frame-based writing just like AMD's, slightly simplified, and frames buy three things.
+
+4
+00:00:23,697 --> 00:00:28,481
+The stream finds its own start, so it can be split however the host likes.
+
+5
+00:00:28,801 --> 00:00:33,059
+Frames are addressable, so part of the memory can be rewritten or read.
+
+6
+00:00:33,379 --> 00:00:38,026
+And the stream checks itself, with a CRC and the device's identity.
+
+7
+00:00:39,600 --> 00:00:41,690
+The controller starts out hunting.
+
+8
+00:00:42,010 --> 00:00:53,344
+It slides a thirty-two bit window along the incoming bits, one bit at a time, until the window equals the sync word, A A nine nine five five six six, AMD's own value.
+
+9
+00:00:53,664 --> 00:00:56,151
+Dummy words before it are simply ignored.
+
+10
+00:00:56,633 --> 00:01:02,163
+From then on every thirty-two bits is a word, however the host splits the stream into scans.
+
+11
+00:01:03,733 --> 00:01:05,987
+After the sync word come packets.
+
+12
+00:01:06,307 --> 00:01:11,520
+Here is one header, three zero zero zero eight zero zero one, decoded.
+
+13
+00:01:11,840 --> 00:01:13,951
+The top three bits say type one.
+
+14
+00:01:14,271 --> 00:01:15,885
+The next two say write.
+
+15
+00:01:16,205 --> 00:01:20,057
+Five bits name a register: four, the command register.
+
+16
+00:01:20,377 --> 00:01:23,527
+And the low eleven bits say one data word follows.
+
+17
+00:01:24,000 --> 00:01:29,735
+So the next word is written to the command register: seven, which resets the CRC.
+
+18
+00:01:30,055 --> 00:01:38,186
+For long writes like frame data, a type one header with a count of zero is followed by a type two header that carries a twenty-seven bit count.
+
+19
+00:01:39,767 --> 00:01:42,077
+The parser is a small state machine.
+
+20
+00:01:42,397 --> 00:01:44,721
+Once synchronised it expects a header.
+
+21
+00:01:45,041 --> 00:01:50,942
+A write with a count goes straight to the data state; a count of zero first expects a type two header.
+
+22
+00:01:51,262 --> 00:01:54,521
+After the last data word it expects a header again.
+
+23
+00:01:55,000 --> 00:02:05,012
+Anything wrong, an unknown header, register or command, a CRC or IDCODE mismatch, sends it to the error state, which only JPROGRAM can leave.
+
+24
+00:02:05,332 --> 00:02:07,872
+The DESYNC command returns it to hunting.
+
+25
+00:02:08,192 --> 00:02:13,002
+A read has no data words in the input: it queues words for the output instruction.
+
+26
+00:02:14,567 --> 00:02:17,246
+These are the registers a packet can address.
+
+27
+00:02:17,566 --> 00:02:19,503
+FAR holds the frame address.
+
+28
+00:02:19,823 --> 00:02:25,526
+FDRI takes frame data, four words to a frame, and FDRO returns it.
+
+29
+00:02:25,846 --> 00:02:33,962
+CRC checks integrity, IDCODE checks identity, STAT reports status, and CMD takes commands.
+
+30
+00:02:34,433 --> 00:02:50,061
+The commands arm writes and reads, reset the CRC, mark the last frame, allow startup, return to hunting, and two that later milestones added: AGHIGH freezes the user clock, and GRESTORE loads every flip-flop's initial value.
+
+31
+00:02:50,381 --> 00:02:52,334
+All the codes are AMD's own.
+
+32
+00:02:53,900 --> 00:03:02,158
+A frame address uses AMD's field layout: a block type, a row, a column, and a minor address, the frame within its column.
+
+33
+00:03:02,478 --> 00:03:09,806
+Block type zero is configuration; block type one, since milestone fifteen, is block RAM contents.
+
+34
+00:03:10,267 --> 00:03:18,842
+After every frame the address moves on by itself, across column boundaries, so a single data packet can write a whole run of frames.
+
+35
+00:03:20,400 --> 00:03:27,276
+Every data word written, together with the five-bit address of the register it went to, feeds a running CRC.
+
+36
+00:03:27,596 --> 00:03:31,198
+Near the end of the stream the host writes the value it expects.
+
+37
+00:03:31,518 --> 00:03:35,213
+If they differ the parser stops, and startup is refused.
+
+38
+00:03:35,667 --> 00:03:40,977
+Any frame data clears the match, so a CRC check must follow the last frame.
+
+39
+00:03:41,297 --> 00:03:44,760
+A corrupted or truncated stream cannot start a design.
+
+40
+00:03:46,333 --> 00:03:49,572
+Here is the real stream that loads the counter example.
+
+41
+00:03:49,892 --> 00:04:00,223
+Two dummy words, the sync word, reset the CRC, write the IDCODE so the device can check it, arm frame writes, then a frame address and the frame data.
+
+42
+00:04:00,700 --> 00:04:11,082
+Because JPROGRAM has just zeroed the memory, only frames containing a one are sent: 30 frames, 214 words instead of more than two thousand.
+
+43
+00:04:11,402 --> 00:04:16,417
+Then the expected CRC, last frame, start, and desync.
+
+44
+00:04:16,737 --> 00:04:21,309
+The host reads every frame back to check, and runs the startup sequence.
+
+45
+00:04:22,867 --> 00:04:25,778
+Frames make partial reconfiguration possible.
+
+46
+00:04:26,098 --> 00:04:37,833
+The host compares the new design with the old one, freezes the user clock with AGHIGH, waits for the acknowledgement, writes only the frames that differ, and sends LFRM with a fresh CRC.
+
+47
+00:04:38,300 --> 00:04:41,369
+Changing one truth table rewrites one frame.
+
+48
+00:04:41,689 --> 00:04:49,471
+Every register keeps its value across the change, and the testbench proves it with a counter that holds while frozen and then carries on.
+
+49
+00:04:49,791 --> 00:04:53,277
+If the CRC is wrong, the fabric stays frozen.
+
+50
+00:04:54,833 --> 00:05:01,953
+AMD carries block RAM contents in the bitstream as their own block type, and since milestone fifteen bob does too.
+
+51
+00:05:02,273 --> 00:05:09,469
+Each frame of block type one holds four consecutive words of a memory, each in the low eighteen bits of a thirty-two bit word.
+
+52
+00:05:09,933 --> 00:05:19,198
+So a whole design, configuration and memory contents, travels as one stream under one CRC, and is read back and compared after loading.
+
+53
+00:05:20,767 --> 00:05:24,839
+The newest command makes something unusual possible: time travel.
+
+54
+00:05:25,159 --> 00:05:28,396
+Freeze the design and read every flip-flop through CAPTURE.
+
+55
+00:05:28,716 --> 00:05:38,820
+Later, write those values into the flip-flops' initial-value bits with partial frames, and issue GRESTORE, AMD's command that pulses global set-reset.
+
+56
+00:05:39,300 --> 00:05:48,104
+Every flip-flop jumps to its saved value; put the original frames back, release the clock, and the design carries on from the moment it was saved.
+
+57
+00:05:48,424 --> 00:05:52,594
+Milestone twenty-six's separate INIT bit is what makes this exact.
+
+58
+00:05:54,167 --> 00:06:06,140
+And where bob departs from the real thing, the specification says so: no pad frames, no encryption or compression, no error correction, and frames of four words instead of a hundred and one.
+
+59
+00:06:06,460 --> 00:06:10,988
+The structure, the codes and the checks are AMD's; the scale is bob's.
+
+60
+00:06:12,567 --> 00:06:16,338
+The frame controller is one Verilog file and one Python model.
+
+61
+00:06:16,658 --> 00:06:25,310
+Every expected value in its testbench comes from the model, so the two cannot drift apart, and thirty-eight mutants prove each guard is tested.
+

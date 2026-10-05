@@ -1,0 +1,148 @@
+1
+00:00:00,000 --> 00:00:01,094
+Now the tools.
+
+2
+00:00:01,414 --> 00:00:10,456
+This chapter follows one small design, a six-bit counter, through every stage of bob's flow, using the real files the flow produced for it.
+
+3
+00:00:12,033 --> 00:00:16,588
+From the user's side this is two commands: bob build, then bob load.
+
+4
+00:00:16,908 --> 00:00:27,825
+Underneath, the design passes through synthesis, an equivalence check, place and route, a text form called FASM, the bitstream generator, the file, and the loader.
+
+5
+00:00:28,300 --> 00:00:29,940
+And every arrow is checked.
+
+6
+00:00:30,260 --> 00:00:37,473
+Nothing is trusted because a tool said it worked: each stage is compared with the one before it, and finally with the hardware.
+
+7
+00:00:39,033 --> 00:00:48,368
+Here it is: a six-bit register that counts while button zero is held, resets to zero on button one, and shows its top three bits on the LEDs.
+
+8
+00:00:48,688 --> 00:00:55,292
+Small, but it has state, a reset, an enable and an adder, which exercises most of the logic block.
+
+9
+00:00:56,867 --> 00:01:10,903
+Synthesis is yosys, running the same sequence of passes as its Xilinx flow, but mapping onto bob's own cell library: lookup tables, a carry stage, two kinds of flip-flop, the block RAM and the DSP.
+
+10
+00:01:11,223 --> 00:01:16,834
+If anything else survives, or the design has a second clock, the build stops with a clear error.
+
+11
+00:01:17,300 --> 00:01:25,274
+The counter becomes 6 carry stages and 6 flip-flops, with no LUTs at all: the increment lives entirely in the carry chain.
+
+12
+00:01:25,594 --> 00:01:33,096
+One subtle point: bob's adder rule is named so that it sorts ahead of yosys's generic one, or the generic one wins.
+
+13
+00:01:34,667 --> 00:01:46,207
+Synthesis bugs make no noise, so the flow simulates the source and the synthesised netlist side by side, for three hundred cycles of random inputs, and compares them at every clock edge.
+
+14
+00:01:46,527 --> 00:01:53,995
+It also writes a golden netlist, with one named wire for every bit, so that every register can later be found on the board.
+
+15
+00:01:54,467 --> 00:01:56,578
+The inputs are deliberately biased.
+
+16
+00:01:56,898 --> 00:02:07,129
+In milestone eight, uniform random buttons held the reset half the time, so the counter never counted, its trace was all zeros, and the check could not have failed.
+
+17
+00:02:07,449 --> 00:02:09,563
+Stimulus has to be checked too.
+
+18
+00:02:11,133 --> 00:02:20,192
+Next the netlist is prepared for VPR: constants folded, carry chains cut to fit a column, pins fixed to the board's switches and LEDs.
+
+19
+00:02:20,512 --> 00:02:30,894
+VPR packs it into clusters, places them by simulated annealing, and routes the nets with PathFinder, on exactly the routing graph the hardware was generated from.
+
+20
+00:02:31,367 --> 00:02:45,554
+The counter needs 2 logic blocks, stacked so the carry runs straight up, and 6 pads. bob also has its own packer, placer and router, small enough to read, which write the same files, so everything after this point is shared.
+
+21
+00:02:47,133 --> 00:02:55,597
+The routed result becomes FASM, the text format of the F4PGA project: one line per configuration feature that is not zero.
+
+22
+00:02:55,917 --> 00:03:07,345
+For the counter: carry and Double Duty flags, flip-flop enables, crossbar selects, and one line per routing mux, named by its node number, holding its select value.
+
+23
+00:03:07,800 --> 00:03:15,919
+Every line is checked against the device description, so a misspelt feature or an out-of-range value is caught here, long before hardware.
+
+24
+00:03:16,239 --> 00:03:20,839
+And being text, two configurations can be compared with an ordinary diff.
+
+25
+00:03:22,400 --> 00:03:30,018
+bitgen turns FASM into the configuration word: each feature's name gives its field, and the field gives its bit positions.
+
+26
+00:03:30,338 --> 00:03:34,193
+The conversion runs both ways, and the round trip is exact.
+
+27
+00:03:34,667 --> 00:03:43,209
+The file starts with a magic number, B O B C, the format version, the device name, the chain width and the chain's own CRC.
+
+28
+00:03:43,529 --> 00:03:53,955
+Then the configuration bits, then tagged sections: the contents of any block RAM the design uses, and a JSON record of exactly what the file was built from.
+
+29
+00:03:54,275 --> 00:03:56,972
+A CRC over the whole file closes it.
+
+30
+00:03:58,533 --> 00:04:00,324
+Loading is just as careful.
+
+31
+00:04:00,644 --> 00:04:02,690
+JPROGRAM clears the fabric.
+
+32
+00:04:03,010 --> 00:04:06,120
+The sparse frame stream goes in over CFG in.
+
+33
+00:04:06,440 --> 00:04:10,501
+The status register must show the start command accepted with no error.
+
+34
+00:04:10,821 --> 00:04:16,080
+Then every frame is read back, decoded, and compared with the FASM it came from.
+
+35
+00:04:16,533 --> 00:04:23,084
+Only then does the timing contract allow startup: JSTART, twelve test clocks, and DONE lights.
+
+36
+00:04:23,404 --> 00:04:31,093
+On the board the tests then clock the design sixty-four times and compare its LEDs with the source and every register with the golden netlist.
+
+37
+00:04:32,667 --> 00:04:46,097
+Each stage is one Python module around an established tool, and each one is checked against the one before: source against netlist, FASM against the device, bits against the model, and the board against the golden netlist.
+

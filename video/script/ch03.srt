@@ -1,0 +1,240 @@
+1
+00:00:00,000 --> 00:00:10,818
+The configurable logic block is where a design's logic actually runs. bob's follows AMD's 7-series slice for the element, and OpenFPGA's clustered architecture for the block.
+
+2
+00:00:12,400 --> 00:00:15,654
+A bob logic block is a cluster of 4 logic elements.
+
+3
+00:00:15,974 --> 00:00:20,747
+16 signals come in from the routing, and 8 leave, two from each element.
+
+4
+00:00:21,200 --> 00:00:30,049
+Between the inputs and the elements sits a full crossbar: any element input can take any of the sixteen block inputs, or any element's output fed back.
+
+5
+00:00:30,369 --> 00:00:34,308
+Neighbouring logic talks through it without using the general routing at all.
+
+6
+00:00:34,767 --> 00:00:42,456
+A carry chain runs up through the four elements, and on into the block above, over a dedicated wire with no configuration bits at all.
+
+7
+00:00:42,933 --> 00:00:43,864
+Why four?
+
+8
+00:00:44,184 --> 00:00:46,150
+It was measured, not guessed.
+
+9
+00:00:46,470 --> 00:00:52,649
+A sweep built clusters of four, six, eight and ten elements, with full and half crossbars.
+
+10
+00:00:52,969 --> 00:01:01,493
+Bigger clusters cost more host logic per element, because every crossbar mux is host logic, and half crossbars needed far wider channels.
+
+11
+00:01:01,813 --> 00:01:03,750
+Four with a full crossbar won.
+
+12
+00:01:05,300 --> 00:01:08,058
+Each element input has its own crossbar mux.
+
+13
+00:01:08,378 --> 00:01:10,204
+Its select is five bits.
+
+14
+00:01:10,524 --> 00:01:21,208
+Value zero means constant zero, one means constant one, and two onward pick the 24 sources in order: the sixteen block inputs, then the eight element outputs.
+
+15
+00:01:21,667 --> 00:01:28,493
+So the feature e0 dot x0 equal to two connects block input zero to element zero's first LUT input.
+
+16
+00:01:28,813 --> 00:01:33,120
+Six inputs on four elements is twenty-four such muxes in every block.
+
+17
+00:01:34,700 --> 00:01:42,215
+Inside one element, the six-input LUT is stored as two halves of thirty-two bits, each addressed by inputs zero to four.
+
+18
+00:01:42,535 --> 00:01:48,912
+Input five chooses between the halves, through a MUXF7, exactly as in AMD's LUT6.
+
+19
+00:01:49,367 --> 00:01:52,816
+Set the flag frac, and the select is forced high.
+
+20
+00:01:53,136 --> 00:02:02,055
+Now the element is two five-input LUTs sharing their inputs: O6 is the upper half, and O5, the lower half, comes out separately.
+
+21
+00:02:02,375 --> 00:02:07,458
+This is the fracturable LUT, UG474's LUT6 underscore 2.
+
+22
+00:02:07,933 --> 00:02:16,104
+O6 feeds the carry logic and a small mux that picks what the first flip-flop stores: the carry sum, O6, or O5.
+
+23
+00:02:16,424 --> 00:02:18,744
+O5 feeds the second flip-flop.
+
+24
+00:02:19,064 --> 00:02:25,569
+And a last mux on each side, set by a configuration bit, picks whether the output is registered or not.
+
+25
+00:02:27,133 --> 00:02:34,022
+For addition, the LUT computes the propagate signal: for bit k of a plus b, that is a exclusive-or b.
+
+26
+00:02:34,342 --> 00:02:41,909
+The carry multiplexer then either passes the incoming carry along, when propagate is one, or generates a new carry from a.
+
+27
+00:02:42,229 --> 00:02:44,218
+An exclusive-or makes the sum.
+
+28
+00:02:44,700 --> 00:02:46,860
+Seven plus one shows the point.
+
+29
+00:02:47,180 --> 00:02:53,401
+The carry ripples up through all four elements with no trip through the general routing, and on into the logic block above.
+
+30
+00:02:53,721 --> 00:02:57,120
+That is why synthesis maps every adder onto this chain.
+
+31
+00:02:58,700 --> 00:03:04,542
+Both flip-flops follow AMD's FDRE and FDSE rules, in strict priority.
+
+32
+00:03:04,862 --> 00:03:12,214
+Global set-reset comes first and loads the flip-flop's INIT value; it is held during configuration and released at startup.
+
+33
+00:03:12,534 --> 00:03:17,993
+Nothing else can change the flip-flop unless writes are enabled and the user clock enable is high.
+
+34
+00:03:18,467 --> 00:03:24,783
+Then the routed synchronous reset loads the reset value, and only then does the clock enable let D through.
+
+35
+00:03:25,103 --> 00:03:31,929
+The CE and SR pins are shared by all eight flip-flops of a block, as one slice shares them on AMD's parts.
+
+36
+00:03:32,400 --> 00:03:36,582
+Milestone 26 split the initial value from the reset value.
+
+37
+00:03:36,902 --> 00:03:43,419
+A register declared as one, with a reset to zero, now starts at one, as it would on real silicon.
+
+38
+00:03:43,739 --> 00:03:45,979
+The board check init-srval proves it.
+
+39
+00:03:47,533 --> 00:03:51,275
+An adder normally spends a whole LUT computing a exclusive-or b.
+
+40
+00:03:51,595 --> 00:03:59,016
+Double Duty, from a 2025 paper, feeds the adder's two operands straight from two element inputs instead.
+
+41
+00:03:59,467 --> 00:04:07,071
+The LUT is then free, and its lower half drives the element's second output as an independent four-input function, beside the adder.
+
+42
+00:04:07,391 --> 00:04:10,134
+One flag, dd, turns it on.
+
+43
+00:04:10,600 --> 00:04:23,107
+VPR's packer cannot aim for it, so it saved under five percent. bob's own packer fills the free LUTs of adder elements on purpose, and used thirteen point two percent fewer elements over the example designs.
+
+44
+00:04:24,667 --> 00:04:34,875
+Every element is configured by exactly 109 bits: six crossbar selects of five bits, 15 flags, and sixty-four bits of truth table.
+
+45
+00:04:35,333 --> 00:04:53,025
+The flags are the choices you have just seen: fracture, carry on, the generate source, which value each flip-flop stores, whether each output is registered, whether each flip-flop uses the clock enable and the reset, the two reset values and two initial values, and Double Duty.
+
+46
+00:04:53,500 --> 00:04:58,211
+Four elements and three bits of padding make 439 bits per block.
+
+47
+00:04:58,531 --> 00:05:02,883
+The routing multiplexers of that tile follow them in the configuration memory.
+
+48
+00:05:04,433 --> 00:05:09,971
+Put together, an AND of two inputs in element zero of block x2 y3 is three settings.
+
+49
+00:05:10,291 --> 00:05:15,200
+Two crossbar selects bring block inputs zero and one to LUT inputs zero and one.
+
+50
+00:05:15,520 --> 00:05:17,573
+The truth table is sixteen eights.
+
+51
+00:05:17,893 --> 00:05:22,923
+Everything else stays zero, which means constant inputs and an unregistered output.
+
+52
+00:05:24,500 --> 00:05:27,627
+Finally, how this is built inside the host chip.
+
+53
+00:05:27,947 --> 00:05:34,951
+A bob truth table is configuration, so it could sit in sixty-four flip-flops behind a sixty-four-way mux.
+
+54
+00:05:35,271 --> 00:05:36,664
+That is far too big.
+
+55
+00:05:36,984 --> 00:05:42,723
+Instead it lives in AMD's CFGLUT5: a real LUT whose table is shifted in serially.
+
+56
+00:05:43,200 --> 00:05:48,956
+Each crossbar mux is five such LUTs, each looking at five sources, and a fixed OR.
+
+57
+00:05:49,276 --> 00:05:58,192
+The selected source's leaf holds a table that copies that one input; every other leaf holds zeros, so the OR passes exactly the chosen signal.
+
+58
+00:05:58,667 --> 00:06:05,712
+That is 128 CFGLUT5s per block, loaded automatically as their configuration frame arrives.
+
+59
+00:06:06,032 --> 00:06:13,384
+It cut a block from roughly four hundred and seventy host LUTs to under two hundred, and it is what let the grid reach ten by ten.
+
+60
+00:06:14,967 --> 00:06:28,978
+The element is ble dot s v; the crossbar and the cluster are generated into the fabric; and the cluster testbench checks every flag, every LUT mode and every crossbar value against the Python model, at LUT size six and again at four.
+

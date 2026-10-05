@@ -1,0 +1,168 @@
+1
+00:00:00,000 --> 00:00:09,291
+A fabric needs a way in and out, and a clock. bob's pads double as test points, and its clock is not a clock at all, which is what makes it safe and checkable.
+
+2
+00:00:10,867 --> 00:00:15,868
+Each of bob's pads is one block in VPR's eyes: an output pin and an input pin.
+
+3
+00:00:16,188 --> 00:00:25,734
+In the hardware, each direction passes through a boundary-scan cell of the IEEE 1149.1 kind called BC underscore one.
+
+4
+00:00:26,200 --> 00:00:28,328
+Normally the cells are transparent.
+
+5
+00:00:28,648 --> 00:00:40,074
+But they are also linked into one long shift register on JTAG, 88 cells for 44 pads, so the test host can read every pin, or drive every pin, in a single scan.
+
+6
+00:00:40,394 --> 00:00:45,110
+While the startup signal GTS is high, the output cells force zero.
+
+7
+00:00:46,667 --> 00:00:49,839
+Loading a design and watching LEDs proves very little.
+
+8
+00:00:50,159 --> 00:00:52,657
+Boundary scan lets the tests do better.
+
+9
+00:00:52,977 --> 00:00:55,718
+SAMPLE reads the real pins at one instant.
+
+10
+00:00:56,038 --> 00:01:01,927
+INTEST lets JTAG drive the fabric's inputs, so a test needs nobody pressing buttons.
+
+11
+00:01:02,400 --> 00:01:07,778
+With autostep, each INTEST scan also advances the design by exactly one clock.
+
+12
+00:01:08,098 --> 00:01:13,825
+And CAPTURE reads back every element's outputs, which for a registered element is its flip-flop.
+
+13
+00:01:14,145 --> 00:01:18,675
+Together they let the board be compared with a golden model after every single clock.
+
+14
+00:01:20,233 --> 00:01:22,822
+The guest's clock is not a separate clock.
+
+15
+00:01:23,142 --> 00:01:35,301
+Every flip-flop in the fabric is clocked by the host's 125 megahertz system clock, and is allowed to change only on a cycle where a one-cycle enable, called gce, is high.
+
+16
+00:01:35,621 --> 00:01:38,247
+One gce pulse is one user clock.
+
+17
+00:01:38,700 --> 00:01:40,337
+This buys three things.
+
+18
+00:01:40,657 --> 00:01:47,168
+The timing tools see one real clock, which AMD's methodology guide recommends over derived clocks.
+
+19
+00:01:47,488 --> 00:01:50,945
+The test host can step the design one clock at a time.
+
+20
+00:01:51,265 --> 00:01:57,212
+And holding gce low freezes the entire fabric, which partial reconfiguration uses.
+
+21
+00:01:58,767 --> 00:02:02,395
+gce comes from a small clock controller with two modes.
+
+22
+00:02:02,715 --> 00:02:07,697
+Stepped by JTAG, it gives one pulse per test-clock edge or per step command.
+
+23
+00:02:08,017 --> 00:02:14,179
+Free-running, it divides the system clock, and since milestone twenty any integer period is allowed.
+
+24
+00:02:14,633 --> 00:02:23,437
+And in both modes it enforces a minimum gap between pulses: by default 512 system cycles, about four microseconds.
+
+25
+00:02:23,757 --> 00:02:26,082
+A request that comes too soon waits.
+
+26
+00:02:26,402 --> 00:02:31,345
+That guarantee is what makes the timing constraints true, as we will see in a moment.
+
+27
+00:02:32,900 --> 00:02:39,158
+The JTAG side runs on the test clock, the fabric on the system clock, and the two are unrelated.
+
+28
+00:02:39,478 --> 00:02:51,239
+So every control signal that crosses between them goes through two flip-flops marked as an asynchronous register, the textbook synchroniser, which gives a metastable first stage a full cycle to settle.
+
+29
+00:02:52,800 --> 00:02:59,280
+To rewrite part of a running design, bob must stop the fabric safely, across both clock domains.
+
+30
+00:02:59,600 --> 00:03:05,960
+The host sends the AGHIGH command; the configuration logic raises a freeze request on the test clock.
+
+31
+00:03:06,433 --> 00:03:14,407
+Two flip-flops carry it into the system clock domain, where the clock controller holds gce low and raises frozen on the same edge.
+
+32
+00:03:14,727 --> 00:03:20,194
+Two more carry that back, and only then does the status register report GHIGH bar as zero.
+
+33
+00:03:20,667 --> 00:03:28,762
+Now no register, block RAM or DSP register in the fabric can change, because every one of them is enabled by gce.
+
+34
+00:03:29,082 --> 00:03:36,579
+Frames are written, and the LFRM command releases the clock, but only if a checksum written after the last frame matched.
+
+35
+00:03:36,899 --> 00:03:41,964
+Otherwise the fabric stays frozen with an error, and a half-written design never runs.
+
+36
+00:03:43,533 --> 00:03:45,997
+One more piece makes the clock trustworthy.
+
+37
+00:03:46,317 --> 00:03:52,670
+Vivado times the fabric unconfigured, and unconfigured it is a mesh of loops through every multiplexer.
+
+38
+00:03:52,990 --> 00:03:59,751
+At milestone twenty-one its worst path ran through more than six thousand logic levels that no design could ever use.
+
+39
+00:04:00,233 --> 00:04:02,393
+So bob stopped asking Vivado.
+
+40
+00:04:02,713 --> 00:04:20,093
+The constraints relax the fabric's paths, and the guarantee moved into software. timing dot py walks a configured design through exactly the inputs its bits select, and the contract refuses any build or load whose critical path, doubled, does not fit the spacing of its gce pulses.
+
+41
+00:04:20,567 --> 00:04:33,957
+For the counter example, the critical path is 12.909 nanoseconds: through a crossbar mux, a LUT, the carry chain up through two blocks over the direct carry wire, and a flip-flop's setup time.
+
+42
+00:04:35,533 --> 00:04:46,897
+The pads and boundary cells live in the top level; the clock controller is one file; and a dedicated testbench checks the spacing in both modes, early requests, the freeze and the release.
+

@@ -1,0 +1,144 @@
+1
+00:00:00,000 --> 00:00:03,835
+Everything the host does to bob goes through one port: JTAG.
+
+2
+00:00:04,155 --> 00:00:09,632
+This chapter walks its state machine edge by edge, and shows the instructions bob gives it.
+
+3
+00:00:11,200 --> 00:00:12,956
+JTAG is four wires.
+
+4
+00:00:13,276 --> 00:00:17,050
+The test clock, TCK, clocks the whole port.
+
+5
+00:00:17,370 --> 00:00:19,898
+TMS steers a small state machine.
+
+6
+00:00:20,218 --> 00:00:24,046
+TDI carries bits in, and TDO carries bits out.
+
+7
+00:00:24,500 --> 00:00:31,225
+bob's host is a Raspberry Pi Pico running the DirtyJTAG firmware, driven over USB by bob's Python.
+
+8
+00:00:31,545 --> 00:00:38,162
+The test clock is limited to one megahertz, and the host-chip constraints are written for exactly that period.
+
+9
+00:00:39,733 --> 00:00:44,746
+This is the TAP controller, the same sixteen states in every JTAG device.
+
+10
+00:00:45,066 --> 00:00:51,188
+It moves on every rising edge of the test clock, and the only thing that steers it is the value on TMS.
+
+11
+00:00:51,667 --> 00:00:57,820
+There are two identical columns: one for scanning a data register, one for the instruction register.
+
+12
+00:00:58,140 --> 00:01:02,569
+Each has capture, shift, exit, pause and update states.
+
+13
+00:01:02,889 --> 00:01:10,633
+Holding TMS high for five clocks from anywhere reaches Test-Logic-Reset, which in bob only selects the IDCODE register.
+
+14
+00:01:10,953 --> 00:01:13,174
+It never touches the configuration.
+
+15
+00:01:13,933 --> 00:01:15,689
+Let us load an instruction.
+
+16
+00:01:16,009 --> 00:01:19,671
+From reset, TMS zero goes to Run-Test Idle.
+
+17
+00:01:19,991 --> 00:01:23,383
+One, one goes through Select-DR to Select-IR.
+
+18
+00:01:23,703 --> 00:01:30,237
+Zero captures: the instruction register loads a fixed status pattern, which we will come back to.
+
+19
+00:01:30,700 --> 00:01:32,439
+Zero enters Shift-IR.
+
+20
+00:01:32,759 --> 00:01:41,222
+Six clocks shift the six-bit instruction in on TDI, least significant bit first, while the captured status comes out on TDO.
+
+21
+00:01:41,542 --> 00:01:45,603
+TMS goes high on the sixth bit, which leaves through Exit1.
+
+22
+00:01:46,067 --> 00:01:54,068
+One more one reaches Update-IR, where the new instruction takes effect on the falling edge, and zero returns to Run-Test Idle.
+
+23
+00:01:54,388 --> 00:01:58,931
+A data-register scan then follows the left column in exactly the same way.
+
+24
+00:02:00,500 --> 00:02:01,905
+The edges are fixed.
+
+25
+00:02:02,225 --> 00:02:09,537
+The probe changes TMS and TDI on the falling edge, and the TAP samples them, and moves, on the rising edge.
+
+26
+00:02:09,857 --> 00:02:15,450
+TDO and every update happen on the falling edge, so each side has half a clock to settle.
+
+27
+00:02:15,933 --> 00:02:19,153
+Every register shifts least significant bit first.
+
+28
+00:02:19,473 --> 00:02:30,238
+And since milestone twenty-six, TDO is only driven while shifting, and floats otherwise, as the standard requires, so bob can share a chain with other devices.
+
+29
+00:02:31,800 --> 00:02:48,168
+The instruction decides which data register sits between TDI and TDO. bob uses AMD's own seven-series codes wherever the instruction exists on real parts, so standard tools find IDCODE, CFG in and JPROGRAM exactly where they expect them.
+
+30
+00:02:48,633 --> 00:03:00,148
+Four are bob's own, shown in pink: INTEST to drive the fabric, the DSP test register, and the scan-chain pair, chain in and chain out, which AMD parts do not have.
+
+31
+00:03:01,700 --> 00:03:12,338
+Remember the pattern captured into the instruction register. bob puts its status there: DONE, INIT bar, whether a configuration has been committed, and whether a checksum failed.
+
+32
+00:03:12,658 --> 00:03:16,860
+So every single instruction load also tells the host the state of the chip.
+
+33
+00:03:17,333 --> 00:03:20,436
+And the IDCODE register identifies the build.
+
+34
+00:03:20,756 --> 00:03:27,911
+It ends in AMD's manufacturer code, and its middle digits name the milestone: this is the M26 hardware.
+
+35
+00:03:28,231 --> 00:03:32,019
+A test run against the wrong bitstream stops at its first check.
+
+36
+00:03:33,600 --> 00:03:44,012
+The TAP is one Verilog file using AMD's codes; the host speaks it through two Python layers; and every instruction is exercised in the chip-level testbench and on the board.
+

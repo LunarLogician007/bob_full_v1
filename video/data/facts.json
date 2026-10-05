@@ -1,0 +1,2731 @@
+{
+ "name": "bob12x10",
+ "lut_k": 6,
+ "arch": {
+  "grid_width": 14,
+  "grid_height": 12,
+  "chan_width": 36,
+  "segment_length": 4,
+  "switch_block": "wilton fs=3",
+  "fc_in": 0.1,
+  "fc_out": 0.1,
+  "vpr_arch": "software/bob/arch/bob_k6.xml",
+  "rr_graph": "software/bob/arch/bob_k6_rr.xml.gz",
+  "columns": [
+   {
+    "type": "bram",
+    "x": 3,
+    "height": 5
+   },
+   {
+    "type": "dsp",
+    "x": 8,
+    "height": 5
+   }
+  ]
+ },
+ "clock": {
+  "sysclk_hz": 125000000,
+  "div_min_shift": 9,
+  "gce_min_gap_shift": 9,
+  "xdc_multicycle": 16384,
+  "xdc_tck_multicycle": 16,
+  "xdc_tck_period_ns": 1000,
+  "gce_gap_floor": 2,
+  "period_w": 16,
+  "modes": {
+   "jtag": 0,
+   "run": 1
+  }
+ },
+ "blocks": [
+  {
+   "name": "io_x1y0",
+   "type": "io",
+   "x": 1,
+   "y": 0
+  },
+  {
+   "name": "io_x2y0",
+   "type": "io",
+   "x": 2,
+   "y": 0
+  },
+  {
+   "name": "io_x3y0",
+   "type": "io",
+   "x": 3,
+   "y": 0
+  },
+  {
+   "name": "io_x4y0",
+   "type": "io",
+   "x": 4,
+   "y": 0
+  },
+  {
+   "name": "io_x5y0",
+   "type": "io",
+   "x": 5,
+   "y": 0
+  },
+  {
+   "name": "io_x6y0",
+   "type": "io",
+   "x": 6,
+   "y": 0
+  },
+  {
+   "name": "io_x7y0",
+   "type": "io",
+   "x": 7,
+   "y": 0
+  },
+  {
+   "name": "io_x8y0",
+   "type": "io",
+   "x": 8,
+   "y": 0
+  },
+  {
+   "name": "io_x9y0",
+   "type": "io",
+   "x": 9,
+   "y": 0
+  },
+  {
+   "name": "io_x10y0",
+   "type": "io",
+   "x": 10,
+   "y": 0
+  },
+  {
+   "name": "io_x11y0",
+   "type": "io",
+   "x": 11,
+   "y": 0
+  },
+  {
+   "name": "io_x12y0",
+   "type": "io",
+   "x": 12,
+   "y": 0
+  },
+  {
+   "name": "io_x0y1",
+   "type": "io",
+   "x": 0,
+   "y": 1
+  },
+  {
+   "name": "clb_x1y1",
+   "type": "clb",
+   "x": 1,
+   "y": 1
+  },
+  {
+   "name": "clb_x2y1",
+   "type": "clb",
+   "x": 2,
+   "y": 1
+  },
+  {
+   "name": "bram0",
+   "type": "bram",
+   "x": 3,
+   "y": 1,
+   "h": 5
+  },
+  {
+   "name": "clb_x4y1",
+   "type": "clb",
+   "x": 4,
+   "y": 1
+  },
+  {
+   "name": "clb_x5y1",
+   "type": "clb",
+   "x": 5,
+   "y": 1
+  },
+  {
+   "name": "clb_x6y1",
+   "type": "clb",
+   "x": 6,
+   "y": 1
+  },
+  {
+   "name": "clb_x7y1",
+   "type": "clb",
+   "x": 7,
+   "y": 1
+  },
+  {
+   "name": "dsp0",
+   "type": "dsp",
+   "x": 8,
+   "y": 1,
+   "h": 5
+  },
+  {
+   "name": "clb_x9y1",
+   "type": "clb",
+   "x": 9,
+   "y": 1
+  },
+  {
+   "name": "clb_x10y1",
+   "type": "clb",
+   "x": 10,
+   "y": 1
+  },
+  {
+   "name": "clb_x11y1",
+   "type": "clb",
+   "x": 11,
+   "y": 1
+  },
+  {
+   "name": "clb_x12y1",
+   "type": "clb",
+   "x": 12,
+   "y": 1
+  },
+  {
+   "name": "io_x13y1",
+   "type": "io",
+   "x": 13,
+   "y": 1
+  },
+  {
+   "name": "io_x0y2",
+   "type": "io",
+   "x": 0,
+   "y": 2
+  },
+  {
+   "name": "clb_x1y2",
+   "type": "clb",
+   "x": 1,
+   "y": 2
+  },
+  {
+   "name": "clb_x2y2",
+   "type": "clb",
+   "x": 2,
+   "y": 2
+  },
+  {
+   "name": "clb_x4y2",
+   "type": "clb",
+   "x": 4,
+   "y": 2
+  },
+  {
+   "name": "clb_x5y2",
+   "type": "clb",
+   "x": 5,
+   "y": 2
+  },
+  {
+   "name": "clb_x6y2",
+   "type": "clb",
+   "x": 6,
+   "y": 2
+  },
+  {
+   "name": "clb_x7y2",
+   "type": "clb",
+   "x": 7,
+   "y": 2
+  },
+  {
+   "name": "clb_x9y2",
+   "type": "clb",
+   "x": 9,
+   "y": 2
+  },
+  {
+   "name": "clb_x10y2",
+   "type": "clb",
+   "x": 10,
+   "y": 2
+  },
+  {
+   "name": "clb_x11y2",
+   "type": "clb",
+   "x": 11,
+   "y": 2
+  },
+  {
+   "name": "clb_x12y2",
+   "type": "clb",
+   "x": 12,
+   "y": 2
+  },
+  {
+   "name": "io_x13y2",
+   "type": "io",
+   "x": 13,
+   "y": 2
+  },
+  {
+   "name": "io_x0y3",
+   "type": "io",
+   "x": 0,
+   "y": 3
+  },
+  {
+   "name": "clb_x1y3",
+   "type": "clb",
+   "x": 1,
+   "y": 3
+  },
+  {
+   "name": "clb_x2y3",
+   "type": "clb",
+   "x": 2,
+   "y": 3
+  },
+  {
+   "name": "clb_x4y3",
+   "type": "clb",
+   "x": 4,
+   "y": 3
+  },
+  {
+   "name": "clb_x5y3",
+   "type": "clb",
+   "x": 5,
+   "y": 3
+  },
+  {
+   "name": "clb_x6y3",
+   "type": "clb",
+   "x": 6,
+   "y": 3
+  },
+  {
+   "name": "clb_x7y3",
+   "type": "clb",
+   "x": 7,
+   "y": 3
+  },
+  {
+   "name": "clb_x9y3",
+   "type": "clb",
+   "x": 9,
+   "y": 3
+  },
+  {
+   "name": "clb_x10y3",
+   "type": "clb",
+   "x": 10,
+   "y": 3
+  },
+  {
+   "name": "clb_x11y3",
+   "type": "clb",
+   "x": 11,
+   "y": 3
+  },
+  {
+   "name": "clb_x12y3",
+   "type": "clb",
+   "x": 12,
+   "y": 3
+  },
+  {
+   "name": "io_x13y3",
+   "type": "io",
+   "x": 13,
+   "y": 3
+  },
+  {
+   "name": "io_x0y4",
+   "type": "io",
+   "x": 0,
+   "y": 4
+  },
+  {
+   "name": "clb_x1y4",
+   "type": "clb",
+   "x": 1,
+   "y": 4
+  },
+  {
+   "name": "clb_x2y4",
+   "type": "clb",
+   "x": 2,
+   "y": 4
+  },
+  {
+   "name": "clb_x4y4",
+   "type": "clb",
+   "x": 4,
+   "y": 4
+  },
+  {
+   "name": "clb_x5y4",
+   "type": "clb",
+   "x": 5,
+   "y": 4
+  },
+  {
+   "name": "clb_x6y4",
+   "type": "clb",
+   "x": 6,
+   "y": 4
+  },
+  {
+   "name": "clb_x7y4",
+   "type": "clb",
+   "x": 7,
+   "y": 4
+  },
+  {
+   "name": "clb_x9y4",
+   "type": "clb",
+   "x": 9,
+   "y": 4
+  },
+  {
+   "name": "clb_x10y4",
+   "type": "clb",
+   "x": 10,
+   "y": 4
+  },
+  {
+   "name": "clb_x11y4",
+   "type": "clb",
+   "x": 11,
+   "y": 4
+  },
+  {
+   "name": "clb_x12y4",
+   "type": "clb",
+   "x": 12,
+   "y": 4
+  },
+  {
+   "name": "io_x13y4",
+   "type": "io",
+   "x": 13,
+   "y": 4
+  },
+  {
+   "name": "io_x0y5",
+   "type": "io",
+   "x": 0,
+   "y": 5
+  },
+  {
+   "name": "clb_x1y5",
+   "type": "clb",
+   "x": 1,
+   "y": 5
+  },
+  {
+   "name": "clb_x2y5",
+   "type": "clb",
+   "x": 2,
+   "y": 5
+  },
+  {
+   "name": "clb_x4y5",
+   "type": "clb",
+   "x": 4,
+   "y": 5
+  },
+  {
+   "name": "clb_x5y5",
+   "type": "clb",
+   "x": 5,
+   "y": 5
+  },
+  {
+   "name": "clb_x6y5",
+   "type": "clb",
+   "x": 6,
+   "y": 5
+  },
+  {
+   "name": "clb_x7y5",
+   "type": "clb",
+   "x": 7,
+   "y": 5
+  },
+  {
+   "name": "clb_x9y5",
+   "type": "clb",
+   "x": 9,
+   "y": 5
+  },
+  {
+   "name": "clb_x10y5",
+   "type": "clb",
+   "x": 10,
+   "y": 5
+  },
+  {
+   "name": "clb_x11y5",
+   "type": "clb",
+   "x": 11,
+   "y": 5
+  },
+  {
+   "name": "clb_x12y5",
+   "type": "clb",
+   "x": 12,
+   "y": 5
+  },
+  {
+   "name": "io_x13y5",
+   "type": "io",
+   "x": 13,
+   "y": 5
+  },
+  {
+   "name": "io_x0y6",
+   "type": "io",
+   "x": 0,
+   "y": 6
+  },
+  {
+   "name": "clb_x1y6",
+   "type": "clb",
+   "x": 1,
+   "y": 6
+  },
+  {
+   "name": "clb_x2y6",
+   "type": "clb",
+   "x": 2,
+   "y": 6
+  },
+  {
+   "name": "bram1",
+   "type": "bram",
+   "x": 3,
+   "y": 6,
+   "h": 5
+  },
+  {
+   "name": "clb_x4y6",
+   "type": "clb",
+   "x": 4,
+   "y": 6
+  },
+  {
+   "name": "clb_x5y6",
+   "type": "clb",
+   "x": 5,
+   "y": 6
+  },
+  {
+   "name": "clb_x6y6",
+   "type": "clb",
+   "x": 6,
+   "y": 6
+  },
+  {
+   "name": "clb_x7y6",
+   "type": "clb",
+   "x": 7,
+   "y": 6
+  },
+  {
+   "name": "dsp1",
+   "type": "dsp",
+   "x": 8,
+   "y": 6,
+   "h": 5
+  },
+  {
+   "name": "clb_x9y6",
+   "type": "clb",
+   "x": 9,
+   "y": 6
+  },
+  {
+   "name": "clb_x10y6",
+   "type": "clb",
+   "x": 10,
+   "y": 6
+  },
+  {
+   "name": "clb_x11y6",
+   "type": "clb",
+   "x": 11,
+   "y": 6
+  },
+  {
+   "name": "clb_x12y6",
+   "type": "clb",
+   "x": 12,
+   "y": 6
+  },
+  {
+   "name": "io_x13y6",
+   "type": "io",
+   "x": 13,
+   "y": 6
+  },
+  {
+   "name": "io_x0y7",
+   "type": "io",
+   "x": 0,
+   "y": 7
+  },
+  {
+   "name": "clb_x1y7",
+   "type": "clb",
+   "x": 1,
+   "y": 7
+  },
+  {
+   "name": "clb_x2y7",
+   "type": "clb",
+   "x": 2,
+   "y": 7
+  },
+  {
+   "name": "clb_x4y7",
+   "type": "clb",
+   "x": 4,
+   "y": 7
+  },
+  {
+   "name": "clb_x5y7",
+   "type": "clb",
+   "x": 5,
+   "y": 7
+  },
+  {
+   "name": "clb_x6y7",
+   "type": "clb",
+   "x": 6,
+   "y": 7
+  },
+  {
+   "name": "clb_x7y7",
+   "type": "clb",
+   "x": 7,
+   "y": 7
+  },
+  {
+   "name": "clb_x9y7",
+   "type": "clb",
+   "x": 9,
+   "y": 7
+  },
+  {
+   "name": "clb_x10y7",
+   "type": "clb",
+   "x": 10,
+   "y": 7
+  },
+  {
+   "name": "clb_x11y7",
+   "type": "clb",
+   "x": 11,
+   "y": 7
+  },
+  {
+   "name": "clb_x12y7",
+   "type": "clb",
+   "x": 12,
+   "y": 7
+  },
+  {
+   "name": "io_x13y7",
+   "type": "io",
+   "x": 13,
+   "y": 7
+  },
+  {
+   "name": "io_x0y8",
+   "type": "io",
+   "x": 0,
+   "y": 8
+  },
+  {
+   "name": "clb_x1y8",
+   "type": "clb",
+   "x": 1,
+   "y": 8
+  },
+  {
+   "name": "clb_x2y8",
+   "type": "clb",
+   "x": 2,
+   "y": 8
+  },
+  {
+   "name": "clb_x4y8",
+   "type": "clb",
+   "x": 4,
+   "y": 8
+  },
+  {
+   "name": "clb_x5y8",
+   "type": "clb",
+   "x": 5,
+   "y": 8
+  },
+  {
+   "name": "clb_x6y8",
+   "type": "clb",
+   "x": 6,
+   "y": 8
+  },
+  {
+   "name": "clb_x7y8",
+   "type": "clb",
+   "x": 7,
+   "y": 8
+  },
+  {
+   "name": "clb_x9y8",
+   "type": "clb",
+   "x": 9,
+   "y": 8
+  },
+  {
+   "name": "clb_x10y8",
+   "type": "clb",
+   "x": 10,
+   "y": 8
+  },
+  {
+   "name": "clb_x11y8",
+   "type": "clb",
+   "x": 11,
+   "y": 8
+  },
+  {
+   "name": "clb_x12y8",
+   "type": "clb",
+   "x": 12,
+   "y": 8
+  },
+  {
+   "name": "io_x13y8",
+   "type": "io",
+   "x": 13,
+   "y": 8
+  },
+  {
+   "name": "io_x0y9",
+   "type": "io",
+   "x": 0,
+   "y": 9
+  },
+  {
+   "name": "clb_x1y9",
+   "type": "clb",
+   "x": 1,
+   "y": 9
+  },
+  {
+   "name": "clb_x2y9",
+   "type": "clb",
+   "x": 2,
+   "y": 9
+  },
+  {
+   "name": "clb_x4y9",
+   "type": "clb",
+   "x": 4,
+   "y": 9
+  },
+  {
+   "name": "clb_x5y9",
+   "type": "clb",
+   "x": 5,
+   "y": 9
+  },
+  {
+   "name": "clb_x6y9",
+   "type": "clb",
+   "x": 6,
+   "y": 9
+  },
+  {
+   "name": "clb_x7y9",
+   "type": "clb",
+   "x": 7,
+   "y": 9
+  },
+  {
+   "name": "clb_x9y9",
+   "type": "clb",
+   "x": 9,
+   "y": 9
+  },
+  {
+   "name": "clb_x10y9",
+   "type": "clb",
+   "x": 10,
+   "y": 9
+  },
+  {
+   "name": "clb_x11y9",
+   "type": "clb",
+   "x": 11,
+   "y": 9
+  },
+  {
+   "name": "clb_x12y9",
+   "type": "clb",
+   "x": 12,
+   "y": 9
+  },
+  {
+   "name": "io_x13y9",
+   "type": "io",
+   "x": 13,
+   "y": 9
+  },
+  {
+   "name": "io_x0y10",
+   "type": "io",
+   "x": 0,
+   "y": 10
+  },
+  {
+   "name": "clb_x1y10",
+   "type": "clb",
+   "x": 1,
+   "y": 10
+  },
+  {
+   "name": "clb_x2y10",
+   "type": "clb",
+   "x": 2,
+   "y": 10
+  },
+  {
+   "name": "clb_x4y10",
+   "type": "clb",
+   "x": 4,
+   "y": 10
+  },
+  {
+   "name": "clb_x5y10",
+   "type": "clb",
+   "x": 5,
+   "y": 10
+  },
+  {
+   "name": "clb_x6y10",
+   "type": "clb",
+   "x": 6,
+   "y": 10
+  },
+  {
+   "name": "clb_x7y10",
+   "type": "clb",
+   "x": 7,
+   "y": 10
+  },
+  {
+   "name": "clb_x9y10",
+   "type": "clb",
+   "x": 9,
+   "y": 10
+  },
+  {
+   "name": "clb_x10y10",
+   "type": "clb",
+   "x": 10,
+   "y": 10
+  },
+  {
+   "name": "clb_x11y10",
+   "type": "clb",
+   "x": 11,
+   "y": 10
+  },
+  {
+   "name": "clb_x12y10",
+   "type": "clb",
+   "x": 12,
+   "y": 10
+  },
+  {
+   "name": "io_x13y10",
+   "type": "io",
+   "x": 13,
+   "y": 10
+  },
+  {
+   "name": "io_x1y11",
+   "type": "io",
+   "x": 1,
+   "y": 11
+  },
+  {
+   "name": "io_x2y11",
+   "type": "io",
+   "x": 2,
+   "y": 11
+  },
+  {
+   "name": "io_x3y11",
+   "type": "io",
+   "x": 3,
+   "y": 11
+  },
+  {
+   "name": "io_x4y11",
+   "type": "io",
+   "x": 4,
+   "y": 11
+  },
+  {
+   "name": "io_x5y11",
+   "type": "io",
+   "x": 5,
+   "y": 11
+  },
+  {
+   "name": "io_x6y11",
+   "type": "io",
+   "x": 6,
+   "y": 11
+  },
+  {
+   "name": "io_x7y11",
+   "type": "io",
+   "x": 7,
+   "y": 11
+  },
+  {
+   "name": "io_x8y11",
+   "type": "io",
+   "x": 8,
+   "y": 11
+  },
+  {
+   "name": "io_x9y11",
+   "type": "io",
+   "x": 9,
+   "y": 11
+  },
+  {
+   "name": "io_x10y11",
+   "type": "io",
+   "x": 10,
+   "y": 11
+  },
+  {
+   "name": "io_x11y11",
+   "type": "io",
+   "x": 11,
+   "y": 11
+  },
+  {
+   "name": "io_x12y11",
+   "type": "io",
+   "x": 12,
+   "y": 11
+  }
+ ],
+ "count": {
+  "clb": 100,
+  "io": 44,
+  "bram": 2,
+  "dsp": 2,
+  "elements": 400,
+  "luts": 400
+ },
+ "tile_widths": {
+  "ctrl": 40,
+  "clb": 439,
+  "bram": 8,
+  "dsp": 16
+ },
+ "element_fields": [
+  [
+   "x0",
+   5,
+   0,
+   "mux"
+  ],
+  [
+   "x1",
+   5,
+   5,
+   "mux"
+  ],
+  [
+   "x2",
+   5,
+   10,
+   "mux"
+  ],
+  [
+   "x3",
+   5,
+   15,
+   "mux"
+  ],
+  [
+   "x4",
+   5,
+   20,
+   "mux"
+  ],
+  [
+   "x5",
+   5,
+   25,
+   "mux"
+  ],
+  [
+   "frac",
+   1,
+   68,
+   "flag"
+  ],
+  [
+   "ff_en",
+   1,
+   69,
+   "flag"
+  ],
+  [
+   "ff_rstval",
+   1,
+   70,
+   "flag"
+  ],
+  [
+   "ff_ce_en",
+   1,
+   71,
+   "flag"
+  ],
+  [
+   "ff_sr_en",
+   1,
+   72,
+   "flag"
+  ],
+  [
+   "cy_en",
+   1,
+   73,
+   "flag"
+  ],
+  [
+   "cy_di_sel",
+   1,
+   74,
+   "flag"
+  ],
+  [
+   "ff_d_sel",
+   1,
+   75,
+   "flag"
+  ],
+  [
+   "ff2_en",
+   1,
+   76,
+   "flag"
+  ],
+  [
+   "ff2_rstval",
+   1,
+   77,
+   "flag"
+  ],
+  [
+   "ff2_ce_en",
+   1,
+   78,
+   "flag"
+  ],
+  [
+   "ff2_sr_en",
+   1,
+   79,
+   "flag"
+  ],
+  [
+   "dd",
+   1,
+   80,
+   "flag"
+  ],
+  [
+   "ff_init",
+   1,
+   81,
+   "flag"
+  ],
+  [
+   "ff2_init",
+   1,
+   82,
+   "flag"
+  ],
+  [
+   "init",
+   64,
+   128,
+   "lut_init"
+  ]
+ ],
+ "element_bits": 109,
+ "clb_fields_n": 89,
+ "bram_fields": [
+  [
+   "wmode_a",
+   2
+  ],
+  [
+   "wmode_b",
+   2
+  ],
+  [
+   "reg_a",
+   1
+  ],
+  [
+   "reg_b",
+   1
+  ],
+  [
+   "jtag_a",
+   1
+  ],
+  [
+   "jtag_b",
+   1
+  ]
+ ],
+ "dsp_fields": [
+  [
+   "opmode",
+   2
+  ],
+  [
+   "use_d",
+   1
+  ],
+  [
+   "d_sub",
+   1
+  ],
+  [
+   "areg",
+   1
+  ],
+  [
+   "breg",
+   1
+  ],
+  [
+   "creg",
+   1
+  ],
+  [
+   "dreg",
+   1
+  ],
+  [
+   "mreg",
+   1
+  ],
+  [
+   "preg",
+   1
+  ],
+  [
+   "jtag_a",
+   1
+  ],
+  [
+   "jtag_b",
+   1
+  ],
+  [
+   "jtag_c",
+   1
+  ],
+  [
+   "jtag_d",
+   1
+  ],
+  [
+   "jtag_ctrl",
+   1
+  ],
+  [
+   "reserved",
+   1
+  ]
+ ],
+ "ctrl_fields": [
+  [
+   "clk_mode",
+   1
+  ],
+  [
+   "clk_div",
+   5
+  ],
+  [
+   "reserved",
+   2
+  ],
+  [
+   "clk_period",
+   16
+  ],
+  [
+   "clk_gap",
+   16
+  ]
+ ],
+ "block_ports": {
+  "io": [
+   [
+    "in",
+    "outpad",
+    1
+   ],
+   [
+    "out",
+    "inpad",
+    1
+   ]
+  ],
+  "clb": [
+   [
+    "in",
+    "I",
+    16
+   ],
+   [
+    "in",
+    "ce",
+    1
+   ],
+   [
+    "in",
+    "sr",
+    1
+   ],
+   [
+    "in",
+    "cin",
+    1
+   ],
+   [
+    "out",
+    "O",
+    8
+   ],
+   [
+    "out",
+    "cout",
+    1
+   ],
+   [
+    "clk",
+    "clk",
+    1
+   ]
+  ],
+  "bram": [
+   [
+    "in",
+    "addr_a",
+    10
+   ],
+   [
+    "in",
+    "di_a",
+    18
+   ],
+   [
+    "in",
+    "we_a",
+    1
+   ],
+   [
+    "in",
+    "en_a",
+    1
+   ],
+   [
+    "in",
+    "rst_a",
+    1
+   ],
+   [
+    "in",
+    "regce_a",
+    1
+   ],
+   [
+    "in",
+    "addr_b",
+    10
+   ],
+   [
+    "in",
+    "di_b",
+    18
+   ],
+   [
+    "in",
+    "we_b",
+    1
+   ],
+   [
+    "in",
+    "en_b",
+    1
+   ],
+   [
+    "in",
+    "rst_b",
+    1
+   ],
+   [
+    "in",
+    "regce_b",
+    1
+   ],
+   [
+    "out",
+    "do_a",
+    18
+   ],
+   [
+    "out",
+    "do_b",
+    18
+   ],
+   [
+    "clk",
+    "clk",
+    1
+   ]
+  ],
+  "dsp": [
+   [
+    "in",
+    "a",
+    25
+   ],
+   [
+    "in",
+    "b",
+    18
+   ],
+   [
+    "in",
+    "c",
+    48
+   ],
+   [
+    "in",
+    "d",
+    25
+   ],
+   [
+    "in",
+    "ce_ad",
+    1
+   ],
+   [
+    "in",
+    "ce_b",
+    1
+   ],
+   [
+    "in",
+    "ce_m",
+    1
+   ],
+   [
+    "in",
+    "ce_p",
+    1
+   ],
+   [
+    "in",
+    "rst_ad",
+    1
+   ],
+   [
+    "in",
+    "rst_b",
+    1
+   ],
+   [
+    "in",
+    "rst_m",
+    1
+   ],
+   [
+    "in",
+    "rst_p",
+    1
+   ],
+   [
+    "in",
+    "pcin",
+    48
+   ],
+   [
+    "out",
+    "p",
+    48
+   ],
+   [
+    "out",
+    "pcout",
+    48
+   ],
+   [
+    "clk",
+    "clk",
+    1
+   ]
+  ]
+ },
+ "chain_width": 68096,
+ "frames": {
+  "words": 4,
+  "bits": 128,
+  "count": 532,
+  "columns": [
+   {
+    "far_col": 0,
+    "x": null,
+    "base": 0,
+    "count": 1
+   },
+   {
+    "far_col": 1,
+    "x": 0,
+    "base": 1,
+    "count": 3
+   },
+   {
+    "far_col": 2,
+    "x": 1,
+    "base": 4,
+    "count": 51
+   },
+   {
+    "far_col": 3,
+    "x": 2,
+    "base": 55,
+    "count": 51
+   },
+   {
+    "far_col": 4,
+    "x": 3,
+    "base": 106,
+    "count": 7
+   },
+   {
+    "far_col": 5,
+    "x": 4,
+    "base": 113,
+    "count": 51
+   },
+   {
+    "far_col": 6,
+    "x": 5,
+    "base": 164,
+    "count": 51
+   },
+   {
+    "far_col": 7,
+    "x": 6,
+    "base": 215,
+    "count": 51
+   },
+   {
+    "far_col": 8,
+    "x": 7,
+    "base": 266,
+    "count": 51
+   },
+   {
+    "far_col": 9,
+    "x": 8,
+    "base": 317,
+    "count": 10
+   },
+   {
+    "far_col": 10,
+    "x": 9,
+    "base": 327,
+    "count": 51
+   },
+   {
+    "far_col": 11,
+    "x": 10,
+    "base": 378,
+    "count": 51
+   },
+   {
+    "far_col": 12,
+    "x": 11,
+    "base": 429,
+    "count": 51
+   },
+   {
+    "far_col": 13,
+    "x": 12,
+    "base": 480,
+    "count": 51
+   },
+   {
+    "far_col": 14,
+    "x": 13,
+    "base": 531,
+    "count": 1
+   }
+  ]
+ },
+ "lframes": 400,
+ "cluster": {
+  "n": 4,
+  "i": 16,
+  "xbar": "full",
+  "frac": true,
+  "xbar_width": 5
+ },
+ "cfglut5_per_clb": 128,
+ "lutram": {
+  "init_per_frame": 2,
+  "init_frames": 2,
+  "xbar_per_frame": 25,
+  "xbar_head": 13,
+  "xbar_frames": 2,
+  "frames": 4,
+  "kinds": [
+   "xbar",
+   "init",
+   "init",
+   "xbar"
+  ],
+  "flags_lo": 68,
+  "cfglut5_per_clb": 128
+ },
+ "xbar_sources": 24,
+ "capture_width": 800,
+ "bsr_width": 88,
+ "pads": {
+  "count": 44,
+  "xy": {
+   "0": [
+    1,
+    0
+   ],
+   "1": [
+    2,
+    0
+   ],
+   "2": [
+    3,
+    0
+   ],
+   "3": [
+    4,
+    0
+   ],
+   "4": [
+    5,
+    0
+   ],
+   "5": [
+    6,
+    0
+   ],
+   "6": [
+    7,
+    0
+   ],
+   "7": [
+    8,
+    0
+   ],
+   "8": [
+    9,
+    0
+   ],
+   "9": [
+    10,
+    0
+   ],
+   "10": [
+    11,
+    0
+   ],
+   "11": [
+    12,
+    0
+   ],
+   "12": [
+    0,
+    1
+   ],
+   "13": [
+    13,
+    1
+   ],
+   "14": [
+    0,
+    2
+   ],
+   "15": [
+    13,
+    2
+   ],
+   "16": [
+    0,
+    3
+   ],
+   "17": [
+    13,
+    3
+   ],
+   "18": [
+    0,
+    4
+   ],
+   "19": [
+    13,
+    4
+   ],
+   "20": [
+    0,
+    5
+   ],
+   "21": [
+    13,
+    5
+   ],
+   "22": [
+    0,
+    6
+   ],
+   "23": [
+    13,
+    6
+   ],
+   "24": [
+    0,
+    7
+   ],
+   "25": [
+    13,
+    7
+   ],
+   "26": [
+    0,
+    8
+   ],
+   "27": [
+    13,
+    8
+   ],
+   "28": [
+    0,
+    9
+   ],
+   "29": [
+    13,
+    9
+   ],
+   "30": [
+    0,
+    10
+   ],
+   "31": [
+    13,
+    10
+   ],
+   "32": [
+    1,
+    11
+   ],
+   "33": [
+    2,
+    11
+   ],
+   "34": [
+    3,
+    11
+   ],
+   "35": [
+    4,
+    11
+   ],
+   "36": [
+    5,
+    11
+   ],
+   "37": [
+    6,
+    11
+   ],
+   "38": [
+    7,
+    11
+   ],
+   "39": [
+    8,
+    11
+   ],
+   "40": [
+    9,
+    11
+   ],
+   "41": [
+    10,
+    11
+   ],
+   "42": [
+    11,
+    11
+   ],
+   "43": [
+    12,
+    11
+   ]
+  },
+  "inputs": [
+   {
+    "name": "SW0",
+    "pad": 12,
+    "bit": 0
+   },
+   {
+    "name": "SW1",
+    "pad": 14,
+    "bit": 1
+   },
+   {
+    "name": "BTN0",
+    "pad": 16,
+    "bit": 2
+   },
+   {
+    "name": "BTN1",
+    "pad": 18,
+    "bit": 3
+   },
+   {
+    "name": "BTN2",
+    "pad": 20,
+    "bit": 4
+   },
+   {
+    "name": "BTN3",
+    "pad": 22,
+    "bit": 5
+   }
+  ],
+  "outputs": [
+   {
+    "name": "LD0",
+    "pad": 13,
+    "bit": 0
+   },
+   {
+    "name": "LD1",
+    "pad": 15,
+    "bit": 1
+   },
+   {
+    "name": "LD2",
+    "pad": 17,
+    "bit": 2
+   }
+  ]
+ },
+ "rr": {
+  "nodes": 9928,
+  "muxes": 8095,
+  "mux_bits": 28782,
+  "directs": 138,
+  "node_types": {
+   "OPIN": 1208,
+   "IPIN": 2520,
+   "CHANX": 1862,
+   "CHANY": 1638,
+   "EIN": 2400,
+   "ECY": 300
+  },
+  "fanin_max": 24,
+  "fanin_hist": {
+   "1": 146,
+   "2": 1021,
+   "3": 590,
+   "4": 1867,
+   "5": 68,
+   "6": 142,
+   "7": 261,
+   "8": 301,
+   "9": 154,
+   "10": 335,
+   "11": 536,
+   "12": 270,
+   "13": 4,
+   "24": 2400
+  }
+ },
+ "bram": {
+  "count": 2,
+  "addr_w": 10,
+  "data_w": 18,
+  "write_modes": {
+   "WRITE_FIRST": 0,
+   "READ_FIRST": 1,
+   "NO_CHANGE": 2
+  }
+ },
+ "dsp": {
+  "count": 2,
+  "opmodes": {
+   "M": 0,
+   "M+C": 1,
+   "P+M": 2,
+   "PCIN>>17+M": 3
+  },
+  "buses": [
+   [
+    "a",
+    25
+   ],
+   [
+    "b",
+    18
+   ],
+   [
+    "c",
+    48
+   ],
+   [
+    "d",
+    25
+   ]
+  ],
+  "cascade": "dsp1.pcin <- dsp0.pcout (= P), a VPR direct; dsp0.pcin = 0"
+ },
+ "idcode": "0x0B026093",
+ "ir": [
+  [
+   "SAMPLE",
+   "000001"
+  ],
+  [
+   "USER1",
+   "000010"
+  ],
+  [
+   "USER2",
+   "000011"
+  ],
+  [
+   "CFG_OUT",
+   "000100"
+  ],
+  [
+   "CFG_IN",
+   "000101"
+  ],
+  [
+   "INTEST",
+   "000111"
+  ],
+  [
+   "USERCODE",
+   "001000"
+  ],
+  [
+   "IDCODE",
+   "001001"
+  ],
+  [
+   "JPROGRAM",
+   "001011"
+  ],
+  [
+   "JSTART",
+   "001100"
+  ],
+  [
+   "USER3",
+   "100010"
+  ],
+  [
+   "USER4",
+   "100011"
+  ],
+  [
+   "DSP",
+   "101000"
+  ],
+  [
+   "EXTEST",
+   "100110"
+  ],
+  [
+   "CHAIN_OUT",
+   "110100"
+  ],
+  [
+   "CHAIN_IN",
+   "110101"
+  ],
+  [
+   "BYPASS",
+   "111111"
+  ]
+ ],
+ "tap_states": [
+  [
+   "EXIT2_DR",
+   0
+  ],
+  [
+   "EXIT1_DR",
+   1
+  ],
+  [
+   "SHIFT_DR",
+   2
+  ],
+  [
+   "PAUSE_DR",
+   3
+  ],
+  [
+   "SELECT_IR",
+   4
+  ],
+  [
+   "UPDATE_DR",
+   5
+  ],
+  [
+   "CAPTURE_DR",
+   6
+  ],
+  [
+   "SELECT_DR",
+   7
+  ],
+  [
+   "EXIT2_IR",
+   8
+  ],
+  [
+   "EXIT1_IR",
+   9
+  ],
+  [
+   "SHIFT_IR",
+   10
+  ],
+  [
+   "PAUSE_IR",
+   11
+  ],
+  [
+   "RUN_TEST_IDLE",
+   12
+  ],
+  [
+   "UPDATE_IR",
+   13
+  ],
+  [
+   "CAPTURE_IR",
+   14
+  ],
+  [
+   "TEST_LOGIC_RESET",
+   15
+  ]
+ ],
+ "frames_ctrl": {
+  "regs": [
+   [
+    "CRC",
+    0
+   ],
+   [
+    "FAR",
+    1
+   ],
+   [
+    "FDRI",
+    2
+   ],
+   [
+    "FDRO",
+    3
+   ],
+   [
+    "CMD",
+    4
+   ],
+   [
+    "STAT",
+    7
+   ],
+   [
+    "IDCODE",
+    12
+   ]
+  ],
+  "cmds": [
+   [
+    "NULL",
+    0
+   ],
+   [
+    "WCFG",
+    1
+   ],
+   [
+    "LFRM",
+    3
+   ],
+   [
+    "RCFG",
+    4
+   ],
+   [
+    "START",
+    5
+   ],
+   [
+    "RCRC",
+    7
+   ],
+   [
+    "AGHIGH",
+    8
+   ],
+   [
+    "GRESTORE",
+    10
+   ],
+   [
+    "DESYNC",
+    13
+   ]
+  ],
+  "sync": "0xAA995566",
+  "parser_states": [
+   "HDR",
+   "T2",
+   "DATA",
+   "ERR"
+  ],
+  "crc_poly_reflected": "0x82F63B78",
+  "ctrl_key": "0xC5"
+ },
+ "vivado": {
+  "luts": {
+   "used": 38676.0,
+   "avail": 53200.0,
+   "pct": 72.7
+  },
+  "lutram": {
+   "used": 12718.0,
+   "avail": 17400.0,
+   "pct": 73.09
+  },
+  "ffs": {
+   "used": 28186.0,
+   "avail": 106400.0,
+   "pct": 26.49
+  },
+  "slices": {
+   "used": 11562.0,
+   "avail": 13300.0,
+   "pct": 86.93
+  },
+  "bram_tiles": {
+   "used": 5.0,
+   "avail": 140.0,
+   "pct": 3.57
+  },
+  "dsps": {
+   "used": 2.0,
+   "avail": 220.0,
+   "pct": 0.91
+  },
+  "wns_ns": 0.287,
+  "whs_ns": 0.043
+ },
+ "board": {
+  "date": "2026-09-27",
+  "pass": 74,
+  "total": 74,
+  "checks": [
+   "idcode",
+   "bypass",
+   "selftest",
+   "usercode",
+   "chain-length",
+   "ir-status",
+   "crc-reject-live",
+   "gts",
+   "gsr-gwe",
+   "capture-user1",
+   "jprogram",
+   "showcase-live",
+   "ce-sr",
+   "counter-step",
+   "counter-run",
+   "bram-init",
+   "bram-locked",
+   "bram-rom",
+   "bram-modes",
+   "dsp-modes",
+   "dsp-mult",
+   "dsp-accum",
+   "bram-select",
+   "pipeline",
+   "counter8",
+   "frames-load",
+   "frames-crc-reject",
+   "frames-idcode-reject",
+   "frames-live-refused",
+   "frames-vs-chain",
+   "bob-gates",
+   "bob-counter",
+   "bob-ram",
+   "bob-mult",
+   "bob-fir",
+   "pnr-switches",
+   "ram-readback",
+   "blinky-rate",
+   "bob-wide",
+   "pnr-wide",
+   "partial-swap",
+   "partial-live",
+   "partial-bad-crc",
+   "partial-guest",
+   "frames-bram-load",
+   "frames-bram-live-refused",
+   "ram-readback-frames",
+   "bob-big",
+   "pnr-big",
+   "bob-bd_demo",
+   "pnr-bd_demo",
+   "live-bd_demo",
+   "wave-step",
+   "wave-live",
+   "clock-rate",
+   "clock-fmax",
+   "clock-fmax-py",
+   "clock-margin",
+   "shadow-readback",
+   "partial-cluster",
+   "bob-fir16",
+   "pnr-fir16",
+   "live-fir16",
+   "fast-fir16",
+   "fmax-cluster",
+   "lutram-snake",
+   "xbar-pins",
+   "double-duty",
+   "time-travel",
+   "fast-tck",
+   "init-srval",
+   "bob-initval",
+   "pnr-initval",
+   "pipeline-live"
+  ]
+ },
+ "counter": {
+  "verilog": [
+   "// counter.v - 6-bit counter, enable BTN0, sync reset BTN1, top bits on the LEDs (M8 example)",
+   "module counter (",
+   "    input  wire       clk,",
+   "    input  wire [1:0] sw,",
+   "    input  wire [3:0] btn,",
+   "    output wire [2:0] led",
+   ");",
+   "    reg [5:0] q = 6'd0;",
+   "    always @(posedge clk)",
+   "        if (btn[1])      q <= 6'd0;",
+   "        else if (btn[0]) q <= q + 6'd1;",
+   "    assign led = q[5:3];",
+   "endmodule"
+  ],
+  "cells": {
+   "BOB_ADD": 6,
+   "BOB_FDRE": 6
+  },
+  "fasm_lines": 79,
+  "fasm_sample": [
+   "clb_x7y2.e0.cy_en = 1'h1",
+   "clb_x7y2.e0.dd = 1'h1",
+   "clb_x7y2.e1.cy_en = 1'h1",
+   "clb_x7y2.e1.dd = 1'h1",
+   "clb_x7y2.e1.ff_ce_en = 1'h1",
+   "clb_x7y2.e1.ff_en = 1'h1",
+   "clb_x7y2.e1.ff_sr_en = 1'h1",
+   "clb_x7y2.e1.x4 = 5'h1"
+  ],
+  "fasm_rr_sample": [
+   "rr1225 = 3'h4",
+   "rr1476 = 3'h4",
+   "rr1486 = 3'h2",
+   "rr1663 = 3'h2"
+  ],
+  "bit_crc": "0x10BA954B",
+  "bit_cpd_ns": 12.909,
+  "bit_features": 78,
+  "bit_bytes": 9013,
+  "bit_hex": [
+   "00000000  42 4f 42 43 02 00 08 00 62 6f 62 31 32 78 31 30  |BOBC....bob12x10|",
+   "00000010  00 0a 01 00 4b 95 ba 10 00 00 00 00 00 00 00 00  |....K...........|",
+   "00000020  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|"
+  ],
+  "sparse_words": 214,
+  "sparse_frames": 30,
+  "sparse_head": [
+   "FFFFFFFF  dummy",
+   "FFFFFFFF  dummy",
+   "AA995566  sync",
+   "20000000  type-1 NOP  count 0",
+   "30008001  type-1 WRITE CMD count 1",
+   "00000007    CMD RCRC data",
+   "20000000  type-1 NOP  count 0",
+   "30018001  type-1 WRITE IDCODE count 1",
+   "0B026093    IDCODE data",
+   "30008001  type-1 WRITE CMD count 1",
+   "00000001    CMD WCFG data",
+   "20000000  type-1 NOP  count 0",
+   "30002001  type-1 WRITE FAR count 1",
+   "00000080    FAR data",
+   "30004008  type-1 WRITE FDRI count 8",
+   "00000000    FDRI data"
+  ],
+  "vpr": {
+   "wirelength": "105",
+   "cpd_ns": "33.6819",
+   "clbs": "2",
+   "pads": "6"
+  },
+  "route_btn1": [
+   "2104 OPIN  (0,4)            pin 1",
+   "7841 CHANY (0,1)->(0,4)     track 23,21,19,17   rr7841 = 1  (selects node 2104)",
+   "5980 CHANX (1,0)->(4,0)     track 24,26,28,30   rr5980 = 1  (selects node 7841)",
+   "6002 CHANX (3,0)->(6,0)     track 0,2,4,6   rr6002 = 3  (selects node 5980)",
+   "6024 CHANX (5,0)->(8,0)     track 8,10,12,14   rr6024 = 3  (selects node 6002)",
+   "8726 CHANY (7,1)->(7,3)     track 26,28,30   rr8726 = 2  (selects node 6024)"
+  ],
+  "routes": {
+   "btn[1]": [
+    {
+     "node": 2104,
+     "kind": "OPIN",
+     "a": [
+      0,
+      4
+     ],
+     "b": [
+      0,
+      4
+     ],
+     "sel": null
+    },
+    {
+     "node": 7841,
+     "kind": "CHANY",
+     "a": [
+      0,
+      1
+     ],
+     "b": [
+      0,
+      4
+     ],
+     "sel": 1
+    },
+    {
+     "node": 5980,
+     "kind": "CHANX",
+     "a": [
+      1,
+      0
+     ],
+     "b": [
+      4,
+      0
+     ],
+     "sel": 1
+    },
+    {
+     "node": 6002,
+     "kind": "CHANX",
+     "a": [
+      3,
+      0
+     ],
+     "b": [
+      6,
+      0
+     ],
+     "sel": 3
+    },
+    {
+     "node": 6024,
+     "kind": "CHANX",
+     "a": [
+      5,
+      0
+     ],
+     "b": [
+      8,
+      0
+     ],
+     "sel": 3
+    },
+    {
+     "node": 8726,
+     "kind": "CHANY",
+     "a": [
+      7,
+      1
+     ],
+     "b": [
+      7,
+      3
+     ],
+     "sel": 2
+    },
+    {
+     "node": 1914,
+     "kind": "IPIN",
+     "a": [
+      7,
+      3
+     ],
+     "b": [
+      7,
+      3
+     ],
+     "sel": 3
+    }
+   ],
+   "led[0]": [
+    {
+     "node": 1900,
+     "kind": "OPIN",
+     "a": [
+      7,
+      3
+     ],
+     "b": [
+      7,
+      3
+     ],
+     "sel": null
+    },
+    {
+     "node": 8745,
+     "kind": "CHANY",
+     "a": [
+      7,
+      2
+     ],
+     "b": [
+      7,
+      3
+     ],
+     "sel": 1
+    },
+    {
+     "node": 8719,
+     "kind": "CHANY",
+     "a": [
+      7,
+      1
+     ],
+     "b": [
+      7,
+      2
+     ],
+     "sel": 7
+    },
+    {
+     "node": 6052,
+     "kind": "CHANX",
+     "a": [
+      8,
+      0
+     ],
+     "b": [
+      11,
+      0
+     ],
+     "sel": 6
+    },
+    {
+     "node": 6086,
+     "kind": "CHANX",
+     "a": [
+      11,
+      0
+     ],
+     "b": [
+      12,
+      0
+     ],
+     "sel": 2
+    },
+    {
+     "node": 9348,
+     "kind": "CHANY",
+     "a": [
+      12,
+      1
+     ],
+     "b": [
+      12,
+      3
+     ],
+     "sel": 2
+    },
+    {
+     "node": 1225,
+     "kind": "IPIN",
+     "a": [
+      13,
+      1
+     ],
+     "b": [
+      13,
+      1
+     ],
+     "sel": 4
+    }
+   ]
+  },
+  "timing_path": [
+   "    0.500 ns  (+0.500)  OPIN      OPIN  (7,2)            pin 21",
+   "    3.509 ns  (+3.009)  EIN       EIN   (7,2)            ptc 1,5",
+   "    6.909 ns  (+3.400)  ECY       ECY   (7,2)            ptc 1,0",
+   "    7.909 ns  (+1.000)  ECY       ECY   (7,2)            ptc 2,0",
+   "    8.909 ns  (+1.000)  OPIN      OPIN  (7,2)            pin 27",
+   "    8.909 ns  (+0.000)  IPIN      IPIN  (7,3)            pin 18",
+   "    9.909 ns  (+1.000)  ECY       ECY   (7,3)            ptc 0,0",
+   "   10.909 ns  (+1.000)  ECY       ECY   (7,3)            ptc 1,0",
+   "   11.909 ns  (+1.000)  internal  clb_x7y3.e2.comb",
+   "   12.909 ns  (+1.000)  setup     the flip-flop's setup time"
+  ],
+  "delays": {
+   "mux_chan": 4.602,
+   "mux_ipin": 4.651,
+   "mux_xbar": 3.009,
+   "lut": 3.4,
+   "carry": 1.0,
+   "wire": 0.0,
+   "direct": 0.0,
+   "ff_clk_q": 0.5,
+   "ff_setup": 1.0,
+   "bram_clk_q": 2.5,
+   "bram_setup": 1.0,
+   "dsp_clk_q": 1.0,
+   "dsp_comb": 8.0,
+   "dsp_setup": 1.0
+  }
+ },
+ "milestones": [
+  {
+   "m": "M0",
+   "what": "Whole-tree copy; `hw/` layout; adaptable `build.tcl` (project reuse, fingerprint, stub-tested); `sources.f`; `hwtest.py`; Makefile. Found the inherited Tcl-in-X",
+   "pass": "11/11",
+   "luts": 4341,
+   "idcode": "0x3BEEF093"
+  },
+  {
+   "m": "M1",
+   "what": "`software/bob/device.py`: single source of truth \u2192 `device.json`, `bob_params.vh`; bitstream engine driven by it",
+   "pass": null,
+   "luts": null,
+   "idcode": "reused"
+  },
+  {
+   "m": "M2",
+   "what": "Configuration plane: 6-bit AMD IR, CFG_IN/OUT chain with shift + shadow, CRC-32C + length guard with a write key, JPROGRAM/JSTART startup, CAPTURE; standalone t",
+   "pass": "11/11",
+   "luts": 175,
+   "idcode": "0x4BEEF093"
+  },
+  {
+   "m": "M3",
+   "what": "The plane in the 4\u00d74 fabric; host loader with per-pulse fallback",
+   "pass": "12/12",
+   "luts": 3951,
+   "idcode": "0x5BEEF093"
+  },
+  {
+   "m": "M4",
+   "what": "CLB core per UG474 (routable CE/SR, FDRE/FDSE priority, LUT size K as a parameter); ctrl tile; user clock on sysclk with gce",
+   "pass": "16/16",
+   "luts": null,
+   "idcode": "0x6BEEF093"
+  },
+  {
+   "m": "M5",
+   "what": "BRAM per UG473 (1024\u00d718 TDP, write modes, DOx_REG); USER4 contents register",
+   "pass": "19/20",
+   "luts": null,
+   "idcode": "0x7BEEF093"
+  },
+  {
+   "m": "M6",
+   "what": "DSP per UG479 trimmed (A25/B18/D25, pre-adder, 25\u00d718, P48, 4 opmodes, cascade); private DSP instruction",
+   "pass": "23/23",
+   "luts": null,
+   "idcode": "0x8BEEF093"
+  },
+  {
+   "m": "M7",
+   "what": "Heterogeneous fabric **generated from VPR's rr graph** (OpenFPGA method); 16-CLB board profile; boundary 2 cells per pad",
+   "pass": "26/26",
+   "luts": 7670,
+   "idcode": "0xABEEF093"
+  },
+  {
+   "m": "M8",
+   "what": "yosys synthesis to bob cells; equivalence source == netlist; M8 hand placer",
+   "pass": "10/10",
+   "luts": null,
+   "idcode": "M7"
+  },
+  {
+   "m": "M9",
+   "what": "VPR pack/place/route on the committed rr graph; FASM from VPR results",
+   "pass": "10/10",
+   "luts": null,
+   "idcode": "M7"
+  },
+  {
+   "m": "M10",
+   "what": "bitgen (FASM \u21c4 chain, `.bit` v2), `bob build/load`, `.pcf` pins, golden netlist, co-simulation",
+   "pass": "11/11",
+   "luts": null,
+   "idcode": "M7"
+  },
+  {
+   "m": "M11",
+   "what": "Real designs live: free-running clock, real switches, RAM readback, clock-rate check, FIR on both DSPs",
+   "pass": "12/12",
+   "luts": null,
+   "idcode": "M7"
+  },
+  {
+   "m": "M12a",
+   "what": "bob's own pack (VPR patterns), annealing placer, PathFinder router; compared with VPR",
+   "pass": "15/15",
+   "luts": null,
+   "idcode": "M7"
+  },
+  {
+   "m": "M13",
+   "what": "UG470-style frames on CFG_IN/CFG_OUT, chain moved to CHAIN_IN/CHAIN_OUT; M7 timing analysed and fixed; four Vivado synthesis crashes diagnosed",
+   "pass": "39/39",
+   "luts": 11607,
+   "idcode": "0xBBEEF093"
+  },
+  {
+   "m": "M12b",
+   "what": "Chain streamed through one frame buffer (\u22123.6k LUT, \u22124.8k FF); 8\u00d76 core, 36 CLBs; `wide` example (31 CLBs)",
+   "pass": "48/48",
+   "luts": null,
+   "idcode": "(C, in M15)"
+  },
+  {
+   "m": "M14",
+   "what": "Partial reconfiguration: AGHIGH/GHIGH_B freeze, changed frames only, LFRM after CRC; `bob load --partial`",
+   "pass": "48/48",
+   "luts": null,
+   "idcode": "(D, in M15)"
+  },
+  {
+   "m": "M15",
+   "what": "BRAM contents as FAR block type 001 frames, one CRC-covered stream",
+   "pass": "48/48",
+   "luts": 10411,
+   "idcode": "0xEBEEF093"
+  },
+  {
+   "m": "M16",
+   "what": "12 \u00d7 10 core, 100 CLBs, 145 frames; gce gap 256 \u2192 512 cycles; `general.maxThreads 1` for the router",
+   "pass": "50/50",
+   "luts": 20498,
+   "idcode": "0xFBEEF093"
+  },
+  {
+   "m": "M17",
+   "what": "bob studio: the flow as timed stages (`flow.py`), a browser EDA tool, the stand-in board as a module",
+   "pass": null,
+   "luts": null,
+   "idcode": "M16"
+  },
+  {
+   "m": "M18",
+   "what": "studio projects and block designs (14 IP cores, board pins)",
+   "pass": null,
+   "luts": null,
+   "idcode": "M16"
+  },
+  {
+   "m": "M19",
+   "what": "studio as a desktop app; waveform viewer over boundary scan",
+   "pass": null,
+   "luts": null,
+   "idcode": "M16"
+  },
+  {
+   "m": "M20",
+   "what": "per-design user clock (`clk_period` / `clk_gap`), `timing.py`, measured delays, `.sdc` constraints; IDCODE scheme `0x0B0<MM>093`",
+   "pass": "58/59",
+   "luts": null,
+   "idcode": "0x0B020093"
+  },
+  {
+   "m": "M21",
+   "what": "the cluster CLB (49 \u00d7 4 elements, full crossbar), BRAM-shadow readback, fir16, the timing contract",
+   "pass": "66/66",
+   "luts": 35882,
+   "idcode": "0x0B021093"
+  },
+  {
+   "m": "M22",
+   "what": "LUT contents and crossbar in CFGLUT5 (`lut_loader.v`, `lut_expand.v`); 9 \u00d7 9 = 81 CLBs",
+   "pass": "65/67",
+   "luts": 38184,
+   "idcode": "0x0B022093"
+  },
+  {
+   "m": "M23",
+   "what": "grid sweep (`gridsweep.py`); crossbar OR roots; routing muxes from LUT6/MUXF7/MUXF8; 24-bit chain count; 10 \u00d7 10 = 100 CLBs",
+   "pass": "68/68",
+   "luts": 36710,
+   "idcode": "0x0B023093"
+  },
+  {
+   "m": "M24",
+   "what": "Double Duty elements (`dd`): the adder on two bypass inputs beside a free LUT; VPR mode `dd`; bob's packer fills adder elements' LUTs",
+   "pass": "69/69",
+   "luts": 38193,
+   "idcode": "0x0B024093"
+  },
+  {
+   "m": "M25",
+   "what": "time-travel debugging (GRESTORE, `snapshot.py`, `bob snap`); TCK constrained at 1 MHz",
+   "pass": "71/71",
+   "luts": null,
+   "idcode": "0x0B025093"
+  },
+  {
+   "m": "M26",
+   "what": "each flip-flop's INIT apart from its reset value (UG474 INIT / SRVAL) through yosys, VPR and the Python placer; TDO high impedance outside Shift (IEEE 1149.1); ",
+   "pass": "74/74",
+   "luts": 38676,
+   "idcode": "0x0B026093"
+  }
+ ],
+ "verification": {
+  "benches": [
+   {
+    "bench": "tb_clb K = 6",
+    "checks": 4032,
+    "what": "the cluster: every element flag, the three LUT modes, every crossbar select value, the car"
+   },
+   {
+    "bench": "tb_clb K = 4",
+    "checks": 4032,
+    "what": "same at K = 4"
+   },
+   {
+    "bench": "tb_bram",
+    "checks": 5292,
+    "what": "write modes \u00d7 DOx_REG \u00d7 both ports vs `model.py`"
+   },
+   {
+    "bench": "tb_dsp",
+    "checks": 1344,
+    "what": "every opmode \u00d7 pre-adder, 2-slice cascade"
+   },
+   {
+    "bench": "tb_bob",
+    "checks": 661,
+    "what": "complete FPGA: IR, chain CRC/readback/length/GTS, routed designs, corrupt chain, boundary,"
+   },
+   {
+    "bench": "tb_bob K = 4",
+    "checks": 531,
+    "what": "same at K = 4"
+   },
+   {
+    "bench": "tb_cfg",
+    "checks": 180,
+    "what": "M2 configuration plane"
+   },
+   {
+    "bench": "tb_synth",
+    "checks": 972,
+    "what": "12 synthesised designs (hand-placed and VPR) vs source traces"
+   },
+   {
+    "bench": "tb_cosim",
+    "checks": 7026,
+    "what": "every example through VPR **and** bob's PnR: LEDs == source == golden before and after eve"
+   },
+   {
+    "bench": "tb_frames",
+    "checks": 73,
+    "what": "frames load/readback, split streams, every error, chain after frames, partial reconfigurat"
+   },
+   {
+    "bench": "tb_clock_gap",
+    "checks": 34,
+    "what": "gce spacing in both modes, freeze, the M20 period and gap, at GAP = 4 and at the board's g"
+   }
+  ],
+  "mutants": [
+   {
+    "suite": "mutate_cfg.sh",
+    "mutants": 5
+   },
+   {
+    "suite": "mutate_fabric.sh",
+    "mutants": 33
+   },
+   {
+    "suite": "mutate_frames.sh",
+    "mutants": 38
+   }
+  ],
+  "sim_source": "REPORT.md 15.2 (last make check on M21)"
+ },
+ "example_rev": "c072b6d"
+}

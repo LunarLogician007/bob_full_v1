@@ -1,0 +1,4 @@
+# rendered output and caches: rebuild with build.py
+out/
+.cache/
+__pycache__/

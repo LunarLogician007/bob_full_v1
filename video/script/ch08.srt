@@ -1,0 +1,204 @@
+1
+00:00:00,000 --> 00:00:05,332
+Every one of bob's 68,096 configuration bits lives in one memory.
+
+2
+00:00:05,652 --> 00:00:11,873
+This chapter is about that memory, the simplest way to fill it, and the sequence that starts a design.
+
+3
+00:00:13,433 --> 00:00:18,806
+The configuration memory is organised as AMD organises its own: in frames.
+
+4
+00:00:19,126 --> 00:00:26,328
+A frame is four 32-bit words, 128 bits, and the memory is 532 of them.
+
+5
+00:00:26,800 --> 00:00:32,185
+Frames go column by column, like the configuration columns of a seven-series part.
+
+6
+00:00:32,505 --> 00:00:34,782
+Column zero is the control tile.
+
+7
+00:00:35,102 --> 00:00:42,927
+Then each grid column in turn, its tiles from bottom to top, each tile's block fields followed by its routing multiplexers.
+
+8
+00:00:43,247 --> 00:00:49,009
+A logic-block column needs fifty-one frames; the memory and multiplier columns far fewer.
+
+9
+00:00:50,567 --> 00:00:53,509
+How do bits get from JTAG into that memory?
+
+10
+00:00:53,829 --> 00:00:58,076
+The first obvious answer writes a frame with a computed index into the memory.
+
+11
+00:00:58,396 --> 00:01:03,864
+Synthesis turns that into a shifter across every bit, and the host tools ran out of memory.
+
+12
+00:01:04,333 --> 00:01:11,369
+The second obvious answer, the textbook scan chain, keeps a whole second copy of the memory as a shift register.
+
+13
+00:01:11,689 --> 00:01:14,119
+It works, but it doubles the cost.
+
+14
+00:01:14,600 --> 00:01:22,706
+bob's answer is to stream everything through a single frame buffer of one hundred and twenty-eight bits, and write each completed frame into place.
+
+15
+00:01:23,026 --> 00:01:25,613
+That one change paid for the larger grids.
+
+16
+00:01:27,167 --> 00:01:29,382
+The first way in is the scan chain.
+
+17
+00:01:29,702 --> 00:01:38,758
+Select the private instruction chain in, and shift all 68,096 bits through TDI in one scan, least significant first.
+
+18
+00:01:39,078 --> 00:01:40,585
+They enter the frame buffer.
+
+19
+00:01:41,067 --> 00:01:49,975
+Every hundred and twenty-eight bits complete a frame, which is written into its place in memory on the next falling clock edge, and the frame counter moves on.
+
+20
+00:01:50,295 --> 00:01:56,438
+But only while writes to a running design are disabled: a running design is never rewritten underneath itself.
+
+21
+00:01:56,900 --> 00:02:01,117
+Reading the chain back works the same way in reverse, and never writes.
+
+22
+00:02:02,700 --> 00:02:10,736
+While the bits stream in, a CRC is computed one bit at a time, with the Castagnoli polynomial, and a counter counts them.
+
+23
+00:02:11,056 --> 00:02:19,337
+At the end of the scan the design is committed only if the count is exactly the chain width and the CRC equals the value the host promised in advance.
+
+24
+00:02:19,800 --> 00:02:21,063
+Two details.
+
+25
+00:02:21,383 --> 00:02:27,688
+The CRC starts at all ones, so a TDI wire stuck at zero cannot accidentally match.
+
+26
+00:02:28,008 --> 00:02:35,337
+And the length check is guarded by a mutation test, because the first version of it could be deleted with every test still passing.
+
+27
+00:02:36,900 --> 00:02:39,533
+The chain has a control register beside it.
+
+28
+00:02:39,853 --> 00:02:49,121
+Reading it returns the last CRC, how many bits arrived, the error flags, whether a configuration is committed, and the four startup signals.
+
+29
+00:02:49,600 --> 00:02:54,734
+Writing it sets the expected CRC, but only if the top byte carries a key.
+
+30
+00:02:55,054 --> 00:03:04,066
+Reading a JTAG register shifts new bits in at the same time, so without the key, every status read would silently overwrite the expected value.
+
+31
+00:03:05,633 --> 00:03:08,469
+A loaded design does not start by itself.
+
+32
+00:03:08,789 --> 00:03:16,645
+After power-up or JPROGRAM, global set-reset and the output tristate are held, writes are disabled, and DONE is low.
+
+33
+00:03:17,100 --> 00:03:23,012
+With the JSTART instruction loaded, each test clock in Run-Test Idle advances one phase.
+
+34
+00:03:23,332 --> 00:03:27,497
+First the flip-flops leave reset, taking their initial values.
+
+35
+00:03:27,817 --> 00:03:29,582
+Then the outputs are enabled.
+
+36
+00:03:29,902 --> 00:03:33,431
+Then writes are enabled, so the design starts to run.
+
+37
+00:03:33,751 --> 00:03:35,670
+Last, DONE rises.
+
+38
+00:03:36,133 --> 00:03:47,660
+This follows UG470's principle, check first and then release in a safe order, but the order is bob's own: DONE comes last, so a lit DONE LED means the design is really running.
+
+39
+00:03:47,980 --> 00:03:51,350
+And nothing advances unless a configuration was committed.
+
+40
+00:03:52,900 --> 00:03:54,981
+JPROGRAM resets all of it.
+
+41
+00:03:55,301 --> 00:04:04,438
+The configuration flip-flops clear, every CFGLUT5 is swept to zero, readback is invalidated, and startup returns to phase zero.
+
+42
+00:04:04,758 --> 00:04:09,196
+What survives is the expected CRC and the contents of the block RAMs.
+
+43
+00:04:09,667 --> 00:04:14,709
+Every mux now selects zero and every table is zero: the dark fabric again.
+
+44
+00:04:15,029 --> 00:04:20,448
+That is also why a load straight after JPROGRAM may skip every frame that is all zeros.
+
+45
+00:04:22,000 --> 00:04:23,210
+One more saving.
+
+46
+00:04:23,530 --> 00:04:29,663
+Every frame written into the memory is also written, on the same edge, into a block RAM of the host.
+
+47
+00:04:29,983 --> 00:04:33,364
+Readback, on either path, reads that copy.
+
+48
+00:04:33,833 --> 00:04:41,243
+Before this, readback was a giant multiplexer over the configuration flip-flops, about a third of the whole design.
+
+49
+00:04:41,563 --> 00:04:48,829
+The honest trade-off is that readback now proves what was written, not what the cells hold; the capture checks cover the cells.
+
+50
+00:04:50,400 --> 00:04:55,671
+The memory, the chain control and the startup sequence are three small Verilog files.
+
+51
+00:04:55,991 --> 00:05:04,557
+Their testbenches take every expected value from the Python models, and a mutation suite breaks each guard in turn to prove the tests notice.
+
